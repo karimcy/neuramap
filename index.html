@@ -49,33 +49,27 @@
 
   <section class="card deal-card" id="dealCard" hidden>
    <div class="card-title">Firming deal screen <span class="card-hint">flexible connection + BESS</span></div>
-   <div class="inline-ctl">
+   <div class="deal-grid">
     <span class="lbl">Target load</span>
     <div class="seg seg-sm" id="dtarget">
      <button data-mw="20">20</button><button data-mw="50" class="on">50</button>
      <button data-mw="100">100</button><button data-mw="250">250</button>
+     <span class="seg-unit">MW</span>
     </div>
-    <span class="lbl">MW</span>
-   </div>
-   <div class="inline-ctl">
-    <span class="lbl">Battery duration</span>
+    <span class="lbl">Battery</span>
     <div class="seg seg-sm" id="ddur">
-     <button data-h="2">2 h</button><button data-h="8" class="on">8 h</button>
+     <button data-h="2">2 h</button><button data-h="4">4 h</button><button data-h="8" class="on">8 h</button>
     </div>
-   </div>
-   <div class="inline-ctl">
-    <span class="lbl">Colour nodes by</span>
+    <span class="lbl">Colour by</span>
     <div class="seg seg-sm" id="dcolor">
      <button data-c="fit" class="on">Fit score</button><button data-c="raw">Raw headroom</button>
     </div>
    </div>
-   <button class="chip-btn" id="loadAllBtn">Load all markets</button>
    <div class="deal-stats" id="dealStats"></div>
-   <div class="inline-ctl" style="margin:0 0 6px">
-    <span class="lbl">Rank within</span>
+   <div class="rank-hdr">
+    <span class="rank-title" style="margin:0">Top opportunities</span>
     <select id="dmarket" class="pipe-stage" aria-label="Market filter"><option value="ALL">All markets</option></select>
    </div>
-   <div class="rank-title">Top opportunities</div>
    <div id="dealRank" class="rank"></div>
    <button class="chip-btn" id="screenCsvBtn">Export full screen CSV (top 500)</button>
    <p class="note">Score blends firming-gap economics (can a right-sized battery bridge target vs headroom), connectivity (fibre &amp; interconnection proximity), voltage class, queued-demand pressure within 30&nbsp;km, and industrial land within 3&nbsp;km. Flexible connection + firming ≈ <b>12–18 months to power</b> vs 5–7 years conventional.</p>
@@ -387,7 +381,7 @@
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"
  integrity="sha512-puJW3E/qXDqYp9IfhAI54BJEaWIfloJ7JWs7OeD5i6ruC9JZL1gERT1wjtwXFlh7CjE7ZJ+/vcRZRkIYIb6p4g==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-<script src="js/data.js?v=17"></script>
+<script src="js/data.js?v=18"></script>
 <script src="js/app.js?v=18"></script>
 </body>
 </html>

@@ -1126,7 +1126,14 @@ function layerKindOf(cc, p) {
 }
 // measured nodes: empirically firmable added load at the selected battery duration
 // (from a year of metering) replaces published headroom as the screening figure
-const measFirm = p => p.meas ? (dealDur === 2 ? p.meas.firm_2h_mw : p.meas.firm_8h_mw) : null;
+// measured firm at 2h/8h from the metered pipeline; 4h linearly interpolated
+// (real 4h simulation queued in the PT pipeline — see IMPROVEMENTS)
+const measFirm = p => {
+  if (!p.meas) return null;
+  if (dealDur === 2) return p.meas.firm_2h_mw;
+  if (dealDur === 8) return p.meas.firm_8h_mw;
+  return Math.round(p.meas.firm_2h_mw + (p.meas.firm_8h_mw - p.meas.firm_2h_mw) / 3);
+};
 function dealScore(cc, p) {
   const mH = measFirm(p);
   if (mH === null && (p.kind !== 'demand' || !(p.mw >= 5))) return null;
@@ -1250,11 +1257,10 @@ function renderDealRank() {
   let nMeas = 0;
   cands.forEach(x => { counts[x.sc.tier]++; if (x.sc.meas) nMeas++; });
   document.getElementById('dealStats').innerHTML =
-    `<b>${fmt(cands.length)}</b> demand nodes screened at <b>${dealTarget} MW</b>` +
+    `<b>${fmt(cands.length)}</b> nodes @ <b>${dealTarget} MW</b>` +
     `${dealMarket !== 'ALL' ? ' in ' + dealMarket : ''} — ` +
     `<b>${counts.prime}</b> prime · <b>${counts.strong}</b> strong · ${counts.possible} possible` +
-    (nMeas ? ` · <b>${nMeas}</b> with measured profiles` : '') +
-    `<br>All demand nodes ≥5 MW in loaded markets are shown, coloured by fit.`;
+    `${nMeas ? ` · <b>${nMeas}</b> measured` : ''}`;
 }
 
 /* ── pipeline (persistent shortlist) ── */
@@ -1334,11 +1340,13 @@ document.getElementById('csvBtn').onclick = () => {
 /* ── mode + controls wiring ── */
 function updateLoadAllBtn() {
   const btn = document.getElementById('loadAllBtn');
+  if (!btn) return;
   const missing = MANIFEST.filter(m => !COUNTRIES[m.cc]);
   btn.hidden = !missing.length;
   btn.textContent = `Load all markets (${Object.keys(COUNTRIES).length}/${Object.keys(FREE).length + MANIFEST.length} loaded)`;
 }
-document.getElementById('loadAllBtn').onclick = async () => {
+const _lab = document.getElementById('loadAllBtn');
+if (_lab) _lab.onclick = async () => {
   const missing = MANIFEST.filter(m => !COUNTRIES[m.cc]);
   toast(`Loading ${missing.length} markets…`, { spin: true });
   await Promise.all(missing.map(m => loadCountry(m.cc, m.data_url)));

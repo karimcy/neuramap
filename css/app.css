@@ -552,3 +552,11 @@ body.panel-hidden #panel,body.panel-hidden #panelDrag{display:none}
   .meth-row,.meth-strip{padding:24px;grid-template-columns:1fr;gap:16px}
   .meth-row.rev .meth-viz{order:0}
 }
+
+/* deal card layout */
+[hidden]{display:none!important}
+.deal-grid{display:grid;grid-template-columns:74px 1fr;gap:7px 8px;align-items:center;margin:2px 0 8px}
+.deal-grid .seg{justify-self:start}
+.seg-unit{align-self:center;color:var(--faint);font-size:10.5px;padding:0 6px}
+.rank-hdr{display:flex;justify-content:space-between;align-items:center;margin:6px 0 6px}
+.rank-hdr .pipe-stage{max-width:150px}
