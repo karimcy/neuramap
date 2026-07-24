@@ -606,6 +606,50 @@ document.getElementById('tReg').onchange = e => { e.target.checked ? regGroup.ad
   if (anyLines) { document.getElementById('linemode').hidden = false; drawNodes(); }
 })();
 
+/* ── Connectivity layer: fibre · PeeringDB facilities · subsea ── */
+const telcoState = { group: null, visible: false, loaded: false };
+async function ensureTelco() {
+  if (telcoState.loaded) return telcoState.group;
+  const gj = await (await fetch('data/telco.geojson')).json();
+  const grp = L.layerGroup();
+  for (const f of gj.features) {
+    const p = f.properties, cls = p.cls;
+    if (cls === 'fibre' || cls === 'subsea') {
+      const op = p.status !== 'Planned';
+      const lyr = L.geoJSON(f, { renderer: CANVAS, style: cls === 'fibre'
+        ? { color: '#c084fc', weight: 1, opacity: op ? .5 : .22, dashArray: op ? null : '4,5' }
+        : { color: '#38bdf8', weight: 1.2, opacity: .45 } });
+      lyr.bindTooltip(cls === 'fibre'
+        ? `fibre backbone · ${esc(p.status || '')}`
+        : `<b>${esc(p.name || 'subsea cable')}</b>`, { sticky: true });
+      grp.addLayer(lyr);
+    } else {
+      const [lon, lat] = f.geometry.coordinates;
+      const m = L.circleMarker([lat, lon], cls === 'facility'
+        ? { renderer: CANVAS, radius: 4, color: '#fda4d4', weight: 1, fillColor: '#f472b6', fillOpacity: .85 }
+        : { renderer: CANVAS, radius: 3.5, color: '#7dd3fc', weight: 1, fillColor: '#0ea5e9', fillOpacity: .85 });
+      m.bindTooltip(cls === 'facility'
+        ? `<b>${esc(p.name)}</b> · interconnection facility · ${esc(p.city || '')}`
+        : `<b>${esc(p.name)}</b> · cable landing`, { sticky: true, direction: 'top' });
+      m.bindPopup(cls === 'facility'
+        ? `<div class="pp-head"><span class="pp-name">${esc(p.name)}</span><span class="pp-kv">facility</span></div>` +
+          `<div class="pp-reg">${esc(p.city || '')} · ${esc(p.cc || '')}${p.org ? ' · ' + esc(p.org) : ''}</div>` +
+          `<div class="pp-src">carrier-neutral interconnection facility · PeeringDB</div>`
+        : `<div class="pp-head"><span class="pp-name">${esc(p.name)}</span><span class="pp-kv">landing</span></div>` +
+          `<div class="pp-src">submarine cable landing point · TeleGeography</div>`, { maxWidth: 320 });
+      grp.addLayer(m);
+    }
+  }
+  telcoState.group = grp; telcoState.loaded = true;
+  return grp;
+}
+document.getElementById('tTelco').onchange = async e => {
+  telcoState.visible = e.target.checked;
+  const grp = await ensureTelco();
+  if (e.target.checked) { grp.addTo(map); drawNodes(); } else map.removeLayer(grp);
+  renderLegend();
+};
+
 /* ── Solar & BESS asset layer (GB: REPD × TEC) ───────────── */
 function assetPopup(p) {
   let s = `<div class="pp-head"><span class="pp-name">${esc(p.name)}</span>` +
@@ -682,6 +726,13 @@ function renderLegend() {
          `<div class="lg-row"><i class="lg-line" style="background:#fc4e2a"></i>25–100 MW</div>` +
          `<div class="lg-row"><i class="lg-line" style="background:#fd8d3c"></i>5–25 MW</div>` +
          `<div class="lg-row"><i class="lg-line" style="background:#3a4658"></i>none nearby</div>`;
+  }
+  if (telcoState.visible) {
+    s += '<div class="lg-sep"></div>' +
+      `<div class="lg-row"><i class="lg-line" style="background:#c084fc"></i>fibre backbone (dashed = planned)</div>` +
+      `<div class="lg-row"><i class="lg-line" style="background:#38bdf8"></i>subsea cable</div>` +
+      `<div class="lg-row"><i class="lg-dot" style="background:#f472b6"></i>interconnection facility</div>` +
+      `<div class="lg-row"><i class="lg-dot" style="background:#0ea5e9"></i>cable landing point</div>`;
   }
   if (assetState.visible) {
     s += '<div class="lg-sep"></div>' +
