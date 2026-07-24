@@ -1558,6 +1558,13 @@ function initMethViz() {
 }
 (function () {
   const modal = document.getElementById('methModal');
+  // scroll-triggered entrances for the animated HTML components (.meth-anim → .in)
+  const io = typeof IntersectionObserver !== 'undefined'
+    ? new IntersectionObserver(es => es.forEach(x => {
+        if (x.isIntersecting) { x.target.classList.add('in'); io.unobserve(x.target); }
+      }), { root: modal.querySelector('.mm-panel'), threshold: .3 })
+    : null;
+  modal.querySelectorAll('.meth-anim').forEach(el => io ? io.observe(el) : el.classList.add('in'));
   const open = () => {
     modal.hidden = false; document.body.style.overflow = 'hidden';
     initMethViz();

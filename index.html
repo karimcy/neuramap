@@ -11,7 +11,7 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css"
  integrity="sha512-h9FcoyWjHcOcmEVkxOfTLnmZFWIH0iZhZT1H2TbOq55xssQGEJHEaIm+PgoUaZbRvQTNTluNOEfb1ZRy6D3BOw==" crossorigin="anonymous" referrerpolicy="no-referrer">
 <link rel="icon" type="image/png" href="assets/neura-mark.png">
-<link rel="stylesheet" href="css/app.css?v=20">
+<link rel="stylesheet" href="css/app.css?v=22">
 </head>
 <body>
 <div id="wrap">
@@ -219,17 +219,24 @@
 
     <section class="meth-row rev">
      <div class="meth-viz">
-      <svg class="meth-svg" viewBox="0 0 320 186" role="img" aria-label="Two nearby nodes share one upstream limit">
-       <line x1="26" y1="30" x2="294" y2="30" stroke="#7cc0ff" stroke-width="2"/>
-       <text x="26" y="18" fill="#8b98a9" font-size="10">upstream circuit — one shared limit</text>
-       <line x1="112" y1="30" x2="112" y2="66" stroke="#3a4658" stroke-width="1.6"/>
-       <line x1="212" y1="30" x2="212" y2="74" stroke="#3a4658" stroke-width="1.6"/>
-       <circle cx="112" cy="106" r="42" fill="#fc4e2a" fill-opacity=".78" stroke="#f5f7ff" stroke-opacity=".5"/>
-       <circle cx="212" cy="110" r="33" fill="#fd8d3c" fill-opacity=".78" stroke="#f5f7ff" stroke-opacity=".4"/>
-       <text x="112" y="110" text-anchor="middle" fill="#0b0f14" font-size="13" font-weight="700">70 MW</text>
-       <text x="212" y="114" text-anchor="middle" fill="#0b0f14" font-size="12" font-weight="700">45 MW</text>
-       <text x="160" y="175" text-anchor="middle" fill="#e8edf4" font-size="12" font-weight="600">70 + 45 <tspan fill="#ff6b9d" font-weight="700">≠</tspan> 115 — the same margin backs both dots</text>
-      </svg>
+      <div class="meth-anim shx" role="img" aria-label="Two nearby nodes draw on one shared upstream margin — when node A connects 70 MW, node B's real headroom collapses">
+       <div class="shx-row shx-head">
+        <span class="shx-tag">shared upstream margin</span>
+        <div class="shx-track"><div class="shx-fill shx-pool"></div></div>
+        <span class="shx-val"><span class="shx-swap"><i>80 MW</i><i>10 MW</i></span></span>
+       </div>
+       <div class="shx-row">
+        <span class="shx-tag">node A <em>publishes 70</em></span>
+        <div class="shx-track"><div class="shx-fill shx-a"></div></div>
+        <span class="shx-val"><span class="shx-swap"><i class="dim">idle</i><i class="load">70 MW load</i></span></span>
+       </div>
+       <div class="shx-row">
+        <span class="shx-tag">node B <em>publishes 45</em></span>
+        <div class="shx-track"><div class="shx-fill shx-b"></div></div>
+        <span class="shx-val"><span class="shx-swap"><i>45 MW</i><i class="neg">10 MW</i></span></span>
+       </div>
+       <div class="shx-note"><b>70 + 45 <span class="neq">≠</span> 115.</b> When A connects, B's headroom is whatever is left of the same margin.</div>
+      </div>
      </div>
      <div class="meth-copy">
       <span class="meth-num">02</span>
@@ -241,19 +248,24 @@
 
     <section class="meth-row">
      <div class="meth-viz">
-      <svg class="meth-svg" viewBox="0 0 340 200" role="img" aria-label="Battery simulation: discharge above the peak, recharge under it">
-       <text x="14" y="16" fill="#8b98a9" font-size="10">system load + new load T · one winter week</text>
-       <line x1="14" y1="64" x2="326" y2="64" stroke="#ff9b1f" stroke-width="1.3" stroke-dasharray="5 4"/>
-       <text x="326" y="56" text-anchor="end" fill="#ff9b1f" font-size="10">observed system peak</text>
-       <polygon points="66,64 70,60 90,52 103,64" fill="#ff9b1f" fill-opacity=".55"/>
-       <polygon points="166,64 170,58 190,50 206,64" fill="#ff9b1f" fill-opacity=".55"/>
-       <polygon points="266,64 270,60 285,56 298,64" fill="#ff9b1f" fill-opacity=".55"/>
-       <polyline points="14,150 30,120 50,96 70,60 90,52 110,88 130,130 150,104 170,58 190,50 210,84 230,140 250,110 270,60 285,56 300,92 326,148"
-         fill="none" stroke="#6fb8ff" stroke-width="2" stroke-linejoin="round"/>
-       <rect x="108" y="166" width="26" height="7" rx="2" fill="#3ddc97" fill-opacity=".8"/>
-       <text x="140" y="173" fill="#3ddc97" font-size="9.5">recharge — only under the peak</text>
-       <text x="18" y="192" fill="#8b98a9" font-size="9.5"><tspan fill="#ff9b1f">▮</tspan> battery discharge — every breach of the peak, clustering fully priced</text>
-      </svg>
+      <div class="meth-anim eng" role="img" aria-label="Chronological battery simulation: intervals breaching the observed peak are served by battery discharge; it recharges only under the peak">
+       <div class="eng-head"><span>system load + new load · one winter week</span><span class="eng-peak-lbl">observed peak</span></div>
+       <div class="eng-chart">
+        <div class="eng-bars">
+         <div class="eng-peak"></div>
+         <i style="--h:30%;--i:0"></i><i style="--h:38%;--i:1"></i><i style="--h:48%;--i:2"></i><i style="--h:58%;--i:3"></i><i class="br" style="--h:70%;--c:11.4%;--i:4"></i><i class="br" style="--h:76%;--c:18.4%;--i:5"></i><i class="br" style="--h:64%;--c:3.1%;--i:6"></i><i class="re" style="--h:46%;--i:7"></i><i class="re" style="--h:36%;--i:8"></i><i style="--h:44%;--i:9"></i><i style="--h:56%;--i:10"></i><i class="br" style="--h:68%;--c:8.8%;--i:11"></i><i class="br" style="--h:74%;--c:16.2%;--i:12"></i><i class="br" style="--h:66%;--c:6.1%;--i:13"></i><i class="re" style="--h:50%;--i:14"></i><i class="re" style="--h:40%;--i:15"></i><i style="--h:34%;--i:16"></i><i style="--h:46%;--i:17"></i><i style="--h:60%;--i:18"></i><i class="br" style="--h:72%;--c:13.9%;--i:19"></i><i class="br" style="--h:78%;--c:20.5%;--i:20"></i><i class="br" style="--h:68%;--c:8.8%;--i:21"></i><i class="re" style="--h:54%;--i:22"></i><i class="re" style="--h:42%;--i:23"></i><i style="--h:36%;--i:24"></i><i style="--h:32%;--i:25"></i>
+        </div>
+        <div class="eng-bess">
+         <div class="eng-batt"><i class="eng-soc"></i></div>
+         <span class="eng-batt-lbl">BESS</span>
+        </div>
+       </div>
+       <div class="eng-key">
+        <span><i class="k" style="background:#3b4c63"></i>served via connection</span>
+        <span><i class="k" style="background:#ff9b1f"></i>battery discharge</span>
+        <span><i class="k" style="background:#3ddc97"></i>recharge window</span>
+       </div>
+      </div>
      </div>
      <div class="meth-copy">
       <span class="meth-num">03</span>
@@ -272,34 +284,31 @@
 
     <section class="meth-row rev">
      <div class="meth-viz">
-      <svg class="meth-svg" viewBox="0 0 320 132" role="img" aria-label="Fit score weights and tiers">
-       <text x="12" y="16" fill="#8b98a9" font-size="10">score weights — 0 to 100</text>
-       <rect x="12" y="26" width="119" height="26" rx="3" fill="#ff9b1f" fill-opacity=".85"/>
-       <rect x="133" y="26" width="59" height="26" rx="3" fill="#22d3ee" fill-opacity=".8"/>
-       <rect x="194" y="26" width="44" height="26" rx="3" fill="#6fb8ff" fill-opacity=".8"/>
-       <rect x="240" y="26" width="44" height="26" rx="3" fill="#c4b5fd" fill-opacity=".8"/>
-       <rect x="286" y="26" width="30" height="26" rx="3" fill="#3ddc97" fill-opacity=".8"/>
-       <text x="71" y="43" text-anchor="middle" fill="#1d1002" font-size="11" font-weight="700">gap 40%</text>
-       <text x="162" y="43" text-anchor="middle" fill="#062a30" font-size="10" font-weight="700">conn 20%</text>
-       <text x="216" y="43" text-anchor="middle" fill="#0a1220" font-size="9.5" font-weight="700">kV</text>
-       <text x="262" y="43" text-anchor="middle" fill="#160b2e" font-size="9.5" font-weight="700">queue</text>
-       <text x="301" y="43" text-anchor="middle" fill="#06120c" font-size="9.5" font-weight="700">sites</text>
-       <text x="216" y="66" text-anchor="middle" fill="#5f6d80" font-size="8.5">15%</text>
-       <text x="262" y="66" text-anchor="middle" fill="#5f6d80" font-size="8.5">15%</text>
-       <text x="301" y="66" text-anchor="middle" fill="#5f6d80" font-size="8.5">10%</text>
-       <text x="12" y="82" fill="#8b98a9" font-size="10">tiers</text>
-       <rect x="12" y="90" width="144" height="14" rx="3" fill="#475569"/>
-       <rect x="158" y="90" width="43" height="14" rx="3" fill="#60a5fa"/>
-       <rect x="203" y="90" width="44" height="14" rx="3" fill="#2dd4bf"/>
-       <rect x="249" y="90" width="63" height="14" rx="3" fill="#34d399"/>
-       <text x="84" y="101" text-anchor="middle" fill="#c7d0dc" font-size="9.5">weak</text>
-       <text x="180" y="101" text-anchor="middle" fill="#0a1220" font-size="9.5">possible</text>
-       <text x="225" y="101" text-anchor="middle" fill="#06120c" font-size="9.5">strong</text>
-       <text x="280" y="101" text-anchor="middle" fill="#06120c" font-size="9.5" font-weight="700">prime</text>
-       <text x="156" y="122" text-anchor="middle" fill="#5f6d80" font-size="9">48</text>
-       <text x="202" y="122" text-anchor="middle" fill="#5f6d80" font-size="9">63</text>
-       <text x="248" y="122" text-anchor="middle" fill="#5f6d80" font-size="9">78</text>
-      </svg>
+      <div class="meth-anim fsc" role="img" aria-label="Fit score weights: gap 40, connectivity 20, voltage 15, queue 15, sites 10 — tiers weak, possible, strong, prime">
+       <div class="fsc-cap">score weights <span>· 0–100</span></div>
+       <div class="fsc-bar">
+        <div class="fsc-seg" style="--w:40%;background:#ff9b1f;transition-delay:.05s"><span>40</span></div>
+        <div class="fsc-seg" style="--w:20%;background:#22d3ee;transition-delay:.15s"><span>20</span></div>
+        <div class="fsc-seg" style="--w:15%;background:#6fb8ff;transition-delay:.25s"><span>15</span></div>
+        <div class="fsc-seg" style="--w:15%;background:#c4b5fd;transition-delay:.35s"><span>15</span></div>
+        <div class="fsc-seg" style="--w:10%;background:#3ddc97;transition-delay:.45s"><span>10</span></div>
+       </div>
+       <div class="fsc-legend">
+        <span><i style="background:#ff9b1f"></i>firming gap</span>
+        <span><i style="background:#22d3ee"></i>connectivity</span>
+        <span><i style="background:#6fb8ff"></i>voltage</span>
+        <span><i style="background:#c4b5fd"></i>queue</span>
+        <span><i style="background:#3ddc97"></i>sites</span>
+       </div>
+       <div class="fsc-cap fsc-cap2">tier thresholds</div>
+       <div class="fsc-tiers">
+        <div style="flex:48;background:#3c4757"><span>weak</span></div>
+        <div style="flex:15;background:#60a5fa"><span>possible</span></div>
+        <div style="flex:15;background:#2dd4bf"><span>strong</span></div>
+        <div style="flex:22;background:#34d399"><span>prime</span></div>
+       </div>
+       <div class="fsc-ticks"><span style="left:48%">48</span><span style="left:63%">63</span><span style="left:78%">78</span></div>
+      </div>
      </div>
      <div class="meth-copy">
       <span class="meth-num">05</span>
@@ -313,15 +322,11 @@
      <div class="meth-viz">
       <div class="meth-map" id="methMapMeas" aria-hidden="true"></div>
       <div class="meth-viz-cap">
-       <svg viewBox="0 0 300 52" style="display:block;width:100%;max-width:300px">
-        <text x="0" y="11" fill="#8b98a9" font-size="10">CUSTÓIAS — published vs metered headroom</text>
-        <text x="0" y="30" fill="#8b98a9" font-size="9.5">published</text>
-        <rect x="56" y="22" width="170" height="9" rx="2" fill="#8b98a9" fill-opacity=".65"/>
-        <text x="232" y="30" fill="#e8edf4" font-size="9.5" font-family="JetBrains Mono,monospace">34 MW</text>
-        <text x="0" y="46" fill="#8b98a9" font-size="9.5">measured</text>
-        <rect x="56" y="38" width="30" height="9" rx="2" fill="#ff6b9d"/>
-        <text x="92" y="46" fill="#ff6b9d" font-size="9.5" font-family="JetBrains Mono,monospace">6 MW</text>
-       </svg>
+       <div class="meth-anim cst">
+        <div class="cst-head">CUSTÓIAS — published vs metered min headroom</div>
+        <div class="cst-row"><span>published</span><div class="cst-track"><div class="cst-fill cst-pub"></div></div><b>34 MW</b></div>
+        <div class="cst-row"><span>measured</span><div class="cst-track"><div class="cst-fill cst-meas"></div></div><b class="neg">6 MW</b></div>
+       </div>
       </div>
      </div>
      <div class="meth-copy">
@@ -366,12 +371,6 @@
       <div><b>Measured profiles</b><span>E-Redes open data — 15-minute substation diagrams</span></div>
       <div><b>Physics calibration</b><span>operator-published PTDFs &amp; static grid models (JAO Core/Nordic, NESO ETYS) — in progress</span></div>
      </div>
-    </section>
-
-    <section class="meth-strip meth-not">
-     <span class="meth-num">10</span>
-     <h3>What none of this is</h3>
-     <p class="mm-warn">Screening, not a connection study. System-level firm figures are not nodal promises; nodal headroom is not additive; a fit score is not a bankability opinion; single-weather-year results move with the weather. Every deal this surfaces still ends in a formal access request and site-level verification — this map exists to make sure you spend that effort in the right places.</p>
      <button class="meth-cta" id="methToFunnel">See it live — open the Neura funnel →</button>
     </section>
    </div>
@@ -382,6 +381,6 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"
  integrity="sha512-puJW3E/qXDqYp9IfhAI54BJEaWIfloJ7JWs7OeD5i6ruC9JZL1gERT1wjtwXFlh7CjE7ZJ+/vcRZRkIYIb6p4g==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 <script src="js/data.js?v=18"></script>
-<script src="js/app.js?v=18"></script>
+<script src="js/app.js?v=19"></script>
 </body>
 </html>

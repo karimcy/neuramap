@@ -436,10 +436,36 @@ body.panel-hidden #panel,body.panel-hidden #panelDrag{display:none}
 .kpi.sys{border-color:rgba(111,184,255,.35)}
 .kpi.sys b{color:#a8d2ff}
 
-/* availability slider */
+/* availability slider — thin terminal track, not a consumer pill */
 .kpi-ctl{display:flex;align-items:center;gap:9px;margin:-4px 0 12px;padding:0 2px}
-.kpi-ctl input[type=range]{flex:1;accent-color:var(--accent);height:14px;cursor:pointer}
-.kpi-ctl b{font-size:12px;min-width:46px;text-align:right}
+.kpi-ctl input[type=range]{
+  flex:1;height:14px;margin:0;padding:0;cursor:pointer;
+  -webkit-appearance:none;appearance:none;background:transparent;
+}
+.kpi-ctl input[type=range]:focus{outline:none}
+.kpi-ctl input[type=range]:focus-visible{outline:1px solid var(--accent);outline-offset:3px;border-radius:2px}
+.kpi-ctl input[type=range]::-webkit-slider-runnable-track{
+  height:2px;border-radius:1px;background:var(--line2);border:none;
+}
+.kpi-ctl input[type=range]::-webkit-slider-thumb{
+  -webkit-appearance:none;appearance:none;
+  width:11px;height:11px;border-radius:50%;
+  background:var(--accent);border:1.5px solid var(--accent-ink);
+  margin-top:-4.5px;box-shadow:none;
+}
+.kpi-ctl input[type=range]:hover::-webkit-slider-thumb{background:#ffb04a}
+.kpi-ctl input[type=range]::-moz-range-track{
+  height:2px;border-radius:1px;background:var(--line2);border:none;
+}
+.kpi-ctl input[type=range]::-moz-range-progress{
+  height:2px;border-radius:1px;background:var(--accent);border:none;
+}
+.kpi-ctl input[type=range]::-moz-range-thumb{
+  width:11px;height:11px;border-radius:50%;
+  background:var(--accent);border:1.5px solid var(--accent-ink);
+  box-shadow:none;
+}
+.kpi-ctl b{font-size:12px;min-width:46px;text-align:right;font-family:var(--mono);font-variant-numeric:tabular-nums}
 
 /* measured-profile tier (PT pilot — metered vs published) */
 .meas-badge{
@@ -551,6 +577,111 @@ body.panel-hidden #panel,body.panel-hidden #panelDrag{display:none}
   .meth-mark{right:24px;top:30px}
   .meth-row,.meth-strip{padding:24px;grid-template-columns:1fr;gap:16px}
   .meth-row.rev .meth-viz{order:0}
+}
+
+/* ── methodology animated components ── */
+.meth-anim{padding:18px 18px 16px;font-size:11px}
+.meth-anim .neg{color:var(--danger)}
+
+/* 02 · shared margin — A connects, B's headroom collapses (10s loop) */
+.shx-row{display:grid;grid-template-columns:118px 1fr 74px;gap:10px;align-items:center;margin-bottom:11px}
+.shx-tag{font-size:10px;color:var(--mut);letter-spacing:.03em;line-height:1.3}
+.shx-tag em{display:block;font-style:normal;color:var(--faint);font-size:9px}
+.shx-head .shx-tag{color:var(--blue)}
+.shx-track{height:10px;background:var(--bg);border:1px solid var(--line2);border-radius:999px;overflow:hidden}
+.shx-fill{height:100%;border-radius:999px}
+.shx-pool{width:100%;background:linear-gradient(90deg,#3d6ea5,#6fb8ff);animation:shxPool 10s ease-in-out infinite}
+.shx-a{width:0;background:var(--brand-grad);animation:shxA 10s ease-in-out infinite}
+.shx-b{width:56.25%;background:linear-gradient(90deg,#2c8d68,#3ddc97);animation:shxB 10s ease-in-out infinite}
+.shx-val{font-family:var(--mono);font-size:10px;text-align:right;position:relative;height:14px}
+.shx-swap{position:relative;display:block}
+.shx-swap i{position:absolute;right:0;top:0;font-style:normal;white-space:nowrap;animation:shxT1 10s ease-in-out infinite}
+.shx-swap i+i{animation:shxT2 10s ease-in-out infinite;opacity:0}
+.shx-swap i.dim{color:var(--faint)}
+.shx-swap i.load{color:var(--accent)}
+.shx-note{font-size:10.5px;color:var(--mut);line-height:1.55;border-top:1px solid var(--line);padding-top:10px;margin-top:3px}
+.shx-note b{color:var(--ink)}
+.shx-note .neq{color:var(--danger);font-weight:700}
+@keyframes shxPool{0%,28%{width:100%}44%,82%{width:12.5%}96%,100%{width:100%}}
+@keyframes shxA{0%,28%{width:0}44%,82%{width:87.5%}96%,100%{width:0}}
+@keyframes shxB{0%,28%{width:56.25%}44%,82%{width:12.5%}96%,100%{width:56.25%}}
+@keyframes shxT1{0%,30%{opacity:1}42%,84%{opacity:0}94%,100%{opacity:1}}
+@keyframes shxT2{0%,30%{opacity:0}42%,84%{opacity:1}94%,100%{opacity:0}}
+
+/* 03 · battery engine — interval bars vs the observed peak + cycling SOC */
+.eng-head{display:flex;justify-content:space-between;gap:10px;font-size:10px;color:var(--mut);margin-bottom:10px}
+.eng-peak-lbl{color:var(--accent)}
+.eng-peak-lbl::before{content:'';display:inline-block;width:16px;border-top:1.5px dashed var(--accent);vertical-align:3px;margin-right:5px}
+.eng-chart{display:flex;gap:14px;align-items:stretch}
+.eng-bars{position:relative;flex:1;height:120px;display:flex;align-items:flex-end;gap:3px}
+.eng-peak{position:absolute;left:0;right:0;bottom:62%;border-top:1.5px dashed rgba(255,155,31,.7);z-index:2;pointer-events:none}
+.eng-bars i{
+  flex:1;height:var(--h);background:#3b4c63;border-radius:2px 2px 0 0;position:relative;
+  transform-origin:bottom;animation:engIn .7s cubic-bezier(.22,1,.36,1) backwards;
+  animation-delay:calc(.045s * var(--i,0));
+}
+.eng-bars i.br::after{
+  content:'';position:absolute;left:0;right:0;top:0;height:var(--c);
+  background:var(--accent);border-radius:2px 2px 0 0;
+  box-shadow:0 0 8px rgba(255,155,31,.55);animation:engGlow 3.2s ease-in-out infinite;
+}
+.eng-bars i.re{background:linear-gradient(180deg,#2c8d68 0%,#3b4c63 40%)}
+.eng-bess{display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:5px;padding-bottom:2px}
+.eng-batt{
+  width:22px;height:76px;border:1.5px solid var(--line2);border-radius:5px;position:relative;
+  padding:2px;display:flex;align-items:flex-end;
+}
+.eng-batt::before{content:'';position:absolute;top:-5px;left:50%;transform:translateX(-50%);width:8px;height:3px;background:var(--line2);border-radius:2px 2px 0 0}
+.eng-soc{display:block;width:100%;background:linear-gradient(180deg,#3ddc97,#2c8d68);border-radius:3px;animation:engSoc 10s ease-in-out infinite}
+.eng-batt-lbl{font-family:var(--mono);font-size:8.5px;color:var(--faint);letter-spacing:.1em}
+.eng-key{display:flex;gap:14px;flex-wrap:wrap;font-size:9.5px;color:var(--mut);margin-top:12px}
+.eng-key .k{display:inline-block;width:8px;height:8px;border-radius:2px;vertical-align:-1px;margin-right:5px}
+@keyframes engIn{from{transform:scaleY(0)}to{transform:scaleY(1)}}
+@keyframes engGlow{0%,100%{opacity:.65}50%{opacity:1}}
+@keyframes engSoc{0%{height:88%}14%{height:88%}22%{height:46%}34%{height:64%}44%{height:34%}56%{height:58%}68%{height:26%}86%{height:76%}100%{height:88%}}
+
+/* 05 · fit score — segments grow in on scroll (.in via IntersectionObserver) */
+.fsc-cap{font-size:10px;color:var(--mut);letter-spacing:.04em;margin-bottom:8px}
+.fsc-cap span{color:var(--faint)}
+.fsc-cap2{margin-top:16px}
+.fsc-bar{display:flex;gap:2px;height:30px;border-radius:6px;overflow:hidden}
+.fsc-seg{
+  width:0;min-width:0;display:flex;align-items:center;justify-content:center;overflow:hidden;
+  transition:width .9s cubic-bezier(.22,1,.36,1);
+}
+.meth-anim.in .fsc-seg{width:var(--w)}
+.fsc-seg span{font-family:var(--mono);font-size:10.5px;font-weight:600;color:rgba(8,12,18,.85);opacity:0;transition:opacity .5s .6s}
+.meth-anim.in .fsc-seg span{opacity:1}
+.fsc-legend{display:flex;gap:12px;flex-wrap:wrap;font-size:9.5px;color:var(--mut);margin-top:8px}
+.fsc-legend i{display:inline-block;width:7px;height:7px;border-radius:2px;vertical-align:0;margin-right:4px}
+.fsc-tiers{display:flex;gap:2px;height:18px;border-radius:5px;overflow:hidden}
+.fsc-tiers div{display:flex;align-items:center;justify-content:center}
+.fsc-tiers span{font-size:9px;font-weight:600;color:rgba(8,12,18,.8)}
+.fsc-tiers div:first-child span{color:#aeb9c9}
+.fsc-ticks{position:relative;height:14px;margin-top:3px}
+.fsc-ticks span{position:absolute;transform:translateX(-50%);font-family:var(--mono);font-size:8.5px;color:var(--faint)}
+
+/* 06 · CUSTÓIAS published vs measured */
+.cst{padding:2px 0 0}
+.cst-head{font-size:10px;color:var(--mut);margin-bottom:7px}
+.cst-row{display:grid;grid-template-columns:56px 1fr 46px;gap:8px;align-items:center;margin-bottom:6px;font-size:9.5px;color:var(--mut)}
+.cst-row b{font-family:var(--mono);font-size:9.5px;font-weight:600;color:var(--ink);text-align:right}
+.cst-row b.neg{color:var(--danger)}
+.cst-track{height:8px;background:var(--bg);border:1px solid var(--line);border-radius:999px;overflow:hidden}
+.cst-fill{height:100%;width:0;border-radius:999px;transition:width 1s cubic-bezier(.22,1,.36,1)}
+.cst-pub{background:#5c6b80}
+.cst-meas{background:var(--danger);box-shadow:0 0 8px rgba(255,107,157,.4);transition-delay:.25s}
+.meth-anim.in .cst-pub{width:100%}
+.meth-anim.in .cst-meas{width:17.6%}
+
+@media (prefers-reduced-motion:reduce){
+  .shx-fill,.shx-swap i,.eng-bars i,.eng-bars i.br::after,.eng-soc{animation:none}
+  .shx-a{width:87.5%}.shx-pool{width:12.5%}.shx-b{width:12.5%}
+  .shx-swap i{opacity:0}.shx-swap i+i{opacity:1}
+  .eng-soc{height:58%}
+  .fsc-seg,.cst-fill{transition:none}
+  .fsc-seg{width:var(--w)}.fsc-seg span{opacity:1}
+  .cst-pub{width:100%}.cst-meas{width:17.6%}
 }
 
 /* deal card layout */
