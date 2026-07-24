@@ -73,9 +73,12 @@ function scoreNode(cc, p) {
   const qMW = queuedNear(cc, p);
   const queue = qMW === null ? 55 : qMW <= 0 ? 40 : 40 + 60 * Math.min(1, qMW / 300);
   const cn = connScoreOf(cc, p);
-  const score = Math.round(0.40 * wedge + 0.15 * infra + 0.10 * sites + 0.15 * queue + 0.20 * cn.conn);
+  const kvCap = kvN > 0 ? (kvN <= 45 ? 40 : kvN <= 90 ? 90 : kvN <= 150 ? 240 : Infinity) : Infinity;
+  const overCap = T > kvCap;
+  let score = Math.round(0.40 * wedge + 0.15 * infra + 0.10 * sites + 0.15 * queue + 0.20 * cn.conn);
+  if (overCap) score = Math.min(score, 45);
   const tier = score >= 78 ? 'prime' : score >= 63 ? 'strong' : score >= 48 ? 'possible' : 'weak';
-  return { score, tier, gap, nSites, qMW, fib: cn.fib, fac: cn.fac, land: cn.land };
+  return { score, tier, gap, nSites, qMW, fib: cn.fib, fac: cn.fac, land: cn.land, overCap, kvCap };
 }
 const bessCapexM = gap => gap * dur * 1000 * BESS_EUR_PER_KWH / 1e6;
 

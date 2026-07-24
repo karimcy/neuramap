@@ -1160,9 +1160,14 @@ function dealScore(cc, p) {
   const qMW = queuedNear(cc, p);
   const queue = qMW === null ? 55 : qMW <= 0 ? 40 : 40 + 60 * Math.min(1, qMW / 300);
   const cn = connScoreOf(cc, p);
-  const score = Math.round(0.40 * wedge + 0.15 * infra + 0.10 * sites + 0.15 * queue + 0.20 * cn.conn);
+  // plausibility guard: a target above the typical max single connection for the
+  // node's voltage class can't be fixed by a battery — flag it and demote hard
+  const kvCap = kvN > 0 ? (kvN <= 45 ? 40 : kvN <= 90 ? 90 : kvN <= 150 ? 240 : Infinity) : Infinity;
+  const overCap = T > kvCap;
+  let score = Math.round(0.40 * wedge + 0.15 * infra + 0.10 * sites + 0.15 * queue + 0.20 * cn.conn);
+  if (overCap && mH === null) score = Math.min(score, 45);
   const tier = score >= 78 ? 'prime' : score >= 63 ? 'strong' : score >= 48 ? 'possible' : 'weak';
-  const val = { score, tier, gap, gapRatio, nSites, qMW, H, meas: mH !== null, fib: cn.fib, fac: cn.fac, land: cn.land };
+  const val = { score, tier, gap, gapRatio, nSites, qMW, H, meas: mH !== null, fib: cn.fib, fac: cn.fac, land: cn.land, overCap, kvCap };
   p._sc = { sig, val };
   return val;
 }
@@ -1178,19 +1183,27 @@ function firmingBlock(p, cc) {
     `<span class="pp-deal-title">Firming screen</span>` +
     `<span class="score-pill tier-${sc.tier}">${sc.score}</span>` +
     `<span class="deal-sub">${TIER_LABEL[sc.tier]}</span></div>`;
+  const vtier = sc.meas ? 'measured profile' : 'published headroom only';
   s += `<div class="pp-deal-grid">` +
     `<span>target load</span><b>${dealTarget} MW</b>` +
     `<span>${sc.meas ? `measured firmable · ${dealDur} h` : 'node headroom'}</span><b>${fmt(Math.round(sc.H))} MW</b>` +
     (sc.gap > 0
-      ? `<span>firming gap</span><b>${fmt(sc.gap)} MW</b>` +
-        `<span>BESS (${dealDur} h)</span><b>${fmt(b.mw)} MW / ${fmt(b.mwh)} MWh</b>` +
-        `<span>BESS capex</span><b>≈ €${b.capexM.toFixed(1)} M</b>`
-      : `<span>firming gap</span><b>none — direct-connect candidate</b>`) +
+      ? `<span>shortfall vs target</span><b>${fmt(sc.gap)} MW</b>` +
+        (sc.meas
+          ? `<span>BESS (${dealDur} h, simulated)</span><b>${fmt(b.mw)} MW / ${fmt(b.mwh)} MWh</b>` +
+            `<span>BESS capex</span><b>≈ €${b.capexM.toFixed(1)} M</b>`
+          : `<span>indicative BESS*</span><b>${fmt(b.mw)} MW / ${fmt(b.mwh)} MWh · ≈ €${b.capexM.toFixed(1)} M</b>`)
+      : `<span>shortfall vs target</span><b>none — direct-connect candidate</b>`) +
     `<span>sites ≤3 km</span><b>${sc.nSites || '0'}</b>` +
     (sc.qMW !== null ? `<span>queued ≤30 km</span><b>${fmt(Math.round(sc.qMW))} MW</b>` : '') +
     (sc.fib !== null ? `<span>fibre backbone</span><b>${sc.fib} km</b>` : '') +
     (sc.fac !== null ? `<span>interconnection</span><b>${sc.fac} km</b>` : '') +
+    `<span>verification</span><b>${vtier}</b>` +
     `</div>`;
+  if (sc.overCap && !sc.meas)
+    s += `<div class="pp-warnnote" style="font-size:11px;margin-top:5px">⚠ ${dealTarget} MW exceeds the typical maximum single connection at ${esc(p.kv)} kV (~${sc.kvCap} MW) — screen this load at the higher-voltage parent substation instead. Score capped.</div>`;
+  if (sc.gap > 0 && !sc.meas)
+    s += `<div class="deal-sub" style="margin-top:5px">*screening size only: covers ≤ ${dealDur} h of contiguous constraint. Validity requires a flexible connection able to import above the published ${fmt(Math.round(sc.H))} MW outside constraint events — <b>not verifiable from published data alone</b> (no nodal load profile or power-flow yet). Battery cannot bridge a permanent shortfall: charging competes with the load on the same connection.</div>`;
   s += `<div class="deal-sub">flexible connection + firming ≈ 12–18 months to power vs 5–7 y conventional</div>`;
   s += `<button class="pin-btn${pinned ? ' pinned' : ''}" data-cc="${cc}" data-n="${esc(p.n)}">${pinned ? '✓ In pipeline' : '★ Add to pipeline'}</button>`;
   return s + `</div>`;
