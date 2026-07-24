@@ -77,6 +77,12 @@ const CANVAS = L.canvas({ padding: 0.3, tolerance: 9 });
 
 const esc = s => String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 const fmt = n => (n || 0).toLocaleString('en-US');
+// Root-absolute `/data/...` breaks on GitHub Pages (`/neuramap/`). Keep paths page-relative.
+function assetUrl(u) {
+  if (!u) return u;
+  if (/^(https?:|data:)/i.test(u)) return u;
+  return u.startsWith('/') ? u.slice(1) : u;
+}
 
 function col(mw) { return mw >= 500 ? '#800026' : mw >= 250 ? '#bd0026' : mw >= 100 ? '#e31a1c' : mw >= 50 ? '#fc4e2a' : mw >= 20 ? '#fd8d3c' : '#feb24c'; }
 function rad(mw) { return Math.max(4, Math.min(26, Math.sqrt(mw) * 0.7)); }
@@ -261,7 +267,7 @@ function lineStyle(f) {
 async function ensureLines(cc) {
   const c = COUNTRIES[cc]; if (!c || lineGroups[cc]) return lineGroups[cc];
   let gj = c.lines;
-  if (!gj && c.lines_url) { try { gj = await (await fetch(c.lines_url)).json(); } catch (e) { return null; } }
+  if (!gj && c.lines_url) { try { gj = await (await fetch(assetUrl(c.lines_url))).json(); } catch (e) { return null; } }
   if (!gj) return null;
   lineGroups[cc] = L.geoJSON(gj, {
     renderer: CANVAS,
@@ -315,7 +321,7 @@ async function loadCountry(cc, url, { quiet = false } = {}) {
   _loading[cc] = true;
   const mf = MANIFEST.find(x => x.cc === cc);
   if (!quiet) toast(`Loading ${mf ? mf.name : cc}…`, { spin: true });
-  let data; try { const r = await fetch(url); if (!r.ok) throw new Error(r.status); data = await r.json(); }
+  let data; try { const r = await fetch(assetUrl(url)); if (!r.ok) throw new Error(r.status); data = await r.json(); }
   catch (e) { _loading[cc] = false; if (!quiet) toast(`Couldn't load ${mf ? mf.name : cc}`); return false; }
   COUNTRIES[cc] = data;
   // loading a country only adds its grid lines; node layers stay toggleable but hidden
@@ -580,7 +586,7 @@ renderKpis();
 /* ── Init defaults ───────────────────────────────────────── */
 // default view = grid lines + ES candidate sites only; node bubbles OFF for every country
 for (const cc in FREE) (FREE[cc].layers || []).forEach(L_ => layerVisible[L_.id] = false);
-MANIFEST.forEach(m => loadRect(m));
+// load-rectangles are added only for markets that fail the startup auto-load below
 rebuildMatrix(); drawNodes();
 
 document.querySelectorAll('#thr button').forEach(b => b.onclick = () => {
@@ -923,7 +929,7 @@ function updateCorridorVis() {
 async function ensureCorridor(cc) {
   if (corridorGeos[cc] !== undefined) return corridorGeos[cc];
   const mcc = MATRIX[cc] && MATRIX[cc].sites;
-  const url = (mcc && mcc.url) || `/sites/${cc}.geojson`;
+  const url = assetUrl((mcc && mcc.url) || `sites/${cc}.geojson`);
   try { corridorGeos[cc] = await (await fetch(url)).json(); } catch (e) { corridorGeos[cc] = null; }
   return corridorGeos[cc];
 }
@@ -1384,17 +1390,20 @@ document.getElementById('matrixTbl').addEventListener('change', updateMatrixAllB
 const marketsReady = (async function () {
   const missing = MANIFEST.filter(m => !COUNTRIES[m.cc]);
   if (!missing.length) return;
-  let done = 0;
+  let done = 0, failed = [];
   toast(`Loading markets… 0/${missing.length}`, { spin: true });
   await Promise.all(missing.map(async m => {
     let ok = await loadCountry(m.cc, m.data_url, { quiet: true });
     if (!ok) ok = await loadCountry(m.cc, m.data_url, { quiet: true });   // one retry
+    if (!ok) failed.push(m);
     done++;
     toast(`Loading markets… ${done}/${missing.length}`, { spin: true });
   }));
+  failed.forEach(m => loadRect(m));   // click-to-load only for real failures
   drawNodes(); renderFreshness(); renderKpis(); updateLoadAllBtn(); updateMatrixAllBtn();
   if (dealMode) renderDealRank();
-  toast(`All ${Object.keys(COUNTRIES).length} markets loaded`);
+  if (failed.length) toast(`${failed.length} market${failed.length > 1 ? 's' : ''} failed — click the dashed box to retry`);
+  else toast(`All ${Object.keys(COUNTRIES).length} markets loaded`);
 })();
 
 // default: candidate-sites layer ON for every market that has one

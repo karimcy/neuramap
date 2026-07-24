@@ -27,6 +27,11 @@ const saveNotes = () => localStorage.setItem('oppmap_notes', JSON.stringify(note
 
 const esc = s => String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 const fmt = n => (n || 0).toLocaleString('en-US');
+function assetUrl(u) {
+  if (!u) return u;
+  if (/^(https?:|data:)/i.test(u)) return u;
+  return u.startsWith('/') ? u.slice(1) : u;
+}
 
 /* ── scoring (mirror of app.js) ── */
 function layerKindOf(cc, p) {
@@ -68,7 +73,7 @@ const bessCapexM = gap => gap * dur * 1000 * BESS_EUR_PER_KWH / 1e6;
 
 /* ── data load ── */
 async function loadAll() {
-  const lazy = MANIFEST.map(m => fetch(m.data_url).then(r => r.json()).then(d => { COUNTRIES[m.cc] = d; }).catch(() => {}));
+  const lazy = MANIFEST.map(m => fetch(assetUrl(m.data_url)).then(r => r.json()).then(d => { COUNTRIES[m.cc] = d; }).catch(() => {}));
   const extras = [
     fetch('data/site_counts.json').then(r => r.json()).then(d => { siteCounts = d; }).catch(() => {}),
     fetch('data/pt_profiles.json').then(r => r.ok ? r.json() : {}).then(d => { ptProfiles = d; }).catch(() => {}),
