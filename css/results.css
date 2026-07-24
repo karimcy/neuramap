@@ -89,3 +89,36 @@ textarea#dNotes:focus{border-color:var(--accent);outline:none}
 
 @media(max-width:1100px){#rDetail{position:fixed;right:0;top:52px;bottom:0;box-shadow:-12px 0 30px rgba(0,0,0,.5);z-index:50}}
 @media(max-width:760px){#rFilters{display:none}}
+
+/* ── CRM login (teaser — no backend yet) ── */
+.crm-btn{
+  display:inline-flex;align-items:center;gap:7px;
+  background:var(--brand-grad);border:none;border-radius:999px;
+  color:var(--accent-ink);font-size:12px;font-weight:700;padding:7px 16px;cursor:pointer;
+  box-shadow:0 3px 12px rgba(249,115,22,.3);transition:filter .15s;
+}
+.crm-btn:hover{filter:brightness(1.08)}
+#crmModal{position:fixed;inset:0;z-index:3000}
+#crmModal[hidden]{display:none}
+.crm-backdrop{position:absolute;inset:0;background:rgba(5,8,12,.75);backdrop-filter:blur(4px)}
+.crm-card{
+  position:absolute;left:50%;top:46%;transform:translate(-50%,-50%);
+  width:min(360px,92vw);background:var(--panel);border:1px solid var(--line2);border-radius:16px;
+  padding:30px 30px 26px;box-shadow:0 30px 80px rgba(0,0,0,.65);
+}
+.crm-close{position:absolute;right:12px;top:12px;background:none;border:none;color:var(--faint);font-size:14px;cursor:pointer;padding:4px}
+.crm-close:hover{color:var(--ink)}
+.crm-logo{display:block;margin:0 0 18px;filter:drop-shadow(0 0 12px rgba(249,115,22,.25))}
+.crm-title{font-size:18px;font-weight:700;letter-spacing:-.01em}
+.crm-sub{color:var(--mut);font-size:12px;margin:3px 0 18px}
+.crm-lbl{display:block;font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--mut);font-weight:600;margin:12px 0 5px}
+.crm-card .r-input{width:100%}
+.crm-submit{
+  width:100%;margin-top:18px;background:var(--brand-grad);border:none;border-radius:999px;
+  color:var(--accent-ink);font-size:13px;font-weight:700;padding:10px 0;cursor:pointer;
+  box-shadow:0 4px 16px rgba(249,115,22,.35);transition:filter .15s;
+}
+.crm-submit:hover{filter:brightness(1.08)}
+.crm-note{font-size:11px;color:var(--faint);line-height:1.6;margin:14px 0 0;border-top:1px solid var(--line);padding-top:12px}
+.crm-note.on{color:var(--mut)}
+.crm-note.on b{color:var(--accent)}

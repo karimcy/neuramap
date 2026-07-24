@@ -1457,14 +1457,97 @@ const marketsReady = (async function () {
 
 
 /* ── methodology modal ── */
+// mini-maps inside the methodology page: real data, no interaction — each is a tiny
+// self-contained Leaflet instance (the main map's shared CANVAS renderer is per-map,
+// so these use their own default renderers)
+let _methVizDone = false;
+function initMethViz() {
+  if (_methVizDone) return; _methVizDone = true;
+  const mk = id => {
+    const el = document.getElementById(id); if (!el) return null;
+    const m = L.map(el, { zoomControl: false, dragging: false, scrollWheelZoom: false,
+      doubleClickZoom: false, boxZoom: false, keyboard: false, touchZoom: false, attributionControl: false });
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', { subdomains: 'abcd', maxZoom: 19 }).addTo(m);
+    return m;
+  };
+  // 01 · what the map shows — central Spain, real nodes on the red ramp + queued/indicative
+  const m1 = mk('methMapNodes');
+  if (m1) {
+    m1.setView([40.3, -3.7], 7);
+    for (const p of (COUNTRIES.ES && COUNTRIES.ES.nodes) || []) {
+      if (!p.lat || p.lat < 38.6 || p.lat > 42 || p.lon < -6.2 || p.lon > -1.2) continue;
+      const isQ = p.kind === 'queued', isI = p.kind === 'indicative';
+      if (p.kind !== 'demand' && !isQ && !isI) continue;
+      L.circleMarker([p.lat, p.lon], {
+        radius: isI ? 3 : Math.max(2.5, Math.min(11, Math.sqrt(p.mw || 1) * .45)),
+        color: isQ ? '#c4b5fd' : isI ? '#5eead4' : 'rgba(245,247,255,.35)', weight: .8,
+        fillColor: isQ ? '#8a5cf6' : isI ? '#0d9488' : col(p.mw), fillOpacity: .8,
+      }).addTo(m1);
+    }
+  }
+  // 06 · measured tier — greater Lisbon, orange-ring measured nodes over the proxy layer
+  const m2 = mk('methMapMeas');
+  if (m2) {
+    m2.setView([38.82, -9.13], 10);
+    for (const p of (COUNTRIES.PT && COUNTRIES.PT.nodes) || []) {
+      if (!p.lat) continue;
+      if (p.meas) {
+        L.circleMarker([p.lat, p.lon], { radius: Math.max(4, Math.min(10, Math.sqrt(p.meas.firm_8h_mw || 9) * 1.1)),
+          color: '#ff9b1f', weight: 2, fillColor: col(p.meas.firm_8h_mw || 0), fillOpacity: .85 }).addTo(m2);
+      } else {
+        L.circleMarker([p.lat, p.lon], { radius: 2.5, color: 'rgba(139,152,169,.4)', weight: .7,
+          fillColor: '#5f6d80', fillOpacity: .5 }).addTo(m2);
+      }
+    }
+  }
+  // 07 · GB assets — Midlands window, straight from the asset geojson
+  const m3 = mk('methMapAssets');
+  if (m3 && MATRIX.GB && MATRIX.GB.assets && MATRIX.GB.assets.url) {
+    m3.setView([52.6, -1.6], 7);
+    fetch(MATRIX.GB.assets.url).then(r => r.ok ? r.json() : null).then(gj => {
+      if (!gj) return;
+      for (const f of gj.features || []) {
+        const p = f.properties, la = f.geometry.coordinates[1], lo = f.geometry.coordinates[0];
+        if (la < 51 || la > 54.4 || lo < -3.6 || lo > .6) continue;
+        const op = p.status === 'Operational';
+        L.circleMarker([la, lo], { radius: Math.max(2, Math.min(9, Math.sqrt(p.mw || 1) * .55)),
+          color: op ? 'rgba(240,246,255,.55)' : 'rgba(240,246,255,.2)', weight: op ? .9 : .5,
+          fillColor: (typeof ASSET_COLOR !== 'undefined' && ASSET_COLOR[p.tech]) || '#fbbf24',
+          fillOpacity: op ? .9 : .4 }).addTo(m3);
+      }
+    }).catch(() => {});
+  }
+  // 08 · candidate sites — the ES node with the most industrial polygons within 3 km
+  const m4 = mk('methMapSites');
+  if (m4) {
+    buildScoreCtx();
+    let best = null, bestN = 0;
+    scoreCtx.sitesByNode.forEach((n, k) => { if (k.startsWith('ES|') && n > bestN) { bestN = n; best = k.slice(3); } });
+    const gj = corridorGeos.ES;
+    const fs = gj && best ? (gj.features || []).filter(f => (f.properties || {}).node === best) : [];
+    if (fs.length) {
+      const lay = L.geoJSON({ type: 'FeatureCollection', features: fs },
+        { style: { color: '#f7c04a', weight: 1, fillColor: '#f7c04a', fillOpacity: .3 } }).addTo(m4);
+      const p = ((COUNTRIES.ES && COUNTRIES.ES.nodes) || []).find(n => n.n === best);
+      if (p && p.lat) L.circleMarker([p.lat, p.lon], { radius: 9, color: '#f5f7ff', weight: 1.5,
+        fillColor: col(p.mw), fillOpacity: .85 }).addTo(m4);
+      m4.fitBounds(lay.getBounds().pad(.4));
+    } else {
+      m4.setView([41.65, -0.9], 11);   // sites still loading — leave the basemap
+    }
+  }
+  requestAnimationFrame(() => [m1, m2, m3, m4].forEach(m => m && m.invalidateSize()));
+}
 (function () {
   const modal = document.getElementById('methModal');
-  const open = () => { modal.hidden = false; document.body.style.overflow = 'hidden'; };
+  const open = () => { modal.hidden = false; document.body.style.overflow = 'hidden'; initMethViz(); };
   const close = () => { modal.hidden = true; document.body.style.overflow = ''; };
   document.getElementById('methBtn').onclick = open;
   const side = document.getElementById('methOpen2'); if (side) side.onclick = open;
   document.getElementById('methClose').onclick = close;
   modal.querySelector('.mm-backdrop').onclick = close;
   document.addEventListener('keydown', e => { if (e.key === 'Escape' && !modal.hidden) close(); });
+  const cta = document.getElementById('methToFunnel');
+  if (cta) cta.onclick = () => { close(); setMode('deal'); };
   if (location.hash === '#methodology') open();
 })();

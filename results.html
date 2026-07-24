@@ -8,8 +8,8 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Source+Sans+3:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap">
 <link rel="icon" type="image/png" href="assets/neura-mark.png">
-<link rel="stylesheet" href="css/app.css?v=16">
-<link rel="stylesheet" href="css/results.css?v=16">
+<link rel="stylesheet" href="css/app.css?v=17">
+<link rel="stylesheet" href="css/results.css?v=17">
 </head>
 <body class="results-page">
 
@@ -21,8 +21,30 @@
  <nav class="rt-nav">
   <a href="index.html">← Map</a>
   <button class="chip-btn" id="rExport">Export filtered CSV</button>
+  <button class="crm-btn" id="crmBtn">
+   <svg viewBox="0 0 16 16" width="12" height="12" aria-hidden="true"><rect x="3" y="7" width="10" height="7" rx="1.5" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M5.5 7V5a2.5 2.5 0 0 1 5 0v2" fill="none" stroke="currentColor" stroke-width="1.6"/></svg>
+   CRM login
+  </button>
  </nav>
 </header>
+
+<div id="crmModal" hidden>
+ <div class="crm-backdrop"></div>
+ <div class="crm-card" role="dialog" aria-modal="true" aria-label="CRM login">
+  <button class="crm-close" id="crmClose" aria-label="Close">✕</button>
+  <img class="crm-logo" src="assets/neura-wordmark-white.png" alt="Neura Energy" height="22">
+  <div class="crm-title">Pipeline CRM</div>
+  <p class="crm-sub">Sign in to your Neura workspace</p>
+  <form id="crmForm" autocomplete="off">
+   <label class="crm-lbl" for="crmUser">Email</label>
+   <input class="r-input" id="crmUser" type="email" placeholder="you@company.com" required>
+   <label class="crm-lbl" for="crmPass">Password</label>
+   <input class="r-input" id="crmPass" type="password" placeholder="••••••••" required>
+   <button class="crm-submit" type="submit">Sign in</button>
+  </form>
+  <p class="crm-note" id="crmNote">Workspaces are rolling out — the shortlist and notes you build here will sync to your CRM account.</p>
+ </div>
+</div>
 
 <div id="rWrap">
  <aside id="rFilters">
@@ -87,5 +109,24 @@
 
 <script src="js/data.js?v=16"></script>
 <script src="js/results.js?v=16"></script>
+<script>
+/* CRM login teaser — no backend yet; the modal exists to signal where this product goes */
+(function () {
+  const modal = document.getElementById('crmModal');
+  const open = () => { modal.hidden = false; setTimeout(() => document.getElementById('crmUser').focus(), 0); };
+  const close = () => { modal.hidden = true; };
+  document.getElementById('crmBtn').onclick = open;
+  document.getElementById('crmClose').onclick = close;
+  modal.querySelector('.crm-backdrop').onclick = close;
+  document.addEventListener('keydown', e => { if (e.key === 'Escape' && !modal.hidden) close(); });
+  document.getElementById('crmForm').onsubmit = e => {
+    e.preventDefault();
+    const n = document.getElementById('crmNote');
+    n.classList.add('on');
+    n.innerHTML = '<b>Sign-in isn’t live yet.</b> CRM workspaces open with the first customer accounts — ' +
+      'your pipeline and notes stay saved in this browser and will sync once your workspace is provisioned.';
+  };
+})();
+</script>
 </body>
 </html>
