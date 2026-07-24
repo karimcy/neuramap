@@ -1152,9 +1152,10 @@ function dealScore(cc, p) {
   const sites = nSites >= 3 ? 100 : nSites >= 1 ? 75 : 35;
   const qMW = queuedNear(cc, p);
   const queue = qMW === null ? 55 : qMW <= 0 ? 40 : 40 + 60 * Math.min(1, qMW / 300);
-  const score = Math.round(0.45 * wedge + 0.20 * infra + 0.15 * sites + 0.20 * queue);
+  const cn = connScoreOf(cc, p);
+  const score = Math.round(0.40 * wedge + 0.15 * infra + 0.10 * sites + 0.15 * queue + 0.20 * cn.conn);
   const tier = score >= 78 ? 'prime' : score >= 63 ? 'strong' : score >= 48 ? 'possible' : 'weak';
-  const val = { score, tier, gap, gapRatio, nSites, qMW, H, meas: mH !== null };
+  const val = { score, tier, gap, gapRatio, nSites, qMW, H, meas: mH !== null, fib: cn.fib, fac: cn.fac, land: cn.land };
   p._sc = { sig, val };
   return val;
 }

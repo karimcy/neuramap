@@ -276,9 +276,9 @@ table.cor-tbl{width:100%;border-collapse:collapse;font-size:11.5px;margin:0}
 #mapArea{flex:1;position:relative;min-width:0}
 #map{position:absolute;inset:0;background:#0b0f14}
 
-/* quiet Neura lockup on the map — right side, above basemap attribution */
+/* quiet Neura lockup on the map — right side, under Methodology */
 .map-brand{
-  position:absolute;right:12px;bottom:28px;z-index:650;
+  position:absolute;right:12px;top:56px;z-index:650;
   display:inline-flex;align-items:center;gap:7px;
   padding:6px 10px 6px 7px;
   background:rgba(11,15,20,.78);border:1px solid var(--line2);border-radius:var(--r-md);
