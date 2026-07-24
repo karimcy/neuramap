@@ -1461,9 +1461,18 @@ const marketsReady = (async function () {
 // mini-maps inside the methodology page: real data, no interaction — each is a tiny
 // self-contained Leaflet instance (the main map's shared CANVAS renderer is per-map,
 // so these use their own default renderers)
-let _methVizDone = false;
+let _methVizDone = false, _methVizTimer = null;
+const _methMaps = [];
 function initMethViz() {
-  if (_methVizDone) return; _methVizDone = true;
+  if (_methVizDone) return;
+  if (document.getElementById('methModal').hidden) return;   // build only while visible (zero-size containers break Leaflet)
+  // opened before startup loads finished (e.g. #methodology hash) — retry until the data is in
+  if (!(COUNTRIES.ES && COUNTRIES.ES.nodes) || !(COUNTRIES.PT && COUNTRIES.PT.nodes) || corridorGeos.ES === undefined) {
+    clearTimeout(_methVizTimer);
+    _methVizTimer = setTimeout(initMethViz, 1200);
+    return;
+  }
+  _methVizDone = true;
   const mk = id => {
     const el = document.getElementById(id); if (!el) return null;
     const m = L.map(el, { zoomControl: false, dragging: false, scrollWheelZoom: false,
@@ -1521,6 +1530,7 @@ function initMethViz() {
   // 08 · candidate sites — the ES node with the most industrial polygons within 3 km
   const m4 = mk('methMapSites');
   if (m4) {
+    m4.setView([41.65, -0.9], 11);   // vector layers need a view BEFORE addTo, else the renderer never attaches
     buildScoreCtx();
     let best = null, bestN = 0;
     scoreCtx.sitesByNode.forEach((n, k) => { if (k.startsWith('ES|') && n > bestN) { bestN = n; best = k.slice(3); } });
@@ -1528,20 +1538,23 @@ function initMethViz() {
     const fs = gj && best ? (gj.features || []).filter(f => (f.properties || {}).node === best) : [];
     if (fs.length) {
       const lay = L.geoJSON({ type: 'FeatureCollection', features: fs },
-        { style: { color: '#f7c04a', weight: 1, fillColor: '#f7c04a', fillOpacity: .3 } }).addTo(m4);
+        { style: { color: '#f7c04a', weight: 1.2, fillColor: '#f7c04a', fillOpacity: .35 } }).addTo(m4);
       const p = ((COUNTRIES.ES && COUNTRIES.ES.nodes) || []).find(n => n.n === best);
       if (p && p.lat) L.circleMarker([p.lat, p.lon], { radius: 9, color: '#f5f7ff', weight: 1.5,
         fillColor: col(p.mw), fillOpacity: .85 }).addTo(m4);
-      m4.fitBounds(lay.getBounds().pad(.4));
-    } else {
-      m4.setView([41.65, -0.9], 11);   // sites still loading — leave the basemap
+      m4.fitBounds(lay.getBounds().pad(.4), { maxZoom: 13 });
     }
   }
-  requestAnimationFrame(() => [m1, m2, m3, m4].forEach(m => m && m.invalidateSize()));
+  _methMaps.push(...[m1, m2, m3, m4].filter(Boolean));
+  requestAnimationFrame(() => _methMaps.forEach(m => m.invalidateSize()));
 }
 (function () {
   const modal = document.getElementById('methModal');
-  const open = () => { modal.hidden = false; document.body.style.overflow = 'hidden'; initMethViz(); };
+  const open = () => {
+    modal.hidden = false; document.body.style.overflow = 'hidden';
+    initMethViz();
+    requestAnimationFrame(() => _methMaps.forEach(m => m.invalidateSize()));
+  };
   const close = () => { modal.hidden = true; document.body.style.overflow = ''; };
   document.getElementById('methBtn').onclick = open;
   const side = document.getElementById('methOpen2'); if (side) side.onclick = open;

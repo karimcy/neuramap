@@ -42,7 +42,7 @@
    <input class="r-input" id="crmPass" type="password" placeholder="••••••••" required>
    <button class="crm-submit" type="submit">Sign in</button>
   </form>
-  <p class="crm-note" id="crmNote">Workspaces are rolling out — the shortlist and notes you build here will sync to your CRM account.</p>
+  <p class="crm-note" id="crmNote" hidden></p>
  </div>
 </div>
 
@@ -107,8 +107,8 @@
  <aside id="rDetail" hidden></aside>
 </div>
 
-<script src="js/data.js?v=16"></script>
-<script src="js/results.js?v=16"></script>
+<script src="js/data.js?v=17"></script>
+<script src="js/results.js?v=17"></script>
 <script>
 /* CRM login teaser — no backend yet; the modal exists to signal where this product goes */
 (function () {
@@ -122,6 +122,7 @@
   document.getElementById('crmForm').onsubmit = e => {
     e.preventDefault();
     const n = document.getElementById('crmNote');
+    n.hidden = false;
     n.classList.add('on');
     n.innerHTML = '<b>Sign-in isn’t live yet.</b> CRM workspaces open with the first customer accounts — ' +
       'your pipeline and notes stay saved in this browser and will sync once your workspace is provisioned.';
