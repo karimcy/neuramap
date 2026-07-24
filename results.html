@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Results — OpportunityMap · Neura Energy</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap">
+<link rel="icon" type="image/png" href="assets/neura-mark.png">
+<link rel="stylesheet" href="css/app.css?v=11">
+<link rel="stylesheet" href="css/results.css?v=11">
+</head>
+<body class="results-page">
+
+<header id="rTop">
+ <div class="rt-brand">
+  <img src="assets/neura-wordmark-white.png" alt="Neura Energy" height="18">
+  <span class="rt-title">Results — opportunity screen &amp; pipeline</span>
+ </div>
+ <nav class="rt-nav">
+  <a href="index.html">← Map</a>
+  <button class="chip-btn" id="rExport">Export filtered CSV</button>
+ </nav>
+</header>
+
+<div id="rWrap">
+ <aside id="rFilters">
+  <div class="card">
+   <div class="card-title">Screen settings</div>
+   <div class="inline-ctl"><span class="lbl">Target load</span>
+    <div class="seg seg-sm" id="rTarget">
+     <button data-mw="20">20</button><button data-mw="50" class="on">50</button>
+     <button data-mw="100">100</button><button data-mw="250">250</button>
+    </div><span class="lbl">MW</span>
+   </div>
+   <div class="inline-ctl"><span class="lbl">Battery</span>
+    <div class="seg seg-sm" id="rDur"><button data-h="2">2 h</button><button data-h="8" class="on">8 h</button></div>
+   </div>
+  </div>
+
+  <div class="card">
+   <div class="card-title">Filters</div>
+   <input id="rSearch" class="r-input" placeholder="Search name / operator / region…">
+   <div class="f-group"><span class="lbl">Type</span>
+    <div class="seg seg-sm" id="rType">
+     <button data-t="all" class="on">All</button><button data-t="node">Grid nodes</button><button data-t="asset">Assets</button>
+    </div>
+   </div>
+   <div class="f-group"><span class="lbl">Markets</span><div id="rMarkets" class="chips"></div></div>
+   <div class="f-group"><span class="lbl">Fit tier (nodes)</span><div id="rTiers" class="chips">
+    <button class="fchip on" data-v="prime">prime</button><button class="fchip on" data-v="strong">strong</button>
+    <button class="fchip" data-v="possible">possible</button><button class="fchip" data-v="weak">weak</button>
+   </div></div>
+   <div class="f-group"><span class="lbl">Asset status</span><div id="rStatus" class="chips">
+    <button class="fchip on" data-v="Operational">operational</button>
+    <button class="fchip on" data-v="Under Construction">construction</button>
+    <button class="fchip on" data-v="Awaiting Construction">consented</button>
+    <button class="fchip" data-v="Application Submitted">in planning</button>
+   </div></div>
+   <div class="f-group"><span class="lbl">Asset tech</span><div id="rTech" class="chips">
+    <button class="fchip on" data-v="battery">battery</button><button class="fchip on" data-v="hybrid">hybrid</button>
+    <button class="fchip" data-v="solar">solar</button>
+   </div></div>
+   <div class="f-group inline-ctl"><span class="lbl">Min MW</span>
+    <input id="rMinMw" class="r-input r-num" type="number" value="0" min="0" step="5">
+   </div>
+   <label class="tog"><input type="checkbox" id="rMeasured"><span class="tog-ui"></span>Measured profile only</label>
+   <label class="tog"><input type="checkbox" id="rPinned"><span class="tog-ui"></span>In pipeline only</label>
+  </div>
+
+  <div class="card" id="rStats"></div>
+ </aside>
+
+ <main id="rMain">
+  <div id="rTableWrap">
+   <table id="rTable">
+    <thead><tr id="rHead"></tr></thead>
+    <tbody id="rBody"></tbody>
+   </table>
+   <div id="rPager"></div>
+  </div>
+ </main>
+
+ <aside id="rDetail" hidden></aside>
+</div>
+
+<script src="js/data.js?v=11"></script>
+<script src="js/results.js?v=11"></script>
+</body>
+</html>

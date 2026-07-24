@@ -1,0 +1,210 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>OpportunityMap — European Grid Connection Atlas · Neura Energy</title>
+<meta name="description" content="OpportunityMap by Neura Energy — available grid connection headroom per node across 10 European markets, for datacenter and large-load siting.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css"
+ integrity="sha512-h9FcoyWjHcOcmEVkxOfTLnmZFWIH0iZhZT1H2TbOq55xssQGEJHEaIm+PgoUaZbRvQTNTluNOEfb1ZRy6D3BOw==" crossorigin="anonymous" referrerpolicy="no-referrer">
+<link rel="icon" type="image/png" href="assets/neura-mark.png">
+<link rel="stylesheet" href="css/app.css?v=11">
+</head>
+<body>
+<div id="wrap">
+
+ <!-- ═══════════════ SIDEBAR ═══════════════ -->
+ <aside id="panel">
+
+  <header class="brand">
+   <div class="brand-top">
+    <img class="brand-word" src="assets/neura-wordmark-white.png" alt="Neura Energy" height="24">
+    <span class="brand-links"><a href="results.html">Results ↗</a><span class="brand-rev num" id="revChip">v1.0 · data 2026-07</span></span>
+   </div>
+   <h1>OpportunityMap</h1>
+   <p class="brand-tag">European grid connection atlas — where large loads can plug in, node by node.</p>
+  </header>
+
+  <div class="searchbox">
+   <svg class="search-ico" viewBox="0 0 20 20" width="15" height="15" aria-hidden="true"><circle cx="9" cy="9" r="6" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="m13.5 13.5 4 4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+   <input id="search" placeholder="Search substations &amp; lines (e.g. Carmona)" autocomplete="off" spellcheck="false" aria-label="Search substation or line name">
+   <kbd class="search-kbd">/</kbd>
+   <div id="searchResults" role="listbox"></div>
+  </div>
+
+  <div class="kpis" id="kpis"></div>
+  <div class="kpi-ctl" id="availCtl" hidden>
+   <span class="lbl">Firmness</span>
+   <input type="range" id="availSlider" min="0" max="5" step="1" value="3" aria-label="Required share of the load's energy served">
+   <b class="num" id="availLabel">99.9%</b><span class="lbl">of energy served</span>
+  </div>
+
+  <div class="seg seg-mode" id="modeSeg" role="group" aria-label="Map mode">
+   <button data-mode="explore" class="on">Raw data</button>
+   <button data-mode="deal">Neura funnel</button>
+  </div>
+
+  <section class="card deal-card" id="dealCard" hidden>
+   <div class="card-title">Firming deal screen <span class="card-hint">flexible connection + BESS</span></div>
+   <div class="inline-ctl">
+    <span class="lbl">Target load</span>
+    <div class="seg seg-sm" id="dtarget">
+     <button data-mw="20">20</button><button data-mw="50" class="on">50</button>
+     <button data-mw="100">100</button><button data-mw="250">250</button>
+    </div>
+    <span class="lbl">MW</span>
+   </div>
+   <div class="inline-ctl">
+    <span class="lbl">Battery duration</span>
+    <div class="seg seg-sm" id="ddur">
+     <button data-h="2">2 h</button><button data-h="8" class="on">8 h</button>
+    </div>
+   </div>
+   <div class="inline-ctl">
+    <span class="lbl">Colour nodes by</span>
+    <div class="seg seg-sm" id="dcolor">
+     <button data-c="fit" class="on">Fit score</button><button data-c="raw">Raw headroom</button>
+    </div>
+   </div>
+   <button class="chip-btn" id="loadAllBtn">Load all markets</button>
+   <div class="deal-stats" id="dealStats"></div>
+   <div class="inline-ctl" style="margin:0 0 6px">
+    <span class="lbl">Rank within</span>
+    <select id="dmarket" class="pipe-stage" aria-label="Market filter"><option value="ALL">All markets</option></select>
+   </div>
+   <div class="rank-title">Top opportunities</div>
+   <div id="dealRank" class="rank"></div>
+   <button class="chip-btn" id="screenCsvBtn">Export full screen CSV (top 500)</button>
+   <p class="note">Score blends firming-gap economics (can a right-sized battery bridge target vs headroom), voltage class, industrial land within 3&nbsp;km, and queued-demand pressure within 30&nbsp;km. Flexible connection + firming ≈ <b>12–18 months to power</b> vs 5–7 years conventional.</p>
+   <p class="note">System-level firmable totals in the tiles above come from chronological battery simulation on measured 2025 load (see tile tooltips). Per-node screening below still sizes the battery to the target-vs-headroom gap.</p>
+  </section>
+
+  <section class="card" id="pipeCard" hidden>
+   <div class="card-title">Pipeline <span class="card-hint" id="pipeCount"></span></div>
+   <div id="pipeList"></div>
+   <button class="chip-btn" id="csvBtn">Export CSV</button>
+  </section>
+
+
+  <div class="fresh-strip" id="freshStrip">
+   <button class="fresh-head" id="freshToggle" aria-expanded="false">
+    <span id="freshSummary">Data freshness</span>
+    <svg class="chev" viewBox="0 0 10 10" width="9" height="9"><path d="M2.5 1.5 7 5 2.5 8.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+   </button>
+   <div class="fresh-body" id="freshBody"></div>
+  </div>
+
+  <section class="card">
+   <div class="card-title">Headroom filter</div>
+   <div class="seg" id="thr" role="group" aria-label="Minimum MW filter">
+    <button data-t="0">All</button><button data-t="5" class="on">≥5</button><button data-t="50">≥50</button>
+    <button data-t="100">≥100</button><button data-t="250">≥250</button><button data-t="500">≥500</button>
+   </div>
+  </section>
+
+  <section class="card">
+   <div class="card-title">Coverage — layers × markets <button class="mx-allbtn" id="matrixAllBtn" type="button">Select all</button></div>
+   <div id="matrixWrap"><table id="matrixTbl"><thead id="matrixHead"></thead><tbody id="matrixBody"></tbody></table></div>
+   <div id="linemode" hidden>
+    <div class="inline-ctl">
+     <span class="lbl">Colour lines by</span>
+     <div class="seg seg-sm" id="lm"><button data-lm="volt" class="on">Voltage class</button><button data-lm="avail">Nearby headroom</button></div>
+    </div>
+    <p class="note">Operators don't publish live per-line flows. “Nearby headroom” paints each line with the strongest node headroom within 12&nbsp;km.</p>
+   </div>
+  </section>
+
+  <section class="acc" id="accSpain">
+   <button class="acc-head" aria-expanded="false">
+    <span class="acc-label">Spain regional breakdown</span>
+    <svg class="chev" viewBox="0 0 10 10" width="10" height="10"><path d="M2.5 1.5 7 5 2.5 8.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+   </button>
+   <div class="acc-body">
+    <label class="tog"><input type="checkbox" id="tReg"><span class="tog-ui"></span>Show regional totals on the map</label>
+    <div class="rank-title">Regions ranked by DC-grade headroom</div>
+    <div id="regRank" class="rank"></div>
+    <p class="note">Monthly, indicative figures. Headroom is shared between neighbouring nodes — <b>never sum two dots</b>. Validate any shortlist with a formal access request.</p>
+   </div>
+  </section>
+
+  <section class="acc" id="accMeas" hidden>
+   <button class="acc-head" aria-expanded="false">
+    <span class="acc-label">Measured vs published — PT pilot</span>
+    <svg class="chev" viewBox="0 0 10 10" width="10" height="10"><path d="M2.5 1.5 7 5 2.5 8.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+   </button>
+   <div class="acc-body">
+    <div class="meas-sum" id="measSummary"></div>
+    <div class="rank-title">Substations by divergence (measured − published)</div>
+    <div id="measList" class="rank"></div>
+    <p class="note">Independent check on published figures: a full year of 15-minute metering per substation gives the real minimum headroom (firm rating − metered peak) and the <b>empirically firmable added load</b> at 2 h / 8 h battery. Where measured runs <b>below</b> published (red), the published availability overstates what the substation can actually firm — verify before underwriting. Nodes with a measured profile carry an <b style="color:#ff9b1f">orange ring</b> on the map.</p>
+   </div>
+  </section>
+
+  <section class="acc open" id="accCorridor">
+   <button class="acc-head" aria-expanded="true">
+    <span class="acc-label">Site finder — industrial land near capacity</span>
+    <svg class="chev" viewBox="0 0 10 10" width="10" height="10"><path d="M2.5 1.5 7 5 2.5 8.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+   </button>
+   <div class="acc-body">
+    <div id="corridorBox" hidden>
+     <div class="inline-ctl">
+      <span class="lbl">min node MW</span>
+      <div class="seg seg-sm" id="cormw"><button data-cmw="100" class="on">100</button><button data-cmw="250">250</button><button data-cmw="500">500</button></div>
+     </div>
+     <p class="note">Industrial &amp; warehouse land (OSM polygons) within <b>3&nbsp;km</b> of a ≥100&nbsp;MW transmission node — the radius is baked into the data. Contracted power per building is not publicly searchable anywhere in Europe: use this as a shortlist, then verify through the site's meter / connection records (CUPS in Spain) before assuming spare power.</p>
+     <div id="corridorList"></div>
+    </div>
+    <p class="note" id="corridorOff" hidden>Turn on a <b>Candidate sites</b> layer in the coverage matrix above.</p>
+   </div>
+  </section>
+
+  <section class="card">
+   <div class="card-title">Reading the map</div>
+   <div class="bar"></div>
+   <div class="legrow"><span>5</span><span>50</span><span>100</span><span>250</span><span>500</span><span>900+</span></div>
+   <p class="note">Bubble area scales with headroom. White ring = 400&nbsp;kV substation, grey = lower voltage. Positions snap to the matched town or substation centroid — indicative. Transmission nodes carry ≥100&nbsp;MW; distribution tops out around 60–140&nbsp;MW.</p>
+  </section>
+
+  <section class="acc" id="accAbout">
+   <button class="acc-head" aria-expanded="false">
+    <span class="acc-label">Methodology &amp; caveats</span>
+    <svg class="chev" viewBox="0 0 10 10" width="10" height="10"><path d="M2.5 1.5 7 5 2.5 8.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+   </button>
+   <div class="acc-body about">
+    <p class="note"><b>Every dot is offtake headroom</b> — the load a new connection (a datacenter, an electrolyser, a factory) could draw at that point today. Injection capacity for generators is a different market and only appears as the explicitly-labelled grid-strength proxy layer. <b>Purple</b> dots are queued connection requests: demand already claimed, the opposite of headroom. <b>Teal</b> dots are points an operator has flagged viable without publishing a figure.</p>
+    <p class="note"><b>Headroom is shared.</b> A large load at one node consumes its neighbours' margin too — two nearby dots never add up to one bigger site.</p>
+    <p class="note"><b>Ranges become floors.</b> Where operators publish bands instead of numbers (Svenska kraftnät, several Finnish DSOs), the map carries the band's lower bound so it never overstates.</p>
+    <p class="note"><b>Lines are a proxy.</b> No European TSO or DSO publishes live line loadings; line colouring shows the strongest node headroom within 12&nbsp;km. Spanish transmission circuits additionally carry a published thermal rating (MVA) — a design ceiling, not spare capacity.</p>
+    <p class="note"><b>Sites are a shortlist.</b> Contracted power per building is only verifiable through meter-level records (DSO enquiry) — the site finder surfaces targets to verify, not confirmed availability.</p>
+    <p class="note"><b>How it's assembled:</b> there is no pan-European source. Coverage is built market by market — energy regulator → licensed-operator registry → each operator's capacity publication — then normalised into a single schema and served as a static map.</p>
+   </div>
+  </section>
+
+  <footer class="foot">
+   <a href="https://neura.energy" target="_blank" rel="noopener">© Neura Energy</a>
+   <span>Basemap © OpenStreetMap · © CARTO</span>
+  </footer>
+ </aside>
+
+ <div id="panelDrag" title="Drag to resize"></div>
+
+ <!-- ═══════════════ MAP ═══════════════ -->
+ <main id="mapArea">
+  <div id="map"></div>
+  <button id="panelCollapse" title="Toggle sidebar" aria-label="Toggle sidebar">
+   <svg viewBox="0 0 16 16" width="14" height="14"><path d="M10 3 5 8l5 5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+  </button>
+  <div id="legend"></div>
+  <div id="toast" hidden></div>
+ </main>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"
+ integrity="sha512-puJW3E/qXDqYp9IfhAI54BJEaWIfloJ7JWs7OeD5i6ruC9JZL1gERT1wjtwXFlh7CjE7ZJ+/vcRZRkIYIb6p4g==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+<script src="js/data.js?v=11"></script>
+<script src="js/app.js?v=11"></script>
+</body>
+</html>
