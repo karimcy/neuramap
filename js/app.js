@@ -616,45 +616,67 @@ document.getElementById('tReg').onchange = e => { e.target.checked ? regGroup.ad
 const telcoState = { group: null, visible: false, loaded: false };
 async function ensureTelco() {
   if (telcoState.loaded) return telcoState.group;
-  const gj = await (await fetch('data/telco.geojson')).json();
-  const grp = L.layerGroup();
+  const gj = await (await fetch(assetUrl('data/telco.geojson'))).json();
+  const fibre = [], subsea = [], points = [];
   for (const f of gj.features) {
-    const p = f.properties, cls = p.cls;
-    if (cls === 'fibre' || cls === 'subsea') {
-      const op = p.status !== 'Planned';
-      const lyr = L.geoJSON(f, { renderer: CANVAS, style: cls === 'fibre'
-        ? { color: '#c084fc', weight: 1, opacity: op ? .5 : .22, dashArray: op ? null : '4,5' }
-        : { color: '#38bdf8', weight: 1.2, opacity: .45 } });
-      lyr.bindTooltip(cls === 'fibre'
-        ? `fibre backbone · ${esc(p.status || '')}`
-        : `<b>${esc(p.name || 'subsea cable')}</b>`, { sticky: true });
-      grp.addLayer(lyr);
-    } else {
-      const [lon, lat] = f.geometry.coordinates;
-      const m = L.circleMarker([lat, lon], cls === 'facility'
+    const cls = f.properties && f.properties.cls;
+    if (cls === 'fibre') fibre.push(f);
+    else if (cls === 'subsea') subsea.push(f);
+    else points.push(f);
+  }
+  const grp = L.layerGroup();
+  // batch into a few GeoJSON layers — one layer per feature freezes the map at ~12k features
+  grp.addLayer(L.geoJSON({ type: 'FeatureCollection', features: fibre }, {
+    renderer: CANVAS,
+    style: f => {
+      const op = (f.properties && f.properties.status) !== 'Planned';
+      return { color: '#c084fc', weight: 1, opacity: op ? .55 : .22, dashArray: op ? null : '4,5' };
+    },
+    onEachFeature: (f, layer) => {
+      layer.bindTooltip(`fibre backbone · ${esc((f.properties && f.properties.status) || '')}`, { sticky: true });
+    },
+  }));
+  grp.addLayer(L.geoJSON({ type: 'FeatureCollection', features: subsea }, {
+    renderer: CANVAS,
+    style: { color: '#38bdf8', weight: 1.2, opacity: .5 },
+    onEachFeature: (f, layer) => {
+      layer.bindTooltip(`<b>${esc((f.properties && f.properties.name) || 'subsea cable')}</b>`, { sticky: true });
+    },
+  }));
+  grp.addLayer(L.geoJSON({ type: 'FeatureCollection', features: points }, {
+    renderer: CANVAS,
+    pointToLayer: (f, latlng) => {
+      const cls = f.properties && f.properties.cls;
+      return L.circleMarker(latlng, cls === 'facility'
         ? { renderer: CANVAS, radius: 4, color: '#fda4d4', weight: 1, fillColor: '#f472b6', fillOpacity: .85 }
         : { renderer: CANVAS, radius: 3.5, color: '#7dd3fc', weight: 1, fillColor: '#0ea5e9', fillOpacity: .85 });
-      m.bindTooltip(cls === 'facility'
+    },
+    onEachFeature: (f, layer) => {
+      const p = f.properties || {}, facility = p.cls === 'facility';
+      layer.bindTooltip(facility
         ? `<b>${esc(p.name)}</b> · interconnection facility · ${esc(p.city || '')}`
         : `<b>${esc(p.name)}</b> · cable landing`, { sticky: true, direction: 'top' });
-      m.bindPopup(cls === 'facility'
+      layer.bindPopup(facility
         ? `<div class="pp-head"><span class="pp-name">${esc(p.name)}</span><span class="pp-kv">facility</span></div>` +
           `<div class="pp-reg">${esc(p.city || '')} · ${esc(p.cc || '')}${p.org ? ' · ' + esc(p.org) : ''}</div>` +
           `<div class="pp-src">carrier-neutral interconnection facility · PeeringDB</div>`
         : `<div class="pp-head"><span class="pp-name">${esc(p.name)}</span><span class="pp-kv">landing</span></div>` +
           `<div class="pp-src">submarine cable landing point · TeleGeography</div>`, { maxWidth: 320 });
-      grp.addLayer(m);
-    }
-  }
+    },
+  }));
   telcoState.group = grp; telcoState.loaded = true;
   return grp;
 }
-document.getElementById('tTelco').onchange = async e => {
-  telcoState.visible = e.target.checked;
+async function setTelcoVisible(on) {
+  telcoState.visible = on;
+  const cb = document.getElementById('tTelco'); if (cb) cb.checked = on;
   const grp = await ensureTelco();
-  if (e.target.checked) { grp.addTo(map); drawNodes(); } else map.removeLayer(grp);
+  if (on) { grp.addTo(map); drawNodes(); } else map.removeLayer(grp);
   renderLegend();
-};
+}
+document.getElementById('tTelco').onchange = e => { setTelcoVisible(e.target.checked); };
+// on by default — fibre / interconnection / subsea are part of the atlas
+setTelcoVisible(true);
 
 /* ── Solar & BESS asset layer (GB: REPD × TEC) ───────────── */
 function assetPopup(p) {
