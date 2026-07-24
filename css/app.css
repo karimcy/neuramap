@@ -446,3 +446,31 @@ body.panel-hidden #panel,body.panel-hidden #panelDrag{display:none}
 .brand-links{display:flex;align-items:center;gap:10px}
 .brand-links a{font-size:11px;color:var(--mut);font-weight:600}
 .brand-links a:hover{color:var(--accent);text-decoration:none}
+
+/* ── Methodology modal ─────────────────────────────────── */
+#methBtn{
+  position:absolute;right:12px;top:12px;z-index:700;
+  background:rgba(16,22,30,.94);border:1px solid var(--line2);border-radius:999px;
+  color:var(--ink);font-size:13px;font-weight:600;padding:9px 20px;cursor:pointer;
+  backdrop-filter:blur(6px);box-shadow:0 3px 14px rgba(0,0,0,.45);transition:all .15s;
+}
+#methBtn:hover{border-color:var(--accent);color:var(--accent)}
+#methModal{position:fixed;inset:0;z-index:2000}
+#methModal[hidden]{display:none}
+.mm-backdrop{position:absolute;inset:0;background:rgba(5,8,12,.7);backdrop-filter:blur(3px)}
+.mm-panel{
+  position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);
+  width:min(880px,94vw);max-height:88vh;overflow-y:auto;
+  background:var(--panel);border:1px solid var(--line2);border-radius:16px;
+  padding:28px 34px 40px;box-shadow:0 30px 80px rgba(0,0,0,.6);
+  scrollbar-width:thin;scrollbar-color:#2c3949 transparent;
+}
+.mm-close{position:sticky;top:0;float:right;background:var(--card);border:1px solid var(--line2);
+  border-radius:8px;color:var(--mut);font-size:14px;padding:5px 10px;cursor:pointer}
+.mm-close:hover{color:var(--ink)}
+.mm-title{font-size:22px;font-weight:700;margin:0 0 6px}
+.mm-lede{color:var(--mut);font-size:13.5px;line-height:1.6;margin:0 0 10px;max-width:640px}
+.mm-panel h3{font-size:13px;letter-spacing:.06em;text-transform:uppercase;color:var(--accent);
+  margin:22px 0 8px;border-top:1px solid var(--line);padding-top:16px}
+.mm-panel p{font-size:13px;line-height:1.65;color:var(--ink);margin:0 0 10px;max-width:720px}
+.mm-warn{border-left:2px solid var(--accent);padding-left:12px;color:var(--mut)!important}

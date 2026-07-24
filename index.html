@@ -11,7 +11,7 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css"
  integrity="sha512-h9FcoyWjHcOcmEVkxOfTLnmZFWIH0iZhZT1H2TbOq55xssQGEJHEaIm+PgoUaZbRvQTNTluNOEfb1ZRy6D3BOw==" crossorigin="anonymous" referrerpolicy="no-referrer">
 <link rel="icon" type="image/png" href="assets/neura-mark.png">
-<link rel="stylesheet" href="css/app.css?v=11">
+<link rel="stylesheet" href="css/app.css?v=12">
 </head>
 <body>
 <div id="wrap">
@@ -37,9 +37,9 @@
 
   <div class="kpis" id="kpis"></div>
   <div class="kpi-ctl" id="availCtl" hidden>
-   <span class="lbl">Firmness</span>
-   <input type="range" id="availSlider" min="0" max="5" step="1" value="3" aria-label="Required share of the load's energy served">
-   <b class="num" id="availLabel">99.9%</b><span class="lbl">of energy served</span>
+   <span class="lbl">Uptime</span>
+   <input type="range" id="availSlider" min="0" max="5" step="1" value="3" aria-label="Required uptime — share of hours fully served">
+   <b class="num" id="availLabel">99.9%</b><span class="lbl">of hours fully served</span>
   </div>
 
   <div class="seg seg-mode" id="modeSeg" role="group" aria-label="Map mode">
@@ -168,19 +168,10 @@
    <p class="note">Bubble area scales with headroom. White ring = 400&nbsp;kV substation, grey = lower voltage. Positions snap to the matched town or substation centroid — indicative. Transmission nodes carry ≥100&nbsp;MW; distribution tops out around 60–140&nbsp;MW.</p>
   </section>
 
-  <section class="acc" id="accAbout">
-   <button class="acc-head" aria-expanded="false">
-    <span class="acc-label">Methodology &amp; caveats</span>
-    <svg class="chev" viewBox="0 0 10 10" width="10" height="10"><path d="M2.5 1.5 7 5 2.5 8.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
-   </button>
-   <div class="acc-body about">
-    <p class="note"><b>Every dot is offtake headroom</b> — the load a new connection (a datacenter, an electrolyser, a factory) could draw at that point today. Injection capacity for generators is a different market and only appears as the explicitly-labelled grid-strength proxy layer. <b>Purple</b> dots are queued connection requests: demand already claimed, the opposite of headroom. <b>Teal</b> dots are points an operator has flagged viable without publishing a figure.</p>
-    <p class="note"><b>Headroom is shared.</b> A large load at one node consumes its neighbours' margin too — two nearby dots never add up to one bigger site.</p>
-    <p class="note"><b>Ranges become floors.</b> Where operators publish bands instead of numbers (Svenska kraftnät, several Finnish DSOs), the map carries the band's lower bound so it never overstates.</p>
-    <p class="note"><b>Lines are a proxy.</b> No European TSO or DSO publishes live line loadings; line colouring shows the strongest node headroom within 12&nbsp;km. Spanish transmission circuits additionally carry a published thermal rating (MVA) — a design ceiling, not spare capacity.</p>
-    <p class="note"><b>Sites are a shortlist.</b> Contracted power per building is only verifiable through meter-level records (DSO enquiry) — the site finder surfaces targets to verify, not confirmed availability.</p>
-    <p class="note"><b>How it's assembled:</b> there is no pan-European source. Coverage is built market by market — energy regulator → licensed-operator registry → each operator's capacity publication — then normalised into a single schema and served as a static map.</p>
-   </div>
+  <section class="card">
+   <div class="card-title">Methodology</div>
+   <p class="note">Every figure on this map has a stated method and an honest limit — headroom vs measured profiles, the firm-power engine, the fit score, what "uptime" means here.</p>
+   <button class="chip-btn" id="methOpen2" style="margin-top:6px">Open full methodology</button>
   </section>
 
   <footer class="foot">
@@ -199,12 +190,51 @@
   </button>
   <div id="legend"></div>
   <div id="toast" hidden></div>
+  <button id="methBtn" title="Methodology">Methodology</button>
+  <div id="methModal" hidden>
+   <div class="mm-backdrop"></div>
+   <div class="mm-panel" role="dialog" aria-modal="true" aria-label="Methodology">
+    <button class="mm-close" id="methClose" aria-label="Close">✕</button>
+    <h2 class="mm-title">Methodology</h2>
+    <p class="mm-lede">Every number on this map is computed, sourced, and bounded. This page says how — and just as deliberately, what each figure can <i>not</i> claim.</p>
+
+    <h3>1 · What the map shows</h3>
+    <p>Each dot is a grid node with published <b>demand (offtake) connection headroom</b> — the load a new connection could draw there today, as stated by the operator's own capacity publication. Generation (injection) capacity is a different quantity and only ever appears as the separately-labelled grid-strength proxy layer. <b>Purple</b> = queued connection requests (capacity already claimed — the opposite of headroom). <b>Teal</b> = operator-flagged viable, no figure published. Coverage: 10 markets, assembled operator by operator — regulator → licensed-operator registry → capacity publication — normalised into one schema.</p>
+    <p class="mm-warn">Headroom is <b>non-additive</b>: nearby nodes share upstream limits. Never sum two dots into one bigger site.</p>
+
+    <h3>2 · The firm-power engine (the uptime slider)</h3>
+    <p>The headline tiles come from a <b>chronological battery simulation</b> on a full year of measured system load per market (15/30-minute resolution). A candidate load T draws continuously through the connection; a battery of duration D (energy = T×D, ~88% round-trip) discharges through every interval in which system load + T would exceed the year's observed peak, and may recharge <i>only</i> when spare room exists under that peak — through the same connection. Event length and clustering are therefore fully priced: back-to-back constraint days with thin recharge windows are exactly where the simulation fails a candidate load.</p>
+    <p><b>Uptime</b> means the share of intervals in which the load runs at full T. Any shortfall, however small, counts the whole interval as downtime — the SLA view. 99.9% uptime ≈ 8.8 hours of curtailment per year. The slider moves the required uptime; every tile recomputes from precomputed simulation results.</p>
+    <p class="mm-warn">The capability ceiling is the <b>observed single-year system peak</b> — a deliberate floor. Sensitivity: allowing just 3% above the observed peak roughly triples the 2h figure; a defensible per-market capability derivation from adequacy reports is on the roadmap. These are system-level screening numbers: local network constraints still gate any specific node.</p>
+
+    <h3>3 · Flexible-load headroom (no battery)</h3>
+    <p>The "flexible load" tile follows the Nicholas Institute's <i>Rethinking Load Growth</i> method (Norris et al., 2025): the maximum constant load addable against the observed system peak such that the energy it must shed stays within a tolerance (shown at ≤1% of its annual energy). Note the metric difference: this is an <b>energy</b> tolerance for a load that itself flexes; the battery tiles use <b>uptime</b>, which is stricter.</p>
+
+    <h3>4 · The fit score (Neura funnel)</h3>
+    <p>Each demand node is scored 0–100 for the firming wedge at your chosen target load: <b>45%</b> firming-gap economics (sweet spot where published headroom covers most-but-not-all of the target, so a right-sized battery bridges the rest), <b>20%</b> voltage class, <b>15%</b> industrial land within 3 km, <b>20%</b> queued-demand pressure within 30 km where the market publishes a queue. Tiers: prime ≥78 · strong 63–77 · possible 48–62 · weak &lt;48. The score ranks screening effort — it is not a bankability rating.</p>
+
+    <h3>5 · Published vs measured</h3>
+    <p>Published headroom is an operator statement, not a measurement. Where substation-level metered load exists (currently Portugal's E-Redes; Great Britain at ~4,000 nodes pending API keys), we compute the real load-duration curve and the empirically firmable added load — rows and popups marked <b>measured</b>. The two can disagree in both directions; where a published figure exceeds measured minimum headroom, treat the published number as the optimistic bound.</p>
+
+    <h3>6 · Solar &amp; BESS assets (GB)</h3>
+    <p>Asset dots join the government planning database (REPD — coordinates, status, operational year) with the NESO TEC register (connection site, queue gate). Pipeline assets are shown as <b>potential capacity</b>; operational assets as installed capacity. Battery duration (MWh) is not published in either source and is marked accordingly until the DNO register join lands.</p>
+
+    <h3>7 · Candidate sites</h3>
+    <p>Industrial and warehouse land (OSM polygons) within 3 km of a ≥100 MW transmission node. Contracted power per building is not publicly screenable anywhere in Europe — sites are a shortlist to verify through meter-level records, never confirmed availability.</p>
+
+    <h3>8 · Sources &amp; freshness</h3>
+    <p>Node capacity: national operator publications per market (editions shown in each popup and the freshness strip). System load: ENTSO-E-derived hourly series (Fraunhofer energy-charts mirror) and NESO historic demand for GB, full calendar year. Assets: REPD (DESNZ) × NESO TEC. Measured profiles: E-Redes open data. Network-physics work in progress is calibrated against operator-published PTDFs and static grid models (JAO Core/Nordic, NESO ETYS).</p>
+
+    <h3>9 · What none of this is</h3>
+    <p class="mm-warn">Screening, not a connection study. System-level firm figures are not nodal promises; nodal headroom is not additive; a fit score is not a bankability opinion; single-weather-year results move with the weather. Every deal this surfaces still ends in a formal access request and site-level verification — this map exists to make sure you spend that effort in the right places.</p>
+   </div>
+  </div>
  </main>
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"
  integrity="sha512-puJW3E/qXDqYp9IfhAI54BJEaWIfloJ7JWs7OeD5i6ruC9JZL1gERT1wjtwXFlh7CjE7ZJ+/vcRZRkIYIb6p4g==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-<script src="js/data.js?v=11"></script>
-<script src="js/app.js?v=11"></script>
+<script src="js/data.js?v=12"></script>
+<script src="js/app.js?v=12"></script>
 </body>
 </html>

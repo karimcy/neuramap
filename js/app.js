@@ -465,12 +465,12 @@ function renderKpis() {
   let html = '';
   if (euFlex && euFlex.battery_totals_gw) {
     const bt = euFlex.battery_totals_gw;
-    const firmLbl = dealAvail === '100%' ? 'fully firm' : `≥${dealAvail} served`;
+    const firmLbl = dealAvail === '100%' ? 'fully firm' : `≥${dealAvail} uptime`;
     const simTip = `Chronological battery simulation on measured ${euFlex.period} system load, per market: ` +
       `the added load draws through the connection; a battery (energy = load × duration) discharges through every ` +
       `hour the system would exceed its observed peak and can recharge only when spare room exists under the peak. ` +
-      `Event duration and clustering fully accounted for. Threshold = share of the load's annual energy that must ` +
-      `be served (slider below). System-level screening against the observed-peak floor; local network constraints ` +
+      `Event duration and clustering fully accounted for. Threshold = required UPTIME: share of intervals the ` +
+      `load runs at full power (slider below). System-level screening against the observed-peak floor; local network constraints ` +
       `still gate any specific node.`;
     const flexTip = `Norris-style load-duration analysis of measured ${euFlex.period} load: max constant flexible ` +
       `(curtailable) load addable against the observed system peak at the stated energy-curtailment tolerance. ` +
@@ -1357,4 +1357,18 @@ const marketsReady = (async function () {
     const cb = document.getElementById('sites_' + cc); if (cb) cb.checked = true;
   }
   updateCorridorVis(); rebuildCorridor();
+})();
+
+
+/* ── methodology modal ── */
+(function () {
+  const modal = document.getElementById('methModal');
+  const open = () => { modal.hidden = false; document.body.style.overflow = 'hidden'; };
+  const close = () => { modal.hidden = true; document.body.style.overflow = ''; };
+  document.getElementById('methBtn').onclick = open;
+  const side = document.getElementById('methOpen2'); if (side) side.onclick = open;
+  document.getElementById('methClose').onclick = close;
+  modal.querySelector('.mm-backdrop').onclick = close;
+  document.addEventListener('keydown', e => { if (e.key === 'Escape' && !modal.hidden) close(); });
+  if (location.hash === '#methodology') open();
 })();
