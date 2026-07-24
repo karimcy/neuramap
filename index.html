@@ -7,11 +7,11 @@
 <meta name="description" content="OpportunityMap by Neura Energy — available grid connection headroom per node across 10 European markets, for datacenter and large-load siting.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Source+Sans+3:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css"
  integrity="sha512-h9FcoyWjHcOcmEVkxOfTLnmZFWIH0iZhZT1H2TbOq55xssQGEJHEaIm+PgoUaZbRvQTNTluNOEfb1ZRy6D3BOw==" crossorigin="anonymous" referrerpolicy="no-referrer">
 <link rel="icon" type="image/png" href="assets/neura-mark.png">
-<link rel="stylesheet" href="css/app.css?v=15">
+<link rel="stylesheet" href="css/app.css?v=16">
 </head>
 <body>
 <div id="wrap">
@@ -194,40 +194,188 @@
   <button id="methBtn" title="Methodology">Methodology</button>
   <div id="methModal" hidden>
    <div class="mm-backdrop"></div>
-   <div class="mm-panel" role="dialog" aria-modal="true" aria-label="Methodology">
+   <div class="mm-panel meth" role="dialog" aria-modal="true" aria-label="Methodology">
     <button class="mm-close" id="methClose" aria-label="Close">✕</button>
-    <h2 class="mm-title">Methodology</h2>
-    <p class="mm-lede">Every number on this map is computed, sourced, and bounded. This page says how — and just as deliberately, what each figure can <i>not</i> claim.</p>
 
-    <h3>1 · What the map shows</h3>
-    <p>Each dot is a grid node with published <b>demand (offtake) connection headroom</b> — the load a new connection could draw there today, as stated by the operator's own capacity publication. Generation (injection) capacity is a different quantity and only ever appears as the separately-labelled grid-strength proxy layer. <b>Purple</b> = queued connection requests (capacity already claimed — the opposite of headroom). <b>Teal</b> = operator-flagged viable, no figure published. Coverage: 10 markets, assembled operator by operator — regulator → licensed-operator registry → capacity publication — normalised into one schema.</p>
-    <p class="mm-warn">Headroom is <b>non-additive</b>: nearby nodes share upstream limits. Never sum two dots into one bigger site.</p>
+    <header class="meth-hero">
+     <img class="meth-mark" src="assets/neura-mark.png" alt="" width="34" height="34">
+     <span class="meth-eyebrow">Methodology</span>
+     <h2>Every number on this map is computed, sourced, and bounded.</h2>
+     <p class="mm-lede">This page shows how each figure is built — and, just as deliberately, what it can <i>not</i> claim.</p>
+     <div class="meth-stats">
+      <div class="meth-stat"><b>10</b><span>markets, operator by operator</span></div>
+      <div class="meth-stat"><b>13,441</b><span>grid nodes tracked</span></div>
+      <div class="meth-stat"><b>8,760 h</b><span>simulated per market</span></div>
+      <div class="meth-stat"><b>20</b><span>substations metered — PT pilot</span></div>
+     </div>
+    </header>
 
-    <h3>2 · The firm-power engine (the uptime slider)</h3>
-    <p>The headline tiles come from a <b>chronological battery simulation</b> on a full year of measured system load per market (15/30-minute resolution). A candidate load T draws continuously through the connection; a battery of duration D (energy = T×D, ~88% round-trip) discharges through every interval in which system load + T would exceed the year's observed peak, and may recharge <i>only</i> when spare room exists under that peak — through the same connection. Event length and clustering are therefore fully priced: back-to-back constraint days with thin recharge windows are exactly where the simulation fails a candidate load.</p>
-    <p><b>Uptime</b> means the share of intervals in which the load runs at full T. Any shortfall, however small, counts the whole interval as downtime — the SLA view. 99.9% uptime ≈ 8.8 hours of curtailment per year. The slider moves the required uptime; every tile recomputes from precomputed simulation results.</p>
-    <p class="mm-warn">The capability ceiling is the <b>observed single-year system peak</b> — a deliberate floor. Sensitivity: allowing just 3% above the observed peak roughly triples the 2h figure; a defensible per-market capability derivation from adequacy reports is on the roadmap. These are system-level screening numbers: local network constraints still gate any specific node.</p>
+    <section class="meth-row">
+     <div class="meth-viz">
+      <div class="meth-map" id="methMapNodes" aria-hidden="true"></div>
+      <div class="meth-viz-cap"><span class="k-dot" style="background:#e31a1c"></span>published demand headroom (area = MW) &nbsp;<span class="k-dot" style="background:#8a5cf6"></span>queued — already claimed &nbsp;<span class="k-dot" style="background:#0d9488"></span>flagged viable, no figure</div>
+     </div>
+     <div class="meth-copy">
+      <span class="meth-num">01</span>
+      <h3>What the map shows</h3>
+      <p>Each dot is a grid node with published <b>demand (offtake) connection headroom</b> — the load a new connection could draw there today, as stated by the operator's own capacity publication. Generation (injection) capacity is a different market and only ever appears as the separately-labelled grid-strength proxy layer.</p>
+      <p>Coverage is assembled market by market — regulator → licensed-operator registry → each operator's capacity publication — then normalised into one schema.</p>
+     </div>
+    </section>
 
-    <h3>3 · Flexible-load headroom (no battery)</h3>
-    <p>The "flexible load" tile follows the Nicholas Institute's <i>Rethinking Load Growth</i> method (Norris et al., 2025): the maximum constant load addable against the observed system peak such that the energy it must shed stays within a tolerance (shown at ≤1% of its annual energy). Note the metric difference: this is an <b>energy</b> tolerance for a load that itself flexes; the battery tiles use <b>uptime</b>, which is stricter.</p>
+    <section class="meth-row rev">
+     <div class="meth-viz">
+      <svg class="meth-svg" viewBox="0 0 320 186" role="img" aria-label="Two nearby nodes share one upstream limit">
+       <line x1="26" y1="30" x2="294" y2="30" stroke="#7cc0ff" stroke-width="2"/>
+       <text x="26" y="18" fill="#8b98a9" font-size="10">upstream circuit — one shared limit</text>
+       <line x1="112" y1="30" x2="112" y2="66" stroke="#3a4658" stroke-width="1.6"/>
+       <line x1="212" y1="30" x2="212" y2="74" stroke="#3a4658" stroke-width="1.6"/>
+       <circle cx="112" cy="106" r="42" fill="#fc4e2a" fill-opacity=".78" stroke="#f5f7ff" stroke-opacity=".5"/>
+       <circle cx="212" cy="110" r="33" fill="#fd8d3c" fill-opacity=".78" stroke="#f5f7ff" stroke-opacity=".4"/>
+       <text x="112" y="110" text-anchor="middle" fill="#0b0f14" font-size="13" font-weight="700">70 MW</text>
+       <text x="212" y="114" text-anchor="middle" fill="#0b0f14" font-size="12" font-weight="700">45 MW</text>
+       <text x="160" y="175" text-anchor="middle" fill="#e8edf4" font-size="12" font-weight="600">70 + 45 <tspan fill="#ff6b9d" font-weight="700">≠</tspan> 115 — the same margin backs both dots</text>
+      </svg>
+     </div>
+     <div class="meth-copy">
+      <span class="meth-num">02</span>
+      <h3>Headroom is shared</h3>
+      <p>Nearby nodes draw on the same upstream circuits and transformers. Published figures are <b>non-additive</b>: a large load at one node consumes its neighbours' margin too.</p>
+      <p class="mm-warn">Never sum two dots into one bigger site.</p>
+     </div>
+    </section>
 
-    <h3>4 · The fit score (Neura funnel)</h3>
-    <p>Each demand node is scored 0–100 for the firming wedge at your chosen target load: <b>45%</b> firming-gap economics (sweet spot where published headroom covers most-but-not-all of the target, so a right-sized battery bridges the rest), <b>20%</b> voltage class, <b>15%</b> industrial land within 3 km, <b>20%</b> queued-demand pressure within 30 km where the market publishes a queue. Tiers: prime ≥78 · strong 63–77 · possible 48–62 · weak &lt;48. The score ranks screening effort — it is not a bankability rating.</p>
+    <section class="meth-row">
+     <div class="meth-viz">
+      <svg class="meth-svg" viewBox="0 0 340 200" role="img" aria-label="Battery simulation: discharge above the peak, recharge under it">
+       <text x="14" y="16" fill="#8b98a9" font-size="10">system load + new load T · one winter week</text>
+       <line x1="14" y1="64" x2="326" y2="64" stroke="#ff9b1f" stroke-width="1.3" stroke-dasharray="5 4"/>
+       <text x="326" y="56" text-anchor="end" fill="#ff9b1f" font-size="10">observed system peak</text>
+       <polygon points="66,64 70,60 90,52 103,64" fill="#ff9b1f" fill-opacity=".55"/>
+       <polygon points="166,64 170,58 190,50 206,64" fill="#ff9b1f" fill-opacity=".55"/>
+       <polygon points="266,64 270,60 285,56 298,64" fill="#ff9b1f" fill-opacity=".55"/>
+       <polyline points="14,150 30,120 50,96 70,60 90,52 110,88 130,130 150,104 170,58 190,50 210,84 230,140 250,110 270,60 285,56 300,92 326,148"
+         fill="none" stroke="#6fb8ff" stroke-width="2" stroke-linejoin="round"/>
+       <rect x="108" y="166" width="26" height="7" rx="2" fill="#3ddc97" fill-opacity=".8"/>
+       <rect x="208" y="166" width="26" height="7" rx="2" fill="#3ddc97" fill-opacity=".8"/>
+       <text x="140" y="173" fill="#3ddc97" font-size="9.5">recharge — only under the peak</text>
+       <text x="18" y="192" fill="#8b98a9" font-size="9.5"><tspan fill="#ff9b1f">▮</tspan> battery discharges every interval the peak would be breached — event length &amp; clustering fully priced</text>
+      </svg>
+     </div>
+     <div class="meth-copy">
+      <span class="meth-num">03</span>
+      <h3>The firm-power engine</h3>
+      <p>The headline tiles come from a <b>chronological battery simulation</b> on a full year of measured system load per market (15/30-minute resolution). A candidate load T draws continuously; a battery of duration D (energy = T×D, ~88% round-trip) discharges through every interval in which load + T would exceed the year's observed peak — and may recharge <i>only</i> when spare room exists under that peak, through the same connection. Back-to-back constraint days with thin recharge windows are exactly where a candidate load fails.</p>
+      <p><b>Uptime</b> = share of intervals at full T; any shortfall counts the whole interval as downtime (the SLA view). 99.9% ≈ 8.8 h of curtailment a year. The slider moves required uptime; tiles recompute from precomputed simulations.</p>
+      <p class="mm-warn">The capability ceiling is the <b>observed single-year peak</b> — a deliberate floor (allowing just +3% roughly triples the 2 h figure). System-level screening: local constraints still gate any specific node.</p>
+     </div>
+    </section>
 
-    <h3>5 · Published vs measured</h3>
-    <p>Published headroom is an operator statement, not a measurement. Where substation-level metered load exists (currently Portugal's E-Redes; Great Britain at ~4,000 nodes pending API keys), we compute the real load-duration curve and the empirically firmable added load — rows and popups marked <b>measured</b>. The two can disagree in both directions; where a published figure exceeds measured minimum headroom, treat the published number as the optimistic bound.</p>
+    <section class="meth-strip">
+     <span class="meth-num">04</span>
+     <h3>Flexible load, no battery</h3>
+     <p>The "flexible load" tile follows the Nicholas Institute's <i>Rethinking Load Growth</i> method (Norris et al., 2025): the maximum constant load addable against the observed peak such that the energy it sheds stays ≤1% of its annual energy. Note the metric difference — that is an <b>energy</b> tolerance for a load that itself flexes; the battery tiles use <b>uptime</b>, which is stricter.</p>
+    </section>
 
-    <h3>6 · Solar &amp; BESS assets (GB)</h3>
-    <p>Asset dots join the government planning database (REPD — coordinates, status, operational year) with the NESO TEC register (connection site, queue gate). Pipeline assets are shown as <b>potential capacity</b>; operational assets as installed capacity. Battery duration (MWh) is not published in either source and is marked accordingly until the DNO register join lands.</p>
+    <section class="meth-row rev">
+     <div class="meth-viz">
+      <svg class="meth-svg" viewBox="0 0 320 132" role="img" aria-label="Fit score weights and tiers">
+       <text x="12" y="16" fill="#8b98a9" font-size="10">score weights — 0 to 100</text>
+       <rect x="12" y="26" width="133" height="26" rx="3" fill="#ff9b1f" fill-opacity=".85"/>
+       <rect x="147" y="26" width="59" height="26" rx="3" fill="#6fb8ff" fill-opacity=".8"/>
+       <rect x="208" y="26" width="43" height="26" rx="3" fill="#3ddc97" fill-opacity=".8"/>
+       <rect x="253" y="26" width="59" height="26" rx="3" fill="#c4b5fd" fill-opacity=".8"/>
+       <text x="78" y="43" text-anchor="middle" fill="#1d1002" font-size="11" font-weight="700">gap 45%</text>
+       <text x="176" y="43" text-anchor="middle" fill="#0a1220" font-size="10" font-weight="700">kV 20%</text>
+       <text x="229" y="43" text-anchor="middle" fill="#06120c" font-size="10" font-weight="700">sites</text>
+       <text x="282" y="43" text-anchor="middle" fill="#160b2e" font-size="10" font-weight="700">queue</text>
+       <text x="12" y="82" fill="#8b98a9" font-size="10">tiers</text>
+       <rect x="12" y="90" width="144" height="14" rx="3" fill="#475569"/>
+       <rect x="158" y="90" width="43" height="14" rx="3" fill="#60a5fa"/>
+       <rect x="203" y="90" width="44" height="14" rx="3" fill="#2dd4bf"/>
+       <rect x="249" y="90" width="63" height="14" rx="3" fill="#34d399"/>
+       <text x="84" y="101" text-anchor="middle" fill="#c7d0dc" font-size="9.5">weak</text>
+       <text x="180" y="101" text-anchor="middle" fill="#0a1220" font-size="9.5">possible</text>
+       <text x="225" y="101" text-anchor="middle" fill="#06120c" font-size="9.5">strong</text>
+       <text x="280" y="101" text-anchor="middle" fill="#06120c" font-size="9.5" font-weight="700">prime</text>
+       <text x="156" y="122" text-anchor="middle" fill="#5f6d80" font-size="9">48</text>
+       <text x="202" y="122" text-anchor="middle" fill="#5f6d80" font-size="9">63</text>
+       <text x="248" y="122" text-anchor="middle" fill="#5f6d80" font-size="9">78</text>
+      </svg>
+     </div>
+     <div class="meth-copy">
+      <span class="meth-num">05</span>
+      <h3>The fit score — Neura funnel</h3>
+      <p>Each demand node is scored 0–100 for the firming wedge at your chosen target load: <b>45%</b> firming-gap economics (the sweet spot where published headroom covers most-but-not-all of the target, so a right-sized battery bridges the rest), <b>20%</b> voltage class, <b>15%</b> industrial land within 3 km, <b>20%</b> queued-demand pressure within 30 km where the market publishes a queue.</p>
+      <p class="mm-warn">The score ranks screening effort — it is not a bankability rating.</p>
+     </div>
+    </section>
 
-    <h3>7 · Candidate sites</h3>
-    <p>Industrial and warehouse land (OSM polygons) within 3 km of a ≥100 MW transmission node. Contracted power per building is not publicly screenable anywhere in Europe — sites are a shortlist to verify through meter-level records, never confirmed availability.</p>
+    <section class="meth-row">
+     <div class="meth-viz">
+      <div class="meth-map" id="methMapMeas" aria-hidden="true"></div>
+      <div class="meth-viz-cap">
+       <svg viewBox="0 0 300 52" style="display:block;width:100%;max-width:300px">
+        <text x="0" y="11" fill="#8b98a9" font-size="10">CUSTÓIAS — published vs metered headroom</text>
+        <text x="0" y="30" fill="#8b98a9" font-size="9.5">published</text>
+        <rect x="56" y="22" width="170" height="9" rx="2" fill="#8b98a9" fill-opacity=".65"/>
+        <text x="232" y="30" fill="#e8edf4" font-size="9.5" font-family="JetBrains Mono,monospace">34 MW</text>
+        <text x="0" y="46" fill="#8b98a9" font-size="9.5">measured</text>
+        <rect x="56" y="38" width="30" height="9" rx="2" fill="#ff6b9d"/>
+        <text x="92" y="46" fill="#ff6b9d" font-size="9.5" font-family="JetBrains Mono,monospace">6 MW</text>
+       </svg>
+      </div>
+     </div>
+     <div class="meth-copy">
+      <span class="meth-num">06</span>
+      <h3>Published vs measured</h3>
+      <p>Published headroom is an operator <b>statement</b>, not a measurement. Where substation-level metered load exists (currently Portugal's E-Redes; Great Britain at ~4,000 nodes pending API keys), we compute the real load-duration curve and the <b>empirically firmable added load</b> at 2 h / 8 h battery — nodes marked <span class="meas-badge">measured</span> with an orange ring on the map.</p>
+      <p>The two can disagree in both directions. Where a published figure exceeds measured minimum headroom, treat the published number as the optimistic bound.</p>
+     </div>
+    </section>
 
-    <h3>8 · Sources &amp; freshness</h3>
-    <p>Node capacity: national operator publications per market (editions shown in each popup and the freshness strip). System load: ENTSO-E-derived hourly series (Fraunhofer energy-charts mirror) and NESO historic demand for GB, full calendar year. Assets: REPD (DESNZ) × NESO TEC. Measured profiles: E-Redes open data. Network-physics work in progress is calibrated against operator-published PTDFs and static grid models (JAO Core/Nordic, NESO ETYS).</p>
+    <section class="meth-row rev">
+     <div class="meth-viz">
+      <div class="meth-map" id="methMapAssets" aria-hidden="true"></div>
+      <div class="meth-viz-cap"><span class="k-dot" style="background:#22d3ee"></span>battery &nbsp;<span class="k-dot" style="background:#a3e635"></span>solar + BESS hybrid &nbsp;<span class="k-dot" style="background:#fbbf24"></span>solar · bright = operational, dim = pipeline</div>
+     </div>
+     <div class="meth-copy">
+      <span class="meth-num">07</span>
+      <h3>Solar &amp; BESS assets — GB</h3>
+      <p>Asset dots join the government planning database (REPD — coordinates, status, operational year) with the NESO TEC register (connection site, queue gate). Pipeline assets are shown as <b>potential</b> capacity; operational assets as installed capacity. Battery duration (MWh) is not published in either source and is marked accordingly until the DNO register join lands.</p>
+     </div>
+    </section>
 
-    <h3>9 · What none of this is</h3>
-    <p class="mm-warn">Screening, not a connection study. System-level firm figures are not nodal promises; nodal headroom is not additive; a fit score is not a bankability opinion; single-weather-year results move with the weather. Every deal this surfaces still ends in a formal access request and site-level verification — this map exists to make sure you spend that effort in the right places.</p>
+    <section class="meth-row">
+     <div class="meth-viz">
+      <div class="meth-map" id="methMapSites" aria-hidden="true"></div>
+      <div class="meth-viz-cap"><span class="k-dot" style="background:#f7c04a"></span>industrial &amp; warehouse land (OSM) within 3 km of a ≥100 MW node</div>
+     </div>
+     <div class="meth-copy">
+      <span class="meth-num">08</span>
+      <h3>Candidate sites</h3>
+      <p>Industrial and warehouse polygons within 3 km of a ≥100 MW transmission node. Contracted power per building is not publicly screenable anywhere in Europe — sites are a <b>shortlist to verify</b> through meter-level records, never confirmed availability.</p>
+     </div>
+    </section>
+
+    <section class="meth-strip">
+     <span class="meth-num">09</span>
+     <h3>Sources &amp; freshness</h3>
+     <div class="meth-src">
+      <div><b>Node capacity</b><span>national operator publications per market — edition shown in every popup and the freshness strip</span></div>
+      <div><b>System load</b><span>ENTSO-E-derived hourly series (energy-charts mirror) · NESO historic demand for GB — full calendar year</span></div>
+      <div><b>Assets</b><span>REPD (DESNZ) × NESO TEC register</span></div>
+      <div><b>Measured profiles</b><span>E-Redes open data — 15-minute substation diagrams</span></div>
+      <div><b>Physics calibration</b><span>operator-published PTDFs &amp; static grid models (JAO Core/Nordic, NESO ETYS) — in progress</span></div>
+     </div>
+    </section>
+
+    <section class="meth-strip meth-not">
+     <span class="meth-num">10</span>
+     <h3>What none of this is</h3>
+     <p class="mm-warn">Screening, not a connection study. System-level firm figures are not nodal promises; nodal headroom is not additive; a fit score is not a bankability opinion; single-weather-year results move with the weather. Every deal this surfaces still ends in a formal access request and site-level verification — this map exists to make sure you spend that effort in the right places.</p>
+     <button class="meth-cta" id="methToFunnel">See it live — open the Neura funnel →</button>
+    </section>
    </div>
   </div>
  </main>
@@ -235,7 +383,7 @@
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"
  integrity="sha512-puJW3E/qXDqYp9IfhAI54BJEaWIfloJ7JWs7OeD5i6ruC9JZL1gERT1wjtwXFlh7CjE7ZJ+/vcRZRkIYIb6p4g==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-<script src="js/data.js?v=15"></script>
-<script src="js/app.js?v=15"></script>
+<script src="js/data.js?v=16"></script>
+<script src="js/app.js?v=16"></script>
 </body>
 </html>

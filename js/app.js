@@ -1076,6 +1076,18 @@ document.querySelectorAll('#cormw button').forEach(b => b.onclick = async () => 
    firm it with behind-the-meter BESS sized to the curtailment duty.
    Score = where that wedge is most economic, down to site level.      */
 const scoreCtx = { sitesByNode: new Map(), queuedByCC: {} };
+let connMap = {};   // 'CC|NODE' → {fib, fac, land} km — pipelines/node_connectivity.py
+fetch('data/node_connectivity.json').then(r => r.ok ? r.json() : {})
+  .then(d => { connMap = d; ctxDirty = true; ctxGen++; if (dealMode) { drawNodes(); renderDealRank(); } })
+  .catch(() => {});
+// connectivity subscore: distance to fibre backbone + interconnection facility
+function connScoreOf(cc, p) {
+  const c = connMap[cc + '|' + p.n];
+  if (!c) return { conn: 50, fib: null, fac: null, land: null };   // neutral when unknown
+  const fibS = c.fib <= 5 ? 100 : c.fib <= 15 ? 75 : c.fib <= 40 ? 50 : 25;
+  const facS = c.fac <= 10 ? 100 : c.fac <= 30 ? 75 : c.fac <= 80 ? 50 : 25;
+  return { conn: Math.round(0.6 * fibS + 0.4 * facS), fib: c.fib, fac: c.fac, land: c.land };
+}
 function buildScoreCtx() {
   if (!ctxDirty) return;
   scoreCtx.sitesByNode.clear();
@@ -1168,6 +1180,8 @@ function firmingBlock(p, cc) {
       : `<span>firming gap</span><b>none — direct-connect candidate</b>`) +
     `<span>sites ≤3 km</span><b>${sc.nSites || '0'}</b>` +
     (sc.qMW !== null ? `<span>queued ≤30 km</span><b>${fmt(Math.round(sc.qMW))} MW</b>` : '') +
+    (sc.fib !== null ? `<span>fibre backbone</span><b>${sc.fib} km</b>` : '') +
+    (sc.fac !== null ? `<span>interconnection</span><b>${sc.fac} km</b>` : '') +
     `</div>`;
   s += `<div class="deal-sub">flexible connection + firming ≈ 12–18 months to power vs 5–7 y conventional</div>`;
   s += `<button class="pin-btn${pinned ? ' pinned' : ''}" data-cc="${cc}" data-n="${esc(p.n)}">${pinned ? '✓ In pipeline' : '★ Add to pipeline'}</button>`;

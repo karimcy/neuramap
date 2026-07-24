@@ -8,7 +8,14 @@
 'use strict';
 
 const COUNTRIES = {}; Object.assign(COUNTRIES, FREE);
-let siteCounts = {}, ptProfiles = {}, records = [], queuedByCC = {};
+let siteCounts = {}, ptProfiles = {}, records = [], queuedByCC = {}, connMap = {};
+function connScoreOf(cc, p) {
+  const c = connMap[cc + '|' + p.n];
+  if (!c) return { conn: 50, fib: null, fac: null, land: null };
+  const fibS = c.fib <= 5 ? 100 : c.fib <= 15 ? 75 : c.fib <= 40 ? 50 : 25;
+  const facS = c.fac <= 10 ? 100 : c.fac <= 30 ? 75 : c.fac <= 80 ? 50 : 25;
+  return { conn: Math.round(0.6 * fibS + 0.4 * facS), fib: c.fib, fac: c.fac, land: c.land };
+}
 let target = 50, dur = 8;
 const BESS_EUR_PER_KWH = 145;
 const TIER_COLOR = { prime: '#34d399', strong: '#2dd4bf', possible: '#60a5fa', weak: '#475569' };
@@ -65,9 +72,10 @@ function scoreNode(cc, p) {
   const sites = nSites >= 3 ? 100 : nSites >= 1 ? 75 : 35;
   const qMW = queuedNear(cc, p);
   const queue = qMW === null ? 55 : qMW <= 0 ? 40 : 40 + 60 * Math.min(1, qMW / 300);
-  const score = Math.round(0.45 * wedge + 0.20 * infra + 0.15 * sites + 0.20 * queue);
+  const cn = connScoreOf(cc, p);
+  const score = Math.round(0.40 * wedge + 0.15 * infra + 0.10 * sites + 0.15 * queue + 0.20 * cn.conn);
   const tier = score >= 78 ? 'prime' : score >= 63 ? 'strong' : score >= 48 ? 'possible' : 'weak';
-  return { score, tier, gap, nSites, qMW };
+  return { score, tier, gap, nSites, qMW, fib: cn.fib, fac: cn.fac, land: cn.land };
 }
 const bessCapexM = gap => gap * dur * 1000 * BESS_EUR_PER_KWH / 1e6;
 
@@ -76,6 +84,7 @@ async function loadAll() {
   const lazy = MANIFEST.map(m => fetch(assetUrl(m.data_url)).then(r => r.json()).then(d => { COUNTRIES[m.cc] = d; }).catch(() => {}));
   const extras = [
     fetch('data/site_counts.json').then(r => r.json()).then(d => { siteCounts = d; }).catch(() => {}),
+    fetch('data/node_connectivity.json').then(r => r.ok ? r.json() : {}).then(d => { connMap = d; }).catch(() => {}),
     fetch('data/pt_profiles.json').then(r => r.ok ? r.json() : {}).then(d => { ptProfiles = d; }).catch(() => {}),
     fetch('data/gb_assets.geojson').then(r => r.ok ? r.json() : null).catch(() => null),
   ];
@@ -128,6 +137,7 @@ function rescore() {
       const sc = scoreNode(r.cc, r.p);
       r.score = sc ? sc.score : null; r.tier = sc ? sc.tier : null;
       r.gap = sc ? sc.gap : null; r.nSites = sc ? sc.nSites : 0; r.qMW = sc ? sc.qMW : null;
+      r.fib = sc ? sc.fib : null; r.fac = sc ? sc.fac : null;
     }
   }
 }
@@ -183,6 +193,7 @@ function sorted(rows) {
       case 'gap': return r.gap ?? 1e9;
       case 'bess': return r.gap != null ? bessCapexM(r.gap) : 1e9;
       case 'kv': return parseFloat(r.kv) || 0;
+      case 'fib': return r.fib ?? 1e9;
       case 'status': return r.type === 'asset' ? (r.yearOp || 9999) : 0;
       default: return 0;
     }
@@ -197,7 +208,7 @@ function sorted(rows) {
 /* ── table render ── */
 const COLS = [
   ['pin', '★'], ['name', 'Name'], ['cc', 'Mkt'], ['type', 'Type'], ['mw', 'MW'],
-  ['score', 'Fit'], ['gap', 'Gap MW'], ['bess', 'BESS €M'], ['kv', 'kV'], ['status', 'Status / stage'],
+  ['score', 'Fit'], ['gap', 'Gap MW'], ['bess', 'BESS €M'], ['kv', 'kV'], ['fib', 'Fibre km'], ['status', 'Status / stage'],
 ];
 function renderHead() {
   document.getElementById('rHead').innerHTML = COLS.map(([k, lbl]) =>
@@ -242,6 +253,7 @@ function renderTable() {
       `<td class="num">${r.gap != null ? fmt(r.gap) : '—'}</td>` +
       `<td class="num">${r.gap != null ? bessCapexM(r.gap).toFixed(1) : '—'}</td>` +
       `<td class="num">${r.kv || '—'}</td>` +
+      `<td class="num">${r.fib != null ? r.fib : '—'}</td>` +
       `<td>${statusCell}${stage}</td></tr>`;
   }).join('');
   document.getElementById('rPager').innerHTML =
@@ -331,6 +343,8 @@ function openDetail(key) {
         `<span>BESS capex</span><b>≈ €${bessCapexM(r.gap).toFixed(1)} M</b>` +
         `<span>sites ≤3 km</span><b>${r.nSites}</b>`;
       if (r.qMW != null) h += `<span>queued ≤30 km</span><b>${fmt(Math.round(r.qMW))} MW</b>`;
+      if (r.fib != null) h += `<span>fibre backbone</span><b>${r.fib} km</b>` +
+        `<span>interconnection facility</span><b>${r.fac} km</b>`;
     }
     if (r.measured && r.prof) {
       h += `<span>metered peak</span><b>${fmt(r.prof.peak_mw)} MW</b>` +
@@ -452,5 +466,5 @@ function buildMarketChips() {
 /* ── init ── */
 buildMarketChips();
 document.getElementById('rBody').innerHTML =
-  '<tr><td colspan="10" style="padding:30px;text-align:center;color:var(--mut)">Loading all markets…</td></tr>';
+  '<tr><td colspan="11" style="padding:30px;text-align:center;color:var(--mut)">Loading all markets…</td></tr>';
 loadAll().then(() => renderTable());
