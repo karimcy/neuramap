@@ -579,51 +579,40 @@ body.panel-hidden #panel,body.panel-hidden #panelDrag{display:none}
   .meth-row.rev .meth-viz{order:0}
 }
 
-/* ── methodology animated components ── */
+/* ── methodology figures (static, no motion) ── */
 .meth-anim{padding:18px 18px 16px;font-size:11px}
 .meth-anim .neg{color:var(--danger)}
 
-/* 02 · shared margin — A connects, B's headroom collapses (10s loop) */
+/* 02 · shared margin, shown with node A connected: B holds 10 MW, not its published 45 */
 .shx-row{display:grid;grid-template-columns:118px 1fr 74px;gap:10px;align-items:center;margin-bottom:11px}
 .shx-tag{font-size:10px;color:var(--mut);letter-spacing:.03em;line-height:1.3}
 .shx-tag em{display:block;font-style:normal;color:var(--faint);font-size:9px}
 .shx-head .shx-tag{color:var(--blue)}
 .shx-track{height:10px;background:var(--bg);border:1px solid var(--line2);border-radius:999px;overflow:hidden}
 .shx-fill{height:100%;border-radius:999px}
-.shx-pool{width:100%;background:linear-gradient(90deg,#3d6ea5,#6fb8ff);animation:shxPool 10s ease-in-out infinite}
-.shx-a{width:0;background:var(--brand-grad);animation:shxA 10s ease-in-out infinite}
-.shx-b{width:56.25%;background:linear-gradient(90deg,#2c8d68,#3ddc97);animation:shxB 10s ease-in-out infinite}
+.shx-pool{width:12.5%;background:linear-gradient(90deg,#3d6ea5,#6fb8ff)}
+.shx-a{width:87.5%;background:var(--brand-grad)}
+.shx-b{width:12.5%;background:linear-gradient(90deg,#2c8d68,#3ddc97)}
 .shx-val{font-family:var(--mono);font-size:10px;text-align:right;position:relative;height:14px}
 .shx-swap{position:relative;display:block}
-.shx-swap i{position:absolute;right:0;top:0;font-style:normal;white-space:nowrap;animation:shxT1 10s ease-in-out infinite}
-.shx-swap i+i{animation:shxT2 10s ease-in-out infinite;opacity:0}
-.shx-swap i.dim{color:var(--faint)}
+.shx-swap i{position:absolute;right:0;top:0;font-style:normal;white-space:nowrap;opacity:0}
+.shx-swap i+i{opacity:1}
 .shx-swap i.load{color:var(--accent)}
 .shx-note{font-size:10.5px;color:var(--mut);line-height:1.55;border-top:1px solid var(--line);padding-top:10px;margin-top:3px}
 .shx-note b{color:var(--ink)}
 .shx-note .neq{color:var(--danger);font-weight:700}
-@keyframes shxPool{0%,28%{width:100%}44%,82%{width:12.5%}96%,100%{width:100%}}
-@keyframes shxA{0%,28%{width:0}44%,82%{width:87.5%}96%,100%{width:0}}
-@keyframes shxB{0%,28%{width:56.25%}44%,82%{width:12.5%}96%,100%{width:56.25%}}
-@keyframes shxT1{0%,30%{opacity:1}42%,84%{opacity:0}94%,100%{opacity:1}}
-@keyframes shxT2{0%,30%{opacity:0}42%,84%{opacity:1}94%,100%{opacity:0}}
 
-/* 03 · battery engine — interval bars vs the observed peak + cycling SOC */
+/* 03 · battery engine: interval bars vs the observed peak */
 .eng-head{display:flex;justify-content:space-between;gap:10px;font-size:10px;color:var(--mut);margin-bottom:10px}
 .eng-peak-lbl{color:var(--accent)}
 .eng-peak-lbl::before{content:'';display:inline-block;width:16px;border-top:1.5px dashed var(--accent);vertical-align:3px;margin-right:5px}
 .eng-chart{display:flex;gap:14px;align-items:stretch}
 .eng-bars{position:relative;flex:1;height:120px;display:flex;align-items:flex-end;gap:3px}
 .eng-peak{position:absolute;left:0;right:0;bottom:62%;border-top:1.5px dashed rgba(255,155,31,.7);z-index:2;pointer-events:none}
-.eng-bars i{
-  flex:1;height:var(--h);background:#3b4c63;border-radius:2px 2px 0 0;position:relative;
-  transform-origin:bottom;animation:engIn .7s cubic-bezier(.22,1,.36,1) backwards;
-  animation-delay:calc(.045s * var(--i,0));
-}
+.eng-bars i{flex:1;height:var(--h);background:#3b4c63;border-radius:2px 2px 0 0;position:relative}
 .eng-bars i.br::after{
   content:'';position:absolute;left:0;right:0;top:0;height:var(--c);
   background:var(--accent);border-radius:2px 2px 0 0;
-  box-shadow:0 0 8px rgba(255,155,31,.55);animation:engGlow 3.2s ease-in-out infinite;
 }
 .eng-bars i.re{background:linear-gradient(180deg,#2c8d68 0%,#3b4c63 40%)}
 .eng-bess{display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:5px;padding-bottom:2px}
@@ -632,26 +621,19 @@ body.panel-hidden #panel,body.panel-hidden #panelDrag{display:none}
   padding:2px;display:flex;align-items:flex-end;
 }
 .eng-batt::before{content:'';position:absolute;top:-5px;left:50%;transform:translateX(-50%);width:8px;height:3px;background:var(--line2);border-radius:2px 2px 0 0}
-.eng-soc{display:block;width:100%;background:linear-gradient(180deg,#3ddc97,#2c8d68);border-radius:3px;animation:engSoc 10s ease-in-out infinite}
+/* static fill — an animated SOC would imply sync with the bar events, which it doesn't have */
+.eng-soc{display:block;width:100%;height:62%;background:linear-gradient(180deg,#3ddc97,#2c8d68);border-radius:3px}
 .eng-batt-lbl{font-family:var(--mono);font-size:8.5px;color:var(--faint);letter-spacing:.1em}
 .eng-key{display:flex;gap:14px;flex-wrap:wrap;font-size:9.5px;color:var(--mut);margin-top:12px}
 .eng-key .k{display:inline-block;width:8px;height:8px;border-radius:2px;vertical-align:-1px;margin-right:5px}
-@keyframes engIn{from{transform:scaleY(0)}to{transform:scaleY(1)}}
-@keyframes engGlow{0%,100%{opacity:.65}50%{opacity:1}}
-@keyframes engSoc{0%{height:88%}14%{height:88%}22%{height:46%}34%{height:64%}44%{height:34%}56%{height:58%}68%{height:26%}86%{height:76%}100%{height:88%}}
 
-/* 05 · fit score — segments grow in on scroll (.in via IntersectionObserver) */
+/* 05 · fit score */
 .fsc-cap{font-size:10px;color:var(--mut);letter-spacing:.04em;margin-bottom:8px}
 .fsc-cap span{color:var(--faint)}
 .fsc-cap2{margin-top:16px}
 .fsc-bar{display:flex;gap:2px;height:30px;border-radius:6px;overflow:hidden}
-.fsc-seg{
-  width:0;min-width:0;display:flex;align-items:center;justify-content:center;overflow:hidden;
-  transition:width .9s cubic-bezier(.22,1,.36,1);
-}
-.meth-anim.in .fsc-seg{width:var(--w)}
-.fsc-seg span{font-family:var(--mono);font-size:10.5px;font-weight:600;color:rgba(8,12,18,.85);opacity:0;transition:opacity .5s .6s}
-.meth-anim.in .fsc-seg span{opacity:1}
+.fsc-seg{width:var(--w);min-width:0;display:flex;align-items:center;justify-content:center;overflow:hidden}
+.fsc-seg span{font-family:var(--mono);font-size:10.5px;font-weight:600;color:rgba(8,12,18,.85)}
 .fsc-legend{display:flex;gap:12px;flex-wrap:wrap;font-size:9.5px;color:var(--mut);margin-top:8px}
 .fsc-legend i{display:inline-block;width:7px;height:7px;border-radius:2px;vertical-align:0;margin-right:4px}
 .fsc-tiers{display:flex;gap:2px;height:18px;border-radius:5px;overflow:hidden}
@@ -668,21 +650,9 @@ body.panel-hidden #panel,body.panel-hidden #panelDrag{display:none}
 .cst-row b{font-family:var(--mono);font-size:9.5px;font-weight:600;color:var(--ink);text-align:right}
 .cst-row b.neg{color:var(--danger)}
 .cst-track{height:8px;background:var(--bg);border:1px solid var(--line);border-radius:999px;overflow:hidden}
-.cst-fill{height:100%;width:0;border-radius:999px;transition:width 1s cubic-bezier(.22,1,.36,1)}
-.cst-pub{background:#5c6b80}
-.cst-meas{background:var(--danger);box-shadow:0 0 8px rgba(255,107,157,.4);transition-delay:.25s}
-.meth-anim.in .cst-pub{width:100%}
-.meth-anim.in .cst-meas{width:17.6%}
-
-@media (prefers-reduced-motion:reduce){
-  .shx-fill,.shx-swap i,.eng-bars i,.eng-bars i.br::after,.eng-soc{animation:none}
-  .shx-a{width:87.5%}.shx-pool{width:12.5%}.shx-b{width:12.5%}
-  .shx-swap i{opacity:0}.shx-swap i+i{opacity:1}
-  .eng-soc{height:58%}
-  .fsc-seg,.cst-fill{transition:none}
-  .fsc-seg{width:var(--w)}.fsc-seg span{opacity:1}
-  .cst-pub{width:100%}.cst-meas{width:17.6%}
-}
+.cst-fill{height:100%;border-radius:999px}
+.cst-pub{width:100%;background:#5c6b80}
+.cst-meas{width:17.6%;background:var(--danger)}
 
 /* deal card layout */
 [hidden]{display:none!important}
