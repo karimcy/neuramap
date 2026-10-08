@@ -64,10 +64,20 @@ const HomeControl = L.Control.extend({
   },
 });
 new HomeControl({ position: 'topleft' }).addTo(map);
-L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
-  attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>',
-  subdomains: 'abcd', maxZoom: 19,
-}).addTo(map);
+// Dark basemap without an API key. CARTO's free basemaps started watermarking tiles
+// with "API KEY REQUIRED" in 2026, so use Esri's World Dark Gray (base + reference
+// labels). Native tiles stop at z16; Leaflet upscales beyond that.
+function darkBasemap(opts = {}) {
+  const base = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}', {
+    attribution: 'Basemap &copy; <a href="https://www.esri.com/">Esri</a>, HERE, Garmin, &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+    maxNativeZoom: 16, maxZoom: 19, ...opts,
+  });
+  const labels = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Reference/MapServer/tile/{z}/{y}/{x}', {
+    maxNativeZoom: 16, maxZoom: 19, pane: 'tilePane', opacity: 0.85, ...opts,
+  });
+  return L.layerGroup([base, labels]);
+}
+darkBasemap().addTo(map);
 
 // ONE shared canvas renderer for every vector layer: with stacked canvases only the
 // topmost receives pointer events, so multi-pane canvas kills click-through. A single
@@ -1498,7 +1508,7 @@ function initMethViz() {
     const el = document.getElementById(id); if (!el) return null;
     const m = L.map(el, { zoomControl: false, dragging: false, scrollWheelZoom: false,
       doubleClickZoom: false, boxZoom: false, keyboard: false, touchZoom: false, attributionControl: false });
-    L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', { subdomains: 'abcd', maxZoom: 19 }).addTo(m);
+    darkBasemap().addTo(m);
     return m;
   };
   // 01 · what the map shows — central Spain, real nodes on the red ramp + queued/indicative
