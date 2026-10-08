@@ -123,7 +123,7 @@
     s += `<path d="${line}" class="lg-ldc"/>`;
     ticks.forEach(p => { const xx = x(Math.round((ldc.length - 1) * p / 100)); s += `<text x="${xx.toFixed(1)}" y="${H - 5}" class="lg-tick" text-anchor="middle">${p}%</text>`; });
     [0, 0.5, 1].forEach(f => { const v = yMin + f * (yMax - yMin); s += `<text x="${pl - 4}" y="${(y(v) + 3).toFixed(1)}" class="lg-tick" text-anchor="end">${v.toFixed(0)}</text>`; });
-    s += `<text x="${pl}" y="${pt - 1}" class="lg-txt">GW · load duration (share of hours)</text>`;
+    s += `<text x="${pl + 4}" y="${H - pb - 6}" class="lg-txt">GW · load duration (share of hours)</text>`;
     s += `</svg>`;
     return s;
   }
