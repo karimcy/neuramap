@@ -333,6 +333,9 @@ body.panel-hidden #panel,body.panel-hidden #panelDrag{display:none}
 .pp-meta{font-size:11px;color:var(--mut);border-top:1px solid var(--line);margin-top:7px;padding-top:6px;line-height:1.6}
 .pp-meta b{color:var(--ink);font-weight:600}
 .pp-warnnote{color:#f7a8c4;font-size:10.5px}
+.pp-dur{color:var(--acc)}
+.pp-dim{color:var(--faint)}
+.pp-meta.pp-dim b{color:var(--faint)}
 .pp-src{font-size:10.5px;color:var(--faint);margin-top:5px}
 
 /* ── Floating map legend ─────────────────────────────────── */

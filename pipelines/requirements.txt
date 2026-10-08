@@ -1,0 +1,8 @@
+openpyxl==3.1.5
+pyshp==3.1.5
+requests==2.32.5
+shapely==2.0.7
+
+# WP-IBERIA (es_capacity_snapshot.py, pt_eredes.py): requests only.
+# CSV/JSON parsing uses the stdlib (csv, json); no pandas dependency.
+# pt_eredes.py reuses gb_profiles.ldc_stats (same repo, no extra deps).

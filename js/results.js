@@ -8,6 +8,8 @@
 'use strict';
 
 const COUNTRIES = {}; Object.assign(COUNTRIES, FREE);
+// Asset registers, per market. Mirrors ASSET_SRC in js/app.js — keep in sync.
+const ASSET_FILES = { GB: 'data/gb_assets.geojson', FR: 'data/fr_assets.geojson' };
 let siteCounts = {}, ptProfiles = {}, records = [], queuedByCC = {}, connMap = {};
 function connScoreOf(cc, p) {
   const c = connMap[cc + '|' + p.n];
@@ -28,6 +30,8 @@ try { assetCrm = JSON.parse(localStorage.getItem('oppmap_assets_crm') || '{}'); 
 let notes = {};
 try { notes = JSON.parse(localStorage.getItem('oppmap_notes') || '{}'); } catch (e) {}
 const STAGES = ['—', 'Screened', 'Contacted', 'Verifying', 'Term sheet'];
+// GB rows keep their REPD id so CRM state saved before other markets existed still resolves.
+const crmKey = r => r.repdId || r.key;
 const savePins = () => localStorage.setItem('oppmap_pipeline', JSON.stringify(pins));
 const saveAssetCrm = () => localStorage.setItem('oppmap_assets_crm', JSON.stringify(assetCrm));
 const saveNotes = () => localStorage.setItem('oppmap_notes', JSON.stringify(notes));
@@ -85,20 +89,22 @@ const bessCapexM = gap => gap * dur * 1000 * BESS_EUR_PER_KWH / 1e6;
 /* ── data load ── */
 async function loadAll() {
   const lazy = MANIFEST.map(m => fetch(assetUrl(m.data_url)).then(r => r.json()).then(d => { COUNTRIES[m.cc] = d; }).catch(() => {}));
-  const extras = [
+  const assetsP = Promise.all(Object.entries(ASSET_FILES).map(([cc, url]) =>
+    fetch(url).then(r => r.ok ? r.json() : null).then(gj => [cc, gj]).catch(() => [cc, null])));
+  const [, , , , assetSets] = await Promise.all([
+    Promise.all(lazy),
     fetch('data/site_counts.json').then(r => r.json()).then(d => { siteCounts = d; }).catch(() => {}),
     fetch('data/node_connectivity.json').then(r => r.ok ? r.json() : {}).then(d => { connMap = d; }).catch(() => {}),
     fetch('data/pt_profiles.json').then(r => r.ok ? r.json() : {}).then(d => { ptProfiles = d; }).catch(() => {}),
-    fetch('data/gb_assets.geojson').then(r => r.ok ? r.json() : null).catch(() => null),
-  ];
-  const [, , assetsGj] = await Promise.all([Promise.all(lazy), extras[0], extras[2], extras[1]]);
+    assetsP,
+  ]);
   for (const cc in COUNTRIES) {
     queuedByCC[cc] = (COUNTRIES[cc].nodes || []).filter(n => n.kind === 'queued' && n.lat && n.mw);
   }
-  buildRecords(assetsGj);
+  buildRecords(assetSets);
 }
 
-function buildRecords(assetsGj) {
+function buildRecords(assetSets) {
   records = [];
   const seen = new Set();
   for (const cc in COUNTRIES) {
@@ -123,13 +129,20 @@ function buildRecords(assetsGj) {
       measured: true, prof, p: { kind: 'demand', mw: Math.max(5, Math.round(prof.min_headroom_mw)), kv: 60, n: name },
     });
   }
-  for (const f of (assetsGj && assetsGj.features) || []) {
-    const p = f.properties;
-    records.push({
-      key: 'a|' + p.repd_id, type: 'asset', cc: 'GB', name: p.name, mw: p.mw,
-      kv: '', region: p.county || '', tech: p.tech, status: p.status, yearOp: p.year_op,
-      operator: p.operator, tec: p.tec, repdId: p.repd_id, storageType: p.storage_type,
-      lat: f.geometry.coordinates[1], lon: f.geometry.coordinates[0],
+  for (const [cc, gj] of assetSets || []) {
+    (gj && gj.features || []).forEach((f, i) => {
+      const p = f.properties;
+      records.push({
+        key: 'a|' + cc + '|' + (p.repd_id || `${p.poste_source || p.commune || 'x'}|${i}`),
+        type: 'asset', cc, name: p.name || (p.commune ? `${p.tech} · ${p.commune}` : '(unnamed)'),
+        mw: p.mw, durH: p.dur_h || null, mwh: p.dur_h ? Math.round(p.mw * p.dur_h) : null,
+        kv: p.kv || '', region: p.county || p.region || '', tech: p.tech, status: p.status,
+        yearOp: p.year_op, operator: p.operator, tec: p.tec, repdId: p.repd_id,
+        storageType: p.storage_type, posteSource: p.poste_source || null,
+        nodeName: (p.node && p.node.conf === 'named') ? p.node.n : null,
+        geoPrec: p.geo || 'exact',
+        lat: f.geometry.coordinates[1], lon: f.geometry.coordinates[0],
+      });
     });
   }
   rescore();
@@ -159,7 +172,7 @@ function pinInfo(r) {
     const x = pins.find(x => x.cc === r.cc && x.n === r.name);
     return x ? { pinned: true, stage: x.stage } : { pinned: false, stage: null };
   }
-  const a = assetCrm[r.repdId];
+  const a = assetCrm[crmKey(r)];
   return { pinned: !!(a && a.pinned), stage: a && a.stage !== '—' ? a.stage : null };
 }
 function filtered() {
@@ -228,8 +241,9 @@ function typeBadge(r) {
   return `<span class="type-badge type-${r.tech}">${r.tech}</span>`;
 }
 function mwLabel(r) {
-  if (r.type === 'node') return `${fmt(r.mw)}`;
-  return `${fmt(r.mw)}`;
+  const mw = fmt(r.mw >= 10 ? Math.round(r.mw) : Math.round(r.mw * 10) / 10);
+  // Duration only exists where the register publishes stored energy (FR today).
+  return r.durH ? `${mw}<span class="td-sub"> / ${r.durH} h</span>` : mw;
 }
 function renderTable() {
   renderHead();
@@ -300,9 +314,9 @@ function togglePin(key) {
     else pins.push({ cc: r.cc, n: r.name, mw: r.mw, kv: r.kv, lat: r.lat, lon: r.lon, reg: r.region, lay: r.lay, stage: 'Screened' });
     savePins();
   } else {
-    const a = assetCrm[r.repdId] || {};
+    const a = assetCrm[crmKey(r)] || {};
     a.pinned = !a.pinned; if (a.pinned && !a.stage) a.stage = 'Screened';
-    assetCrm[r.repdId] = a; saveAssetCrm();
+    assetCrm[crmKey(r)] = a; saveAssetCrm();
   }
   renderTable();
   if (selKey === key) openDetail(key);
@@ -319,9 +333,9 @@ function setStage(key, stage) {
     }
     savePins();
   } else {
-    const a = assetCrm[r.repdId] || {};
+    const a = assetCrm[crmKey(r)] || {};
     a.stage = stage; if (stage !== '—') a.pinned = true;
-    assetCrm[r.repdId] = a; saveAssetCrm();
+    assetCrm[crmKey(r)] = a; saveAssetCrm();
   }
   renderTable();
 }
@@ -358,9 +372,15 @@ function openDetail(key) {
   } else {
     h += `<span>${r.status === 'Operational' ? 'installed capacity' : 'potential capacity'}</span><b>${fmt(r.mw)} MW</b>` +
       `<span>status</span><b>${esc(r.status)}</b>`;
-    if (r.yearOp) h += `<span>operational since</span><b>${r.yearOp}</b>`;
+    if (r.yearOp) h += `<span>${r.cc === 'FR' ? 'connected' : 'operational since'}</span><b>${r.yearOp}</b>`;
     if (r.storageType) h += `<span>storage type</span><b>${esc(r.storageType)}</b>`;
-    h += `<span>duration</span><b>not published</b>`;
+    h += r.durH
+      ? `<span>duration</span><b>${r.durH} h · ${fmt(r.mwh)} MWh</b>`
+      : `<span>duration</span><b>not published</b>`;
+    if (r.kv) h += `<span>connection voltage</span><b>${esc(r.kv)}</b>`;
+    if (r.nodeName) h += `<span>poste source</span><b>${esc(r.nodeName)}</b>`;
+    else if (r.posteSource) h += `<span>poste source</span><b>${esc(r.posteSource)} <span class="td-sub">(code)</span></b>`;
+    if (r.geoPrec === 'commune') h += `<span>position</span><b>commune centroid <span class="td-sub">indicative</span></b>`;
     if (r.tec) {
       h += `<span>TEC site</span><b>${esc(r.tec.site || '?')}</b>`;
       if (r.tec.gate) h += `<span>TEC gate</span><b>${esc(r.tec.gate)}</b>`;
@@ -410,7 +430,7 @@ document.getElementById('rExport').onclick = () => {
   const rows = sorted(filtered());
   const head = ['type', 'market', 'name', 'operator', 'region', 'mw', 'capacity_kind', 'fit_score', 'tier',
     'gap_mw', 'bess_mwh', 'bess_capex_eur_m', 'kv', 'status', 'year_operational', 'tec_site', 'tec_gate',
-    'stage', 'notes', 'lat', 'lon'];
+    'asset_duration_h', 'asset_mwh', 'substation', 'position', 'stage', 'notes', 'lat', 'lon'];
   const lines = rows.map(r => {
     const pi = pinInfo(r);
     return [r.type === 'asset' ? r.tech : 'grid node', r.cc, r.name, r.operator || '', r.region || '', r.mw,
@@ -418,6 +438,8 @@ document.getElementById('rExport').onclick = () => {
       r.score ?? '', r.tier ?? '', r.gap ?? '', r.gap != null ? r.gap * dur : '',
       r.gap != null ? bessCapexM(r.gap).toFixed(1) : '', r.kv || '', r.status || '', r.yearOp || '',
       (r.tec && r.tec.site) || '', (r.tec && r.tec.gate) || '',
+      r.durH ?? '', r.mwh ?? '', r.nodeName || r.posteSource || '',
+      r.geoPrec === 'commune' ? 'commune centroid (indicative)' : 'as published',
       pi.stage || '', (notes[r.key] || {}).t || '', r.lat ?? '', r.lon ?? '']
       .map(v => `"${String(v ?? '').replace(/"/g, '""')}"`).join(',');
   });

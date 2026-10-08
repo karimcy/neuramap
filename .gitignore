@@ -1,0 +1,8 @@
+deploy/goatcounter-credentials.txt
+pipelines/.venv/
+pipelines/.cache/
+__pycache__/
+.DS_Store
+._*
+*.gz
+.env

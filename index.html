@@ -11,7 +11,7 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css"
  integrity="sha512-h9FcoyWjHcOcmEVkxOfTLnmZFWIH0iZhZT1H2TbOq55xssQGEJHEaIm+PgoUaZbRvQTNTluNOEfb1ZRy6D3BOw==" crossorigin="anonymous" referrerpolicy="no-referrer">
 <link rel="icon" type="image/png" href="assets/neura-mark.png">
-<link rel="stylesheet" href="css/app.css?v=27">
+<link rel="stylesheet" href="css/app.css?v=28">
 </head>
 <body>
 <div id="wrap">
@@ -381,8 +381,9 @@
      </div>
      <div class="meth-copy">
       <span class="meth-num">07</span>
-      <h3>Solar &amp; BESS assets (GB)</h3>
+      <h3>Solar &amp; BESS assets (GB, FR)</h3>
       <p>Asset dots join REPD, the government's renewable planning database, with NESO's TEC connection register. REPD gives coordinates, status and the year a project went live; TEC adds the connection site and queue gate. Pipeline projects show as potential capacity, operational ones as installed. Neither source publishes battery duration in MWh, so the popups say so instead of guessing. The DNO register join will fill that gap.</p>
+      <p>France comes from the national production and storage register on ODRE. It covers what is already connected rather than what is queued, and it carries three things REPD does not: the poste source each installation sits behind, the connection voltage, and stored energy in kWh. So French batteries show a real duration. The register publishes no coordinates, so dots sit on the commune centroid and say so.</p>
      </div>
     </section>
 
@@ -404,7 +405,7 @@
      <div class="meth-src">
       <div><b>Node capacity</b><span>national operator publications, market by market. The edition date is in every popup and the freshness strip</span></div>
       <div><b>System load</b><span>hourly series from the energy-charts mirror of ENTSO-E, plus NESO historic demand for GB. Full calendar year</span></div>
-      <div><b>Assets</b><span>REPD (DESNZ) joined with the NESO TEC register</span></div>
+      <div><b>Assets</b><span>GB: REPD (DESNZ) joined with the NESO TEC register. FR: national production and storage register (ODRE), which carries stored energy in kWh</span></div>
       <div><b>Measured profiles</b><span>E-Redes open data: 15-minute substation load diagrams</span></div>
       <div><b>Physics calibration</b><span>checking our network models against operator-published PTDFs and static grid models (JAO Core/Nordic, NESO ETYS). In progress</span></div>
      </div>
@@ -417,9 +418,9 @@
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"
  integrity="sha512-puJW3E/qXDqYp9IfhAI54BJEaWIfloJ7JWs7OeD5i6ruC9JZL1gERT1wjtwXFlh7CjE7ZJ+/vcRZRkIYIb6p4g==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-<script src="js/data.js?v=20"></script>
-<script src="js/app.js?v=24"></script>
-<script src="js/loadgrowth.js?v=5"></script>
+<script src="js/data.js?v=25"></script>
+<script src="js/app.js?v=26"></script>
+<script src="js/loadgrowth.js?v=6"></script>
 <script>
 window.goatcounter = {
   path: function (p) { return location.hostname + p; }

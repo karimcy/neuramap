@@ -13,12 +13,14 @@ const ROWS = [
   ['indicative',   'Flagged feasible — no MW',         'Feasible — no MW'],
   ['lines',        'Grid lines',                       'Grid lines'],
   ['sites',        'Candidate sites (OSM industrial)', 'Candidate sites'],
-  ['assets',       'Solar & BESS assets — built + pipeline (REPD × TEC)', 'Solar & BESS assets'],
+  ['assets',       'Solar & BESS assets — GB pipeline register, FR connected fleet', 'Solar & BESS assets'],
 ];
+const ASSET_SRC = {
+  GB: { url: 'data/gb_assets.geojson', src: 'REPD Q1 2026 × NESO TEC register', op: 'REPD × TEC', d: '2026-07-21' },
+  FR: { url: 'data/fr_assets.geojson', src: 'Registre national production/stockage (ODRE)', op: 'ODRE register', d: '2026-05-31' },
+};
 for (const cc of Object.keys(MATRIX)) {
-  MATRIX[cc].assets = cc === 'GB'
-    ? { url: 'data/gb_assets.geojson' }
-    : { gap: 'GB only so far — built from REPD × TEC; other markets in the backlog' };
+  MATRIX[cc].assets = ASSET_SRC[cc] || { gap: 'no asset register wired yet — GB and FR are live, other markets in the backlog' };
 }
 const COUNTRIES = {}; Object.assign(COUNTRIES, FREE);
 const layerVisible = {};
@@ -38,7 +40,8 @@ let ctxDirty = true;
 const BESS_EUR_PER_KWH = 145;
 const TIER_COLOR = { prime: '#34d399', strong: '#2dd4bf', possible: '#60a5fa', weak: '#475569' };
 const ASSET_COLOR = { battery: '#22d3ee', hybrid: '#a3e635', solar: '#fbbf24' };
-const assetState = { group: null, visible: false, loaded: false, counts: null };
+const assetState = {};    // cc -> { group, visible, loaded, counts }
+const assetSt = cc => (assetState[cc] || (assetState[cc] = { group: null, visible: false, loaded: false, counts: null }));
 const TIER_LABEL = { prime: 'Prime', strong: 'Strong', possible: 'Possible', weak: 'Weak' };
 
 // official per-country line/network reference pages (no government site has per-line permalinks)
@@ -432,7 +435,7 @@ function rebuildMatrix() {
       } else if (rk === 'sites') {
         tr += `<td><input type="checkbox" class="mx" id="sites_${cc}" ${sitesVisible[cc] ? 'checked' : ''} aria-label="Candidate sites ${cc}"></td>`;
       } else if (rk === 'assets') {
-        tr += `<td><input type="checkbox" class="mx" id="assets_${cc}" ${assetState.visible ? 'checked' : ''} aria-label="Solar and BESS assets ${cc}"></td>`;
+        tr += `<td><input type="checkbox" class="mx" id="assets_${cc}" ${assetSt(cc).visible ? 'checked' : ''} aria-label="Solar and BESS assets ${cc}"></td>`;
       } else {
         const ids = mcc.ids || [];
         const anyOn = ids.some(id => layerVisible[id]);
@@ -468,7 +471,7 @@ function rebuildMatrix() {
       } else if (rk === 'assets') {
         const el = document.getElementById('assets_' + cc);
         if (!el) return;
-        el.onchange = e => toggleAssets(e.target.checked);
+        el.onchange = e => toggleAssets(cc, e.target.checked);
       } else {
         const el = document.getElementById('row_' + cc + '_' + rk);
         if (!el) return;
@@ -717,27 +720,48 @@ document.getElementById('tTelco').onchange = e => { setTelcoVisible(e.target.che
 // on by default — fibre / interconnection / subsea are part of the atlas
 setTelcoVisible(true);
 
-/* ── Solar & BESS asset layer (GB: REPD × TEC) ───────────── */
-function assetPopup(p) {
-  let s = `<div class="pp-head"><span class="pp-name">${esc(p.name)}</span>` +
+/* ── Solar & BESS asset layer (GB: REPD × TEC · FR: ODRE register) ───────────── */
+function assetPopup(p, cc) {
+  const name = p.name || (p.commune ? `${p.tech === 'battery' ? 'Battery' : 'Solar'} · ${p.commune}` : 'Unnamed');
+  let s = `<div class="pp-head"><span class="pp-name">${esc(name)}</span>` +
     `<span class="pp-kv">${p.tech}</span></div>`;
   if (p.operator) s += `<div class="pp-reg">${esc(p.operator)}</div>`;
-  s += `<div class="pp-mw">${fmt(p.mw)}<small> MW</small></div>`;
-  s += `<div class="pp-kind">${esc(p.status)}${p.year_op ? ` · operational since <b>${p.year_op}</b>` : ''}</div>`;
+  s += `<div class="pp-mw">${fmt(p.mw)}<small> MW</small>` +
+    `${p.dur_h ? `<small class="pp-dur"> · ${p.dur_h} h · ${fmt(Math.round(p.mw * p.dur_h))} MWh</small>` : ''}</div>`;
+  s += `<div class="pp-kind">${esc(p.status)}${p.year_op ? ` · connected <b>${p.year_op}</b>` : ''}</div>`;
   const meta = [];
   if (p.storage_type) meta.push(esc(p.storage_type));
-  if (p.county) meta.push(esc(p.county));
+  if (p.kv) meta.push(esc(p.kv) + (p.kv === 'HTA' || p.kv === 'BT' ? '' : ''));
+  if (p.commune && p.county) meta.push(esc(p.commune) + ', ' + esc(p.county));
+  else if (p.county) meta.push(esc(p.county));
+  if (p.n_inst > 1) meta.push(`${p.n_inst} installations`);
   if (meta.length) s += `<div class="pp-meta">${meta.join(' · ')}</div>`;
   if (p.tec) {
     s += `<div class="pp-meta">TEC: <b>${esc(p.tec.site || '?')}</b>` +
       `${p.tec.gate ? ' · ' + esc(p.tec.gate) : ''}${p.tec.status ? ' · ' + esc(p.tec.status) : ''}</div>`;
   }
-  s += `<div class="pp-src">REPD ${esc(p.repd_id || '')} · duration (MWh) not published in REPD/TEC — DNO register join pending</div>`;
+  if (p.node) {
+    s += p.node.conf === 'named'
+      ? `<div class="pp-meta">Poste source <b>${esc(p.node.n)}</b>` +
+        `${p.poste_source ? ` <span class="pp-dim">(${esc(p.poste_source)})</span>` : ''}` +
+        `${p.node.mw ? ` · node ${fmt(p.node.mw)} MW` : ''}</div>`
+      : `<div class="pp-meta pp-dim">nearest mapped node ${esc(p.node.n)} — proximity only, not a stated connection</div>`;
+  }
+  if (p.mwh_year) s += `<div class="pp-meta">${fmt(p.mwh_year)} MWh injected, rolling year</div>`;
+  s += `<div class="pp-src">${esc((MATRIX[cc] && MATRIX[cc].assets && MATRIX[cc].assets.src) || '')}` +
+    (cc === 'GB' ? ' · duration (MWh) not published in REPD/TEC — DNO register join pending'
+      : (p.geo === 'commune' ? ' · position is the commune centroid, the register publishes no coordinates' : '')) +
+    `</div>`;
   return s;
 }
-async function ensureAssets() {
-  if (assetState.loaded) return assetState.group;
-  const gj = await (await fetch(MATRIX.GB.assets.url)).json();
+async function ensureAssets(cc) {
+  const st = assetSt(cc);
+  if (st.loaded) return st.group;
+  const src = MATRIX[cc] && MATRIX[cc].assets;
+  if (!src || !src.url) return null;
+  const r = await fetch(src.url);
+  if (!r.ok) { console.warn('assets fetch failed', cc, r.status); return null; }
+  const gj = await r.json();
   const grp = L.layerGroup();
   const counts = { battery: 0, hybrid: 0, solar: 0 };
   for (const f of gj.features) {
@@ -749,20 +773,25 @@ async function ensureAssets() {
       color: op ? '#f0f6ff' : ASSET_COLOR[p.tech], weight: op ? 1.2 : 0.8,
       fillColor: ASSET_COLOR[p.tech], fillOpacity: op ? .85 : .35,
     });
-    m.bindPopup(assetPopup(p), { maxWidth: 340 });
-    m.bindTooltip(`<b>${esc(p.name)}</b> · ${p.tech} · <span class="num">${fmt(p.mw)} MW</span> · ${esc(p.status)}`,
+    m.bindPopup(assetPopup(p, cc), { maxWidth: 340 });
+    const nm = p.name || (p.commune ? `${p.tech} · ${p.commune}` : p.tech);
+    m.bindTooltip(`<b>${esc(nm)}</b> · ${p.tech} · <span class="num">${fmt(p.mw)} MW</span>` +
+      `${p.dur_h ? ` / ${p.dur_h} h` : ''} · ${esc(p.status)}`,
       { sticky: true, direction: 'top', opacity: 1 });
     grp.addLayer(m);
   }
-  assetState.group = grp; assetState.loaded = true; assetState.counts = counts;
+  st.group = grp; st.loaded = true; st.counts = counts;
   return grp;
 }
-async function toggleAssets(on) {
-  assetState.visible = on;
-  const grp = await ensureAssets();
+async function toggleAssets(cc, on) {
+  const st = assetSt(cc);
+  st.visible = on;
+  const grp = await ensureAssets(cc);
+  if (!grp) { st.visible = false; return; }
   if (on) { grp.addTo(map); drawNodes(); } else map.removeLayer(grp);
   renderLegend();
 }
+const anyAssetsVisible = () => Object.values(assetState).some(s => s.visible);
 
 /* ── Floating legend ─────────────────────────────────────── */
 function renderLegend() {
@@ -801,7 +830,7 @@ function renderLegend() {
       `<div class="lg-row"><i class="lg-dot" style="background:#f472b6"></i>interconnection facility</div>` +
       `<div class="lg-row"><i class="lg-dot" style="background:#0ea5e9"></i>cable landing point</div>`;
   }
-  if (assetState.visible) {
+  if (anyAssetsVisible()) {
     s += '<div class="lg-sep"></div>' +
       `<div class="lg-row"><i class="lg-dot" style="background:${ASSET_COLOR.battery}"></i>BESS asset (bright = operational)</div>` +
       `<div class="lg-row"><i class="lg-dot" style="background:${ASSET_COLOR.hybrid}"></i>solar + BESS hybrid</div>` +
@@ -924,6 +953,12 @@ function renderFreshness() {
       let ageDays = null; if (bestD !== null) ageDays = Math.round((now - bestD) / 86400000);
       rows.push({ cc, op: bestOp, d: entries[0].d, ageDays });
     }
+  }
+  // asset registers carry their own edition date — same strip, same staleness rule
+  for (const cc in ASSET_SRC) {
+    const a = ASSET_SRC[cc];
+    const d = Date.parse(a.d);
+    rows.push({ cc, op: a.op, d: a.d, ageDays: isNaN(d) ? null : Math.round((now - d) / 86400000) });
   }
   if (!rows.length) return;
   const anyStale = rows.some(r => r.ageDays !== null && r.ageDays > 60);
