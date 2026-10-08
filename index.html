@@ -305,7 +305,7 @@
      <div class="meth-copy">
       <span class="meth-num">03</span>
       <h3>The firm-power engine</h3>
-      <p>The headline tiles come from a chronological battery simulation run on a full year of measured system load per market, at 15 or 30 minute resolution. A candidate load draws continuously. The battery (energy = load × duration, ~88% round-trip) discharges through every interval where the load would push the system past its observed peak, and it can only recharge when there is spare room under that peak, through the same connection. That last constraint is the whole point: back-to-back constraint days with thin recharge windows are exactly where a candidate load fails, and a method that ignores event clustering would never see it.</p>
+      <p>The headline tiles come from a chronological battery simulation run on the latest full year of measured system load per market, hourly, against the Duke seasonal thresholds (the highest summer and winter loads served over the nine study years). A candidate load draws continuously. The battery (energy = load × duration, ~88% round-trip) discharges through every interval where the load would push the system past its observed peak, and it can only recharge when there is spare room under that peak, through the same connection. That last constraint is the whole point: back-to-back constraint days with thin recharge windows are exactly where a candidate load fails, and a method that ignores event clustering would never see it.</p>
       <p>Uptime here means the share of intervals served at full power. Any shortfall counts the whole interval as downtime, which is how an SLA would count it. 99.9% works out to about 8.8 hours of curtailment a year. Move the slider and the tiles recompute.</p>
       <p class="mm-warn">The ceiling is the Duke seasonal threshold: the highest summer and winter loads the system has actually served over the study years, nothing above. Let the system go just 3% above it and the 2 h figure roughly triples, so we keep the strict floor. These are also system-level numbers: the local network still gets a veto at any specific node.</p>
      </div>
@@ -418,7 +418,7 @@
  integrity="sha512-puJW3E/qXDqYp9IfhAI54BJEaWIfloJ7JWs7OeD5i6ruC9JZL1gERT1wjtwXFlh7CjE7ZJ+/vcRZRkIYIb6p4g==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 <script src="js/data.js?v=20"></script>
 <script src="js/app.js?v=23"></script>
-<script src="js/loadgrowth.js?v=3"></script>
+<script src="js/loadgrowth.js?v=4"></script>
 <script>
 window.goatcounter = {
   path: function (p) { return location.hostname + p; }
