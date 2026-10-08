@@ -11,7 +11,7 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css"
  integrity="sha512-h9FcoyWjHcOcmEVkxOfTLnmZFWIH0iZhZT1H2TbOq55xssQGEJHEaIm+PgoUaZbRvQTNTluNOEfb1ZRy6D3BOw==" crossorigin="anonymous" referrerpolicy="no-referrer">
 <link rel="icon" type="image/png" href="assets/neura-mark.png">
-<link rel="stylesheet" href="css/app.css?v=24">
+<link rel="stylesheet" href="css/app.css?v=26">
 </head>
 <body>
 <div id="wrap">
@@ -46,6 +46,41 @@
    <button data-mode="explore" class="on">Raw data</button>
    <button data-mode="deal">Neura funnel</button>
   </div>
+
+  <section class="acc open" id="accLoadGrowth" hidden>
+   <button class="acc-head" aria-expanded="true">
+    <span class="acc-label">Load growth — how much new load the grid can take if it flexes</span>
+    <svg class="chev" viewBox="0 0 10 10" width="10" height="10"><path d="M2.5 1.5 7 5 2.5 8.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+   </button>
+   <div class="acc-body">
+    <p class="note lg-intro">Duke's <i>Rethinking Load Growth</i> method, run on European hourly load: the largest constant new load each market can add before total demand exceeds its proven summer and winter peaks, if the new load accepts a small share of its energy being curtailed. The load is reduced, not switched off, in the hours it would breach the threshold.</p>
+    <div class="kpi-ctl lg-ctl">
+     <span class="lbl">Curtailment limit</span>
+     <input type="range" id="lgTol" min="0" max="6" step="1" value="2" aria-label="Curtailment limit of the new load, share of its potential annual energy">
+     <b class="num" id="lgTolLabel">1%</b><span class="lbl">of energy</span>
+    </div>
+    <div class="inline-ctl lg-ctl2">
+     <span class="lbl">Ceiling</span>
+     <div class="seg seg-sm" id="lgCeil"><button data-c="duke" class="on">Duke seasonal</button><button data-c="period">All-time peak</button></div>
+    </div>
+    <div class="inline-ctl lg-ctl2">
+     <span class="lbl">Capability margin</span>
+     <div class="seg seg-sm" id="lgMargin"><button data-m="1.00" class="on">×1.00</button><button data-m="1.03">×1.03</button><button data-m="1.05">×1.05</button></div>
+     <span class="lg-note num" id="lgCeilNote"></span>
+    </div>
+    <div class="kpis lg-tiles" id="lgTiles"></div>
+    <p class="note" id="lgDuke"></p>
+    <div class="rank-title">Markets ranked by new flexible load</div>
+    <div id="lgRank" class="rank"></div>
+    <div class="lg-zone">
+     <div class="rank-title" id="lgZoneTitle"></div>
+     <div class="inline-ctl lg-ctl2"><span class="lbl">Curve</span><div class="seg seg-sm" id="lgYear"></div></div>
+     <div class="lg-stats" id="lgZoneStats"></div>
+     <div class="lg-chart" id="lgChart"></div>
+    </div>
+    <p class="note">Duke's assumptions carried over: the observed seasonal peak stands in for what planners are prepared to serve; no transmission constraints, no reserve margin; system level, not nodal, not additive with the published nodal headroom. "All-time peak" and the capability margin are optimistic sensitivities, not part of the Duke method. <span id="lgMeta" class="num"></span></p>
+   </div>
+  </section>
 
   <section class="card deal-card" id="dealCard" hidden>
    <div class="card-title">Firming deal screen <span class="card-hint">flexible connection + BESS</span></div>
@@ -272,14 +307,15 @@
       <h3>The firm-power engine</h3>
       <p>The headline tiles come from a chronological battery simulation run on a full year of measured system load per market, at 15 or 30 minute resolution. A candidate load draws continuously. The battery (energy = load × duration, ~88% round-trip) discharges through every interval where the load would push the system past its observed peak, and it can only recharge when there is spare room under that peak, through the same connection. That last constraint is the whole point: back-to-back constraint days with thin recharge windows are exactly where a candidate load fails, and a method that ignores event clustering would never see it.</p>
       <p>Uptime here means the share of intervals served at full power. Any shortfall counts the whole interval as downtime, which is how an SLA would count it. 99.9% works out to about 8.8 hours of curtailment a year. Move the slider and the tiles recompute.</p>
-      <p class="mm-warn">The ceiling is one observed year's peak, on purpose. Let the system go just 3% above it and the 2 h figure roughly triples, so we keep the strict floor. These are also system-level numbers: the local network still gets a veto at any specific node.</p>
+      <p class="mm-warn">The ceiling is the Duke seasonal threshold: the highest summer and winter loads the system has actually served over the study years, nothing above. Let the system go just 3% above it and the 2 h figure roughly triples, so we keep the strict floor. These are also system-level numbers: the local network still gets a veto at any specific node.</p>
      </div>
     </section>
 
     <section class="meth-strip">
      <span class="meth-num">04</span>
      <h3>Flexible load, no battery</h3>
-     <p>The flexible-load tile follows the Nicholas Institute's <i>Rethinking Load Growth</i> method (Norris et al., 2025): the largest constant load you can add against the observed peak while shedding no more than 1% of its annual energy. That is an energy tolerance, for a load that can flex itself. The battery tiles use uptime, which is stricter.</p>
+     <p>The flexible-load tile and the Load growth panel replicate the Nicholas Institute's <i>Rethinking Load Growth</i> method (Norris, Profeta, Patino-Echeverri and Cowie-Haskell, Duke, February 2025) step by step on European hourly load: nine years of data per market; two thresholds per market, the highest summer load and the highest winter load the system has served, the summer one governing April to October and the winter one November to March; hourly curtailment is whatever the existing load plus the new load would exceed the threshold by; the new load's annual curtailed energy divided by its potential consumption, averaged over the years, is its curtailment rate; the engine then solves for the largest constant load whose rate equals the limit (0.25, 0.5, 1 or 5%). Hours curtailed, the share of those hours that keep at least half, three-quarters or nine-tenths of the load, event lengths and the seasonal split are reported the way the report does.</p>
+     <p>One adaptation, in the optimistic direction. The report took its seasonal peaks from June–August and December–February and stretched that by a month in four US cases. Europe's winter-peaking systems carry April and October loads well above their June–August maximum, so the strict reading leaves no room at all; we take each threshold as the highest load in all the months it governs, which is never below the report's threshold. The strict figure is kept alongside. That is an energy tolerance, for a load that can flex itself. The battery tiles use uptime, which is stricter.</p>
     </section>
 
     <section class="meth-row rev">
@@ -381,7 +417,8 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"
  integrity="sha512-puJW3E/qXDqYp9IfhAI54BJEaWIfloJ7JWs7OeD5i6ruC9JZL1gERT1wjtwXFlh7CjE7ZJ+/vcRZRkIYIb6p4g==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 <script src="js/data.js?v=20"></script>
-<script src="js/app.js?v=22"></script>
+<script src="js/app.js?v=23"></script>
+<script src="js/loadgrowth.js?v=2"></script>
 <script>
 window.goatcounter = {
   path: function (p) { return location.hostname + p; }

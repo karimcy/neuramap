@@ -661,3 +661,36 @@ body.panel-hidden #panel,body.panel-hidden #panelDrag{display:none}
 .seg-unit{align-self:center;color:var(--faint);font-size:10.5px;padding:0 6px}
 .rank-hdr{display:flex;justify-content:space-between;align-items:center;margin:6px 0 6px}
 .rank-hdr .pipe-stage{max-width:150px}
+
+/* ── Load growth panel (Duke-style) ── */
+.lg-intro{margin:2px 0 10px}
+.lg-ctl{margin:4px 0 8px}
+.lg-ctl2{margin:0 0 8px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.lg-note{font-size:10px;color:var(--faint);margin-left:auto}
+.lg-tiles{margin:6px 0 8px}
+.lg-tiles .kpi b{font-size:19px}
+.lg-row{grid-template-columns:18px 1fr auto}
+.lg-row .rk{font-family:var(--mono);font-size:10px;color:var(--faint)}
+.lg-name{position:relative;font-size:12px;padding-bottom:5px}
+.lg-bar{position:absolute;left:0;bottom:0;height:2px;background:var(--accent);opacity:.8;border-radius:1px}
+.lg-val{font-size:11.5px;white-space:nowrap}
+.lg-val b{font-weight:600;color:var(--ink)}
+.lg-val small{color:var(--mut);margin-left:4px;font-size:10px}
+.lg-row.sel{background:var(--accent-soft)}
+.lg-zone{margin-top:10px;padding-top:8px;border-top:1px solid var(--line)}
+.lg-stats{display:grid;grid-template-columns:1fr 1fr;gap:4px 10px;margin:4px 0 8px;font-size:11.5px}
+.lg-stats div{display:flex;gap:6px;align-items:baseline;flex-wrap:wrap}
+.lg-stats b{color:var(--ink);font-size:12.5px}
+.lg-stats small{color:var(--mut);font-size:10.5px}
+.lg-svg{width:100%;height:auto;display:block;margin-top:4px}
+.lg-ldc{fill:none;stroke:#a8d2ff;stroke-width:1.6;stroke-linejoin:round}
+.lg-cap{stroke:var(--accent);stroke-width:1;stroke-dasharray:3 3}
+.lg-band{fill:var(--accent);opacity:.28}
+.lg-hbar{fill:#a8d2ff;opacity:.85}
+.lg-txt{font-family:var(--mono);font-size:8.5px;fill:var(--mut)}
+.lg-tick{font-family:var(--mono);font-size:8px;fill:var(--faint)}
+.lg-grid{stroke:var(--line);stroke-width:1}
+.lg-dot{fill:var(--accent);stroke:var(--bg);stroke-width:1.5}
+.lg-m-winter{fill:#6fb8ff}
+.lg-m-summer{fill:#ff9b1f}
+.lg-m-shoulder{fill:#8a93a3}

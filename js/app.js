@@ -484,13 +484,15 @@ function renderKpis() {
     const firmLbl = dealAvail === '100%' ? 'fully firm' : `≥${dealAvail} uptime`;
     const simTip = `Chronological battery simulation on measured ${euFlex.period} system load, per market: ` +
       `the added load draws through the connection; a battery (energy = load × duration) discharges through every ` +
-      `hour the system would exceed its observed peak and can recharge only when spare room exists under the peak. ` +
+      `hour the system would exceed its Duke seasonal threshold and can recharge only when spare room exists under it. ` +
       `Event duration and clustering fully accounted for. Threshold = required UPTIME: share of intervals the ` +
       `load runs at full power (slider below). System-level screening against the observed-peak floor; local network constraints ` +
       `still gate any specific node.`;
-    const flexTip = `Norris-style load-duration analysis of measured ${euFlex.period} load: max constant flexible ` +
-      `(curtailable) load addable against the observed system peak at the stated energy-curtailment tolerance. ` +
-      `No battery — the load itself must flex.`;
+    const lgLim = lgHead ? lgHead.limit : '1%';
+    const lgGW = lgHead ? lgHead.gw : (euFlex.totals_gw && euFlex.totals_gw.duke && euFlex.totals_gw.duke['1.00'] ? euFlex.totals_gw.duke['1.00'][lgLim] : null);
+    const flexTip = `Duke "Rethinking Load Growth" method on measured ${euFlex.years ? euFlex.years[0] + '–' + euFlex.years[euFlex.years.length - 1] : ''} hourly load: the largest ` +
+      `constant load each market can add before total demand exceeds its proven summer and winter peaks, with at most ${lgLim} of the ` +
+      `load's annual energy curtailed. No battery — the load itself flexes. Follows the Load growth panel's settings.`;
     html +=
       `<div class="kpi hero" title="${esc(simTip)}"><b>${Math.round(bt['8h'][dealAvail])}<span class="unit">GW</span></b>` +
       `<span>new load · 8 h battery · ${firmLbl}</span></div>` +
@@ -498,20 +500,22 @@ function renderKpis() {
       `<span>new load · 2 h battery · ${firmLbl}</span></div>` +
       `<div class="kpi sys" title="${esc(simTip)}"><b>${Math.round(bt['4h'][dealAvail])}<span class="unit">GW</span></b>` +
       `<span>4 h battery · ${firmLbl}</span></div>` +
-      `<div class="kpi sys" title="${esc(flexTip)}"><b>${Math.round(euFlex.totals_gw['1%'])}<span class="unit">GW</span></b>` +
-      `<span>flexible load · ≤1% curtailment, no battery</span></div>`;
+      (lgGW == null ? '' : `<div class="kpi sys" title="${esc(flexTip)}"><b>${Math.round(lgGW)}<span class="unit">GW</span></b>` +
+      `<span>flexible load · ≤${lgLim} curtailment, Duke method</span></div>`);
   }
   html +=
     `<div class="kpi"><b>${gw.toFixed(0)}<span class="unit">GW</span></b><span>published nodal headroom (screening, non-additive)</span></div>` +
     `<div class="kpi"><b>${Object.keys(COUNTRIES).length}<span class="unit">mkts</span></b><span>${fmt(totalNodes)} grid nodes tracked</span></div>`;
   document.getElementById('kpis').innerHTML = html;
 }
-let euFlex = null;
+let euFlex = null, lgHead = null;
 const AVAIL_ORDER = ['100%', '99.99%', '99.95%', '99.9%', '99.5%', '99%'];
 let dealAvail = '99.9%';
-fetch('data/eu_flexible_headroom.json').then(r => r.ok ? r.json() : null)
-  .then(d => { if (d) { euFlex = d; document.getElementById('availCtl').hidden = false; renderKpis(); } })
+// Duke-basis results (pipelines/eu_load_growth.py) drive the headline tiles; the Load growth panel (js/loadgrowth.js) reads the same file
+fetch('data/eu_load_growth.json').then(r => r.ok ? r.json() : null)
+  .then(d => { if (d && d.battery_totals_gw) { euFlex = d; document.getElementById('availCtl').hidden = false; renderKpis(); } })
   .catch(() => {});
+window.addEventListener('lg:change', e => { lgHead = e.detail; if (euFlex) renderKpis(); });
 document.getElementById('availSlider').oninput = e => {
   dealAvail = AVAIL_ORDER[+e.target.value];
   document.getElementById('availLabel').textContent = dealAvail;
