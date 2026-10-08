@@ -11,7 +11,7 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css"
  integrity="sha512-h9FcoyWjHcOcmEVkxOfTLnmZFWIH0iZhZT1H2TbOq55xssQGEJHEaIm+PgoUaZbRvQTNTluNOEfb1ZRy6D3BOw==" crossorigin="anonymous" referrerpolicy="no-referrer">
 <link rel="icon" type="image/png" href="assets/neura-mark.png">
-<link rel="stylesheet" href="css/app.css?v=26">
+<link rel="stylesheet" href="css/app.css?v=27">
 </head>
 <body>
 <div id="wrap">
@@ -22,7 +22,7 @@
   <header class="brand">
    <div class="brand-top">
     <img class="brand-word" src="assets/neura-wordmark-white.png" alt="Neura Energy" height="24">
-    <span class="brand-links"><a href="results.html">Results ↗</a><span class="brand-rev num" id="revChip">v1.0 · data 2026-07</span></span>
+    <span class="brand-links"><a href="story.html" class="brand-start">Start here</a><a href="results.html">Results ↗</a><span class="brand-rev num" id="revChip">v1.0 · data 2026-07</span></span>
    </div>
    <h1>OpportunityMap</h1>
    <p class="brand-tag">European grid connection atlas — where large loads can plug in, node by node.</p>
@@ -182,10 +182,11 @@
     <div id="corridorBox" hidden>
      <div class="inline-ctl">
       <span class="lbl">min node MW</span>
-      <div class="seg seg-sm" id="cormw"><button data-cmw="100" class="on">100</button><button data-cmw="250">250</button><button data-cmw="500">500</button></div>
+      <div class="seg seg-sm" id="cormw"><button data-cmw="5" class="on">5</button><button data-cmw="20">20</button><button data-cmw="50">50</button><button data-cmw="100">100</button><button data-cmw="250">250</button></div>
      </div>
-     <p class="note">Industrial &amp; warehouse land (OSM polygons) within <b>3&nbsp;km</b> of a ≥100&nbsp;MW transmission node — the radius is baked into the data. Contracted power per building is not publicly searchable anywhere in Europe: use this as a shortlist, then verify through the site's meter / connection records (CUPS in Spain) before assuming spare power.</p>
+     <p class="note">Industrial &amp; warehouse land (OSM polygons) within <b>3&nbsp;km</b> of a node with published demand headroom, from 5&nbsp;MW distribution substations up to 400&nbsp;kV — the radius is baked into the data. Small pockets are the point: a 5–50&nbsp;MW node next to an industrial estate is a flexible-connection candidate. Sites are ranked closest first, one row per node. Contracted power per building is not publicly searchable anywhere in Europe: use this as a shortlist, then verify through the site's meter / connection records (CUPS in Spain) before assuming spare power.</p>
      <div id="corridorList"></div>
+     <button class="btn-sm" id="corridorCsv" type="button">Download shortlist (CSV)</button>
     </div>
     <p class="note" id="corridorOff" hidden>Turn on a <b>Candidate sites</b> layer in the coverage matrix above.</p>
    </div>
@@ -388,12 +389,12 @@
     <section class="meth-row">
      <div class="meth-viz">
       <div class="meth-map" id="methMapSites" aria-hidden="true"></div>
-      <div class="meth-viz-cap"><span class="k-dot" style="background:#f7c04a"></span>industrial &amp; warehouse land (OSM) within 3 km of a ≥100 MW node</div>
+      <div class="meth-viz-cap"><span class="k-dot" style="background:#f7c04a"></span>industrial &amp; warehouse land (OSM) within 3 km of a node with published headroom (≥5 MW)</div>
      </div>
      <div class="meth-copy">
       <span class="meth-num">08</span>
       <h3>Candidate sites</h3>
-      <p>Industrial and warehouse polygons from OpenStreetMap, within 3 km of a transmission node carrying at least 100 MW. No country in Europe lets you look up contracted power per building, so treat these as a shortlist to verify through meter-level records, not as confirmed spare power.</p>
+      <p>Industrial and warehouse polygons from OpenStreetMap, within 3 km of a node with published demand headroom: distribution substations from 5 MW (GB, Spain, Nordics) up to transmission nodes. No country in Europe lets you look up contracted power per building, so treat these as a shortlist to verify through meter-level records, not as confirmed spare power.</p>
      </div>
     </section>
 
@@ -417,8 +418,8 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"
  integrity="sha512-puJW3E/qXDqYp9IfhAI54BJEaWIfloJ7JWs7OeD5i6ruC9JZL1gERT1wjtwXFlh7CjE7ZJ+/vcRZRkIYIb6p4g==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 <script src="js/data.js?v=20"></script>
-<script src="js/app.js?v=23"></script>
-<script src="js/loadgrowth.js?v=4"></script>
+<script src="js/app.js?v=24"></script>
+<script src="js/loadgrowth.js?v=5"></script>
 <script>
 window.goatcounter = {
   path: function (p) { return location.hostname + p; }

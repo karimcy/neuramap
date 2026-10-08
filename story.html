@@ -1,0 +1,136 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Grid Opportunity — Start here · Neura Energy</title>
+<meta name="description" content="How much new load Europe's existing grids can take if that load flexes for a few hours a year, where it lands, and who will connect it. Measured data, Duke method, interactive.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Source+Sans+3:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css"
+ integrity="sha512-h9FcoyWjHcOcmEVkxOfTLnmZFWIH0iZhZT1H2TbOq55xssQGEJHEaIm+PgoUaZbRvQTNTluNOEfb1ZRy6D3BOw==" crossorigin="anonymous" referrerpolicy="no-referrer">
+<link rel="icon" type="image/png" href="assets/neura-mark.png">
+<link rel="stylesheet" href="css/story.css?v=1">
+</head>
+<body>
+
+<header class="st-top">
+ <img src="assets/neura-wordmark-white.png" alt="Neura Energy" height="22">
+ <nav><a href="#s-peak">Peak</a><a href="#s-map">Countries</a><a href="#s-battery">Battery</a><a href="#s-pockets">Pockets</a><a href="#s-rules">Who says yes</a><a href="#s-node">One node</a><a class="st-cta-sm" href="index.html">Open the atlas →</a></nav>
+</header>
+
+<!-- ═══ HERO ═══ -->
+<section class="st-hero">
+ <p class="st-kicker">Start here · European grid opportunity</p>
+ <h1>Europe's grids already have room for <span class="st-big num" id="heroGW">–</span> of new load, if that load can flex.</h1>
+ <p class="st-lede" id="heroLede">Grids are built for their busiest few hours. For the rest of the year the wires and transformers sit part-empty. A new load that can step down in those few hours fits under the peak today, without waiting years for reinforcement.</p>
+ <div class="st-limit">
+  <span class="st-lbl">Share of the new load's energy it gives up</span>
+  <div class="st-seg" id="limitSeg"></div>
+ </div>
+ <div class="st-tiles" id="heroTiles"></div>
+ <p class="st-fine" id="heroFine"></p>
+</section>
+
+<!-- ═══ 1. PEAK ═══ -->
+<section class="st-sec" id="s-peak">
+ <div class="st-copy">
+  <p class="st-num">01</p>
+  <h2>The grid is sized for a few hours a year</h2>
+  <p>Sort every hour of the year by demand and you get the curve on the right. Planners size the system for the dashed line at the far left. Almost every other hour leaves a gap.</p>
+  <p>The orange band is a new constant load added on top. It fits under the line in every hour except the handful at the very left, where it steps down. <b id="peakSentence"></b></p>
+  <div class="st-seg st-seg-wrap" id="peakMarket"></div>
+ </div>
+ <div class="st-viz"><div id="peakChart" class="st-chart"></div><div class="st-legend" id="peakLegend"></div></div>
+</section>
+
+<!-- ═══ 2. COUNTRIES ═══ -->
+<section class="st-sec st-sec-wide" id="s-map">
+ <div class="st-copy">
+  <p class="st-num">02</p>
+  <h2>Country by country</h2>
+  <p>The same test on nine years of measured hourly load in every market, using the method Duke University applied to the US. Colour shows new load as a share of each country's peak. Hover a country for its numbers.</p>
+  <div class="st-seg" id="mapMetric"><button data-m="pct" class="on">% of peak</button><button data-m="gw">GW</button></div>
+  <div class="st-rank" id="mapRank"></div>
+ </div>
+ <div class="st-viz"><div id="euMap" class="st-map"></div><div class="st-legend" id="mapLegend"></div></div>
+</section>
+
+<!-- ═══ 3. BATTERY ═══ -->
+<section class="st-sec" id="s-battery">
+ <div class="st-copy">
+  <p class="st-num">03</p>
+  <h2>Add a battery and the load becomes firm</h2>
+  <p>Not every customer can step down. A battery on site covers the hours the grid can't, and recharges when there is room again. The customer sees firm power, and the grid sees a load that never pushes past its peak.</p>
+  <div class="st-ctl"><span class="st-lbl">Uptime the customer needs</span><input type="range" id="upSlider" min="0" max="5" step="1" value="3"><b class="num" id="upLabel">99.9%</b></div>
+  <div class="st-tiles st-tiles-3" id="batTiles"></div>
+  <p class="st-fine">Hour-by-hour battery simulation on the latest full year of each market, against the same seasonal thresholds. The battery can only recharge when there is spare room under the threshold.</p>
+ </div>
+ <div class="st-viz"><div id="batChart" class="st-chart"></div><div class="st-legend" id="batLegend"></div></div>
+</section>
+
+<!-- ═══ 4. POCKETS ═══ -->
+<section class="st-sec st-sec-wide" id="s-pockets">
+ <div class="st-copy">
+  <p class="st-num">04</p>
+  <h2>It lands in thousands of small pockets</h2>
+  <p>The national number is spread across thousands of substations, most with 5 to 50 MW of spare capacity. That size suits a battery-backed load: a data hall, a cold store, an electrolyser or a factory extension. A ring marks nodes with industrial or warehouse land within 3 km.</p>
+  <div class="st-seg st-seg-wrap" id="pocketBand"></div>
+  <label class="st-check"><input type="checkbox" id="pocketLand"> only nodes with industrial land within 3 km</label>
+  <div class="st-ptable" id="pocketTable"></div>
+ </div>
+ <div class="st-viz"><div id="pocketMap" class="st-map st-map-tall"></div><div class="st-legend" id="pocketLegend"></div></div>
+</section>
+
+<!-- ═══ 5. RULES ═══ -->
+<section class="st-sec st-sec-wide" id="s-rules">
+ <div class="st-copy">
+  <p class="st-num">05</p>
+  <h2>Who will say yes</h2>
+  <p>Room on the wires only matters if the network operator will connect a load on flexible terms instead of making it wait for a firm connection. Four of Great Britain's six distribution operators already offer this. Each sets a contractual cap on how much it can curtail you. The Netherlands and Germany have put it in law.</p>
+  <div class="st-rules" id="ruleList"></div>
+ </div>
+ <div class="st-viz"><div id="ruleMap" class="st-map"></div><div class="st-legend" id="ruleLegend"></div></div>
+</section>
+
+<!-- ═══ 6. ONE NODE ═══ -->
+<section class="st-sec" id="s-node">
+ <div class="st-copy">
+  <p class="st-num">06</p>
+  <h2>One substation, three answers</h2>
+  <p>Where a network operator publishes a substation's own load, the same test runs at that substation. Portugal's E-Redes publishes it openly, 15 minutes at a time. The published figure is the firm answer. The flexible and battery figures are what a Neura connection could deliver at the same site.</p>
+  <select id="nodePick" class="st-select" aria-label="Choose a metered substation"></select>
+  <p class="st-fine" id="nodeFine"></p>
+ </div>
+ <div class="st-viz"><div id="nodeChart" class="st-chart"></div></div>
+</section>
+
+<!-- ═══ CTA ═══ -->
+<section class="st-end">
+ <h2>Go deeper</h2>
+ <p>The atlas has every node, line and queue behind these numbers, a site finder for industrial land next to capacity, and the full load-growth panel by market and year.</p>
+ <a class="st-cta" href="index.html">Open the atlas →</a>
+ <details class="st-method">
+  <summary>Method and caveats</summary>
+  <ul id="methodList">
+   <li>Market-level figures replicate Norris et al., <i>Rethinking Load Growth</i> (Duke University, Feb 2025). They use two thresholds per market: the highest summer and the highest winter load served over 2017–2025. Curtailment is the energy by which existing load plus the new load would exceed the threshold in each hour. The rate is that energy over the new load's potential consumption, averaged over the years. Run on the US data, the same engine reproduces Duke's published 76 / 98 / 126 / 215 GW within 3 %.</li>
+   <li>One adaptation, in the optimistic direction. Each threshold is the highest load in all the months it governs (summer April–October, winter November–March), because Europe's April and October loads exceed its June–August peaks.</li>
+   <li>The thresholds come from the highest loads of the last nine years. Several countries peaked in 2017–2018 and their demand has fallen since, so the room is measured against capacity the system has proven it can serve. That fleet has since changed.</li>
+   <li>System-level figures ignore transmission constraints and reserve margins. They are not additive with node headroom. Node figures are each operator's published demand headroom. Upstream checks use the parent substation's published headroom where it exists.</li>
+   <li>Flexible-connection status was verified from primary documents in October 2026. "Not verified" means no national demand product was confirmed, not that none exists.</li>
+  </ul>
+ </details>
+</section>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"
+ integrity="sha512-puJW3E/qXDqYp9IfhAI54BJEaWIfloJ7JWs7OeD5i6ruC9JZL1gERT1wjtwXFlh7CjE7ZJ+/vcRZRkIYIb6p4g==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+<script src="https://cdn.jsdelivr.net/npm/topojson-client@3/dist/topojson-client.min.js"></script>
+<script src="js/story.js?v=1"></script>
+<script>
+window.goatcounter = { path: function (p) { return location.hostname + p; } };
+</script>
+<script data-goatcounter="https://neuramap.167.233.192.214.sslip.io/stats/count"
+        async src="https://neuramap.167.233.192.214.sslip.io/stats/count.js"></script>
+</body>
+</html>

@@ -694,3 +694,14 @@ body.panel-hidden #panel,body.panel-hidden #panelDrag{display:none}
 .lg-m-winter{fill:#6fb8ff}
 .lg-m-summer{fill:#ff9b1f}
 .lg-m-shoulder{fill:#8a93a3}
+
+/* ── Opportunity context (node popups, site finder) ── */
+.pp-ctx{margin-top:8px;border-top:1px solid var(--line);padding-top:6px}
+.pp-rule{display:flex;align-items:center;gap:6px;font-size:12px}
+.pp-rule-dot{width:8px;height:8px;border-radius:50%;background:#8a93a3;flex:none}
+.pp-rule-live .pp-rule-dot{background:#3ddc97}.pp-rule-law .pp-rule-dot{background:#6fb8ff}.pp-rule-restrictive .pp-rule-dot{background:#ff6b6b}
+.pp-up{font-size:12px;margin-top:4px}.pp-up-tight{color:#ffb35c}.pp-up-ok{color:#3ddc97}.pp-up-unk{color:var(--faint)}
+.btn-sm{margin-top:8px;background:transparent;border:1px solid var(--line);color:var(--ink);border-radius:6px;padding:5px 10px;font:inherit;font-size:12px;cursor:pointer}
+.btn-sm:hover{border-color:var(--accent)}
+.story-link{display:inline-block;margin-top:6px;color:var(--accent);font-size:13px;text-decoration:none;border-bottom:1px dotted var(--accent)}
+.brand-links .brand-start{color:var(--accent);font-weight:600;margin-right:10px}
