@@ -1,13 +1,11 @@
-"""NeuraMap copy only: skip, with the reason, the tests that read the customers' own site data.
+"""NeuraMap copy only: leave out of the run the tests that check GridQ against the customers' own site data.
 
 That data (src/gridq/governance/customer_data_manifest.json: data/sites, examples/real, deliverables) is not copied
-into this public repository (README_NEURAMAP.md). The tests listed in neuramap_customer_data_tests.txt failed here
-for that reason alone on the first run of the copy; each is skipped only while the data is absent, and runs as
-written once it is present. A test that fails for any other reason is not listed and stays red.
+into NeuraMap (README_NEURAMAP.md), so those checks belong with the data in NeuraEnergy/uk. The tests listed in
+neuramap_customer_data_tests.txt are exactly the ones that read it; they are deselected (not collected into the run).
+Every other test in the same files still runs, and a test that fails for any other reason stays red.
 """
 from pathlib import Path
-
-import pytest
 
 HERE = Path(__file__).resolve().parent
 LISTED = frozenset(l.strip() for l in (HERE / "neuramap_customer_data_tests.txt").read_text().splitlines() if l.strip())
@@ -21,7 +19,9 @@ def _site_data_held() -> bool:
 def pytest_collection_modifyitems(config, items):
     if _site_data_held():
         return
-    mark = pytest.mark.skip(reason="needs the customers' site data, which is not held in the NeuraMap copy")
+    keep, drop = [], []
     for item in items:
-        if item.nodeid in LISTED:
-            item.add_marker(mark)
+        (drop if item.nodeid in LISTED else keep).append(item)
+    if drop:
+        config.hook.pytest_deselected(items=drop)
+        items[:] = keep

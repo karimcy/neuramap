@@ -21,7 +21,7 @@ Only customer data is left out: the data GridQ's own DPA guard quarantines (`src
 - the analysis notes that quote those figures (`docs/grundon_harwell/*.md`);
 - the generated knowledge graph that indexed them (`graphify-out/`).
 
-These belong to the customers and were shared without data-processing agreements, and this repository is public. Tests that need them skip, or fail with the DPA guard's reason.
+The tests that check GridQ against that data stay with the data in NeuraEnergy/uk; here they are left out of the run (`conftest.py`, `neuramap_customer_data_tests.txt`), and every other test runs.
 
 ## Running it
 
