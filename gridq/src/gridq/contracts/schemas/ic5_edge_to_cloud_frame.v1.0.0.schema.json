@@ -1,0 +1,1451 @@
+{
+  "$defs": {
+    "AckAborted": {
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "const": "aborted",
+          "title": "Kind",
+          "type": "string"
+        },
+        "trigger_code": {
+          "$ref": "#/$defs/TriggerCode"
+        }
+      },
+      "required": [
+        "kind",
+        "trigger_code"
+      ],
+      "title": "AckAborted",
+      "type": "object"
+    },
+    "AckAccepted": {
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "const": "accepted",
+          "title": "Kind",
+          "type": "string"
+        },
+        "mode": {
+          "enum": [
+            "closed_loop",
+            "shadow"
+          ],
+          "title": "Mode",
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind",
+        "mode"
+      ],
+      "title": "AckAccepted",
+      "type": "object"
+    },
+    "AckActive": {
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "const": "active",
+          "title": "Kind",
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind"
+      ],
+      "title": "AckActive",
+      "type": "object"
+    },
+    "AckCompleted": {
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "const": "completed",
+          "title": "Kind",
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind"
+      ],
+      "title": "AckCompleted",
+      "type": "object"
+    },
+    "AckLapsed": {
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "const": "lapsed",
+          "title": "Kind",
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind"
+      ],
+      "title": "AckLapsed",
+      "type": "object"
+    },
+    "AckRejected": {
+      "additionalProperties": false,
+      "properties": {
+        "detail": {
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Detail",
+          "type": "string"
+        },
+        "kind": {
+          "const": "rejected",
+          "title": "Kind",
+          "type": "string"
+        },
+        "reasons": {
+          "items": {
+            "$ref": "#/$defs/RejectReason"
+          },
+          "minItems": 1,
+          "title": "Reasons",
+          "type": "array"
+        },
+        "violations": {
+          "items": {
+            "$ref": "#/$defs/Violation"
+          },
+          "title": "Violations",
+          "type": "array"
+        }
+      },
+      "required": [
+        "kind",
+        "reasons",
+        "violations",
+        "detail"
+      ],
+      "title": "AckRejected",
+      "type": "object"
+    },
+    "AckShadowing": {
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "const": "shadowing",
+          "title": "Kind",
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind"
+      ],
+      "title": "AckShadowing",
+      "type": "object"
+    },
+    "AckSuperseded": {
+      "additionalProperties": false,
+      "properties": {
+        "by_schedule_hash": {
+          "pattern": "^sha256:[0-9a-f]{64}$",
+          "title": "By Schedule Hash",
+          "type": "string"
+        },
+        "kind": {
+          "const": "superseded",
+          "title": "Kind",
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind",
+        "by_schedule_hash"
+      ],
+      "title": "AckSuperseded",
+      "type": "object"
+    },
+    "AnmEvent": {
+      "additionalProperties": false,
+      "description": "One DNO ANM signal, as the edge received and enforced it: edge to cloud only, a hash chain\nof its own (``prev_event_hash``), sent whenever the link allows and carrying its original\ntimes (store and forward, B1-03 \"log with timestamps\").",
+      "properties": {
+        "agreement_hash": {
+          "pattern": "^sha256:[0-9a-f]{64}$",
+          "title": "Agreement Hash",
+          "type": "string"
+        },
+        "cloud_link": {
+          "enum": [
+            "up",
+            "down"
+          ],
+          "title": "Cloud Link",
+          "type": "string"
+        },
+        "dno_acknowledged_at": {
+          "anyOf": [
+            {
+              "format": "date-time",
+              "type": "string"
+            },
+            {
+              "$ref": "#/$defs/NotApplicable"
+            },
+            {
+              "$ref": "#/$defs/Unknown"
+            }
+          ],
+          "title": "Dno Acknowledged At"
+        },
+        "enforced_at": {
+          "anyOf": [
+            {
+              "format": "date-time",
+              "type": "string"
+            },
+            {
+              "$ref": "#/$defs/Unknown"
+            }
+          ],
+          "title": "Enforced At"
+        },
+        "event_id": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]*$",
+          "title": "Event Id",
+          "type": "string"
+        },
+        "kind": {
+          "const": "anm_event",
+          "title": "Kind",
+          "type": "string"
+        },
+        "path": {
+          "const": "edge_local",
+          "title": "Path",
+          "type": "string"
+        },
+        "prev_event_hash": {
+          "pattern": "^sha256:[0-9a-f]{64}$",
+          "title": "Prev Event Hash",
+          "type": "string"
+        },
+        "received_at": {
+          "format": "date-time",
+          "title": "Received At",
+          "type": "string"
+        },
+        "response_elapsed_ms": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "$ref": "#/$defs/Unknown"
+            }
+          ],
+          "title": "Response Elapsed Ms"
+        },
+        "seq": {
+          "minimum": 0,
+          "title": "Seq",
+          "type": "integer"
+        },
+        "signal": {
+          "discriminator": {
+            "mapping": {
+              "anm_release": "#/$defs/AnmRelease",
+              "anm_setpoint": "#/$defs/AnmSetpoint",
+              "anm_trip": "#/$defs/AnmTrip"
+            },
+            "propertyName": "kind"
+          },
+          "oneOf": [
+            {
+              "$ref": "#/$defs/AnmSetpoint"
+            },
+            {
+              "$ref": "#/$defs/AnmTrip"
+            },
+            {
+              "$ref": "#/$defs/AnmRelease"
+            }
+          ],
+          "title": "Signal"
+        },
+        "site_id": {
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Site Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind",
+        "site_id",
+        "event_id",
+        "seq",
+        "prev_event_hash",
+        "signal",
+        "received_at",
+        "enforced_at",
+        "response_elapsed_ms",
+        "dno_acknowledged_at",
+        "agreement_hash",
+        "path",
+        "cloud_link"
+      ],
+      "title": "AnmEvent",
+      "type": "object"
+    },
+    "AnmLimited": {
+      "additionalProperties": false,
+      "properties": {
+        "import_limit_kw": {
+          "minimum": 0,
+          "title": "Import Limit Kw",
+          "type": "integer"
+        },
+        "kind": {
+          "const": "limited",
+          "title": "Kind",
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind",
+        "import_limit_kw"
+      ],
+      "title": "AnmLimited",
+      "type": "object"
+    },
+    "AnmRelease": {
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "const": "anm_release",
+          "title": "Kind",
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind"
+      ],
+      "title": "AnmRelease",
+      "type": "object"
+    },
+    "AnmSetpoint": {
+      "additionalProperties": false,
+      "properties": {
+        "import_limit_kw": {
+          "minimum": 0,
+          "title": "Import Limit Kw",
+          "type": "integer"
+        },
+        "kind": {
+          "const": "anm_setpoint",
+          "title": "Kind",
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind",
+        "import_limit_kw"
+      ],
+      "title": "AnmSetpoint",
+      "type": "object"
+    },
+    "AnmTrip": {
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "const": "anm_trip",
+          "title": "Kind",
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind"
+      ],
+      "title": "AnmTrip",
+      "type": "object"
+    },
+    "AnmTripped": {
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "const": "tripped",
+          "title": "Kind",
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind"
+      ],
+      "title": "AnmTripped",
+      "type": "object"
+    },
+    "AnmUnrestricted": {
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "const": "unrestricted",
+          "title": "Kind",
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind"
+      ],
+      "title": "AnmUnrestricted",
+      "type": "object"
+    },
+    "EdgeHeartbeat": {
+      "additionalProperties": false,
+      "description": "The edge is alive, and what it is doing: mode, active triggers, lease, the schedule and\nenvelopes it holds, its ANM state and the import cap it enforces.",
+      "properties": {
+        "active_triggers": {
+          "items": {
+            "$ref": "#/$defs/TriggerCode"
+          },
+          "title": "Active Triggers",
+          "type": "array"
+        },
+        "anm_state": {
+          "discriminator": {
+            "mapping": {
+              "limited": "#/$defs/AnmLimited",
+              "tripped": "#/$defs/AnmTripped",
+              "unknown": "#/$defs/Unknown",
+              "unrestricted": "#/$defs/AnmUnrestricted"
+            },
+            "propertyName": "kind"
+          },
+          "oneOf": [
+            {
+              "$ref": "#/$defs/AnmUnrestricted"
+            },
+            {
+              "$ref": "#/$defs/AnmLimited"
+            },
+            {
+              "$ref": "#/$defs/AnmTripped"
+            },
+            {
+              "$ref": "#/$defs/Unknown"
+            }
+          ],
+          "title": "Anm State"
+        },
+        "episode_id": {
+          "anyOf": [
+            {
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]*$",
+              "type": "string"
+            },
+            {
+              "$ref": "#/$defs/NotApplicable"
+            }
+          ],
+          "title": "Episode Id"
+        },
+        "governing_schedule": {
+          "anyOf": [
+            {
+              "pattern": "^sha256:[0-9a-f]{64}$",
+              "type": "string"
+            },
+            {
+              "$ref": "#/$defs/NotApplicable"
+            }
+          ],
+          "title": "Governing Schedule"
+        },
+        "held_envelopes": {
+          "items": {
+            "pattern": "^sha256:[0-9a-f]{64}$",
+            "type": "string"
+          },
+          "title": "Held Envelopes",
+          "type": "array"
+        },
+        "held_schedule": {
+          "anyOf": [
+            {
+              "pattern": "^sha256:[0-9a-f]{64}$",
+              "type": "string"
+            },
+            {
+              "$ref": "#/$defs/NotApplicable"
+            }
+          ],
+          "title": "Held Schedule"
+        },
+        "import_cap": {
+          "$ref": "#/$defs/ImportCap"
+        },
+        "kind": {
+          "const": "edge_heartbeat",
+          "title": "Kind",
+          "type": "string"
+        },
+        "last_anm_event": {
+          "anyOf": [
+            {
+              "pattern": "^sha256:[0-9a-f]{64}$",
+              "type": "string"
+            },
+            {
+              "$ref": "#/$defs/NotApplicable"
+            }
+          ],
+          "title": "Last Anm Event"
+        },
+        "lease_remaining_ms": {
+          "minimum": 0,
+          "title": "Lease Remaining Ms",
+          "type": "integer"
+        },
+        "mode": {
+          "enum": [
+            "normal",
+            "fail_safe"
+          ],
+          "title": "Mode",
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind",
+        "mode",
+        "episode_id",
+        "active_triggers",
+        "lease_remaining_ms",
+        "held_schedule",
+        "governing_schedule",
+        "held_envelopes",
+        "anm_state",
+        "last_anm_event",
+        "import_cap"
+      ],
+      "title": "EdgeHeartbeat",
+      "type": "object"
+    },
+    "EnvelopeRef": {
+      "additionalProperties": false,
+      "description": "A reference to an IC-3 envelope by content hash, with its source input hash (what IC-8,\nIC-15 and the ledger embed).",
+      "properties": {
+        "contract": {
+          "const": "IC-3",
+          "title": "Contract",
+          "type": "string"
+        },
+        "contract_version": {
+          "pattern": "^1\\.(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)$",
+          "title": "Contract Version",
+          "type": "string"
+        },
+        "envelope_hash": {
+          "pattern": "^sha256:[0-9a-f]{64}$",
+          "title": "Envelope Hash",
+          "type": "string"
+        },
+        "input_hash": {
+          "pattern": "^sha256:[0-9a-f]{64}$",
+          "title": "Input Hash",
+          "type": "string"
+        },
+        "kind": {
+          "const": "dispatch_envelope_ref",
+          "title": "Kind",
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind",
+        "contract",
+        "contract_version",
+        "envelope_hash",
+        "input_hash"
+      ],
+      "title": "EnvelopeRef",
+      "type": "object"
+    },
+    "EpisodeEntered": {
+      "additionalProperties": false,
+      "properties": {
+        "closes_orphan": {
+          "anyOf": [
+            {
+              "pattern": "^sha256:[0-9a-f]{64}$",
+              "type": "string"
+            },
+            {
+              "$ref": "#/$defs/NotApplicable"
+            }
+          ],
+          "title": "Closes Orphan"
+        },
+        "envelope": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/EnvelopeRef"
+            },
+            {
+              "$ref": "#/$defs/NotApplicable"
+            }
+          ],
+          "title": "Envelope"
+        },
+        "kind": {
+          "const": "entered",
+          "title": "Kind",
+          "type": "string"
+        },
+        "primary": {
+          "$ref": "#/$defs/TriggerCode"
+        },
+        "target": {
+          "$ref": "#/$defs/FailSafeTarget"
+        },
+        "triggers": {
+          "items": {
+            "$ref": "#/$defs/TriggerInstance"
+          },
+          "minItems": 1,
+          "title": "Triggers",
+          "type": "array"
+        }
+      },
+      "required": [
+        "kind",
+        "triggers",
+        "primary",
+        "envelope",
+        "target",
+        "closes_orphan"
+      ],
+      "title": "EpisodeEntered",
+      "type": "object"
+    },
+    "EpisodeExited": {
+      "additionalProperties": false,
+      "properties": {
+        "entered_hash": {
+          "pattern": "^sha256:[0-9a-f]{64}$",
+          "title": "Entered Hash",
+          "type": "string"
+        },
+        "kind": {
+          "const": "exited",
+          "title": "Kind",
+          "type": "string"
+        },
+        "releases": {
+          "items": {
+            "$ref": "#/$defs/Release"
+          },
+          "title": "Releases",
+          "type": "array"
+        },
+        "resume_accepted_at": {
+          "format": "date-time",
+          "title": "Resume Accepted At",
+          "type": "string"
+        },
+        "resume_schedule_hash": {
+          "pattern": "^sha256:[0-9a-f]{64}$",
+          "title": "Resume Schedule Hash",
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind",
+        "entered_hash",
+        "resume_schedule_hash",
+        "resume_accepted_at",
+        "releases"
+      ],
+      "title": "EpisodeExited",
+      "type": "object"
+    },
+    "FailSafeEvent": {
+      "additionalProperties": false,
+      "description": "One step of a fail-safe episode: a hash chain from ``entered`` to ``exited``.",
+      "properties": {
+        "at": {
+          "format": "date-time",
+          "title": "At",
+          "type": "string"
+        },
+        "clock_state": {
+          "enum": [
+            "synchronised",
+            "unsynchronised"
+          ],
+          "title": "Clock State",
+          "type": "string"
+        },
+        "episode_id": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]*$",
+          "title": "Episode Id",
+          "type": "string"
+        },
+        "event": {
+          "discriminator": {
+            "mapping": {
+              "entered": "#/$defs/EpisodeEntered",
+              "exited": "#/$defs/EpisodeExited",
+              "target_changed": "#/$defs/TargetChanged",
+              "trigger_cleared": "#/$defs/TriggerCleared",
+              "trigger_raised": "#/$defs/TriggerRaised"
+            },
+            "propertyName": "kind"
+          },
+          "oneOf": [
+            {
+              "$ref": "#/$defs/EpisodeEntered"
+            },
+            {
+              "$ref": "#/$defs/TriggerRaised"
+            },
+            {
+              "$ref": "#/$defs/TriggerCleared"
+            },
+            {
+              "$ref": "#/$defs/TargetChanged"
+            },
+            {
+              "$ref": "#/$defs/EpisodeExited"
+            }
+          ],
+          "title": "Event"
+        },
+        "kind": {
+          "const": "fail_safe_event",
+          "title": "Kind",
+          "type": "string"
+        },
+        "monotonic_ms": {
+          "minimum": 0,
+          "title": "Monotonic Ms",
+          "type": "integer"
+        },
+        "prev_hash": {
+          "pattern": "^sha256:[0-9a-f]{64}$",
+          "title": "Prev Hash",
+          "type": "string"
+        },
+        "seq": {
+          "minimum": 0,
+          "title": "Seq",
+          "type": "integer"
+        },
+        "site_id": {
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Site Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind",
+        "site_id",
+        "episode_id",
+        "seq",
+        "prev_hash",
+        "at",
+        "clock_state",
+        "monotonic_ms",
+        "event"
+      ],
+      "title": "FailSafeEvent",
+      "type": "object"
+    },
+    "FailSafeTarget": {
+      "additionalProperties": false,
+      "description": "What the edge reverts to (spec B1-02): import within the firm limit or the latest DNO\nsetpoint, state of energy at or above the resilience floor, markets declared unavailable,\nchillers to the BMS default. ``writes`` is ``none`` below L2 or with no envelope held.",
+      "properties": {
+        "chillers": {
+          "anyOf": [
+            {
+              "const": "bms_default",
+              "type": "string"
+            },
+            {
+              "$ref": "#/$defs/NotApplicable"
+            }
+          ],
+          "title": "Chillers"
+        },
+        "import_limit_kw": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "$ref": "#/$defs/NotApplicable"
+            }
+          ],
+          "title": "Import Limit Kw"
+        },
+        "markets": {
+          "const": "declared_unavailable",
+          "title": "Markets",
+          "type": "string"
+        },
+        "resilience_floor_kwh": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "$ref": "#/$defs/NotApplicable"
+            }
+          ],
+          "title": "Resilience Floor Kwh"
+        },
+        "writes": {
+          "enum": [
+            "enforce",
+            "none"
+          ],
+          "title": "Writes",
+          "type": "string"
+        }
+      },
+      "required": [
+        "import_limit_kw",
+        "resilience_floor_kwh",
+        "markets",
+        "chillers",
+        "writes"
+      ],
+      "title": "FailSafeTarget",
+      "type": "object"
+    },
+    "ImportCap": {
+      "additionalProperties": false,
+      "description": "The import cap the edge enforces and the term that binds it.",
+      "properties": {
+        "binding": {
+          "enum": [
+            "anm_trip",
+            "anm_setpoint",
+            "fail_safe_firm",
+            "envelope",
+            "schedule",
+            "none"
+          ],
+          "title": "Binding",
+          "type": "string"
+        },
+        "kw": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "$ref": "#/$defs/NotApplicable"
+            }
+          ],
+          "title": "Kw"
+        }
+      },
+      "required": [
+        "kw",
+        "binding"
+      ],
+      "title": "ImportCap",
+      "type": "object"
+    },
+    "NotApplicable": {
+      "additionalProperties": false,
+      "description": "A term that does not exist for this record (e.g. a LIFO position on a firm connection).\n\nDistinct from `Unknown`: \"not applicable\" is a statement about the agreement, \"unknown\" is a\nstatement about our knowledge of it. Both carry a reason.",
+      "properties": {
+        "kind": {
+          "const": "not_applicable",
+          "title": "Kind",
+          "type": "string"
+        },
+        "reason": {
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Reason",
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind",
+        "reason"
+      ],
+      "title": "NotApplicable",
+      "type": "object"
+    },
+    "PeerHead": {
+      "additionalProperties": false,
+      "description": "The last frame the sender received from the other side: an implicit acknowledgement.",
+      "properties": {
+        "frame_hash": {
+          "pattern": "^sha256:[0-9a-f]{64}$",
+          "title": "Frame Hash",
+          "type": "string"
+        },
+        "kind": {
+          "const": "peer_head",
+          "title": "Kind",
+          "type": "string"
+        },
+        "link_epoch": {
+          "minimum": 0,
+          "title": "Link Epoch",
+          "type": "integer"
+        },
+        "seq": {
+          "minimum": 0,
+          "title": "Seq",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "kind",
+        "link_epoch",
+        "seq",
+        "frame_hash"
+      ],
+      "title": "PeerHead",
+      "type": "object"
+    },
+    "RejectReason": {
+      "description": "Why the edge refused a schedule. Several may hold; an ack lists them sorted.",
+      "enum": [
+        "wrong_site",
+        "not_authorised",
+        "authority_not_granted",
+        "outside_write_scope",
+        "id_reused",
+        "out_of_order",
+        "supersedes_mismatch",
+        "stale_on_arrival",
+        "horizon_elapsed",
+        "deliver_by_mismatch",
+        "envelope_unknown",
+        "envelope_violation"
+      ],
+      "title": "RejectReason",
+      "type": "string"
+    },
+    "Release": {
+      "additionalProperties": false,
+      "description": "An audited release of a trigger that does not clear itself (IC-13).",
+      "properties": {
+        "audit_event_hash": {
+          "pattern": "^sha256:[0-9a-f]{64}$",
+          "title": "Audit Event Hash",
+          "type": "string"
+        },
+        "code": {
+          "$ref": "#/$defs/TriggerCode"
+        },
+        "command_id": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]*$",
+          "title": "Command Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "code",
+        "command_id",
+        "audit_event_hash"
+      ],
+      "title": "Release",
+      "type": "object"
+    },
+    "ScheduleAck": {
+      "additionalProperties": false,
+      "description": "One step of a schedule's life at the edge. The acks of one schedule are a hash chain\n(``seq``, ``prev_ack_hash``); a redelivered identical schedule re-emits the latest ack.",
+      "properties": {
+        "at": {
+          "format": "date-time",
+          "title": "At",
+          "type": "string"
+        },
+        "clock_offset_bound_ms": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "$ref": "#/$defs/Unknown"
+            }
+          ],
+          "title": "Clock Offset Bound Ms"
+        },
+        "edge_id": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]*$",
+          "title": "Edge Id",
+          "type": "string"
+        },
+        "envelope": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/EnvelopeRef"
+            },
+            {
+              "$ref": "#/$defs/NotApplicable"
+            }
+          ],
+          "title": "Envelope"
+        },
+        "kind": {
+          "const": "schedule_ack",
+          "title": "Kind",
+          "type": "string"
+        },
+        "late": {
+          "title": "Late",
+          "type": "boolean"
+        },
+        "prev_ack_hash": {
+          "anyOf": [
+            {
+              "pattern": "^sha256:[0-9a-f]{64}$",
+              "type": "string"
+            },
+            {
+              "$ref": "#/$defs/NotApplicable"
+            }
+          ],
+          "title": "Prev Ack Hash"
+        },
+        "received_at": {
+          "format": "date-time",
+          "title": "Received At",
+          "type": "string"
+        },
+        "schedule_hash": {
+          "pattern": "^sha256:[0-9a-f]{64}$",
+          "title": "Schedule Hash",
+          "type": "string"
+        },
+        "schedule_id": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]*$",
+          "title": "Schedule Id",
+          "type": "string"
+        },
+        "seq": {
+          "minimum": 0,
+          "title": "Seq",
+          "type": "integer"
+        },
+        "site_id": {
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Site Id",
+          "type": "string"
+        },
+        "state": {
+          "discriminator": {
+            "mapping": {
+              "aborted": "#/$defs/AckAborted",
+              "accepted": "#/$defs/AckAccepted",
+              "active": "#/$defs/AckActive",
+              "completed": "#/$defs/AckCompleted",
+              "lapsed": "#/$defs/AckLapsed",
+              "rejected": "#/$defs/AckRejected",
+              "shadowing": "#/$defs/AckShadowing",
+              "superseded": "#/$defs/AckSuperseded"
+            },
+            "propertyName": "kind"
+          },
+          "oneOf": [
+            {
+              "$ref": "#/$defs/AckAccepted"
+            },
+            {
+              "$ref": "#/$defs/AckRejected"
+            },
+            {
+              "$ref": "#/$defs/AckActive"
+            },
+            {
+              "$ref": "#/$defs/AckShadowing"
+            },
+            {
+              "$ref": "#/$defs/AckSuperseded"
+            },
+            {
+              "$ref": "#/$defs/AckCompleted"
+            },
+            {
+              "$ref": "#/$defs/AckLapsed"
+            },
+            {
+              "$ref": "#/$defs/AckAborted"
+            }
+          ],
+          "title": "State"
+        }
+      },
+      "required": [
+        "kind",
+        "site_id",
+        "edge_id",
+        "schedule_id",
+        "schedule_hash",
+        "seq",
+        "prev_ack_hash",
+        "received_at",
+        "at",
+        "late",
+        "clock_offset_bound_ms",
+        "envelope",
+        "state"
+      ],
+      "title": "ScheduleAck",
+      "type": "object"
+    },
+    "TargetChanged": {
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "const": "target_changed",
+          "title": "Kind",
+          "type": "string"
+        },
+        "reason": {
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Reason",
+          "type": "string"
+        },
+        "target": {
+          "$ref": "#/$defs/FailSafeTarget"
+        }
+      },
+      "required": [
+        "kind",
+        "target",
+        "reason"
+      ],
+      "title": "TargetChanged",
+      "type": "object"
+    },
+    "TriggerCleared": {
+      "additionalProperties": false,
+      "properties": {
+        "code": {
+          "$ref": "#/$defs/TriggerCode"
+        },
+        "kind": {
+          "const": "trigger_cleared",
+          "title": "Kind",
+          "type": "string"
+        },
+        "primary": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/TriggerCode"
+            },
+            {
+              "$ref": "#/$defs/NotApplicable"
+            }
+          ],
+          "title": "Primary"
+        },
+        "release": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Release"
+            },
+            {
+              "$ref": "#/$defs/NotApplicable"
+            }
+          ],
+          "title": "Release"
+        }
+      },
+      "required": [
+        "kind",
+        "code",
+        "release",
+        "primary"
+      ],
+      "title": "TriggerCleared",
+      "type": "object"
+    },
+    "TriggerCode": {
+      "description": "Why the edge is in fail-safe. Enum order breaks ties of rank (`primary_trigger`).",
+      "enum": [
+        "host_override",
+        "operator_command",
+        "control_authority_withdrawn",
+        "no_envelope_in_force",
+        "no_envelope_held",
+        "clock_unsynchronised",
+        "chain_integrity_failure",
+        "thermal_comms_lost",
+        "dno_trip",
+        "dno_signal_lost",
+        "site_meter_lost",
+        "power_device_comms_lost",
+        "cloud_link_lost",
+        "market_link_lost",
+        "schedule_stale",
+        "schedule_exhausted",
+        "edge_restart"
+      ],
+      "title": "TriggerCode",
+      "type": "string"
+    },
+    "TriggerInstance": {
+      "additionalProperties": false,
+      "properties": {
+        "code": {
+          "$ref": "#/$defs/TriggerCode"
+        },
+        "detail": {
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Detail",
+          "type": "string"
+        },
+        "detected_at": {
+          "format": "date-time",
+          "title": "Detected At",
+          "type": "string"
+        },
+        "source": {
+          "enum": [
+            "edge_local",
+            "cloud",
+            "host",
+            "neura_ops"
+          ],
+          "title": "Source",
+          "type": "string"
+        }
+      },
+      "required": [
+        "code",
+        "source",
+        "detected_at",
+        "detail"
+      ],
+      "title": "TriggerInstance",
+      "type": "object"
+    },
+    "TriggerRaised": {
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "const": "trigger_raised",
+          "title": "Kind",
+          "type": "string"
+        },
+        "primary": {
+          "$ref": "#/$defs/TriggerCode"
+        },
+        "trigger": {
+          "$ref": "#/$defs/TriggerInstance"
+        }
+      },
+      "required": [
+        "kind",
+        "trigger",
+        "primary"
+      ],
+      "title": "TriggerRaised",
+      "type": "object"
+    },
+    "Unknown": {
+      "additionalProperties": false,
+      "description": "A value that exists but is not known. Always explicit, always with a reason; never ``None``.\n\nSerialised as ``{\"kind\": \"unknown\", \"reason\": \"...\"}``. ``kind`` is required (no default) so\na hand-written payload that omits it is refused rather than guessed at.",
+      "properties": {
+        "kind": {
+          "const": "unknown",
+          "title": "Kind",
+          "type": "string"
+        },
+        "reason": {
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Reason",
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind",
+        "reason"
+      ],
+      "title": "Unknown",
+      "type": "object"
+    },
+    "Violation": {
+      "additionalProperties": false,
+      "properties": {
+        "code": {
+          "$ref": "#/$defs/ViolationCode"
+        },
+        "detail": {
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Detail",
+          "type": "string"
+        },
+        "period": {
+          "minimum": 0,
+          "title": "Period",
+          "type": "integer"
+        },
+        "rank": {
+          "minimum": 0,
+          "title": "Rank",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "period",
+        "code",
+        "rank",
+        "detail"
+      ],
+      "title": "Violation",
+      "type": "object"
+    },
+    "ViolationCode": {
+      "description": "In the spec §8 safety hierarchy order (`RANK`): thermal limits, then connection compliance,\nthen the resilience reserve, then contracted delivery, then merchant.",
+      "enum": [
+        "outside_validity",
+        "thermal_band",
+        "thermal_not_stated",
+        "import_limit",
+        "export_limit",
+        "soe_below_resilience_floor",
+        "soe_below_service_floor",
+        "soe_above_ceiling",
+        "service_over_slice",
+        "merchant_over_slice"
+      ],
+      "title": "ViolationCode",
+      "type": "string"
+    }
+  },
+  "additionalProperties": false,
+  "description": "IC-5 v1.0.0: one frame from a site's edge to the cloud.",
+  "properties": {
+    "body": {
+      "discriminator": {
+        "mapping": {
+          "anm_event": "#/$defs/AnmEvent",
+          "edge_heartbeat": "#/$defs/EdgeHeartbeat",
+          "fail_safe_event": "#/$defs/FailSafeEvent",
+          "schedule_ack": "#/$defs/ScheduleAck"
+        },
+        "propertyName": "kind"
+      },
+      "oneOf": [
+        {
+          "$ref": "#/$defs/ScheduleAck"
+        },
+        {
+          "$ref": "#/$defs/EdgeHeartbeat"
+        },
+        {
+          "$ref": "#/$defs/FailSafeEvent"
+        },
+        {
+          "$ref": "#/$defs/AnmEvent"
+        }
+      ],
+      "title": "Body"
+    },
+    "contract": {
+      "const": "IC-5",
+      "default": "IC-5",
+      "title": "Contract",
+      "type": "string"
+    },
+    "contract_version": {
+      "const": "1.0.0",
+      "default": "1.0.0",
+      "title": "Contract Version",
+      "type": "string"
+    },
+    "direction": {
+      "const": "edge_to_cloud",
+      "title": "Direction",
+      "type": "string"
+    },
+    "link_epoch": {
+      "minimum": 0,
+      "title": "Link Epoch",
+      "type": "integer"
+    },
+    "peer_head": {
+      "discriminator": {
+        "mapping": {
+          "not_applicable": "#/$defs/NotApplicable",
+          "peer_head": "#/$defs/PeerHead"
+        },
+        "propertyName": "kind"
+      },
+      "oneOf": [
+        {
+          "$ref": "#/$defs/PeerHead"
+        },
+        {
+          "$ref": "#/$defs/NotApplicable"
+        }
+      ],
+      "title": "Peer Head"
+    },
+    "prev_hash": {
+      "pattern": "^sha256:[0-9a-f]{64}$",
+      "title": "Prev Hash",
+      "type": "string"
+    },
+    "profile_hash": {
+      "pattern": "^sha256:[0-9a-f]{64}$",
+      "title": "Profile Hash",
+      "type": "string"
+    },
+    "sender_id": {
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]*$",
+      "title": "Sender Id",
+      "type": "string"
+    },
+    "sent_at": {
+      "format": "date-time",
+      "title": "Sent At",
+      "type": "string"
+    },
+    "seq": {
+      "minimum": 0,
+      "title": "Seq",
+      "type": "integer"
+    },
+    "site_id": {
+      "minLength": 1,
+      "pattern": "\\S",
+      "title": "Site Id",
+      "type": "string"
+    }
+  },
+  "required": [
+    "direction",
+    "site_id",
+    "sender_id",
+    "sent_at",
+    "link_epoch",
+    "seq",
+    "prev_hash",
+    "profile_hash",
+    "peer_head",
+    "body"
+  ],
+  "title": "EdgeToCloudFrame",
+  "type": "object"
+}

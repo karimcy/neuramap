@@ -1,0 +1,297 @@
+{
+ "contract": "IC-11",
+ "contract_version": "1.0.0",
+ "surface_id": "ic11-synthetic-metered-trial",
+ "site_id": "SYNTHETIC-DC-AIR-COOLED-METERED",
+ "record_class": "synthetic_fixture",
+ "topology": [
+  "air_cooled_chillers",
+  "crah_crac"
+ ],
+ "cooling_electrical_capacity_kw": 1200,
+ "issued_at": "2026-04-02T12:00:00Z",
+ "valid_from": "2026-04-02T12:00:00Z",
+ "valid_until": "2027-04-01T00:00:00Z",
+ "clock": "Europe/London",
+ "evidence_class": "metered",
+ "evidence": {
+  "kind": "metered",
+  "meter_evidence": [
+   {
+    "kind": "evidence_ref",
+    "contract": "IC-4",
+    "contract_version": "1.0.0",
+    "evidence_hash": "sha256:9aa9bb4c7c4430cf2b451e8f3491e380d5487976c63f82860808fe7662d2bfd4"
+   },
+   {
+    "kind": "evidence_ref",
+    "contract": "IC-4",
+    "contract_version": "1.0.0",
+    "evidence_hash": "sha256:a42a390dac3808736b294c7191a63bbff90917465b93649edb55c15d16ddb38d"
+   }
+  ],
+  "baseline_method": {
+   "kind": "evidence_ref",
+   "contract": "IC-4",
+   "contract_version": "1.0.0",
+   "evidence_hash": "sha256:26d1d2ed10c8ffb5bcdc781ca5eb30510079bafcd73750a0569f37729c7f3447"
+  },
+  "observed_from": "2026-01-05T00:00:00Z",
+  "observed_until": "2026-03-30T00:00:00Z",
+  "n_events": 24
+ },
+ "limits": {
+  "ashrae": {
+   "ashrae_class": "H1",
+   "envelope": "recommended",
+   "temperature": {
+    "point": "it_inlet",
+    "min_tenths_c": 180,
+    "max_tenths_c": 220
+   },
+   "humidity": {
+    "kind": "unknown",
+    "reason": "synthetic: not transcribed"
+   },
+   "max_rate_of_change_tenths_c_per_hour": {
+    "kind": "unknown",
+    "reason": "synthetic: not transcribed"
+   },
+   "source": "synthetic fixture: envelope as commonly cited for ASHRAE TC9.9 Thermal Guidelines for Data Processing Environments; edition not stated; figures unverified against the standard"
+  },
+  "customer_sla": {
+   "kind": "customer_sla",
+   "temperature": {
+    "point": "it_inlet",
+    "min_tenths_c": 180,
+    "max_tenths_c": 230
+   },
+   "humidity": {
+    "kind": "humidity_limit",
+    "min_dew_point_tenths_c": -90,
+    "max_dew_point_tenths_c": 150,
+    "max_relative_humidity_percent": 60
+   },
+   "evidence": {
+    "kind": "evidence_ref",
+    "contract": "IC-4",
+    "contract_version": "1.0.0",
+    "evidence_hash": "sha256:450ff4d99f678baed9aad3ee10e898d2333e3739b1f7eb2b5fcfa738af794776"
+   }
+  },
+  "binding": {
+   "point": "it_inlet",
+   "min_tenths_c": 185,
+   "max_tenths_c": 215
+  },
+  "binding_source": "operator_margin",
+  "chiller_min_run_min": 10,
+  "chiller_min_off_min": {
+   "kind": "unknown",
+   "reason": "synthetic: not in the O&M manual"
+  }
+ },
+ "response": {
+  "kind": "response_terms",
+  "min_notice_min": 15,
+  "ramp_min": 3
+ },
+ "seasons": [
+  {
+   "season_id": "winter_jan_mar",
+   "months": [
+    1,
+    2,
+    3
+   ]
+  },
+  {
+   "season_id": "summer",
+   "months": [
+    4,
+    5,
+    6,
+    7,
+    8,
+    9
+   ]
+  },
+  {
+   "season_id": "winter_oct_dec",
+   "months": [
+    10,
+    11,
+    12
+   ]
+  }
+ ],
+ "bands": [
+  {
+   "band_id": "night",
+   "start_minute": 0,
+   "end_minute": 420
+  },
+  {
+   "band_id": "day",
+   "start_minute": 420,
+   "end_minute": 960
+  },
+  {
+   "band_id": "peak",
+   "start_minute": 960,
+   "end_minute": 1140
+  },
+  {
+   "band_id": "evening",
+   "start_minute": 1140,
+   "end_minute": 1440
+  }
+ ],
+ "cells": [
+  {
+   "season_id": "winter_jan_mar",
+   "band_id": "night",
+   "availability": {
+    "kind": "flex",
+    "curve": [
+     {
+      "duration_min": 30,
+      "reduction_kw": 800,
+      "rebound": {
+       "energy_kwh": 320,
+       "peak_kw": 480,
+       "recovery_min": 50
+      }
+     },
+     {
+      "duration_min": 120,
+      "reduction_kw": 550,
+      "rebound": {
+       "energy_kwh": 880,
+       "peak_kw": 330,
+       "recovery_min": 170
+      }
+     },
+     {
+      "duration_min": 300,
+      "reduction_kw": 200,
+      "rebound": {
+       "energy_kwh": 800,
+       "peak_kw": 120,
+       "recovery_min": 410
+      }
+     }
+    ]
+   }
+  },
+  {
+   "season_id": "winter_jan_mar",
+   "band_id": "day",
+   "availability": {
+    "kind": "unavailable",
+    "reason_code": "outside_agreed_window",
+    "detail": "synthetic: the host allows closed-loop control 19:00-07:00 only at this stage of staged authority (TF-06)"
+   }
+  },
+  {
+   "season_id": "winter_jan_mar",
+   "band_id": "peak",
+   "availability": {
+    "kind": "unavailable",
+    "reason_code": "outside_agreed_window",
+    "detail": "synthetic: the host allows closed-loop control 19:00-07:00 only at this stage of staged authority (TF-06)"
+   }
+  },
+  {
+   "season_id": "winter_jan_mar",
+   "band_id": "evening",
+   "availability": {
+    "kind": "flex",
+    "curve": [
+     {
+      "duration_min": 30,
+      "reduction_kw": 600,
+      "rebound": {
+       "energy_kwh": 240,
+       "peak_kw": 360,
+       "recovery_min": 50
+      }
+     },
+     {
+      "duration_min": 90,
+      "reduction_kw": 350,
+      "rebound": {
+       "energy_kwh": 420,
+       "peak_kw": 210,
+       "recovery_min": 130
+      }
+     }
+    ]
+   }
+  },
+  {
+   "season_id": "summer",
+   "band_id": "night",
+   "availability": {
+    "kind": "unknown",
+    "reason": "synthetic: the metered trial ran January to March; no summer events observed"
+   }
+  },
+  {
+   "season_id": "summer",
+   "band_id": "day",
+   "availability": {
+    "kind": "unknown",
+    "reason": "synthetic: the metered trial ran January to March; no summer events observed"
+   }
+  },
+  {
+   "season_id": "summer",
+   "band_id": "peak",
+   "availability": {
+    "kind": "unknown",
+    "reason": "synthetic: the metered trial ran January to March; no summer events observed"
+   }
+  },
+  {
+   "season_id": "summer",
+   "band_id": "evening",
+   "availability": {
+    "kind": "unknown",
+    "reason": "synthetic: the metered trial ran January to March; no summer events observed"
+   }
+  },
+  {
+   "season_id": "winter_oct_dec",
+   "band_id": "night",
+   "availability": {
+    "kind": "unknown",
+    "reason": "synthetic: the metered trial ran January to March; no October to December events observed, so these cells are not served as metered"
+   }
+  },
+  {
+   "season_id": "winter_oct_dec",
+   "band_id": "day",
+   "availability": {
+    "kind": "unknown",
+    "reason": "synthetic: the metered trial ran January to March; no October to December events observed, so these cells are not served as metered"
+   }
+  },
+  {
+   "season_id": "winter_oct_dec",
+   "band_id": "peak",
+   "availability": {
+    "kind": "unknown",
+    "reason": "synthetic: the metered trial ran January to March; no October to December events observed, so these cells are not served as metered"
+   }
+  },
+  {
+   "season_id": "winter_oct_dec",
+   "band_id": "evening",
+   "availability": {
+    "kind": "unknown",
+    "reason": "synthetic: the metered trial ran January to March; no October to December events observed, so these cells are not served as metered"
+   }
+  }
+ ]
+}

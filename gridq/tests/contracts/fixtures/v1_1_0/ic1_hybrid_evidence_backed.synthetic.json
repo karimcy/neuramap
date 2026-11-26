@@ -1,0 +1,65 @@
+{
+  "contract": "IC-1",
+  "contract_version": "1.1.0",
+  "agreement_ref": "SYNTH-CA-HYBRID-EB-01",
+  "site_id": "SYNTHETIC-SITE-HYBRID",
+  "source": {
+    "kind": "evidence_backed",
+    "evidence": {
+      "kind": "evidence_ref",
+      "contract": "IC-4",
+      "contract_version": "1.0.0",
+      "evidence_hash": "sha256:5db5a645f88c7a252705ee3bbb5f6f9095b1b3225daac26a337d3283ee40fe21"
+    }
+  },
+  "network_operator": {
+    "kind": "unknown",
+    "reason": "synthetic archetype: deliberately not tied to any network operator"
+  },
+  "archetype": "hybrid",
+  "firm_import_mw": 10.0,
+  "non_firm_import_mw": 20.0,
+  "profiled_import": {
+    "kind": "not_applicable",
+    "reason": "the non-firm tranche is restricted by ANM setpoint, not by a time profile"
+  },
+  "curtailment_limit": {
+    "kind": "curtailment_limit",
+    "basis": "hours_per_year",
+    "value": 250.0
+  },
+  "exceeded_curtailment_price": {
+    "kind": "unknown",
+    "reason": "synthetic archetype: no price stated; exercises the Unknown path"
+  },
+  "non_firm_end_date": "2030-03-31",
+  "firm_by_date": "2030-03-31",
+  "tenure": "interim",
+  "constraint_causes": [
+    "transmission_technical_limits"
+  ],
+  "lifo_positions": {
+    "kind": "not_applicable",
+    "reason": "Technical Limits allocation, not a LIFO stack"
+  },
+  "notice_period_s": 0.0,
+  "signal_type": "setpoint",
+  "ramp": {
+    "kind": "ramp_terms",
+    "max_ramp_up_mw_per_min": 5.0,
+    "max_ramp_down_mw_per_min": 10.0
+  },
+  "power_factor": {
+    "kind": "power_factor_terms",
+    "min_power_factor": 0.95,
+    "reactive_direction": "lagging"
+  },
+  "pcc": {
+    "kind": "pcc_terms",
+    "voltage_kv": 33.0,
+    "description": "Synthetic: customer 33 kV switchboard, DNO side of the metering CTs"
+  },
+  "network_security": "N-1",
+  "anm_response_time_s": 15.0,
+  "signal_protocol": "dnp3"
+}

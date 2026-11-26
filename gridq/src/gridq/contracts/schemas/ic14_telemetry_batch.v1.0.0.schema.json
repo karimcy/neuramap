@@ -1,0 +1,477 @@
+{
+  "$defs": {
+    "ClockStatement": {
+      "additionalProperties": false,
+      "description": "Who stamped a block and how far the stamp can be trusted. ``mono_*`` are the edge's\nmonotonic clock (IC-5 ``now_mono_ms``) at the block's first and last acquisition.",
+      "properties": {
+        "boot_id": {
+          "maxLength": 120,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]*$",
+          "title": "Boot Id",
+          "type": "string"
+        },
+        "clock_offset_bound_ms": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "$ref": "#/$defs/Unknown"
+            }
+          ],
+          "title": "Clock Offset Bound Ms"
+        },
+        "clock_state": {
+          "enum": [
+            "synchronised",
+            "unsynchronised"
+          ],
+          "title": "Clock State",
+          "type": "string"
+        },
+        "kind": {
+          "const": "clock_statement",
+          "title": "Kind",
+          "type": "string"
+        },
+        "mono_end_ms": {
+          "minimum": 0,
+          "title": "Mono End Ms",
+          "type": "integer"
+        },
+        "mono_origin_ms": {
+          "minimum": 0,
+          "title": "Mono Origin Ms",
+          "type": "integer"
+        },
+        "receipt_lag_ms": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "$ref": "#/$defs/NotApplicable"
+            }
+          ],
+          "title": "Receipt Lag Ms"
+        },
+        "stamped_by": {
+          "enum": [
+            "source_device",
+            "edge_acquisition"
+          ],
+          "title": "Stamped By",
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind",
+        "stamped_by",
+        "clock_state",
+        "clock_offset_bound_ms",
+        "boot_id",
+        "mono_origin_ms",
+        "mono_end_ms",
+        "receipt_lag_ms"
+      ],
+      "title": "ClockStatement",
+      "type": "object"
+    },
+    "GapReason": {
+      "description": "Why there is no value. Every member is an OPC UA Bad status.",
+      "enum": [
+        "comms_lost",
+        "sensor_failure",
+        "device_failure",
+        "out_of_service",
+        "configuration_error",
+        "clock_untrusted",
+        "buffer_lost",
+        "not_recorded",
+        "insufficient_coverage"
+      ],
+      "title": "GapReason",
+      "type": "string"
+    },
+    "GapRun": {
+      "additionalProperties": false,
+      "description": "Consecutive slots with no value, and why. There is no value field to read as zero.",
+      "properties": {
+        "first_slot": {
+          "minimum": 0,
+          "title": "First Slot",
+          "type": "integer"
+        },
+        "kind": {
+          "const": "gap",
+          "title": "Kind",
+          "type": "string"
+        },
+        "last_slot": {
+          "minimum": 0,
+          "title": "Last Slot",
+          "type": "integer"
+        },
+        "reason": {
+          "$ref": "#/$defs/GapReason"
+        }
+      },
+      "required": [
+        "kind",
+        "first_slot",
+        "last_slot",
+        "reason"
+      ],
+      "title": "GapRun",
+      "type": "object"
+    },
+    "Ic5Binding": {
+      "additionalProperties": false,
+      "description": "The IC-5 link profile and link epoch a batch was sealed under.",
+      "properties": {
+        "kind": {
+          "const": "ic5_binding",
+          "title": "Kind",
+          "type": "string"
+        },
+        "link_epoch": {
+          "minimum": 0,
+          "title": "Link Epoch",
+          "type": "integer"
+        },
+        "link_profile_hash": {
+          "pattern": "^sha256:[0-9a-f]{64}$",
+          "title": "Link Profile Hash",
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind",
+        "link_profile_hash",
+        "link_epoch"
+      ],
+      "title": "Ic5Binding",
+      "type": "object"
+    },
+    "NotApplicable": {
+      "additionalProperties": false,
+      "description": "A term that does not exist for this record (e.g. a LIFO position on a firm connection).\n\nDistinct from `Unknown`: \"not applicable\" is a statement about the agreement, \"unknown\" is a\nstatement about our knowledge of it. Both carry a reason.",
+      "properties": {
+        "kind": {
+          "const": "not_applicable",
+          "title": "Kind",
+          "type": "string"
+        },
+        "reason": {
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Reason",
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind",
+        "reason"
+      ],
+      "title": "NotApplicable",
+      "type": "object"
+    },
+    "TenantKey": {
+      "additionalProperties": false,
+      "description": "The data owner (an IC-13 organisation) and the site. Lender and verifier organisations\nnever own telemetry; they read it through IC-13 scopes.",
+      "properties": {
+        "kind": {
+          "const": "tenant_key",
+          "title": "Kind",
+          "type": "string"
+        },
+        "org_id": {
+          "maxLength": 80,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:@-]*$",
+          "title": "Org Id",
+          "type": "string"
+        },
+        "org_kind": {
+          "enum": [
+            "customer",
+            "neura"
+          ],
+          "title": "Org Kind",
+          "type": "string"
+        },
+        "site_id": {
+          "maxLength": 80,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:@-]*$",
+          "title": "Site Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind",
+        "org_id",
+        "org_kind",
+        "site_id"
+      ],
+      "title": "TenantKey",
+      "type": "object"
+    },
+    "Unknown": {
+      "additionalProperties": false,
+      "description": "A value that exists but is not known. Always explicit, always with a reason; never ``None``.\n\nSerialised as ``{\"kind\": \"unknown\", \"reason\": \"...\"}``. ``kind`` is required (no default) so\na hand-written payload that omits it is refused rather than guessed at.",
+      "properties": {
+        "kind": {
+          "const": "unknown",
+          "title": "Kind",
+          "type": "string"
+        },
+        "reason": {
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Reason",
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind",
+        "reason"
+      ],
+      "title": "Unknown",
+      "type": "object"
+    },
+    "ValueQuality": {
+      "description": "The quality of a value. Declaration order is the worst-of order, best first.",
+      "enum": [
+        "good",
+        "local_override",
+        "inaccurate",
+        "out_of_range",
+        "subnormal",
+        "held"
+      ],
+      "title": "ValueQuality",
+      "type": "string"
+    },
+    "ValueRun": {
+      "additionalProperties": false,
+      "description": "Consecutive slots that hold values of one quality.",
+      "properties": {
+        "first_slot": {
+          "minimum": 0,
+          "title": "First Slot",
+          "type": "integer"
+        },
+        "kind": {
+          "const": "values",
+          "title": "Kind",
+          "type": "string"
+        },
+        "quality": {
+          "$ref": "#/$defs/ValueQuality"
+        },
+        "values": {
+          "items": {
+            "maximum": 9007199254740991,
+            "minimum": -9007199254740991,
+            "type": "integer"
+          },
+          "minItems": 1,
+          "title": "Values",
+          "type": "array"
+        }
+      },
+      "required": [
+        "kind",
+        "first_slot",
+        "values",
+        "quality"
+      ],
+      "title": "ValueRun",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "description": "IC-14 v1.0.0: one block of one series, as the edge sealed it. Immutable; chained per\n(series, sender, stream epoch).",
+  "properties": {
+    "clock": {
+      "$ref": "#/$defs/ClockStatement"
+    },
+    "contract": {
+      "const": "IC-14",
+      "default": "IC-14",
+      "title": "Contract",
+      "type": "string"
+    },
+    "contract_version": {
+      "const": "1.0.0",
+      "default": "1.0.0",
+      "title": "Contract Version",
+      "type": "string"
+    },
+    "data_class": {
+      "enum": [
+        "neura_operational",
+        "customer_commercial",
+        "customer_personal"
+      ],
+      "title": "Data Class",
+      "type": "string"
+    },
+    "descriptor_hash": {
+      "pattern": "^sha256:[0-9a-f]{64}$",
+      "title": "Descriptor Hash",
+      "type": "string"
+    },
+    "ic5": {
+      "discriminator": {
+        "mapping": {
+          "ic5_binding": "#/$defs/Ic5Binding",
+          "not_applicable": "#/$defs/NotApplicable"
+        },
+        "propertyName": "kind"
+      },
+      "oneOf": [
+        {
+          "$ref": "#/$defs/Ic5Binding"
+        },
+        {
+          "$ref": "#/$defs/NotApplicable"
+        }
+      ],
+      "title": "Ic5"
+    },
+    "kind": {
+      "const": "telemetry_batch",
+      "title": "Kind",
+      "type": "string"
+    },
+    "origin": {
+      "format": "date-time",
+      "title": "Origin",
+      "type": "string"
+    },
+    "prev_batch_hash": {
+      "pattern": "^sha256:[0-9a-f]{64}$",
+      "title": "Prev Batch Hash",
+      "type": "string"
+    },
+    "prior_epoch_head": {
+      "anyOf": [
+        {
+          "pattern": "^sha256:[0-9a-f]{64}$",
+          "type": "string"
+        },
+        {
+          "$ref": "#/$defs/NotApplicable"
+        },
+        {
+          "$ref": "#/$defs/Unknown"
+        }
+      ],
+      "title": "Prior Epoch Head"
+    },
+    "record_class": {
+      "enum": [
+        "live",
+        "synthetic_fixture"
+      ],
+      "title": "Record Class",
+      "type": "string"
+    },
+    "resolution": {
+      "enum": [
+        "event_20hz",
+        "operational_1s",
+        "standard_1min"
+      ],
+      "title": "Resolution",
+      "type": "string"
+    },
+    "sealed_at": {
+      "format": "date-time",
+      "title": "Sealed At",
+      "type": "string"
+    },
+    "segments": {
+      "items": {
+        "discriminator": {
+          "mapping": {
+            "gap": "#/$defs/GapRun",
+            "values": "#/$defs/ValueRun"
+          },
+          "propertyName": "kind"
+        },
+        "oneOf": [
+          {
+            "$ref": "#/$defs/ValueRun"
+          },
+          {
+            "$ref": "#/$defs/GapRun"
+          }
+        ]
+      },
+      "minItems": 1,
+      "title": "Segments",
+      "type": "array"
+    },
+    "sender_id": {
+      "maxLength": 120,
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]*$",
+      "title": "Sender Id",
+      "type": "string"
+    },
+    "seq": {
+      "minimum": 0,
+      "title": "Seq",
+      "type": "integer"
+    },
+    "series_id": {
+      "minLength": 1,
+      "pattern": "\\S",
+      "title": "Series Id",
+      "type": "string"
+    },
+    "site_id": {
+      "maxLength": 80,
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:@-]*$",
+      "title": "Site Id",
+      "type": "string"
+    },
+    "slot_count": {
+      "minimum": 1,
+      "title": "Slot Count",
+      "type": "integer"
+    },
+    "stream_epoch": {
+      "minimum": 0,
+      "title": "Stream Epoch",
+      "type": "integer"
+    },
+    "tenant": {
+      "$ref": "#/$defs/TenantKey"
+    }
+  },
+  "required": [
+    "tenant",
+    "site_id",
+    "series_id",
+    "data_class",
+    "record_class",
+    "kind",
+    "descriptor_hash",
+    "sender_id",
+    "stream_epoch",
+    "seq",
+    "prev_batch_hash",
+    "prior_epoch_head",
+    "origin",
+    "resolution",
+    "slot_count",
+    "segments",
+    "clock",
+    "sealed_at",
+    "ic5"
+  ],
+  "title": "TelemetryBatch",
+  "type": "object"
+}

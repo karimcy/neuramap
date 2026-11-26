@@ -1,0 +1,42 @@
+{# Half-hourly dispatch - one representative solved day. Charted client-side from the island; the
+   table below is the accessible, no-JS fallback. Every value comes from quote.dispatch_profile. #}
+<div class="card" data-reveal>
+  <div class="console-head">
+    <h2>Dispatch - representative day</h2>
+    <span class="console-status"><span class="status-dot"></span>engine · solved</span>
+  </div>
+  {% if not dispatch.available %}
+    <p class="unavail">{{ fmt_unavailable("no half-hourly dispatch was persisted for this run - the
+      real MILP needs a metered half-hourly series; supply one (see the data asks) to inspect the
+      schedule") }}</p>
+  {% else %}
+  <p class="muted">{{ dispatch.basis_note }}
+    System: <strong>{{ dispatch.power_label }}</strong> / <strong>{{ dispatch.energy_label }}</strong>
+    ({{ dispatch.duration_label }}). <span style="color:var(--accent)">Shaded</span> = DUoS red band.</p>
+
+  <div class="chart-canvas chart-tall" id="chart-dispatch" role="img"
+       aria-label="Half-hourly battery charge, discharge and state of energy across a representative day"></div>
+
+  <details style="margin-top:0.8rem">
+    <summary class="muted">Show the half-hourly figures</summary>
+    <div class="tablewrap"><table class="data">
+      <thead><tr>
+        <th>Time</th><th class="num">Discharge</th><th class="num">Charge</th>
+        <th class="num">State of energy</th><th class="num">Site load</th><th>Band</th>
+      </tr></thead>
+      <tbody>
+        {% for r in dispatch.rows %}
+        <tr class="{% if r.red %}is-feasible{% endif %}">
+          <td>{{ r.time }}</td>
+          <td class="num">{{ r.discharge }}</td>
+          <td class="num">{{ r.charge }}</td>
+          <td class="num">{{ r.soe }}</td>
+          <td class="num">{{ r.load }}</td>
+          <td>{% if r.red %}red{% else %} - {% endif %}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table></div>
+  </details>
+  {% endif %}
+</div>

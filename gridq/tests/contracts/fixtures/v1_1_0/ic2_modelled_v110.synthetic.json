@@ -1,0 +1,158 @@
+{
+ "contract": "IC-2",
+ "contract_version": "1.1.0",
+ "set_id": "ic2-synthetic-modelled-v110",
+ "site_id": "SYNTHETIC-SITE-HYBRID",
+ "direction": "import",
+ "signal_basis": "loading_headroom",
+ "depth_definition": "synthetic: MW below the agreed non-firm import",
+ "reference_capacity_mw": 20.0,
+ "connection_agreement": {
+  "kind": "connection_agreement_ref",
+  "contract": "IC-1",
+  "contract_version": "1.1.0",
+  "agreement_hash": "sha256:122618785497c4f998cbdb76b49746be63415bf56cc09c4a6187a333c3d7c6b1"
+ },
+ "evidence_class": "synthetic_fixture",
+ "provenance": {
+  "kind": "synthetic_fixture",
+  "statement": "Schema-test data; not a site anyone holds. Values are synthetic.",
+  "modelled_on": "the NPg outage-event shape (fixtures/real/) and A1-03 scenario output"
+ },
+ "weight_basis": "model_probability",
+ "weight_rule": "synthetic: stated model probabilities 1/2, 3/10, 1/5",
+ "n_half_hours": 96,
+ "scenarios": [
+  {
+   "scenario_id": "p1-calm",
+   "label": "Synthetic modelled scenario p1-calm",
+   "weight": {
+    "numerator": 1,
+    "denominator": 2
+   },
+   "period_start": "2031-01-14T00:00:00Z",
+   "half_hourly": {
+    "resolution_s": 1800,
+    "n_intervals": 96,
+    "steps": [
+     {
+      "index": 0,
+      "mw": 0.0
+     }
+    ]
+   },
+   "minute": {
+    "kind": "not_applicable",
+    "reason": "synthetic: half-hourly model"
+   },
+   "events": []
+  },
+  {
+   "scenario_id": "p2-outage",
+   "label": "Synthetic modelled scenario p2-outage",
+   "weight": {
+    "numerator": 3,
+    "denominator": 10
+   },
+   "period_start": "2031-01-14T00:00:00Z",
+   "half_hourly": {
+    "resolution_s": 1800,
+    "n_intervals": 96,
+    "steps": [
+     {
+      "index": 0,
+      "mw": 0.0
+     },
+     {
+      "index": 15,
+      "mw": 7.7
+     },
+     {
+      "index": 27,
+      "mw": 0.0
+     }
+    ]
+   },
+   "minute": {
+    "kind": "not_applicable",
+    "reason": "synthetic: half-hourly model"
+   },
+   "events": [
+    {
+     "start": "2031-01-14T07:30:00Z",
+     "end": "2031-01-14T13:30:00Z",
+     "mean_depth_mw": 7.7,
+     "peak_depth_mw": 7.95,
+     "notice_s": 900.0,
+     "source_ref": {
+      "kind": "not_applicable",
+      "reason": "modelled event"
+     }
+    }
+   ]
+  },
+  {
+   "scenario_id": "p3-cold-snap",
+   "label": "Synthetic modelled scenario p3-cold-snap",
+   "weight": {
+    "numerator": 1,
+    "denominator": 5
+   },
+   "period_start": "2031-01-14T00:00:00Z",
+   "half_hourly": {
+    "resolution_s": 1800,
+    "n_intervals": 96,
+    "steps": [
+     {
+      "index": 0,
+      "mw": 0.0
+     },
+     {
+      "index": 32,
+      "mw": 5.0
+     },
+     {
+      "index": 38,
+      "mw": 0.0
+     },
+     {
+      "index": 60,
+      "mw": 7.7
+     },
+     {
+      "index": 80,
+      "mw": 0.0
+     }
+    ]
+   },
+   "minute": {
+    "kind": "not_applicable",
+    "reason": "synthetic: half-hourly model"
+   },
+   "events": [
+    {
+     "start": "2031-01-14T16:00:00Z",
+     "end": "2031-01-14T19:00:00Z",
+     "mean_depth_mw": 5.0,
+     "peak_depth_mw": 5.25,
+     "notice_s": 120.0,
+     "source_ref": {
+      "kind": "not_applicable",
+      "reason": "modelled event"
+     }
+    },
+    {
+     "start": "2031-01-15T06:00:00Z",
+     "end": "2031-01-15T16:00:00Z",
+     "mean_depth_mw": 7.7,
+     "peak_depth_mw": 7.95,
+     "notice_s": 0.0,
+     "source_ref": {
+      "kind": "not_applicable",
+      "reason": "modelled event"
+     }
+    }
+   ]
+  }
+ ]
+}

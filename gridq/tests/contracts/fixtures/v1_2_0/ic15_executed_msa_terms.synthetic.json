@@ -1,0 +1,219 @@
+{
+ "contract": "IC-15",
+ "contract_version": "1.0.0",
+ "template_id": "software_dispatch_msa",
+ "template_version": "0.2.0",
+ "text_sha256": "sha256:2795516f119c950e25b8e220e78382d56210376229dda63d09ea8b205b841e09",
+ "executed_copy": {
+  "kind": "evidence_ref",
+  "contract": "IC-4",
+  "contract_version": "1.2.0",
+  "evidence_hash": "sha256:5a9d80f6a77d7a54958bb84a55169d8f7f02ea6b1378e449b969e6e0282b86d6"
+ },
+ "variant": "direct_host_funded",
+ "values": [
+  {
+   "field_id": "provider_legal_name",
+   "value": {
+    "kind": "text",
+    "value": "SYNTHETIC-PROVIDER (fixture; not a real company)"
+   }
+  },
+  {
+   "field_id": "customer_legal_name",
+   "value": {
+    "kind": "text",
+    "value": "SYNTHETIC-CUSTOMER (fixture; not a real company)"
+   }
+  },
+  {
+   "field_id": "effective_date",
+   "value": {
+    "kind": "date",
+    "value": "2026-11-24"
+   }
+  },
+  {
+   "field_id": "site_reference",
+   "value": {
+    "kind": "text",
+    "value": "SYNTHETIC-SITE-HYBRID"
+   }
+  },
+  {
+   "field_id": "services_in_scope",
+   "value": {
+    "kind": "unknown",
+    "reason": "Which services the customer orders: platform only, or platform and dispatch, and for which assets"
+   }
+  },
+  {
+   "field_id": "contracted_capacity_kw",
+   "value": {
+    "kind": "unknown",
+    "reason": "The flexible capacity under Operate, in kW, from the host's asset register"
+   }
+  },
+  {
+   "field_id": "route_to_market_partner",
+   "value": {
+    "kind": "unknown",
+    "reason": "Which route-to-market partner executes market actions for this site, under which agreement"
+   }
+  },
+  {
+   "field_id": "oem_controller",
+   "value": {
+    "kind": "unknown",
+    "reason": "Which certified OEM controller or controllers execute setpoints at the site"
+   }
+  },
+  {
+   "field_id": "initial_control_stage",
+   "value": {
+    "kind": "text",
+    "value": "l0_read_only"
+   }
+  },
+  {
+   "field_id": "host_critical_facilities_contact",
+   "value": {
+    "kind": "unknown",
+    "reason": "The host's critical-facilities lead: role and 24/7 contact route"
+   }
+  },
+  {
+   "field_id": "platform_availability_target",
+   "value": {
+    "kind": "unknown",
+    "reason": "Monthly platform availability target, in basis points, agreed with the customer"
+   }
+  },
+  {
+   "field_id": "incident_response_time",
+   "value": {
+    "kind": "unknown",
+    "reason": "Severity-one response time, in minutes, agreed with the customer"
+   }
+  },
+  {
+   "field_id": "service_credits",
+   "value": {
+    "kind": "unknown",
+    "reason": "The service-credit regime and its cap, if any, agreed with the customer"
+   }
+  },
+  {
+   "field_id": "it_outage_liability_treatment",
+   "value": {
+    "kind": "unknown",
+    "reason": "Whether IT-outage liability under clause 7.1 sits inside the cap, under a sublimit or outside it: counsel advises, the customer agrees"
+   }
+  },
+  {
+   "field_id": "it_outage_sublimit",
+   "value": {
+    "kind": "not_applicable",
+    "reason": "synthetic fixture: no sublimit chosen"
+   }
+  },
+  {
+   "field_id": "step_in_triggers",
+   "value": {
+    "kind": "unknown",
+    "reason": "The events that allow step-in (e.g. persistent service failure, insolvency), agreed on counsel's advice"
+   }
+  },
+  {
+   "field_id": "step_in_notice_period",
+   "value": {
+    "kind": "unknown",
+    "reason": "Notice before step-in, in hours, agreed with the customer"
+   }
+  },
+  {
+   "field_id": "step_in_maximum_period",
+   "value": {
+    "kind": "unknown",
+    "reason": "The longest step-in period, in days, agreed with the customer"
+   }
+  },
+  {
+   "field_id": "liability_cap",
+   "value": {
+    "kind": "unknown",
+    "reason": "The liability cap, agreed with the customer on counsel's advice"
+   }
+  },
+  {
+   "field_id": "liability_cap_basis",
+   "value": {
+    "kind": "unknown",
+    "reason": "How the cap is set (a fixed sum, or a multiple of fees paid), agreed on counsel's advice"
+   }
+  },
+  {
+   "field_id": "integration_fee_agreed",
+   "value": {
+    "kind": "unknown",
+    "reason": "The integration fee agreed with this customer; the list price on record is not an agreement"
+   }
+  },
+  {
+   "field_id": "operate_fee_agreed",
+   "value": {
+    "kind": "unknown",
+    "reason": "The Operate fee per MW per year agreed with this customer; the list price on record is not an agreement"
+   }
+  },
+  {
+   "field_id": "payment_terms",
+   "value": {
+    "kind": "unknown",
+    "reason": "Days from invoice to payment, agreed with the customer"
+   }
+  },
+  {
+   "field_id": "provider_insurance_cover",
+   "value": {
+    "kind": "unknown",
+    "reason": "Professional indemnity and public liability cover per claim, confirmed by the Provider's broker"
+   }
+  },
+  {
+   "field_id": "minimum_term",
+   "value": {
+    "kind": "unknown",
+    "reason": "The minimum term, in months, agreed with the customer"
+   }
+  },
+  {
+   "field_id": "termination_notice_period",
+   "value": {
+    "kind": "unknown",
+    "reason": "Notice to end after the minimum term, in days, agreed with the customer"
+   }
+  },
+  {
+   "field_id": "termination_for_convenience",
+   "value": {
+    "kind": "unknown",
+    "reason": "Whether and on what payment either party may end for convenience in the minimum term, agreed on counsel's advice"
+   }
+  },
+  {
+   "field_id": "asset_owner",
+   "value": {
+    "kind": "text",
+    "value": "SYNTHETIC-CUSTOMER, who is also the host (fixture)"
+   }
+  },
+  {
+   "field_id": "governing_law",
+   "value": {
+    "kind": "unknown",
+    "reason": "Governing law and jurisdiction: counsel advises"
+   }
+  }
+ ]
+}

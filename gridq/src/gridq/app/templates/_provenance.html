@@ -1,0 +1,22 @@
+{# Traceability spine - every figure on the run traces to these. Record values only. #}
+<div class="card">
+  <h3>Provenance &amp; traceability</h3>
+  <div class="provenance">
+    <span class="pv">quote <code>{{ vm.provenance.quote_id }}</code></span>
+    <span class="pv">site <code>{{ vm.provenance.site_id }}</code></span>
+    <span class="pv">tier <code>{{ vm.provenance.data_tier }}</code></span>
+    <span class="pv">mode <code>{{ vm.provenance.quote_mode }}</code></span>
+    <span class="pv">assumptions <code>{{ vm.provenance.assumption_version or ' - ' }}</code></span>
+    <span class="pv">code <code>{{ vm.provenance.code_version or ' - ' }}</code></span>
+    <span class="pv">schema <code>{{ vm.provenance.schema_version }}</code></span>
+    <span class="pv">input hash <code>{{ vm.provenance.input_hash or ' - ' }}</code></span>
+    {% if quote.optimisation_result and quote.optimisation_result.solver_metadata %}
+      {% set m = quote.optimisation_result.solver_metadata %}
+      <span class="pv">seed <code>{{ m.seed if m.seed is not none else ' - ' }}</code></span>
+      <span class="pv">model <code>{{ m.model_version or ' - ' }}</code></span>
+      {% if m.reproduction_env %}<span class="pv">env <code>{{ m.reproduction_env }}</code></span>{% endif %}
+    {% endif %}
+    <span class="pv">created <code>{{ fmt_date(vm.provenance.created_at) }}</code></span>
+    {% if vm.provenance.expiry_date %}<span class="pv">expires <code>{{ fmt_date(vm.provenance.expiry_date) }}</code></span>{% endif %}
+  </div>
+</div>

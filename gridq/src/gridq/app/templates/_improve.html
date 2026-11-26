@@ -1,0 +1,60 @@
+{# Improve-this-quote: upload the data the quote needs and recalculate in place (no fresh re-entry).
+   The existing site is carried forward as hidden fields; the uploaded half-hourly meter file takes
+   the run from T0 to T2, so the real dispatch MILP and the full sizing surface populate. Submitting
+   re-runs the deterministic pipeline (a new quote id) and opens the sharpened result. #}
+{% if site %}
+<div class="panel asks improve">
+  <h3>Improve this quote</h3>
+  <p class="muted">Upload the data the quote needs and it recalculates in place. A 12-month
+    half-hourly meter file is the biggest unlock: it runs the real dispatch MILP and the full sizing
+    surface, instead of degrading to insufficient data.</p>
+  <form id="improve-form" enctype="multipart/form-data">
+    {# The FULL stored site travels with the improve run - dropping a field here silently
+       degrades the recalc (red-team 2026-07-08: import_rates was never carried, so an improve
+       re-run lost the whole time-of-use tariff and with it the arbitrage value). The dict
+       fields serialize to the same "label:rate, ..." string the intake parses; display-only
+       serialization, no arithmetic. #}
+    <input type="hidden" name="site_name" value="{{ site.site_name or '' }}">
+    <input type="hidden" name="postcode" value="{{ site.postcode or '' }}">
+    <input type="hidden" name="mic_kw" value="{{ site.connection.mic_kw or '' }}">
+    <input type="hidden" name="mec_kw" value="{{ site.connection.mec_kw or '' }}">
+    <input type="hidden" name="asc_kw" value="{{ site.connection.asc_kw or '' }}">
+    <input type="hidden" name="dno_region" value="{{ site.connection.dno_region or '' }}">
+    <input type="hidden" name="annual_consumption_kwh" value="{{ site.annual_consumption_kwh or '' }}">
+    <input type="hidden" name="max_import_kw" value="{{ site.load_data.max_import_kw or '' }}">
+    <input type="hidden" name="legal_name" value="{{ site.counterparty.legal_name or '' }}">
+    <input type="hidden" name="company_number" value="{{ site.counterparty.company_number or '' }}">
+    <input type="hidden" name="sector" value="{{ site.counterparty.sector or '' }}">
+    {% if site.tariff_stack %}
+    <input type="hidden" name="supplier" value="{{ site.tariff_stack.supplier or '' }}">
+    <input type="hidden" name="tariff_name" value="{{ site.tariff_stack.tariff_name or '' }}">
+    <input type="hidden" name="import_rates" value="{% for k, v in site.tariff_stack.import_rates.items() %}{{ k }}:{{ v }}{% if not loop.last %}, {% endif %}{% endfor %}">
+    <input type="hidden" name="levies" value="{% for k, v in site.tariff_stack.levies.items() %}{{ k }}:{{ v }}{% if not loop.last %}, {% endif %}{% endfor %}">
+    <input type="hidden" name="capacity_charge_gbp_per_kva_day" value="{{ site.tariff_stack.capacity_charge_gbp_per_kva_day or '' }}">
+    <input type="hidden" name="duos_red_rate" value="{{ site.tariff_stack.duos_red_rate or '' }}">
+    <input type="hidden" name="duos_amber_rate" value="{{ site.tariff_stack.duos_amber_rate or '' }}">
+    <input type="hidden" name="duos_green_rate" value="{{ site.tariff_stack.duos_green_rate or '' }}">
+    <input type="hidden" name="standing_charge" value="{{ site.tariff_stack.standing_charge_per_day_gbp or '' }}">
+    {# WP-UW-07: the recorded basis and provenance travel with the re-run, so recalculating with new
+       data can never silently change what the rates were stated to include or where they came from. #}
+    {% set tb = site.tariff_stack.basis %}
+    <input type="hidden" name="vat_basis" value="{{ 'not_stated' if tb.vat_attestation == 'derived' else tb.vat }}">
+    <input type="hidden" name="vat_rate_fraction" value="{{ tb.vat_rate_fraction if tb.vat_rate_fraction else '' }}">
+    <input type="hidden" name="levy_basis" value="{{ tb.levies }}">
+    <input type="hidden" name="network_basis" value="{{ tb.network_charges }}">
+    <input type="hidden" name="provenance_commodity" value="{{ site.tariff_stack.provenance.commodity }}">
+    <input type="hidden" name="provenance_network" value="{{ site.tariff_stack.provenance.network }}">
+    <input type="hidden" name="provenance_levies" value="{{ site.tariff_stack.provenance.levies }}">
+    {% endif %}
+    <label class="dropzone" for="improve-hh">
+      <span class="dz-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" x2="12" y1="3" y2="15"/></svg></span><b>Drag &amp; drop, or browse</b>
+      <span>Smart-meter CSV or Excel with a timestamp and a power column</span>
+    </label>
+    <input type="file" id="improve-hh" name="hh_file" accept=".csv,.xlsx,.xls" hidden>
+    <div class="improve-actions">
+      <button type="submit" class="btn" id="improve-run" disabled>Recalculate with this data</button>
+      <span class="improve-note" id="improve-file">Select a meter file to enable recalculation.</span>
+    </div>
+  </form>
+</div>
+{% endif %}

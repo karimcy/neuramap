@@ -1,0 +1,13 @@
+{
+  "dataset_id": "NGED East Midlands use of system charging statement 2026 v0.1",
+  "fetched_utc": "2026-11-26T08:23:04",
+  "fetcher": "curl -L (WP-UW-07, run by hand; the document itself is not vendored)",
+  "fetcher_args": {},
+  "last_modified": "Mon, 23 Dec 2024 15:34:55 MSK",
+  "licence": "unclear: no licence is stated in the document",
+  "record_count": 0,
+  "sha256": "d538fe9ea6c79cd598e5758764715508eed14754c9af4df323361f9126bd85c8",
+  "size_bytes": 1843071,
+  "source_url": "https://commercial.nationalgrid.co.uk/downloads-view-reciteme/684677",
+  "used_for": "Acceptance 1 and 2 search: rates and rules, no worked example"
+}

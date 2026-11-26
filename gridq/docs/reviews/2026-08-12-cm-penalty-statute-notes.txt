@@ -1,0 +1,106 @@
+CM PENALTY RATE VERIFICATION — primary-source evidence (read-only investigation, 2026-08-13)
+Source of truth: legislation.gov.uk revised (consolidated) text of SI 2014/2043.
+NOTE: all formulae on legislation.gov.uk are GIF images, not text. I downloaded the GIFs,
+upscaled them, and read them directly. Image files kept under ./leg/img/.
+
+--- 1. THE PENALTY RATE (verbatim) ---
+
+Sch 1 para 5(2A) [inserted 14.7.2016 by SI 2016/742 reg 1(2) Sch 1 para 33(2)]:
+  "For the purpose of sub-paragraph (2), 'PRij' is the penalty rate in pounds per MWh applying
+   to CMU i in respect of settlement period j, and is to be calculated in accordance with the
+   formula—"   [img epp_017]  PR_ij = Σ_N (PR_N × ICO_ijN) / Σ_N ICO_ijN
+  "where— 'ICOijN' is the whole or a part of any capacity obligation COzx applying to CMU i in
+   settlement period j, and 'PRN' is the penalty rate applying to that capacity obligation."
+
+Sch 1 para 5(3) [substituted 14.7.2016 by SI 2016/742 reg 1(2) Sch 1 para 33(3)]:
+  "For the purpose of sub-paragraph (2A), PRN is to be calculated in accordance with the formula—"
+  [img epp_018, read directly]  PR_N = PE_zx × (1/24)
+
+Sch 1 para 5(4) [words substituted 14.7.2016 SI 2016/742 para 33(4); further 23.7.2025 SI 2025/917 Sch para 18(b)]:
+  "'PEzx' means the price in pounds per MW determined for COzx in accordance with paragraph 3(4) to (5)"
+
+Sch 1 para 5(2) [formula amended 14.7.2016]:  [img 052]  SPP_ij = PR_ij × (ALFCO_ij − AE_ij)
+
+AS-MADE 2014 version, para 5(3), image 054, read directly:  PR_ix = PE_ix × 1/24.
+=> THE DIVISOR HAS ALWAYS BEEN 24. It was never 4 in any version of this provision.
+
+Changes-to-legislation check: the ONLY recorded change to Sch 1 para 5(3) is the SI 2016/742
+substitution (applied, "Yes"). No prospective/unapplied amendment.
+
+--- 2. WHAT PE IS (units chain) ---
+Sch 1 para 3(2): [img epp_026]  ACP_yx = CO_yx × PE_yx   (ACP = ANNUAL capacity payment, £)
+Sch 1 para 3(4): "'PEyx' means the price in pounds per MW at which capacity payments are payable
+  in respect of COyx, which is to be determined in accordance with sub-paragraph (5)."
+Sch 1 para 3(5): "If the relevant capacity auction was a T-4 auction, PE is to be calculated in
+  accordance with the formula—" [img 038]  PE_ix = CCP_i × (CPI_x / CPI_base)
+  ("CCPy" = "the capacity cleared price for COyx, as recorded on the capacity market register")
+=> PE is £/MW PER DELIVERY YEAR, CPI-indexed from the auction base period to the delivery year.
+=> PR = PE/24 in £/MWh. The 24 is a bare policy divisor, not a units conversion.
+
+AS-MADE para 3(6): "If the relevant capacity auction was a T-1 auction or a DSR transitional
+auction, PE_ix is equal to CCP_i."  OMITTED 23.7.2025 by SI 2025/917 Sch para 18(a)(ii); para
+3(4) and 5(4) cross-refs narrowed to "(5)". Current Sch 1 para 3 mentions T-1 nowhere.
+(Para 6A(3) still cross-refers to "paragraph 3(4) to (6)" — stale internal reference.)
+
+--- 3. THE CAPS (verbatim) ---
+Sch 1 does NOT hard-code the percentages. Para 6(6):
+  "'Fy' (for any value y) means the percentage stated on the capacity market register under
+   regulation 31(2)(f), at the date of issue of the capacity agreement, as the monthly penalty
+   cap percentage for the capacity obligation COyx awarded in respect of CMU y for year X;
+   'Gy' ... as the annual penalty cap percentage ..."
+Sch 1 para 6(4) [substituted 14.7.2016]: [img epp_020] MPC_ij = RMCP_ij + Σ ASPPA′
+  (a) [img epp_021] RMCP_ij = (ACP_ix × WF_mx × F_i) + Σ_N (tACP_N × WF_mx × F_z)
+Sch 1 para 6(5A): [img epp_024] APC_ij = ACP_ix × G_i + Σ_N (tACP_N × G_z × WF_mx × DT_mN/D_m)
+Sch 1 para 6(3): [img epp_019] P_ij = (SP_i / MaxSP_i) × min(MaxSP_i, MPC_ij)
+Sch 1 para 6(5): [img epp_023] Q_ij = APC_ij − Σ_{k=1}^{m−1} MPSA_ik
+
+reg 31(2)(f): "the annual penalty cap and monthly penalty cap applicable in accordance with the
+  electricity capacity regulations in force at the date of issue of the capacity agreement,
+  expressed respectively as percentages of the annual capacity payment and the monthly capacity
+  payments payable under the capacity agreement"
+
+reg 41(3A) [inserted 18.12.2014 by SI 2014/3354 reg 1(2) Sch 2 para 5]:
+  "(3A) The percentages to be included in the capacity market register under regulation 31(2)(f)
+   are— (a) for the annual penalty cap, 100%; and (b) for the monthly penalty cap, 200%."
+=> BOTH CAPS CONFIRMED IN PRIMARY LEGISLATION. Carried by reg 41(3A), NOT by Sch 1 para 6(4).
+No prospective/unapplied amendment to reg 41(3A).
+
+CONDITIONALITY OF THE ANNUAL CAP — Sch 1 para 6(2)/(2A) [substituted 14.7.2016]:
+  "(2) ... (a) SPPSAij is— (i) equal to the amount Pij ... unless paragraph (2A) applies; and
+   (ii) equal to the lesser of the amount Pij and the amount Qij ... if paragraph (2A) applies"
+  "(2A) This paragraph applies where— (a) a capacity provider penalty charge has been incurred in
+   respect of CMU i in at least 48 relevant settlement periods, and (b) those periods together
+   comprise at least 8 relevant settlement periods in each of at least 6 months in delivery year X."
+=> The 100% ANNUAL cap only binds once that 48-period / 8-per-month / 6-month threshold is met.
+   Below it only the 200% monthly cap applies.
+
+--- 4. WHERE 0.25 COMES FROM ---
+CMS legal update "The Capacity Market: What next?", 16 January 2023, describing the BEIS
+consultation on CM reforms (closed 3 March 2023):
+  current: "Penalty rate (expressed in £/MWh) = clearing price (£/MW) x 1/24"
+  proposed: "clearing price (£/MW) x 1/4 instead of 1/24" — "BEIS proposes to significantly
+  increase the penalty sixfold"; "there are no plans to change the penalty caps at present";
+  earliest implementation 1 Oct 2024 (T-1) / 1 Oct 2027 (T-4).
+=> 0.25 IS A REAL NUMBER: the 2023 PROPOSED rate. NEVER ENACTED. gb_v1_7's own source line for
+   0.25 cites "CMS ... summaries" — same article. So the key is a proposal mislabelled as law.
+
+NOT REVIVED / NOT PENDING:
+- SI 2026/850 (The Electricity Capacity (Amendment and Transitional Provision) Regulations 2026),
+  the only outstanding-not-yet-applied change to SI 2014/2043: amends regs 2, 16, 21, 32, 34, 43,
+  51, 52, 53, 59, 60, inserts 59A. Explanatory Note: prequalification, credit cover, TERMINATION
+  FEES ("higher termination fee rates"), CFD interaction, auction guidelines, reconciliation runs.
+  It does NOT touch Sch 1 para 5 or 6, and does NOT touch reg 41.
+- CMS, "Capacity market consultation - The 2026 shake-up", 12 Dec 2025: delivery-assurance
+  tightening = termination fees (+~30% for inflation), credit cover, director attestations.
+  No change to the penalty rate or the caps.
+
+--- 5. REPO STATE ---
+- assumptions/gb_v1_7.yaml (UNTRACKED): cm_penalty_rate_fraction_of_clearing = 0.25 (placeholder,
+  flagged as ~6x too high); caps 200/100; cm_penalty_rate_basis records PE/24 correctly.
+- assumptions/gb_v1_8.yaml (UNTRACKED): already carries 0.0416667 with a statutory source and an
+  explicit "THIS FLATTERS EVERY QUOTE" disclosure. Verified independently — the value is right.
+- CODE CONSUMERS: cm_penalty_rate_fraction_of_clearing has NO production consumer. Only
+  src/gridq/finance/cashflows.py:1116 reads penalties.cm_annual_cap_pct_of_revenue (the P90
+  bounded worst-case penalty line). So correcting the rate key changes NO current output number.
+- Worked example checks out: 27,100/24 = 1,129.17 £/MWh; × 0.5 h = £564.58 per MW per SP.
+  £27.10/kW/yr confirmed as the March 2026 2029/30 T-4 clearing price (Modo/Timera).

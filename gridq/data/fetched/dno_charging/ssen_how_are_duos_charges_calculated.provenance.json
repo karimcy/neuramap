@@ -1,0 +1,13 @@
+{
+  "dataset_id": "SSEN 'How are DUoS charges calculated' (2017)",
+  "fetched_utc": "2026-11-26T08:26:31",
+  "fetcher": "curl -L (WP-UW-07, run by hand; the document itself is not vendored)",
+  "fetcher_args": {},
+  "last_modified": "Tue, 01 Feb 2022 09:28:55 GMT",
+  "licence": "unclear: no licence is stated in the document",
+  "record_count": 0,
+  "sha256": "cd9c425fa90e261878386a0e738360ea1d01624b9ee34ed111a74f719c016582",
+  "size_bytes": 779545,
+  "source_url": "https://www.ssen.co.uk/globalassets/library/duos/3.-how-are-duos-charges-calculated_16-01-17_final.pdf",
+  "used_for": "Acceptance 1 and 2 search: illustrative rates from 2017, not a current published example"
+}

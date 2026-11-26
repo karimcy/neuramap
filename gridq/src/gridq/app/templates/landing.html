@@ -1,0 +1,351 @@
+{% extends "base_immersive.html" %}
+{% block title %}GridQ - see exactly what battery system your site should install{% endblock %}
+{% block content %}
+<div class="lp">
+
+{# ============================ NAV ============================ #}
+<nav class="lp-nav" id="lp-nav" aria-label="Primary">
+  <div class="lp-shell">
+    <a class="lp-brand" href="/">
+      <span class="logo-mark">G</span>
+      <span><b>GridQ</b> <span class="sub">by Neura</span></span>
+    </a>
+    <div class="lp-nav__links">
+      <a class="lp-nav__link" href="#how-pin">How it works</a>
+      <a class="lp-nav__link" href="#features">What you get</a>
+      <a class="lp-nav__link" href="#markets">Markets</a>
+      <a class="lp-nav__link" href="/projects">Projects</a>
+      <a class="btn" href="/new-quote">Start a quote</a>
+    </div>
+  </div>
+</nav>
+
+{# ============================ HERO ============================ #}
+<header class="lp-hero">
+  <span class="gq-ambient" aria-hidden="true">
+    <span class="gq-ambient__orb"></span>
+    <span class="gq-ambient__orb two"></span>
+  </span>
+  <span class="gq-aurora" aria-hidden="true">
+    <i class="gq-aurora__orb a"></i>
+    <i class="gq-aurora__orb b"></i>
+    <i class="gq-aurora__orb c"></i>
+  </span>
+  <div class="lp-shell">
+    <div class="lp-hero__grid">
+      <div class="lp-hero__copy">
+        <span class="lp-eyebrow"><span class="dot"></span> Neura Energy · Behind-the-meter OS</span>
+        <h1 class="lp-hero__title">
+          <span class="lp-line">See exactly what</span>
+          <span class="lp-line accent">battery system</span>
+          <span class="lp-line">your site needs.</span>
+        </h1>
+        <p class="lp-hero__sub">Site data in, a defensible decision out - optimised half-hourly
+          dispatch, the full revenue stack priced and gated, P50/P90 cashflows against a lender
+          covenant, and a customer-ready proposal. A deterministic engine, honestly labelled,
+          that will also tell you plainly when a battery does not stack up.</p>
+        <div class="lp-hero__cta">
+          <a class="btn big" href="/new-quote">Start a quote</a>
+          <a class="btn secondary big" href="/demo">See the demo</a>
+        </div>
+        {# Hero tiles carry REAL record figures from the newest solved run on this deploy
+           (F-011: the old hardcoded tiles were transcribed from a reference-site capture).
+           No solved run yet = the honest empty state; nothing is ever invented. #}
+        {% if hero %}
+        <div class="lp-stats">
+          <div class="lp-stat"><b data-count="{{ hero.power_kw }}" data-dec="0" data-suffix=" kW">0</b><span>Battery power</span></div>
+          <div class="lp-stat"><b data-count="{{ hero.energy_kwh }}" data-dec="0" data-suffix=" kWh">0</b><span>Battery energy</span></div>
+          {% if hero.irr_pct is not none %}
+          <div class="lp-stat"><b data-count="{{ hero.irr_pct }}" data-dec="1" data-suffix="%">0</b><span>Project IRR</span></div>
+          {% endif %}
+          {% if hero.payback_years is not none %}
+          <div class="lp-stat"><b data-count="{{ hero.payback_years }}" data-dec="1" data-suffix=" yr">0</b><span>Payback</span></div>
+          {% elif hero.savings_gbp is not none %}
+          <div class="lp-stat"><b>{{ hero.savings_label }}</b><span>Annual savings</span></div>
+          {% endif %}
+        </div>
+        <p class="lp-stats-note muted"><small>Live figures from the latest solved run on this
+          deploy ({{ hero.label }}) - deterministic engine output, never invented.
+          {% if hero.basis.present %}
+          <br><strong>{{ hero.basis.short }}: feasibility basis, not an underwriting output.</strong>
+          That run was priced on a named study basis, so the IRR and payback above include revenue
+          the underwriting basis holds out of the priced floor entirely.
+          {% endif %}</small></p>
+        {% else %}
+        <div class="lp-stats">
+          <div class="lp-stat"><b>n/a</b><span>Battery power</span></div>
+          <div class="lp-stat"><b>n/a</b><span>Battery energy</span></div>
+          <div class="lp-stat"><b>n/a</b><span>Project IRR</span></div>
+          <div class="lp-stat"><b>n/a</b><span>Payback</span></div>
+        </div>
+        <p class="lp-stats-note muted"><small>Run the demo and these tiles fill with real engine
+          output - no figure here is ever invented.</small></p>
+        {% endif %}
+      </div>
+      <div class="lp-hero__art">
+        {# The WebGL hero: hero.js draws the newest solved run's REAL sizing surface from the
+           island below and swaps its canvas into this mount. Until then (and whenever WebGL
+           or the island is unavailable) the static SVG fallback inside simply remains. #}
+        <div class="hero-3d" id="hero-3d">
+          {% include "_viz_surface.html" %}
+        </div>
+        {% if hero_surface and hero_surface.available %}
+        <script id="hero-surface-data" type="application/json">{{ hero_surface | tojson }}</script>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+  <div class="lp-scrollcue" aria-hidden="true">
+    Scroll
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M19 12l-7 7-7-7"/></svg>
+  </div>
+</header>
+
+{# ====================== THE OPPORTUNITY (story) ====================== #}
+<section class="lp-section lp-section--alt">
+  <div class="lp-shell">
+    <div class="lp-section__head center">
+      <span class="lp-eyebrow">The opportunity</span>
+      <h2 class="lp-h2">Behind every commercial site is a battery business case hiding in its half-hourly data.</h2>
+      <p class="lp-lead">The hard part was never the battery - it was sizing it and underwriting it
+        credibly enough to finance. GridQ turns one site's own data into a decision you can defend:
+        a sized system when the numbers work, and a plain, evidenced "not at this tariff" when they
+        do not. Scroll the pipeline: every stage, what goes in, what happens, what comes out.</p>
+    </div>
+  </div>
+</section>
+
+{# ========== THE PIPELINE, IN THE OPEN (7-stage pinned scroll walkthrough) ==========
+   Each stage shows IN (what goes in), the process (what happens), and OUT (what comes out).
+   No black box: this is the literal module sequence the engine runs, in order. All copy is
+   qualitative or record-backed; the interface never invents a figure. #}
+<section class="how" id="how-pin" aria-label="The underwriting pipeline, stage by stage">
+  <div class="how__sticky">
+    <div class="how__eyebrow">The pipeline, in the open</div>
+    <div class="pin-rail"><div class="pin-fill" id="pin-fill"></div></div>
+    <div class="pin-dots"><span class="pin-dot active">Intake</span><span class="pin-dot">Site model</span><span class="pin-dot">Value stack</span><span class="pin-dot">Dispatch</span><span class="pin-dot">Sizing</span><span class="pin-dot">Finance</span><span class="pin-dot">Quote</span></div>
+    <div class="pin-stage">
+
+      <div class="pin-step active">
+        <div class="big">01</div>
+        <h3>Intake: your site, as evidence</h3>
+        <div class="pin-io">
+          <div class="pin-io__card"><span class="pin-io__tag">In</span>A half-hourly meter file if you have one; if not, the facts off your bills: annual usage, day and night volumes, observed peak, unit rates, levy lines, capacity charge, connection limits, consents.</div>
+          <div class="pin-io__card"><span class="pin-io__tag">Happens</span>Everything is transcribed into one validated site record. Nothing is invented: with no meter file, a load profile is modelled from your stated facts and labelled modelled, never passed off as metered.</div>
+          <div class="pin-io__card"><span class="pin-io__tag">Out</span>A graded site record (T0 to T2) plus a ranked list of exactly what is missing and what each gap blocks.</div>
+        </div>
+      </div>
+
+      <div class="pin-step">
+        <div class="big">02</div>
+        <h3>Data grading: how much can be trusted</h3>
+        <div class="pin-io">
+          <div class="pin-io__card"><span class="pin-io__tag">In</span>The site record and its provenance: metered or modelled, full year or partial, confirmed or stated.</div>
+          <div class="pin-io__card"><span class="pin-io__tag">Happens</span>Each input is graded and every downstream figure inherits the grade. A modelled profile can produce an estimate; only validated metered data can ever support a bankable quote.</div>
+          <div class="pin-io__card"><span class="pin-io__tag">Out</span>The data tier stamped on the run, and the honesty labels every later page carries.</div>
+        </div>
+      </div>
+
+      <div class="pin-step">
+        <div class="big">03</div>
+        <h3>Value stack: which revenues are real here</h3>
+        <div class="pin-io">
+          <div class="pin-io__card"><span class="pin-io__tag">In</span>Your tariff structure, DUoS band exposure, export consents, route-to-market status.</div>
+          <div class="pin-io__card"><span class="pin-io__tag">Happens</span>Every revenue stream is gated for THIS site: the firm floor (bill savings, DUoS red-band avoidance) is separated from conditional streams (Capacity Market, local flexibility) and from gated upside (wholesale, balancing) which never enters the priced floor.</div>
+          <div class="pin-io__card"><span class="pin-io__tag">Out</span>The open and gated stream map, with each gate's unlock condition stated.</div>
+        </div>
+      </div>
+
+      <div class="pin-step">
+        <div class="big">04</div>
+        <h3>Dispatch: a year, half hour by half hour</h3>
+        <div class="pin-io">
+          <div class="pin-io__card"><span class="pin-io__tag">In</span>The load profile and your own prices placed in time: unit rates, DUoS bands, levy lines.</div>
+          <div class="pin-io__card"><span class="pin-io__tag">Happens</span>An optimiser schedules the battery across every half hour of a full year: charge cheap, discharge dear, never exceed the connection, respect warranty cycle limits, and keep the residual peak down. Deterministic: same inputs, same schedule, every time.</div>
+          <div class="pin-io__card"><span class="pin-io__tag">Out</span>The dispatch schedule, per-stream value, and your bill before and after.</div>
+        </div>
+        <div class="pin-viz" aria-hidden="true">
+          <span class="bar" style="height:40px;animation-delay:0s"></span>
+          <span class="bar" style="height:72px;animation-delay:0.1s"></span>
+          <span class="bar" style="height:56px;animation-delay:0.2s"></span>
+          <span class="bar" style="height:84px;animation-delay:0.3s"></span>
+          <span class="bar" style="height:48px;animation-delay:0.4s"></span>
+          <span class="bar" style="height:66px;animation-delay:0.5s"></span>
+        </div>
+      </div>
+
+      <div class="pin-step">
+        <div class="big">05</div>
+        <h3>Sizing: every size fights for the site</h3>
+        <div class="pin-io">
+          <div class="pin-io__card"><span class="pin-io__tag">In</span>A search space of power and duration scaled to your site's peak and connection.</div>
+          <div class="pin-io__card"><span class="pin-io__tag">Happens</span>A staged continuous search runs the same dispatch at over a hundred candidate sizes and underwrites each with the same engine that underwrites the winner, so the search can never pick a system its own underwriting would reject.</div>
+          <div class="pin-io__card"><span class="pin-io__tag">Out</span>The full sizing surface as evidence, and the selected system. When nothing stacks up, the verdict says so plainly: no viable configuration, do not proceed. That honesty is the product.</div>
+        </div>
+      </div>
+
+      <div class="pin-step">
+        <div class="big">06</div>
+        <h3>Finance: lender arithmetic, in the open</h3>
+        <div class="pin-io">
+          <div class="pin-io__card"><span class="pin-io__tag">In</span>The chosen system's revenue, and a versioned assumption release: capex, opex, degradation, haircuts. Every value carries its status; unconfirmed values are labelled.</div>
+          <div class="pin-io__card"><span class="pin-io__tag">Happens</span>P50 and P90 cashflows are built, debt is sculpted, DSCR is measured against the covenant, and the price needed to hit the target return is checked against what the site already pays.</div>
+          <div class="pin-io__card"><span class="pin-io__tag">Out</span>The financial case: returns, payback, covenant verdict, and a price grounded in your real alternative.</div>
+        </div>
+        {# Real record figures (F-011) - same source as the hero tiles, or the honest seam. #}
+        <div class="pin-viz">
+          {% if hero %}
+          <div class="chip"><b>{{ hero.irr_label }}</b><span>IRR</span></div>
+          <div class="chip"><b>{{ hero.payback_label }}</b><span>Payback</span></div>
+          <div class="chip"><b>{{ hero.savings_label }}</b><span>Bill savings / yr</span></div>
+          {% else %}
+          <div class="chip"><b>n/a</b><span>IRR</span></div>
+          <div class="chip"><b>n/a</b><span>Payback</span></div>
+          <div class="chip"><b>n/a</b><span>Bill savings / yr</span></div>
+          {% endif %}
+        </div>
+      </div>
+
+      <div class="pin-step">
+        <div class="big">07</div>
+        <h3>The quote: one record, three documents</h3>
+        <div class="pin-io">
+          <div class="pin-io__card"><span class="pin-io__tag">In</span>Everything above.</div>
+          <div class="pin-io__card"><span class="pin-io__tag">Happens</span>The run is stamped: inputs hashed, assumption release and code version pinned. Re-run it with the same inputs and you get the identical record, byte for byte.</div>
+          <div class="pin-io__card"><span class="pin-io__tag">Out</span>A system specification, an underwriting memo and a customer proposal, all rendered from the one record so they can never disagree; ranked next asks; and a quote that stays labelled not bankable until every assumption behind it is confirmed.</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+{# ============================ WHAT YOU GET (feature visuals) ============================ #}
+<section class="lp-section" id="features">
+  <div class="lp-shell">
+    <div class="lp-section__head center">
+      <span class="lp-eyebrow">What you get</span>
+      <h2 class="lp-h2">The whole business case, computed - not guessed.</h2>
+      <p class="lp-lead">Every output is read from one stamped run record. The interface formats; it
+        never invents or alters a number.</p>
+    </div>
+
+    <div class="lp-feature">
+      <div class="lp-feature__text">
+        <div class="lp-feature__num">01 · SIZING</div>
+        <h3>A system sized to the best risk-adjusted return</h3>
+        <p>A half-hourly dispatch MILP searches power × duration and surfaces the continuous return
+          field - with the covenant-feasible region and the chosen optimum marked.</p>
+        <ul class="lp-feature__list">
+          <li>Power and duration sized together, continuously</li>
+          <li>P90-DSCR covenant enforced inside the selection</li>
+          <li>An honest no-viable verdict when nothing stacks up</li>
+        </ul>
+      </div>
+      <div class="lp-feature__viz" data-reveal>{% include "_viz_surface.html" %}</div>
+    </div>
+
+    <div class="lp-feature lp-feature--flip">
+      <div class="lp-feature__text">
+        <div class="lp-feature__num">02 · REVENUE</div>
+        <h3>The full revenue stack - firm floor, gated upside</h3>
+        <p>Bill savings, DUoS red-band avoidance, the Capacity Market and local flexibility, each
+          priced and labelled by firmness. Speculative wholesale never sits in the priced floor.</p>
+        <ul class="lp-feature__list">
+          <li>Priced floor separated from gated upside</li>
+          <li>Each stream's firmness shown honestly</li>
+          <li>Nothing invented when an input is missing</li>
+        </ul>
+      </div>
+      <div class="lp-feature__viz" data-reveal>{% include "_viz_stack.html" %}</div>
+    </div>
+
+    <div class="lp-feature">
+      <div class="lp-feature__text">
+        <div class="lp-feature__num">03 · UNDERWRITING</div>
+        <h3>A cashflow a lender can interrogate</h3>
+        <p>IRR and payback with P50 and P90 scenarios and a DSCR profile against the covenant,
+          over a stated modelling horizon - every figure tied to its assumption release and code
+          version, every unconfirmed assumption labelled.</p>
+        <ul class="lp-feature__list">
+          <li>P50 / P90 free-cashflow scenarios</li>
+          <li>DSCR by year against the covenant</li>
+          <li>Traceable to a stamped, reproducible record</li>
+        </ul>
+      </div>
+      <div class="lp-feature__viz" data-reveal>{% include "_viz_cashflow.html" %}</div>
+    </div>
+
+    <div class="lp-feature lp-feature--flip">
+      <div class="lp-feature__text">
+        <div class="lp-feature__num">04 · OUTPUT</div>
+        <h3>Three consistent artifacts, one record</h3>
+        <p>A system specification, a bankable underwriting pack and a customer-ready proposal - all
+          generated from the same run, so the numbers can never disagree.</p>
+        <ul class="lp-feature__list">
+          <li>System spec for the installer</li>
+          <li>Underwriting pack for capital</li>
+          <li>Branded proposal for the customer</li>
+        </ul>
+      </div>
+      <div class="lp-feature__viz" data-reveal>{% include "_viz_proposal.html" %}</div>
+    </div>
+  </div>
+</section>
+
+{# ============================ MARKET ============================ #}
+<section class="lp-section lp-section--alt" id="markets">
+  <div class="lp-shell">
+    <div class="lp-section__head center">
+      <span class="lp-eyebrow">Coverage</span>
+      <h2 class="lp-h2">Built for the United Kingdom.</h2>
+      <p class="lp-lead">UK-only by design: DUoS time-of-use bands, the GB Capacity Market, DNO
+        connection rules and UK levies are modelled as first-class content. Depth in one market,
+        not breadth across many.</p>
+    </div>
+    <div class="lp-markets">
+      <div class="lp-market" data-reveal><span class="soon live">Live</span><h3>United Kingdom</h3><div class="iso">GB</div><p>DUoS time-of-use bands, Capacity Market, balancing and wholesale as gated upside.</p></div>
+    </div>
+  </div>
+</section>
+
+{# ============================ FINAL CTA ============================ #}
+<section class="lp-section" aria-label="Start a quote">
+  <div class="lp-shell">
+    <div class="lp-cta-band">
+      <span class="gq-ambient" aria-hidden="true"><span class="gq-ambient__orb"></span><span class="gq-ambient__orb two"></span></span>
+      <span class="gq-aurora" aria-hidden="true"><i class="gq-aurora__orb a"></i><i class="gq-aurora__orb b"></i><i class="gq-aurora__orb c"></i></span>
+      <div class="lp-section__head center" style="margin-bottom:1.6rem">
+        <span class="lp-eyebrow">Two ways to start</span>
+        <h2 class="lp-h2">Run your own site, or walk the demo.</h2>
+        <p class="lp-lead">No meter file? We model a load profile so it still runs - and tell you
+          exactly what to add for a bankable result.</p>
+      </div>
+      <div class="lp-hero__cta">
+        <a class="btn big" href="/real">Run your own site</a>
+        <a class="btn secondary big" href="/demo">See the demo</a>
+        {% if has_example %}<a class="btn secondary big" href="/real/haywood-oaks">Try a real prospect</a>{% endif %}
+      </div>
+    </div>
+  </div>
+</section>
+
+{# ============================ FOOTER ============================ #}
+<footer class="lp-foot">
+  <div class="lp-shell">
+    <span class="lp-foot__brand"><span class="logo-mark">G</span> GridQ <span class="sub" style="font-weight:500;color:var(--on-dark-faint)">by Neura</span></span>
+    <p>Behind-the-meter BESS sizing and underwriting. Every figure is rendered from the stamped
+      <code>QuoteRecord</code> by <code>gridq.outputs</code> - the interface computes nothing. Firm
+      value is shown separately from gated upside; figures that need inputs we do not have stay
+      labelled unavailable, never invented.</p>
+  </div>
+</footer>
+
+</div>
+{% endblock %}
+{% block scripts %}
+<script src="/static/dashboard.js?v={{ static_v }}"></script>
+{# The cinematic hero is an ES module (deferred by definition): it lazy-inits Three.js only
+   when the mount nears the viewport, so first paint never waits on it. #}
+<script type="module" src="/static/hero.js?v={{ static_v }}"></script>
+{% endblock %}

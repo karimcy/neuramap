@@ -1,0 +1,204 @@
+{
+  "$defs": {
+    "Offered": {
+      "additionalProperties": false,
+      "description": "The named envelopes are offered (each envelope is a menu item; `stack_at` combines them).",
+      "properties": {
+        "envelope_ids": {
+          "items": {
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]*$",
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Envelope Ids",
+          "type": "array"
+        },
+        "kind": {
+          "const": "offered",
+          "title": "Kind",
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind",
+        "envelope_ids"
+      ],
+      "title": "Offered",
+      "type": "object"
+    },
+    "TimelineStep": {
+      "additionalProperties": false,
+      "description": "From ``start`` to the next step (or the validity's end), ``state`` holds, from the template\nor from a dated override (``origin``: a blackout and a template gap read differently).",
+      "properties": {
+        "origin": {
+          "enum": [
+            "template",
+            "override"
+          ],
+          "title": "Origin",
+          "type": "string"
+        },
+        "start": {
+          "format": "date-time",
+          "title": "Start",
+          "type": "string"
+        },
+        "state": {
+          "discriminator": {
+            "mapping": {
+              "offered": "#/$defs/Offered",
+              "unavailable": "#/$defs/Unavailable",
+              "unknown": "#/$defs/Unknown"
+            },
+            "propertyName": "kind"
+          },
+          "oneOf": [
+            {
+              "$ref": "#/$defs/Offered"
+            },
+            {
+              "$ref": "#/$defs/Unavailable"
+            },
+            {
+              "$ref": "#/$defs/Unknown"
+            }
+          ],
+          "title": "State"
+        }
+      },
+      "required": [
+        "start",
+        "origin",
+        "state"
+      ],
+      "title": "TimelineStep",
+      "type": "object"
+    },
+    "Unavailable": {
+      "additionalProperties": false,
+      "description": "Nothing is offered, for a stated reason. A template cell reads as ``not_offered``; a dated\noverride reads as ``blackout`` (`CallReason`).",
+      "properties": {
+        "kind": {
+          "const": "unavailable",
+          "title": "Kind",
+          "type": "string"
+        },
+        "reason_code": {
+          "$ref": "#/$defs/UnavailableReason"
+        }
+      },
+      "required": [
+        "kind",
+        "reason_code"
+      ],
+      "title": "Unavailable",
+      "type": "object"
+    },
+    "UnavailableReason": {
+      "description": "Why a cell or an override offers nothing (as distinct from ``unknown``).",
+      "enum": [
+        "workload_protected",
+        "outside_agreed_window",
+        "operator_withdrawn",
+        "maintenance"
+      ],
+      "title": "UnavailableReason",
+      "type": "string"
+    },
+    "Unknown": {
+      "additionalProperties": false,
+      "description": "A value that exists but is not known. Always explicit, always with a reason; never ``None``.\n\nSerialised as ``{\"kind\": \"unknown\", \"reason\": \"...\"}``. ``kind`` is required (no default) so\na hand-written payload that omits it is refused rather than guessed at.",
+      "properties": {
+        "kind": {
+          "const": "unknown",
+          "title": "Kind",
+          "type": "string"
+        },
+        "reason": {
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Reason",
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind",
+        "reason"
+      ],
+      "title": "Unknown",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "description": "IC-9 v1.0.0: a declaration's availability compiled onto UTC half-hours (`resolve`).\nStep-encoded: a step starts wherever the state or its origin changes. Read with no clock\nlogic (`timeline_state_at`); trusted by ``content_hash() == declaration.resolved_hash``.",
+  "properties": {
+    "contract": {
+      "const": "IC-9",
+      "default": "IC-9",
+      "title": "Contract",
+      "type": "string"
+    },
+    "contract_version": {
+      "const": "1.0.0",
+      "default": "1.0.0",
+      "title": "Contract Version",
+      "type": "string"
+    },
+    "declaration_id": {
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]*$",
+      "title": "Declaration Id",
+      "type": "string"
+    },
+    "kind": {
+      "const": "resolved_timeline",
+      "title": "Kind",
+      "type": "string"
+    },
+    "n_periods": {
+      "minimum": 1,
+      "title": "N Periods",
+      "type": "integer"
+    },
+    "resolution_min": {
+      "const": 30,
+      "title": "Resolution Min",
+      "type": "integer"
+    },
+    "site_id": {
+      "minLength": 1,
+      "pattern": "\\S",
+      "title": "Site Id",
+      "type": "string"
+    },
+    "steps": {
+      "items": {
+        "$ref": "#/$defs/TimelineStep"
+      },
+      "minItems": 1,
+      "title": "Steps",
+      "type": "array"
+    },
+    "valid_from": {
+      "format": "date-time",
+      "title": "Valid From",
+      "type": "string"
+    },
+    "valid_until": {
+      "format": "date-time",
+      "title": "Valid Until",
+      "type": "string"
+    }
+  },
+  "required": [
+    "kind",
+    "site_id",
+    "declaration_id",
+    "valid_from",
+    "valid_until",
+    "resolution_min",
+    "n_periods",
+    "steps"
+  ],
+  "title": "ResolvedTimeline",
+  "type": "object"
+}

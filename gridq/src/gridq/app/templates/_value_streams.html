@@ -1,0 +1,104 @@
+{# Firm-vs-gated value split, with a plain-English description of where each stream comes from. #}
+{% set stream_desc = {
+  "PPA_OR_BILL_SAVINGS": "Lower energy bills: use stored cheap power instead of buying at peak.",
+  "TARIFF_ARBITRAGE": "Charge when the tariff is cheap, discharge when it is expensive.",
+  "DUOS_RED_BAND_AVOIDANCE": "Discharge during the peak red band to avoid the highest network charge.",
+  "MIC_ASC_HEADROOM": "Stay within the agreed connection capacity and defer a connection upgrade.",
+  "CAPACITY_MARKET": "Availability payments for being on call at winter peaks, de-rated by duration.",
+  "LOCAL_FLEX_PICLO": "Paid to flex on the local network when the DNO runs a flexibility tender.",
+  "WHOLESALE_P415": "Trade in the wholesale market once export and a route to market are in place.",
+  "BALANCING_MECHANISM": "Sell flexibility to the grid operator to balance the system in real time.",
+  "ANCILLARY_DC_DM_DR": "Fast frequency-response services (Dynamic Containment, Moderation, Regulation).",
+  "AGREED_CAPACITY_REDUCTION": "Shave the peak far enough to re-negotiate a lower agreed capacity with the DNO, cutting the \u00a3/kVA/day charge and the TCR band. Requires the customer to apply \u2014 upside, not floor revenue.",
+} %}
+<div class="card" data-reveal>
+  <div class="console-head">
+    <h2>Value stack: where the revenue comes from</h2>
+    <span class="console-status"><span class="status-dot"></span>engine · solved</span>
+  </div>
+  <div class="value-summary">
+    <div><span class="vs-num" data-count-exact>{{ fmt_gbp(vm.split.floor_total_gbp) }}</span><span class="vs-lbl">priced revenue per year, the firm floor</span></div>
+    {% if upside and upside.available %}
+    <div><span class="vs-num" data-count-exact>{{ fmt_gbp(upside.per_site_total) }}</span><span class="vs-lbl">illustrative theoretical total per site / year</span></div>
+    {% else %}
+    <div><span class="vs-num" data-count-exact>+{{ fmt_gbp(vm.split.upside_total_gbp) }}</span><span class="vs-lbl">conditional upside priced today</span></div>
+    {% endif %}
+  </div>
+  {% if upside and upside.available %}
+  <p class="muted">The <strong>priced floor</strong> and <strong>Capacity Market</strong> are the real
+    engine output. The other route-to-market streams below show an <strong>illustrative</strong>
+    ceiling, a ballpark per-MW rate badged illustrative: what this site could earn if every route to
+    market were contracted. Illustrative, not bankable; the streams also compete for the same
+    capacity in real time, so a co-optimised figure would be lower.</p>
+  {% else %}
+  <p class="muted">Each priced stream is computed from your own half-hourly load and tariff, net of
+    round-trip losses. The <strong>priced floor</strong> is firm revenue. <strong>Gated upside</strong>
+    streams sit at £0 on purpose: we never price speculative revenue into the floor. Each shows
+    exactly what unlocks it (an export connection, a route-to-market partner, an open flexibility
+    tender). How it plays out year by year is in the cashflow chart below.</p>
+  {% endif %}
+
+  {% if value_stack and value_stack.available %}
+  <div class="chart-canvas" id="chart-valuestack" role="img"
+       aria-label="Annual revenue by stream, priced floor versus gated upside"></div>
+  {% endif %}
+
+  <h3>Priced floor <span class="badge badge-firm">{{ fmt_gbp(vm.split.floor_total_gbp) }}/yr</span></h3>
+  {% if vm.split.floor %}
+  <div class="tablewrap">
+    <table class="data">
+      <thead><tr><th>Stream</th><th>Firmness</th><th class="num">Annual revenue</th><th>Gate</th></tr></thead>
+      <tbody>
+        {% for row in vm.split.floor %}
+        <tr>
+          <td>{{ fmt_stream(row.stream) }}<div class="stream-desc">{{ stream_desc.get(row.stream, '') }}</div></td>
+          <td>{{ fmt_titleise(row.firmness) }}</td>
+          <td class="num">{{ fmt_gbp(row.annual_revenue_gbp) }}</td>
+          <td>{{ row.gate_status or ' - ' }}</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <p class="unavail">{{ fmt_unavailable("no firm/contracted revenue priced on the current assumptions") }}</p>
+  {% endif %}
+
+  <h3>Gated upside
+    {% if upside and upside.available %}
+    <span class="badge badge-gated">+{{ fmt_gbp(upside.gated_site) }}/yr illustrative</span>
+    {% else %}
+    <span class="badge badge-gated">+{{ fmt_gbp(vm.split.upside_total_gbp) }}/yr potential</span>
+    {% endif %}</h3>
+  {% if vm.split.upside %}
+  <div class="tablewrap">
+    <table class="data">
+      <thead><tr><th>Stream</th><th>Firmness</th><th class="num">Annual revenue</th><th>Unlock condition</th></tr></thead>
+      <tbody>
+        {% for row in vm.split.upside %}
+        {% set ill = upside_streams.get(row.stream) if upside_streams else None %}
+        <tr>
+          <td>{{ fmt_stream(row.stream) }}<div class="stream-desc">{{ stream_desc.get(row.stream, '') }}</div></td>
+          <td>{% if row.annual_revenue_gbp %}<span class="badge badge-indicative">Conditional</span>{% elif ill %}<span class="badge badge-gated">Illustrative</span>{% else %}<span class="badge badge-neutral">Locked</span>{% endif %}</td>
+          <td class="num">{% if row.annual_revenue_gbp %}{{ fmt_gbp(row.annual_revenue_gbp) }}{% elif ill %}{{ fmt_gbp(ill) }}{% else %}{{ fmt_gbp(0) }}{% endif %}</td>
+          <td>{{ row.unlock_condition or ' - ' }}</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <p class="unavail">{{ fmt_unavailable("no gated upside surfaced for this site") }}</p>
+  {% endif %}
+
+  {% if vm.split.excluded %}
+  <p class="muted"><small>Excluded streams (not deliverable for this site):
+    {% for row in vm.split.excluded %}{{ fmt_stream(row.stream) }}{% if not loop.last %}, {% endif %}{% endfor %}.</small></p>
+  {% endif %}
+
+  {% if upside and upside.available %}
+  <p class="muted"><small>Aggregated to a {{ "%.0f"|format(upside.portfolio_mw) }} MW portfolio
+    (about {{ "%.0f"|format(upside.portfolio_sites) }} sites of this size), the illustrative
+    route-to-market upside is around {{ fmt_gbp(upside.portfolio_gated) }}/yr, for an illustrative
+    portfolio total near {{ fmt_gbp(upside.portfolio_total) }}/yr. Illustrative ceiling, not a
+    quote: real co-optimisation across streams would land lower.</small></p>
+  {% endif %}
+</div>

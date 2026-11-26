@@ -1,0 +1,172 @@
+{
+  "$defs": {
+    "Accepted": {
+      "additionalProperties": false,
+      "description": "The full instructed reduction is accepted.",
+      "properties": {
+        "kind": {
+          "const": "accepted",
+          "title": "Kind",
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind"
+      ],
+      "title": "Accepted",
+      "type": "object"
+    },
+    "PartiallyAccepted": {
+      "additionalProperties": false,
+      "description": "Part of the reduction is accepted: ``accepted_kw`` is at least 1 and below the instructed\nkW (checked against the instruction by `verify_acknowledgement`).",
+      "properties": {
+        "accepted_kw": {
+          "minimum": 1,
+          "title": "Accepted Kw",
+          "type": "integer"
+        },
+        "detail": {
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Detail",
+          "type": "string"
+        },
+        "kind": {
+          "const": "partially_accepted",
+          "title": "Kind",
+          "type": "string"
+        },
+        "reason_code": {
+          "$ref": "#/$defs/ResponseReason"
+        }
+      },
+      "required": [
+        "kind",
+        "accepted_kw",
+        "reason_code",
+        "detail"
+      ],
+      "title": "PartiallyAccepted",
+      "type": "object"
+    },
+    "Rejected": {
+      "additionalProperties": false,
+      "properties": {
+        "detail": {
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Detail",
+          "type": "string"
+        },
+        "kind": {
+          "const": "rejected",
+          "title": "Kind",
+          "type": "string"
+        },
+        "reason_code": {
+          "$ref": "#/$defs/ResponseReason"
+        }
+      },
+      "required": [
+        "kind",
+        "reason_code",
+        "detail"
+      ],
+      "title": "Rejected",
+      "type": "object"
+    },
+    "ResponseReason": {
+      "description": "Why an instruction was rejected or only partly accepted. `check_instruction` produces the\nfirst six from the contract alone, reading the whole event ``[start, end)``; the rest are\nlive conditions only the plant knows.",
+      "enum": [
+        "wrong_site_or_surface",
+        "outside_validity_window",
+        "availability_unknown",
+        "availability_unavailable",
+        "exceeds_declared_availability",
+        "insufficient_notice",
+        "it_safety_limit",
+        "rebound_recovery_in_progress",
+        "control_authority_not_granted",
+        "host_override",
+        "plant_fault",
+        "telemetry_loss"
+      ],
+      "title": "ResponseReason",
+      "type": "string"
+    }
+  },
+  "additionalProperties": false,
+  "description": "IC-11 v1.0.0: ThermaFlex's answer to one `FlexInstruction`, bound to it by hash.",
+  "properties": {
+    "ack_id": {
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]*$",
+      "title": "Ack Id",
+      "type": "string"
+    },
+    "acknowledged_at": {
+      "format": "date-time",
+      "title": "Acknowledged At",
+      "type": "string"
+    },
+    "contract": {
+      "const": "IC-11",
+      "default": "IC-11",
+      "title": "Contract",
+      "type": "string"
+    },
+    "contract_version": {
+      "const": "1.0.0",
+      "default": "1.0.0",
+      "title": "Contract Version",
+      "type": "string"
+    },
+    "instruction_hash": {
+      "pattern": "^sha256:[0-9a-f]{64}$",
+      "title": "Instruction Hash",
+      "type": "string"
+    },
+    "instruction_id": {
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]*$",
+      "title": "Instruction Id",
+      "type": "string"
+    },
+    "responder_id": {
+      "minLength": 1,
+      "pattern": "\\S",
+      "title": "Responder Id",
+      "type": "string"
+    },
+    "response": {
+      "discriminator": {
+        "mapping": {
+          "accepted": "#/$defs/Accepted",
+          "partially_accepted": "#/$defs/PartiallyAccepted",
+          "rejected": "#/$defs/Rejected"
+        },
+        "propertyName": "kind"
+      },
+      "oneOf": [
+        {
+          "$ref": "#/$defs/Accepted"
+        },
+        {
+          "$ref": "#/$defs/Rejected"
+        },
+        {
+          "$ref": "#/$defs/PartiallyAccepted"
+        }
+      ],
+      "title": "Response"
+    }
+  },
+  "required": [
+    "ack_id",
+    "instruction_id",
+    "instruction_hash",
+    "acknowledged_at",
+    "responder_id",
+    "response"
+  ],
+  "title": "FlexAcknowledgement",
+  "type": "object"
+}

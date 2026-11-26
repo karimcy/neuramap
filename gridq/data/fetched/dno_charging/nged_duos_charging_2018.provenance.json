@@ -1,0 +1,13 @@
+{
+  "dataset_id": "NGED DUoS charging guide (WEST5009, 2018)",
+  "fetched_utc": "2026-11-26T08:22:49",
+  "fetcher": "curl -L (WP-UW-07, run by hand; the document itself is not vendored)",
+  "fetcher_args": {},
+  "last_modified": "Mon, 15 Oct 2018 13:59:04 MSK",
+  "licence": "unclear: no licence is stated in the document",
+  "record_count": 0,
+  "sha256": "8205826bbb64a935963b98b398e62df95b2826355365725b282892e365da7e39",
+  "size_bytes": 890473,
+  "source_url": "https://www.nationalgrid.co.uk/downloads/6787",
+  "used_for": "Acceptance 1 and 2 search: superseded illustration"
+}

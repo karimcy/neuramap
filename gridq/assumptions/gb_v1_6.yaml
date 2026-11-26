@@ -1,0 +1,579 @@
+# GridQ assumption library — GB, v1.6  (release: gb_v1_6)
+#
+# FETCHER-BACKED over gb_v1_5 (Revenue-Data Drive slice 4, 2026-07-20): four revenue leaves are
+# re-sourced from LIVE perimeter fetches — every changed number is transcribed from a fetched
+# public source, hashed and pinned to a committed provenance sidecar (assumptions/provenance/
+# gb_v1_6/), never invented. The fetchers (gridq.dev.fetch_neso_ckan, gridq.dev.fetch_piclo) are
+# OFF the pricing path; this file is a hand transcription of what they returned. Changes:
+#   - capacity_market.clearing_price_gbp_per_kw_yr        30.0  -> 27.1     (NESO CM clearing, latest T-4)
+#   - capacity_market.de_rating_factor_by_duration_h      {..} -> {1:0.1099,2:0.2198,4:0.4396}
+#                                                                (NESO CM de-rating, latest T-4; primary source)
+#   - ancillary_services.dc_dm_dr_value_gbp_per_mw_yr     0    -> 28296.9  (NESO EAC DC/DM/DR mean x 8760; GATED)
+#   - local_flex_piclo.utilisation_price_gbp_per_mwh      150.0 -> 135.67  (Piclo Competitions median)
+#   - wholesale_p415.gated_upside_value_gbp_per_mw_yr     0    -> 0        (STAYS 0; source/notes rewritten only)
+#   - balancing_mechanism.gated_upside_value_gbp_per_mw_yr 0   -> 0        (STAYS 0; note-only)
+# Every OTHER gb_v1_5 value (incl. local_flex_piclo.aggregator_cut_pct and the whole capex/opex/
+# finance/haircut/DUoS stack) is carried forward UNCHANGED. The CM stream stays CONDITIONAL and
+# DC/DM/DR + wholesale + BM stay GATED upside — none can EVER be FIRM, whatever the fetched £; the
+# ancillary value being nonzero is indicative/gated only. NOTHING here is `confirmed` (0 confirmed
+# repo-wide, by design) — no quote on this release may present as bankable, and the app stays
+# pinned to gb_v1_4 (this release is invisible to the golden). gb_v0_1..gb_v1_5 stay FROZEN for
+# provenance; this is a new file, never an in-place edit. Loaded via load_assumptions("gb_v1_6").
+#
+# CM DE-RATING lineage (red-team audit, 2026-07-08, carried through gb_v1_5): the gb_v1_3 factors
+# {1h: 0.40, 2h: 0.65, 4h: 0.95} overstated NESO's scaled-EFC duration de-rating ~2.3-4x. gb_v1_5
+# corrected them to the modoenergy-cited Mar-2026 values {1h 0.1047, 2h 0.2094, 4h 0.4174}; this
+# release re-sources them from the PRIMARY NESO CKAN de-rating resource (latest T-4 = DY 2029/30)
+# — the fetched primary values win over the modoenergy secondary citation. Note for the BTM route:
+# a <1MW non-exporting battery reaches the CM only inside an aggregated DSR CMU (>=1MW aggregate),
+# where the generic DSR factor (~0.79-0.86) + aggregator fees apply; the storage-duration factors
+# used here are the CONSERVATIVE lower bound of the two treatments.
+
+metadata:
+  market: GB
+  version: gb_v1_6
+  released: 2026-07-20
+  currency: GBP
+  notes: >-
+    GB assumptions, fetcher-backed over gb_v1_5 (Revenue-Data Drive slice 4): four revenue leaves
+    (CM clearing price 27.1 GBP/kW/yr, CM de-rating {1:0.1099,2:0.2198,4:0.4396}, DC/DM/DR
+    28296.9 GBP/MW/yr, Piclo utilisation 135.67 GBP/MWh) re-sourced from LIVE keyless public
+    fetches (NESO Data Portal CKAN, Piclo Data Hub), each transcribed from a hashed provenance
+    sidecar under assumptions/provenance/gb_v1_6/, never invented. Wholesale + BM stay 0 (gated,
+    source/notes rewritten only). Every other gb_v1_5 value carried forward unchanged. NOT
+    confirmed - 0 confirmed repo-wide; no quote on this release is bankable; the app stays pinned
+    to gb_v1_4. All prior releases stay frozen for provenance.
+
+battery_capex:
+  installed_cost:
+    value: 500000
+    unit: GBP/MW
+    source: "Neura business plan (source_docs/neura_plan.html): 'average installed cost of roughly £500k per MW'."
+    status: needs_review
+    owner_or_reviewer: Oli
+    confidence: low
+    last_reviewed: 2026-06-24
+    notes: >-
+      Indicative all-in installed cost cited in the Neura plan ('roughly £500k/MW' — explicitly
+      indicative). Promoted placeholder->needs_review now that a real in-repo citation is attached;
+      confirm against real installer quotes / a capex benchmark library before relying on it
+      (see docs/assumptions_to_source.md, top-ranked).
+  installed_cost_benchmark_band:
+    value:
+      low: 300000
+      high: 900000
+    unit: GBP/MW
+    source: "Internal plausibility band (L14 mechanism, 2026-06-24) — illustrative bounds, not a sourced market figure; confirm against a real capex benchmark library."
+    status: placeholder
+    owner_or_reviewer: Oli
+    confidence: low
+    last_reviewed: 2026-06-24
+    notes: >-
+      Plausibility band for installed capex (£/MW); an installer/modelled unit cost outside it is
+      flagged for review (never blocks, never changes a figure). Illustrative placeholder bounds
+      pending a real capex benchmark library.
+
+  installed_cost_gbp_per_kwh:
+    value: 175.0
+    unit: GBP/kWh
+    source: "PLACEHOLDER - perimeter research (BNEF ESS Cost Survey 2025: Europe turnkey avg US$177/kWh, 4h LFP installed US$180-260/kWh; NREL 2025 US$334/kWh upper anchor), recorded in docs/reviews/2026-07-03-capex-shape-research.md. Chosen inside the European installed band and reconciled to the Neura-plan all-in (see notes). Confirm against real installer quotes before ANY bankable use."
+    status: placeholder
+    owner_or_reviewer: Olly
+    confidence: low
+    last_reviewed: 2026-07-03
+    notes: >-
+      The ENERGY component of installed capex (C025): cells/racks/enclosures per kWh. When
+      present alongside the power component, finance prices capex as power_component x MW +
+      this x kWh, giving added duration real marginal capital cost - the wide-duration search
+      stops pinning to the band edge. Releases without this key are byte-identical (all-in
+      per-MW capex, duration unpriced).
+  installed_cost_gbp_per_mw_power_component:
+    value: 150000.0
+    unit: GBP/MW
+    source: "PLACEHOLDER - the residual that reconciles the decomposition to the sourced Neura-plan all-in at the 2-hour reference: 150,000 + 2,000 kWh/MW x GBP175/kWh = GBP500,000/MW (battery_capex.installed_cost, needs_review). Research basis: docs/reviews/2026-07-03-capex-shape-research.md."
+    status: placeholder
+    owner_or_reviewer: Olly
+    confidence: low
+    last_reviewed: 2026-07-03
+    notes: >-
+      The POWER component of installed capex (C025): PCS/inverter, balance of plant, EPC power
+      share and grid connection, per MW. Consumed only together with
+      installed_cost_gbp_per_kwh; the legacy all-in installed_cost stays as the fallback and
+      the reconciliation anchor.
+
+battery_opex:
+  annual_fixed_opex:
+    value: 12000
+    unit: GBP/MW/yr
+    source: "No citable source identified (W4-3 review 2026-06-24); carried forward from gb_v0_1 as an unconfirmed placeholder. See docs/assumptions_to_source.md."
+    status: placeholder
+    owner_or_reviewer: Oli
+    confidence: low
+    last_reviewed: 2026-06-24
+    notes: Fixed O&M placeholder; excludes energy/levy costs (those are dispatch-driven). Source from real O&M contracts / benchmark library.
+  degradation_marginal_cost_gbp_per_mwh:
+    value: 5.0
+    unit: GBP/MWh
+    source: "PLACEHOLDER — illustrative per-MWh throughput wear cost (goal workstream, 2026-07-02); no citable source. Real basis = OEM warranty schedule / cell replacement cost per MWh of throughput, calibrated by the M7 ex-post SoH model. See docs/assumptions_to_source.md."
+    status: placeholder
+    owner_or_reviewer: Olly
+    confidence: low
+    last_reviewed: 2026-07-02
+    notes: >-
+      Marginal cost of battery wear per MWh discharged, previously omitted entirely (the
+      warranty throughput cap carried the cycling constraint alone). Finance now prices an
+      annual cost line = this value x annual discharge MWh WHEN this key is present; releases
+      without the key are unchanged (line absent, not zero). Illustrative placeholder only —
+      any case using it stays not bankable until confirmed against the OEM warranty schedule.
+  parasitic_load_fraction_of_power:
+    value: 0.01
+    unit: fraction_of_rated_power
+    source: "PLACEHOLDER — illustrative auxiliary (HVAC/BMS/controls) draw as a fraction of rated power (goal workstream, 2026-07-02); no citable source. Real basis = OEM datasheet auxiliary consumption at site operating conditions. See docs/assumptions_to_source.md."
+    status: placeholder
+    owner_or_reviewer: Olly
+    confidence: low
+    last_reviewed: 2026-07-02
+    notes: >-
+      Continuous parasitic draw of the BESS itself, previously omitted entirely. When this key
+      is present the dispatch reduces the connection charge headroom by fraction x rated power
+      (the auxiliary draw occupies import capacity on top of site load, disclosed via a solver
+      warning) and finance prices an annual auxiliary-energy cost line from the same fraction
+      (disclosed, placeholder-labelled). Releases without the key are unchanged (no headroom
+      reduction, no cost line - absent, not zero). Any case using it stays not bankable until
+      confirmed against the OEM datasheet.
+
+degradation:
+  annual_capacity_fade_pct:
+    value: 2.5
+    unit: percent_per_year
+    source: "No citable source identified (W4-3 review 2026-06-24); carried forward from gb_v0_1 as an unconfirmed placeholder. Source = OEM datasheet/warranty. See docs/assumptions_to_source.md."
+    status: placeholder
+    owner_or_reviewer: Olly
+    confidence: low
+    last_reviewed: 2026-06-24
+    notes: >-
+      Calendar+cycle fade proxy. Day-one sizing must hold end-of-life capability (no augmentation).
+      Provenance relabel by the X.1 librarian, not an Olly review — confirm against the cell/OEM
+      datasheet and warranty fade curve.
+
+round_trip_efficiency:
+  ac_round_trip:
+    value: 0.88
+    unit: ratio
+    source: "NOT sourced. System Requirements (source_docs/System Requirements.html) mandates modelling AC round-trip losses ('round-trip losses bought at the price actually faced') but states NO figure; 0.88 is an industry-typical placeholder pending an OEM datasheet."
+    status: placeholder
+    owner_or_reviewer: Olly
+    confidence: low
+    last_reviewed: 2026-06-24
+    notes: >-
+      Provenance correction: gb_v0_1 cited 'system_requirements (≈12% round-trip loss)', but the
+      source document gives no such number — the ≈12% was not in the doc. 0.88 stays an honest
+      placeholder, not a sourced value, until an OEM datasheet confirms it (docs/assumptions_to_source.md).
+
+parasitic_load:
+  standby_kw_per_mw:
+    value: 5.0
+    unit: kW/MW
+    source: "No citable source identified (W4-3 review 2026-06-24); carried forward from gb_v0_1 as an unconfirmed placeholder. Source = OEM/HVAC-BMS datasheet. See docs/assumptions_to_source.md."
+    status: placeholder
+    owner_or_reviewer: Olly
+    confidence: low
+    last_reviewed: 2026-06-24
+    notes: HVAC/BMS parasitic draw, billed at the host tariff. Librarian relabel, not an Olly review; confirm against the OEM datasheet.
+
+warranty_cycle_limits:
+  max_cycles_per_year_by_duration_h:
+    value:
+      "1": 548
+      "2": 365
+      "4": 250
+    unit: cycles/yr
+    source: "No citable source identified (W4-3 review 2026-06-24); carried forward from gb_v0_1 as an unconfirmed placeholder. Source = OEM warranty schedule. See docs/assumptions_to_source.md."
+    status: placeholder
+    owner_or_reviewer: Olly
+    confidence: low
+    last_reviewed: 2026-06-24
+    notes: Hard throughput caps by duration (h). Overcycling is not available to the optimiser. Librarian relabel; confirm against the OEM warranty schedule.
+
+financing:
+  target_equity_irr_pct:
+    value: 12.0
+    unit: percent
+    source: "Neura business plan (source_docs/neura_plan.html): 'investors need 12–13%' (also '13%+' for an unproven asset class, compressing toward an '11% required return' as it matures)."
+    status: needs_review
+    owner_or_reviewer: Oli (confirm with Sim — portfolio finance)
+    confidence: low
+    last_reviewed: 2026-06-24
+    notes: >-
+      Target equity return the price recommendation must hit. The plan cites a 12–13% band today
+      (13%+ for an unproven class, trending to ~11% as the asset class matures); 12.0 is the LOW end,
+      chosen conservatively (a higher hurdle is harder to clear). Promoted placeholder->needs_review on
+      this in-repo citation. This is a target hurdle, NOT Sim's confirmed portfolio cost of capital —
+      confirm with the Finance lane (Sim) per docs/assumptions_to_source.md.
+  debt_gearing_pct:
+    value: 60.0
+    unit: percent
+    source: "PLACEHOLDER — illustrative project-finance gearing (goal workstream, 2026-07-02); no citable source. Pending Sim's portfolio finance work (credit line / warrant structure, BLOCKERS B001). Confirm against a real term sheet before relying on it."
+    status: placeholder
+    owner_or_reviewer: Oli (confirm with Sim — portfolio finance)
+    confidence: low
+    last_reviewed: 2026-07-02
+    notes: >-
+      Share of capex funded by debt. Added so DebtTerms can assemble in real mode and the
+      P90-DSCR covenant gate is exercisable end-to-end (previously the gate could never fire
+      without injected debt terms — vacuous logic). Illustrative placeholder only: any
+      DSCR/covenant verdict priced on it is indicative, never bankable, until Sim confirms
+      the portfolio debt structure (B001).
+  credit_rate_tenor_policy:
+    value:
+      strong: {rate_pct: 6.0, tenor_years: 12}
+      adequate: {rate_pct: 7.5, tenor_years: 10}
+      weak: {rate_pct: 9.5, tenor_years: 7}
+    unit: "{credit_band: {rate_pct: percent, tenor_years: years}}"
+    source: "PLACEHOLDER — illustrative credit policy carried from gb_v0_1 (Sim to set real bands); folded into this release per decision D19 (gb_v1_0 was built from the committed gb_v0_1 and missed the D18 addition)."
+    status: placeholder
+    owner_or_reviewer: Sim (portfolio finance / credit policy)
+    confidence: low
+    last_reviewed: 2026-07-02
+    notes: >-
+      Deterministic credit-band -> (rate, tenor) mapping (M9 v1 deliverable, finance/credit.py).
+      Keys are CreditStatus values; only strong/adequate/weak are mappable. unknown/not_assessed
+      are deliberately absent -> unavailable, never invented. Worse band -> higher rate / shorter
+      tenor (monotonicity enforced in code). Values unchanged from gb_v0_1; still placeholder
+      credit policy until Sim confirms. Bump the library version when confirmed.
+
+dscr_covenants:
+  min_p90_dscr:
+    value: 1.30
+    unit: ratio
+    source: "data_contracts (illustrative covenant) — carried forward from gb_v0_1; illustrative, not a confirmed lender term. Confirm with Sim / a real term sheet (see docs/assumptions_to_source.md)."
+    status: placeholder
+    owner_or_reviewer: Oli (confirm with Sim)
+    confidence: low
+    last_reviewed: 2026-06-24
+    notes: >-
+      Debt sized/sculpted on the P90 case; the optimiser cannot select what this would reject.
+      Illustrative covenant only — no real source — so it stays a placeholder. Ties to the missing
+      debt structure tracked in OPEN_COMMENTS C008.
+
+p50_p90_haircuts:
+  p90_revenue_haircut_pct:
+    value: 15.0
+    unit: percent
+    source: "No citable source identified (W4-3 review 2026-06-24); carried forward from gb_v0_1. Calibrate against M7 backtests. See docs/assumptions_to_source.md."
+    status: placeholder
+    owner_or_reviewer: Oli
+    confidence: low
+    last_reviewed: 2026-06-24
+    notes: P50->P90 revenue haircut placeholder; calibrate against backtests (M7) before relying on it.
+  perfect_foresight_haircut_pct:
+    value: 20.0
+    unit: percent
+    source: "No citable source identified (W4-3 review 2026-06-24); carried forward from gb_v0_1. Must be calibrated/versioned at M7. See docs/assumptions_to_source.md."
+    status: needs_review
+    owner_or_reviewer: Olly
+    confidence: low
+    last_reviewed: 2026-06-24
+    notes: Perfect-foresight haircut — must be calibrated/versioned (M7); no confidence asserted yet.
+
+tariff_arbitrage:
+  indicative_value_gbp_per_mw_yr:
+    value: 30000
+    unit: GBP/MW/yr
+    source: "No citable source identified (W4-3 review 2026-06-24); carried forward from gb_v0_1. Value is site-derived in practice from the half-hourly load + tariff; the £/MW/yr anchor is unconfirmed. See docs/assumptions_to_source.md."
+    status: placeholder
+    owner_or_reviewer: Olly
+    confidence: low
+    last_reviewed: 2026-06-24
+    notes: Import-side bankable-floor stream; actual value is site-derived from the half-hourly load+tariff (M0 ingestion), not a fixed library number.
+
+duos:
+  red_band_avoidance_gbp_per_mw_yr:
+    value: 18000
+    unit: GBP/MW/yr
+    source: "No citable source identified (W4-3 review 2026-06-24); carried forward from gb_v0_1. Source = DNO Use-of-System charging statements / Ofgem CDCM (region-specific). See docs/assumptions_to_source.md."
+    status: placeholder
+    owner_or_reviewer: Olly
+    confidence: low
+    last_reviewed: 2026-06-24
+    notes: >-
+      DUoS red-band avoidance (post-TCR treatment; no Triad story). Site- and DNO-region-specific in
+      practice; DUoS bands are published per-DNO charging statements (a forecast/series — referenced,
+      not stored as a single library constant). See OPEN_COMMENTS / docs/assumptions_to_source.md.
+
+mic_asc_headroom:
+  value_gbp_per_mw_yr:
+    value: 12000
+    unit: GBP/MW/yr
+    source: "No citable source identified (W4-3 review 2026-06-24); carried forward from gb_v0_1. Value is site-derived where the connection binds. See docs/assumptions_to_source.md."
+    status: placeholder
+    owner_or_reviewer: Olly
+    confidence: low
+    last_reviewed: 2026-06-24
+    notes: Value where the connection (MIC/ASC) actually binds; only priced where it binds. Site-derived, not a fixed library number.
+
+capacity_market:
+  clearing_price_gbp_per_kw_yr:
+    value: 27.1
+    unit: GBP/kW/yr
+    source: "NESO Data Portal CKAN (CM auction clearing outcomes) URL https://api.neso.energy/api/3/action/datastore_search?resource_id=b1b58919-eaa4-40ea-80df-3d3e526f8223&limit=2000 sha256:abc99397eab5 fetched 2026-07-20; sidecar assumptions/provenance/gb_v1_6/cm_clearing.provenance.json. Latest T-4 auction = 2029-30 (T-4) Four Year Ahead Capacity Auction."
+    status: needs_review
+    owner_or_reviewer: Oli
+    confidence: low
+    last_reviewed: 2026-07-20
+    notes: >-
+      Re-sourced (Revenue-Data Drive slice 4) from the LIVE NESO CKAN clearing resource via
+      gridq.dev.fetch_neso_ckan --resource cm-clearing. Derivation: per auction, clearing price
+      £/kW/yr = "Forecast Cost (£)" / ("Capacity Awarded" MW × 1000); the latest T-4 (the primary
+      forward auction, DY 2029/30) cleared at 27.1 £/kW/yr (down from gb_v1_5's unsourced 30.0).
+      T-1 context (fetched same run): 2026-27 (T-1) One Year Ahead = 5.0 £/kW/yr. A forward
+      clearing price is an external per-auction series (referenced, re-fetched per delivery year),
+      so this stays needs_review; the CM stream remains CONDITIONAL (never firm).
+  de_rating_factor_by_duration_h:
+    value:
+      "1": 0.1099
+      "2": 0.2198
+      "4": 0.4396
+    unit: ratio
+    source: "NESO Data Portal CKAN (CM de-rating factors by technology class) URL https://api.neso.energy/api/3/action/datastore_search?resource_id=d94ff98d-39ba-40d6-9672-7433de0631ac&limit=2000 sha256:1b786c11450c fetched 2026-07-20; sidecar assumptions/provenance/gb_v1_6/cm_derating.provenance.json. Latest T-4 = 2029-30 (T-4) Four Year Ahead Capacity Auction, 'Storage (Duration 1h/2h/4h)' rows. Primary NESO source REPLACES the gb_v1_5 modoenergy secondary citation."
+    status: needs_review
+    owner_or_reviewer: Oli
+    confidence: low
+    last_reviewed: 2026-07-20
+    notes: >-
+      Re-sourced (Revenue-Data Drive slice 4) from the LIVE PRIMARY NESO CKAN de-rating resource
+      via gridq.dev.fetch_neso_ckan --resource cm-derating (latest T-4 storage-duration factors:
+      1h 0.1099, 2h 0.2198, 4h 0.4396). These fetched primary values WIN over gb_v1_5's
+      modoenergy-cited {1h 0.1047, 2h 0.2094, 4h 0.4174} (they differ slightly — the newer
+      DY-2029/30 scaled-EFC table). De-rating by duration; deliverability verified to the final
+      contract year at degraded capability. Factors are a versioned external per-auction series
+      (re-fetched per delivery year), so status stays needs_review; CM remains CONDITIONAL, never firm.
+
+local_flex_piclo:
+  utilisation_price_gbp_per_mwh:
+    value: 135.67
+    unit: GBP/MWh
+    source: "Piclo Data Hub (public S3, no auth) URL https://piclo-open-data.s3.eu-west-1.amazonaws.com/public-data/piclo_flex_uk_competitions.xlsx sha256:43594570afef fetched 2026-07-20; sidecar assumptions/provenance/gb_v1_6/piclo_competitions.provenance.json. GB-wide median of the 'Utilisation Guide Price (£/MWh)' column."
+    status: needs_review
+    owner_or_reviewer: Oli
+    confidence: low
+    last_reviewed: 2026-07-20
+    notes: >-
+      Re-sourced (Revenue-Data Drive slice 4) from the LIVE Piclo Data Hub Competitions dataset
+      via gridq.dev.fetch_piclo --dataset competitions. Derivation: median of 224,535 non-null
+      GB-wide 'Utilisation Guide Price (£/MWh)' values = 135.67 (down from gb_v1_5's unsourced
+      150.0). Availability guide prices in the same dataset were all null (a reported gap, not
+      sourced here). Local flex (Piclo et al.) is CONDITIONAL — only priced when a tender is open
+      in the site's DNO area and net of the aggregator cut; tender prices are time-varying external
+      market state (re-fetched), so status stays needs_review.
+  aggregator_cut_pct:
+    value: 0.20
+    unit: fraction
+    source: "Placeholder (issue 018, 2026-07-17): typical local-flex / route-to-market aggregator take is ~10-20% of gross utilisation revenue. No citable per-platform figure sourced yet; confirm against Piclo / aggregator terms (relates OPEN_COMMENTS C007). A per-site agreed rate overrides this via SiteModel.export_arrangement.aggregator_cut_pct."
+    status: placeholder
+    owner_or_reviewer: Oli
+    confidence: low
+    last_reviewed: 2026-07-17
+    notes: Fraction (0-1) of gross local-flex revenue taken by the aggregator; net = gross x (1 - cut). Site-level ExportArrangement.aggregator_cut_pct takes precedence; absent both, no cut is applied (0.0).
+
+wholesale_p415:
+  gated_upside_value_gbp_per_mw_yr:
+    value: 0
+    unit: GBP/MW/yr
+    source: "gated ZERO by design (not a missing source). The real £ path is engine-measured, not a library constant: Elexon MID (£/MWh, keyless Insights API — fetch-verified 2026-07-20, e.g. 2026-07-13 mean ~109.6 £/MWh) overlaid on the consented agreed export tariff, priced per site (register §7). No forward wholesale curve converts to a guaranteed BTM export £/MW/yr, so this stays 0."
+    status: needs_review
+    owner_or_reviewer: Olly (with RTM partner)
+    confidence: low
+    last_reviewed: 2026-07-20
+    notes: >-
+      GATED — never in the priced floor / P50-P90 / DSCR. Value STAYS 0 (Revenue-Data Drive slice 4
+      rewrote source/notes only): the real wholesale value is site-specific and engine-measured
+      (the D43 wholesale contracted-mode overlay = agreed export tariff £/kWh × overlay export MWh;
+      the Elexon-MID perfect-foresight delta is a SEPARATE indicative gated annotation), never a
+      single library £/MW/yr. Do NOT populate this key from a forecast (register §7).
+
+balancing_mechanism:
+  gated_upside_value_gbp_per_mw_yr:
+    value: 0
+    unit: GBP/MW/yr
+    source: "gated ZERO by design (not a missing source). A firm per-asset BM £/MW/yr needs either a paid Modo GB BESS index or the full BOALF×BOD settlement calc (BSC Section T) reconstructed per unit (register §9) — public data gives only an INDICATIVE fleet figure, and per-asset contracted BM value is commercial (VLP/aggregator). Documented-manual; not landed as a constant."
+    status: needs_review
+    owner_or_reviewer: Olly (with RTM partner)
+    confidence: low
+    last_reviewed: 2026-07-20
+    notes: >-
+      GATED — never in the priced floor. Value STAYS 0 (Revenue-Data Drive slice 4, note-only): per
+      register §9 a defensible BM number needs a paid Modo index or a full BOALF×BOD reconstruction
+      plus a VLP/aggregator appointment + agreed cut %; the consent-driven engine path prices BM as
+      agreed £/MW/yr × de-rated MW when the customer supplies a rate (never from this key). Requires
+      RTM partner + export consents (G99/G100); never populated from a forecast.
+
+ancillary_services:
+  dc_dm_dr_value_gbp_per_mw_yr:
+    value: 28296.9
+    unit: GBP/MW/yr
+    source: "NESO Data Portal CKAN (EAC Response/Reserve results summary) URL https://api.neso.energy/api/3/action/datastore_search?resource_id=596f29ac-0387-4ba4-a6d3-95c243140707&limit=60000 sha256:22121dba2aca fetched 2026-07-20; sidecar assumptions/provenance/gb_v1_6/eac_results.provenance.json. Register §10 indicative equation: mean cleared £/MW/h across DC/DM/DR × 8760 h."
+    status: needs_review
+    owner_or_reviewer: Olly (with RTM partner)
+    confidence: low
+    last_reviewed: 2026-07-20
+    notes: >-
+      Re-sourced (Revenue-Data Drive slice 4) from the LIVE NESO CKAN EAC results resource via
+      gridq.dev.fetch_neso_ckan --resource eac-results. Derivation: mean clearing price 3.2302
+      £/MW/h across the six DC/DM/DR products (DCH/DCL/DMH/DML/DRH/DRL, 4032 EFA-block rows) over
+      the fetched window 2026-03-31..2026-07-21, × 8760 h = 28296.9 £/MW/yr (register §10). This is
+      now NONZERO but remains GATED upside / INDICATIVE only — never FIRM, never in the priced floor
+      / P50-P90 / DSCR; the consent-driven engine path prices ancillary as agreed £/MW/yr × de-rated
+      MW when a rate is supplied. Merchant prices are volatile (can be 0 or negative); needs a
+      minimum aggregated portfolio MW to realise. Status stays needs_review; nothing is confirmed.
+
+business_rates:
+  annual_gbp_per_mw:
+    value: 8000
+    unit: GBP/MW/yr
+    source: "No citable source identified (W4-3 review 2026-06-24); carried forward from gb_v0_1. Source = VOA rateable value for BESS × the gov.uk non-domestic multiplier (a specialist valuation, not a public constant). See docs/assumptions_to_source.md."
+    status: needs_review
+    owner_or_reviewer: Oli (confirm treatment)
+    confidence: low
+    last_reviewed: 2026-06-24
+    notes: >-
+      Business-rates treatment of BTM BESS must be confirmed before it silently flatters every quote.
+      The £/MW depends on a VOA rateable value (specialist valuation) × the published multiplier — the
+      multiplier is a public constant but the RV is not, so the £/MW stays a placeholder.
+
+insurance:
+  annual_pct_of_capex:
+    value: 0.5
+    unit: percent_of_capex_per_year
+    source: "No citable source identified (W4-3 review 2026-06-24); carried forward from gb_v0_1. Source = an insurance broker quote. See docs/assumptions_to_source.md."
+    status: placeholder
+    owner_or_reviewer: Oli
+    confidence: low
+    last_reviewed: 2026-06-24
+    notes: Annual insurance as a percent of installed capex. Confirm against a broker quote.
+
+metering_idno:
+  annual_gbp_per_site:
+    value: 1200
+    unit: GBP/site/yr
+    source: "No citable source identified (W4-3 review 2026-06-24); carried forward from gb_v0_1. Source = meter operator / IDNO standing-charge schedule. See docs/assumptions_to_source.md."
+    status: placeholder
+    owner_or_reviewer: Oli
+    confidence: low
+    last_reviewed: 2026-06-24
+    notes: Metering / IDNO standing costs per site. Confirm against a real MOP/IDNO schedule.
+
+dno_costs:
+  annual_gbp_per_site:
+    value: 1500
+    unit: GBP/site/yr
+    source: "No citable source identified (W4-3 review 2026-06-24); carried forward from gb_v0_1. Source = DNO operating-cost schedule (excludes one-off connection capex). See docs/assumptions_to_source.md."
+    status: placeholder
+    owner_or_reviewer: Oli
+    confidence: low
+    last_reviewed: 2026-06-24
+    notes: DNO-related operating costs (excludes one-off connection modification capex).
+
+quote_validity:
+  indicative_validity_days:
+    value: 30
+    unit: days
+    source: "Internal commercial policy (W4-3 review 2026-06-24) — a structural/policy default, not a market figure; carried forward from gb_v0_1 unconfirmed. Confirm with the commercial owner. See docs/assumptions_to_source.md."
+    status: placeholder
+    owner_or_reviewer: Oli
+    confidence: low
+    last_reviewed: 2026-06-24
+    notes: How long an indicative (banded) quote stays valid before it lapses or must reprice. A commercial-policy choice, not a sourced market number.
+  reprice_tolerance_pct:
+    value: 5.0
+    unit: "%"
+    source: "Internal commercial policy (L02 mechanism, 2026-06-24) — a structural/policy default, not a market figure; carried forward unconfirmed. Confirm with the commercial owner. See docs/assumptions_to_source.md."
+    status: placeholder
+    owner_or_reviewer: Oli
+    confidence: low
+    last_reviewed: 2026-06-24
+    notes: >-
+      Relative tolerance beyond which a material assumption move forces a quote to reprice
+      before signature (consistency contract #3 — a quote is valid only against the assumption
+      version that produced it). A commercial-policy choice, not a sourced market number.
+
+scenario_weights:
+  central_low_high:
+    value:
+      low: 0.25
+      central: 0.50
+      high: 0.25
+    unit: probability_weights
+    source: "Structural/policy default (W4-3 review 2026-06-24) — a labelled modelling default (weights sum to 1.0), not a sourced market figure; carried forward from gb_v0_1 unconfirmed. Calibrate at M7. See docs/assumptions_to_source.md."
+    status: placeholder
+    owner_or_reviewer: Oli
+    confidence: low
+    last_reviewed: 2026-06-24
+    notes: Discrete probability weights for the Low/Central/High price cases; must sum to 1.0. A labelled structural default pending M7 calibration.
+availability:
+  availability_price_gbp_per_mw_h:
+    value: null
+    unit: GBP/MW/h
+    source: NOT sourced — per-DNO Piclo/DSO tender results required (C007).
+    status: placeholder
+    owner_or_reviewer: Olly
+    confidence: low
+    last_reviewed: 2026-07-02
+    notes: 'Empty home per D30: an availability price (the contracted half of a flex payment) is asserted
+      only from an awarded tender — never defaulted.'
+  expected_availability_pct:
+    value: null
+    unit: pct
+    source: NOT sourced — OEM / operational availability data required.
+    status: placeholder
+    owner_or_reviewer: Olly
+    confidence: low
+    last_reviewed: 2026-07-02
+    notes: Battery availability factor for firm-commitment pricing; a firm availability promise cannot
+      be de-rated for outages until this is real.
+penalties:
+  cm_penalty_rate_fraction_of_clearing:
+    value: 0.25
+    unit: fraction of clearing price per MWh undelivered
+    source: UNVERIFIED perimeter research (CMS / EMR Delivery Body summaries recorded in docs/reviews/2026-07-01-deep-review.md)
+      — confirm against the Capacity Market Rules text before ANY use beyond labelled-placeholder machinery
+      exercise.
+    status: placeholder
+    owner_or_reviewer: Olly
+    confidence: low
+    last_reviewed: 2026-07-02
+    notes: Proposed CM non-delivery rate (clearing × 1/4 per MWh); research-grade placeholder.
+  cm_monthly_cap_pct_of_revenue:
+    value: 200.0
+    unit: pct of monthly capacity revenue
+    source: UNVERIFIED perimeter research (CMS / EMR Delivery Body summaries recorded in docs/reviews/2026-07-01-deep-review.md)
+      — confirm against the Capacity Market Rules text before ANY use beyond labelled-placeholder machinery
+      exercise.
+    status: placeholder
+    owner_or_reviewer: Olly
+    confidence: low
+    last_reviewed: 2026-07-02
+    notes: Monthly penalty cap; research-grade placeholder.
+  cm_annual_cap_pct_of_revenue:
+    value: 100.0
+    unit: pct of annual capacity revenue
+    source: UNVERIFIED perimeter research (CMS / EMR Delivery Body summaries recorded in docs/reviews/2026-07-01-deep-review.md)
+      — confirm against the Capacity Market Rules text before ANY use beyond labelled-placeholder machinery
+      exercise.
+    status: placeholder
+    owner_or_reviewer: Olly
+    confidence: low
+    last_reviewed: 2026-07-02
+    notes: Annual penalty cap — consumed by finance (W8) as the bounded worst-case P90 penalty line
+      on contracted CM revenue; placeholder status keeps every such quote not_bankable.
+tnuos:
+  demand_residual_gbp_per_year:
+    value: null
+    unit: GBP/year
+    source: NOT sourced — requires the site's TNUoS band + the NGESO tariff tables.
+    status: placeholder
+    owner_or_reviewer: Olly
+    confidence: low
+    last_reviewed: 2026-07-02
+    notes: 'The banded, post-TCR demand residual: the UN-FIRMABLE bill line the W9 bill decomposition
+      must show honestly (research notes a large April-2026 rise — unverified); never estimated per-site.'

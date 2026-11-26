@@ -1,0 +1,345 @@
+{
+  "$defs": {
+    "Action": {
+      "enum": [
+        "read",
+        "write",
+        "control_write"
+      ],
+      "title": "Action",
+      "type": "string"
+    },
+    "Actor": {
+      "additionalProperties": false,
+      "description": "Who acted, copied from validated `IdentityClaims` (opaque ids; no personal data).",
+      "properties": {
+        "org_id": {
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Org Id",
+          "type": "string"
+        },
+        "org_kind": {
+          "$ref": "#/$defs/OrgKind"
+        },
+        "role": {
+          "$ref": "#/$defs/Role"
+        },
+        "subject": {
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Subject",
+          "type": "string"
+        },
+        "token_issuer": {
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Token Issuer",
+          "type": "string"
+        },
+        "token_jti": {
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Token Jti",
+          "type": "string"
+        }
+      },
+      "required": [
+        "subject",
+        "org_id",
+        "org_kind",
+        "role",
+        "token_jti",
+        "token_issuer"
+      ],
+      "title": "Actor",
+      "type": "object"
+    },
+    "AuditAction": {
+      "description": "What was attempted. The two classes spec E-04 requires to be logged.",
+      "enum": [
+        "customer_data_read",
+        "control_write"
+      ],
+      "title": "AuditAction",
+      "type": "string"
+    },
+    "ControlCommand": {
+      "additionalProperties": false,
+      "description": "The command a control write carried (spec B1-04: full command audit trail).",
+      "properties": {
+        "command_id": {
+          "maxLength": 200,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]*$",
+          "title": "Command Id",
+          "type": "string"
+        },
+        "kind": {
+          "const": "control_command",
+          "title": "Kind",
+          "type": "string"
+        },
+        "point": {
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Point",
+          "type": "string"
+        },
+        "unit": {
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Unit",
+          "type": "string"
+        },
+        "value": {
+          "title": "Value",
+          "type": "number"
+        }
+      },
+      "required": [
+        "kind",
+        "command_id",
+        "point",
+        "value",
+        "unit"
+      ],
+      "title": "ControlCommand",
+      "type": "object"
+    },
+    "NotApplicable": {
+      "additionalProperties": false,
+      "description": "A term that does not exist for this record (e.g. a LIFO position on a firm connection).\n\nDistinct from `Unknown`: \"not applicable\" is a statement about the agreement, \"unknown\" is a\nstatement about our knowledge of it. Both carry a reason.",
+      "properties": {
+        "kind": {
+          "const": "not_applicable",
+          "title": "Kind",
+          "type": "string"
+        },
+        "reason": {
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Reason",
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind",
+        "reason"
+      ],
+      "title": "NotApplicable",
+      "type": "object"
+    },
+    "OrgKind": {
+      "enum": [
+        "neura",
+        "customer",
+        "lender",
+        "verifier"
+      ],
+      "title": "OrgKind",
+      "type": "string"
+    },
+    "ResourceKind": {
+      "enum": [
+        "site",
+        "customer_data",
+        "telemetry",
+        "ledger",
+        "evidence",
+        "scenario_set",
+        "pack",
+        "method",
+        "device"
+      ],
+      "title": "ResourceKind",
+      "type": "string"
+    },
+    "ResourceRef": {
+      "additionalProperties": false,
+      "description": "One concrete resource: what an audit event targets and what `authorise` checks.",
+      "properties": {
+        "kind": {
+          "$ref": "#/$defs/ResourceKind"
+        },
+        "org_id": {
+          "maxLength": 200,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:@/-]*$",
+          "title": "Org Id",
+          "type": "string"
+        },
+        "resource_id": {
+          "maxLength": 200,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:@/-]*$",
+          "title": "Resource Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind",
+        "org_id",
+        "resource_id"
+      ],
+      "title": "ResourceRef",
+      "type": "object"
+    },
+    "Role": {
+      "description": "Spec E-04: Neura ops / customer / lender read-only / verifier.",
+      "enum": [
+        "neura_ops",
+        "customer",
+        "lender_readonly",
+        "verifier"
+      ],
+      "title": "Role",
+      "type": "string"
+    },
+    "ScopeGrant": {
+      "additionalProperties": false,
+      "description": "Permission for ``actions`` on resources of ``resource`` kind, owned by ``org_id``.\n\n``org_id`` / ``resource_id`` may be ``\"*\"`` (all). Actions are sorted and unique.",
+      "properties": {
+        "actions": {
+          "items": {
+            "$ref": "#/$defs/Action"
+          },
+          "minItems": 1,
+          "title": "Actions",
+          "type": "array"
+        },
+        "org_id": {
+          "maxLength": 200,
+          "pattern": "^(\\*|[A-Za-z0-9][A-Za-z0-9._:@/-]*)$",
+          "title": "Org Id",
+          "type": "string"
+        },
+        "resource": {
+          "$ref": "#/$defs/ResourceKind"
+        },
+        "resource_id": {
+          "maxLength": 200,
+          "pattern": "^(\\*|[A-Za-z0-9][A-Za-z0-9._:@/-]*)$",
+          "title": "Resource Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "resource",
+        "org_id",
+        "resource_id",
+        "actions"
+      ],
+      "title": "ScopeGrant",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "description": "IC-13 v1.0.0 audit event. One link of an append-only hash chain.",
+  "properties": {
+    "action": {
+      "$ref": "#/$defs/AuditAction"
+    },
+    "actor": {
+      "$ref": "#/$defs/Actor"
+    },
+    "contract": {
+      "const": "IC-13",
+      "default": "IC-13",
+      "title": "Contract",
+      "type": "string"
+    },
+    "contract_version": {
+      "const": "1.0.0",
+      "default": "1.0.0",
+      "title": "Contract Version",
+      "type": "string"
+    },
+    "control": {
+      "discriminator": {
+        "mapping": {
+          "control_command": "#/$defs/ControlCommand",
+          "not_applicable": "#/$defs/NotApplicable"
+        },
+        "propertyName": "kind"
+      },
+      "oneOf": [
+        {
+          "$ref": "#/$defs/ControlCommand"
+        },
+        {
+          "$ref": "#/$defs/NotApplicable"
+        }
+      ],
+      "title": "Control"
+    },
+    "event_id": {
+      "maxLength": 200,
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]*$",
+      "title": "Event Id",
+      "type": "string"
+    },
+    "occurred_at": {
+      "format": "date-time",
+      "title": "Occurred At",
+      "type": "string"
+    },
+    "outcome": {
+      "enum": [
+        "allowed",
+        "denied"
+      ],
+      "title": "Outcome",
+      "type": "string"
+    },
+    "prev_hash": {
+      "pattern": "^sha256:[0-9a-f]{64}$",
+      "title": "Prev Hash",
+      "type": "string"
+    },
+    "reason": {
+      "anyOf": [
+        {
+          "minLength": 1,
+          "pattern": "\\S",
+          "type": "string"
+        },
+        {
+          "$ref": "#/$defs/NotApplicable"
+        }
+      ],
+      "title": "Reason"
+    },
+    "scope": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/ScopeGrant"
+        },
+        {
+          "$ref": "#/$defs/NotApplicable"
+        }
+      ],
+      "title": "Scope"
+    },
+    "seq": {
+      "minimum": 0,
+      "title": "Seq",
+      "type": "integer"
+    },
+    "target": {
+      "$ref": "#/$defs/ResourceRef"
+    }
+  },
+  "required": [
+    "event_id",
+    "seq",
+    "prev_hash",
+    "occurred_at",
+    "actor",
+    "action",
+    "outcome",
+    "scope",
+    "target",
+    "control",
+    "reason"
+  ],
+  "title": "AuditEvent",
+  "type": "object"
+}

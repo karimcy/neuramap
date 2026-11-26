@@ -1,0 +1,973 @@
+{
+  "$defs": {
+    "AshraeClass": {
+      "description": "ASHRAE TC9.9 data-processing environment classes (spec A4-02 names A1 and H1).",
+      "enum": [
+        "A1",
+        "A2",
+        "A3",
+        "A4",
+        "H1"
+      ],
+      "title": "AshraeClass",
+      "type": "string"
+    },
+    "AshraeLimit": {
+      "additionalProperties": false,
+      "description": "The ASHRAE envelope as **declared** by the producer. The contract holds no ASHRAE table\nand derives nothing from ``ashrae_class``: the numbers are stated, with their source.",
+      "properties": {
+        "ashrae_class": {
+          "$ref": "#/$defs/AshraeClass"
+        },
+        "envelope": {
+          "enum": [
+            "recommended",
+            "allowable"
+          ],
+          "title": "Envelope",
+          "type": "string"
+        },
+        "humidity": {
+          "discriminator": {
+            "mapping": {
+              "humidity_limit": "#/$defs/HumidityLimit",
+              "unknown": "#/$defs/Unknown"
+            },
+            "propertyName": "kind"
+          },
+          "oneOf": [
+            {
+              "$ref": "#/$defs/HumidityLimit"
+            },
+            {
+              "$ref": "#/$defs/Unknown"
+            }
+          ],
+          "title": "Humidity"
+        },
+        "max_rate_of_change_tenths_c_per_hour": {
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "$ref": "#/$defs/Unknown"
+            }
+          ],
+          "title": "Max Rate Of Change Tenths C Per Hour"
+        },
+        "source": {
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Source",
+          "type": "string"
+        },
+        "temperature": {
+          "$ref": "#/$defs/TemperatureBand"
+        }
+      },
+      "required": [
+        "ashrae_class",
+        "envelope",
+        "temperature",
+        "humidity",
+        "max_rate_of_change_tenths_c_per_hour",
+        "source"
+      ],
+      "title": "AshraeLimit",
+      "type": "object"
+    },
+    "AvailabilityCell": {
+      "additionalProperties": false,
+      "properties": {
+        "availability": {
+          "discriminator": {
+            "mapping": {
+              "flex": "#/$defs/Flex",
+              "unavailable": "#/$defs/Unavailable",
+              "unknown": "#/$defs/Unknown",
+              "zero_flex": "#/$defs/ZeroFlex"
+            },
+            "propertyName": "kind"
+          },
+          "oneOf": [
+            {
+              "$ref": "#/$defs/Flex"
+            },
+            {
+              "$ref": "#/$defs/ZeroFlex"
+            },
+            {
+              "$ref": "#/$defs/Unavailable"
+            },
+            {
+              "$ref": "#/$defs/Unknown"
+            }
+          ],
+          "title": "Availability"
+        },
+        "band_id": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]*$",
+          "title": "Band Id",
+          "type": "string"
+        },
+        "season_id": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]*$",
+          "title": "Season Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "season_id",
+        "band_id",
+        "availability"
+      ],
+      "title": "AvailabilityCell",
+      "type": "object"
+    },
+    "CoolingTopology": {
+      "description": "Spec A4-01 cooling topologies.",
+      "enum": [
+        "air_cooled_chillers",
+        "water_cooled_chillers_with_towers",
+        "free_cooling",
+        "crah_crac",
+        "rear_door",
+        "direct_liquid_cooling"
+      ],
+      "title": "CoolingTopology",
+      "type": "string"
+    },
+    "CustomerSlaLimit": {
+      "additionalProperties": false,
+      "properties": {
+        "evidence": {
+          "discriminator": {
+            "mapping": {
+              "evidence_ref": "#/$defs/EvidenceRef",
+              "unknown": "#/$defs/Unknown"
+            },
+            "propertyName": "kind"
+          },
+          "oneOf": [
+            {
+              "$ref": "#/$defs/EvidenceRef"
+            },
+            {
+              "$ref": "#/$defs/Unknown"
+            }
+          ],
+          "title": "Evidence"
+        },
+        "humidity": {
+          "discriminator": {
+            "mapping": {
+              "humidity_limit": "#/$defs/HumidityLimit",
+              "unknown": "#/$defs/Unknown"
+            },
+            "propertyName": "kind"
+          },
+          "oneOf": [
+            {
+              "$ref": "#/$defs/HumidityLimit"
+            },
+            {
+              "$ref": "#/$defs/Unknown"
+            }
+          ],
+          "title": "Humidity"
+        },
+        "kind": {
+          "const": "customer_sla",
+          "title": "Kind",
+          "type": "string"
+        },
+        "temperature": {
+          "$ref": "#/$defs/TemperatureBand"
+        }
+      },
+      "required": [
+        "kind",
+        "temperature",
+        "humidity",
+        "evidence"
+      ],
+      "title": "CustomerSlaLimit",
+      "type": "object"
+    },
+    "EvidenceClass": {
+      "description": "Spec A4-03 \"modelled → trialled → metered\". `EVIDENCE_RANK` orders them, weakest first.\n\nThere is no synthetic member: synthetic fixtures say so in ``record_class`` and still carry\na real evidence class, so consumers can exercise every class against fixtures.",
+      "enum": [
+        "modelled",
+        "trialled",
+        "metered"
+      ],
+      "title": "EvidenceClass",
+      "type": "string"
+    },
+    "EvidenceRef": {
+      "additionalProperties": false,
+      "description": "A reference to an IC-4 instance by its content hash (what IC-1 and others embed).",
+      "properties": {
+        "contract": {
+          "const": "IC-4",
+          "title": "Contract",
+          "type": "string"
+        },
+        "contract_version": {
+          "const": "1.0.0",
+          "title": "Contract Version",
+          "type": "string"
+        },
+        "evidence_hash": {
+          "pattern": "^sha256:[0-9a-f]{64}$",
+          "title": "Evidence Hash",
+          "type": "string"
+        },
+        "kind": {
+          "const": "evidence_ref",
+          "title": "Kind",
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind",
+        "contract",
+        "contract_version",
+        "evidence_hash"
+      ],
+      "title": "EvidenceRef",
+      "type": "object"
+    },
+    "Flex": {
+      "additionalProperties": false,
+      "description": "A cell with flex: a duration-capability curve, longest hold last.\n\nDurations strictly increase and kW strictly decrease (a longer hold cannot deliver more, and\na point that does not lower the kW is redundant), so a curve has one encoding. Read it with\n`deliverable_kw`: for a requested duration the deliverable kW is that of the first point at\nleast as long, and 0 beyond the longest point.",
+      "properties": {
+        "curve": {
+          "items": {
+            "$ref": "#/$defs/FlexPoint"
+          },
+          "minItems": 1,
+          "title": "Curve",
+          "type": "array"
+        },
+        "kind": {
+          "const": "flex",
+          "title": "Kind",
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind",
+        "curve"
+      ],
+      "title": "Flex",
+      "type": "object"
+    },
+    "FlexPoint": {
+      "additionalProperties": false,
+      "description": "``reduction_kw`` can be held for ``duration_min`` minutes, then releases ``rebound``.\n\nFirm: the kW is deliverable for ``duration_min`` minutes at any event start inside the cell,\nwithin the binding IT-safety band. It is not a typical or expected value.\n\nA point is always positive: a zero is a `ZeroFlex` cell, never a point (one form per state).",
+      "properties": {
+        "duration_min": {
+          "maximum": 1440,
+          "minimum": 1,
+          "title": "Duration Min",
+          "type": "integer"
+        },
+        "rebound": {
+          "$ref": "#/$defs/Rebound"
+        },
+        "reduction_kw": {
+          "minimum": 1,
+          "title": "Reduction Kw",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "duration_min",
+        "reduction_kw",
+        "rebound"
+      ],
+      "title": "FlexPoint",
+      "type": "object"
+    },
+    "HumidityLimit": {
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "const": "humidity_limit",
+          "title": "Kind",
+          "type": "string"
+        },
+        "max_dew_point_tenths_c": {
+          "maximum": 1000,
+          "minimum": -500,
+          "title": "Max Dew Point Tenths C",
+          "type": "integer"
+        },
+        "max_relative_humidity_percent": {
+          "maximum": 100,
+          "minimum": 1,
+          "title": "Max Relative Humidity Percent",
+          "type": "integer"
+        },
+        "min_dew_point_tenths_c": {
+          "maximum": 1000,
+          "minimum": -500,
+          "title": "Min Dew Point Tenths C",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "kind",
+        "min_dew_point_tenths_c",
+        "max_dew_point_tenths_c",
+        "max_relative_humidity_percent"
+      ],
+      "title": "HumidityLimit",
+      "type": "object"
+    },
+    "LimitSource": {
+      "description": "Which declared limit the binding band was taken from (A4-02: \"whichever is tighter\").\nChecked by `ThermalLimits`: ``ashrae`` means the binding band equals the ASHRAE band,\n``customer_sla`` means it equals the SLA band, and ``operator_margin`` means it lies inside\nboth (inside the ASHRAE band alone when no SLA is known).",
+      "enum": [
+        "ashrae",
+        "customer_sla",
+        "operator_margin"
+      ],
+      "title": "LimitSource",
+      "type": "string"
+    },
+    "MeasurementPoint": {
+      "description": "Where a temperature limit is measured. ASHRAE classes are defined at the IT inlet.",
+      "enum": [
+        "it_inlet",
+        "supply_air"
+      ],
+      "title": "MeasurementPoint",
+      "type": "string"
+    },
+    "MeteredBasis": {
+      "additionalProperties": false,
+      "description": "Measured on commissioned metering across real events against a baseline method fixed in\nadvance (A4-04). Requires IC-4 evidence: the meter records and the baseline method.",
+      "properties": {
+        "baseline_method": {
+          "$ref": "#/$defs/EvidenceRef"
+        },
+        "kind": {
+          "const": "metered",
+          "title": "Kind",
+          "type": "string"
+        },
+        "meter_evidence": {
+          "items": {
+            "$ref": "#/$defs/EvidenceRef"
+          },
+          "minItems": 1,
+          "title": "Meter Evidence",
+          "type": "array"
+        },
+        "n_events": {
+          "minimum": 1,
+          "title": "N Events",
+          "type": "integer"
+        },
+        "observed_from": {
+          "format": "date-time",
+          "title": "Observed From",
+          "type": "string"
+        },
+        "observed_until": {
+          "format": "date-time",
+          "title": "Observed Until",
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind",
+        "meter_evidence",
+        "baseline_method",
+        "observed_from",
+        "observed_until",
+        "n_events"
+      ],
+      "title": "MeteredBasis",
+      "type": "object"
+    },
+    "ModelledBasis": {
+      "additionalProperties": false,
+      "description": "Produced by a plant model (A4-01/WP-THERM-03), identified by its run inputs.",
+      "properties": {
+        "calibration_evidence": {
+          "items": {
+            "$ref": "#/$defs/EvidenceRef"
+          },
+          "title": "Calibration Evidence",
+          "type": "array"
+        },
+        "input_hash": {
+          "pattern": "^sha256:[0-9a-f]{64}$",
+          "title": "Input Hash",
+          "type": "string"
+        },
+        "kind": {
+          "const": "modelled",
+          "title": "Kind",
+          "type": "string"
+        },
+        "model": {
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Model",
+          "type": "string"
+        },
+        "model_version": {
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Model Version",
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind",
+        "model",
+        "model_version",
+        "input_hash",
+        "calibration_evidence"
+      ],
+      "title": "ModelledBasis",
+      "type": "object"
+    },
+    "NotApplicable": {
+      "additionalProperties": false,
+      "description": "A term that does not exist for this record (e.g. a LIFO position on a firm connection).\n\nDistinct from `Unknown`: \"not applicable\" is a statement about the agreement, \"unknown\" is a\nstatement about our knowledge of it. Both carry a reason.",
+      "properties": {
+        "kind": {
+          "const": "not_applicable",
+          "title": "Kind",
+          "type": "string"
+        },
+        "reason": {
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Reason",
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind",
+        "reason"
+      ],
+      "title": "NotApplicable",
+      "type": "object"
+    },
+    "Rebound": {
+      "additionalProperties": false,
+      "description": "Extra cooling demand after a hold is released, above the counterfactual baseline.\n\n``energy_kwh`` over the recovery, ``peak_kw`` at its highest, ``recovery_min`` until demand is\nback on baseline. All zero declares no rebound. Energy cannot exceed peak x recovery time\n(rounded up to the kWh), and a rebound with energy has a peak and a duration.",
+      "properties": {
+        "energy_kwh": {
+          "minimum": 0,
+          "title": "Energy Kwh",
+          "type": "integer"
+        },
+        "peak_kw": {
+          "minimum": 0,
+          "title": "Peak Kw",
+          "type": "integer"
+        },
+        "recovery_min": {
+          "minimum": 0,
+          "title": "Recovery Min",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "energy_kwh",
+        "peak_kw",
+        "recovery_min"
+      ],
+      "title": "Rebound",
+      "type": "object"
+    },
+    "ResponseTerms": {
+      "additionalProperties": false,
+      "description": "How fast the declared reduction arrives: notice needed before ``start``, and minutes from\n``start`` to the full reduction. ``duration_min`` counts from ``start``.",
+      "properties": {
+        "kind": {
+          "const": "response_terms",
+          "title": "Kind",
+          "type": "string"
+        },
+        "min_notice_min": {
+          "minimum": 0,
+          "title": "Min Notice Min",
+          "type": "integer"
+        },
+        "ramp_min": {
+          "minimum": 0,
+          "title": "Ramp Min",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "kind",
+        "min_notice_min",
+        "ramp_min"
+      ],
+      "title": "ResponseTerms",
+      "type": "object"
+    },
+    "Season": {
+      "additionalProperties": false,
+      "description": "A set of calendar months. A surface's seasons partition the twelve months.",
+      "properties": {
+        "months": {
+          "items": {
+            "maximum": 12,
+            "minimum": 1,
+            "type": "integer"
+          },
+          "minItems": 1,
+          "title": "Months",
+          "type": "array"
+        },
+        "season_id": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]*$",
+          "title": "Season Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "season_id",
+        "months"
+      ],
+      "title": "Season",
+      "type": "object"
+    },
+    "TemperatureBand": {
+      "additionalProperties": false,
+      "properties": {
+        "max_tenths_c": {
+          "maximum": 1000,
+          "minimum": -500,
+          "title": "Max Tenths C",
+          "type": "integer"
+        },
+        "min_tenths_c": {
+          "maximum": 1000,
+          "minimum": -500,
+          "title": "Min Tenths C",
+          "type": "integer"
+        },
+        "point": {
+          "$ref": "#/$defs/MeasurementPoint"
+        }
+      },
+      "required": [
+        "point",
+        "min_tenths_c",
+        "max_tenths_c"
+      ],
+      "title": "TemperatureBand",
+      "type": "object"
+    },
+    "ThermalLimits": {
+      "additionalProperties": false,
+      "description": "Spec A4-02 / TF-02: the IT-safety limits the availability is bounded by.\n\n``binding`` is the band ThermaFlex enforces as a hard constraint. It is declared, not\ncomputed. Checked:\n\n- the binding band, and a known SLA band, are measured at the ASHRAE band's point, so the\n  nesting is never skipped (an SLA stated at another point is translated by the producer);\n- the binding band lies inside the ASHRAE band, and inside a known SLA band;\n- ``binding_source`` matches: ``ashrae`` is the ASHRAE band exactly, ``customer_sla`` is the\n  SLA band exactly, ``operator_margin`` is any band inside both.\n\nTemperature only: which humidity limit is enforced when ASHRAE and the SLA differ is not\nstated in v1.",
+      "properties": {
+        "ashrae": {
+          "$ref": "#/$defs/AshraeLimit"
+        },
+        "binding": {
+          "$ref": "#/$defs/TemperatureBand"
+        },
+        "binding_source": {
+          "$ref": "#/$defs/LimitSource"
+        },
+        "chiller_min_off_min": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "$ref": "#/$defs/Unknown"
+            }
+          ],
+          "title": "Chiller Min Off Min"
+        },
+        "chiller_min_run_min": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "$ref": "#/$defs/Unknown"
+            }
+          ],
+          "title": "Chiller Min Run Min"
+        },
+        "customer_sla": {
+          "discriminator": {
+            "mapping": {
+              "customer_sla": "#/$defs/CustomerSlaLimit",
+              "not_applicable": "#/$defs/NotApplicable",
+              "unknown": "#/$defs/Unknown"
+            },
+            "propertyName": "kind"
+          },
+          "oneOf": [
+            {
+              "$ref": "#/$defs/CustomerSlaLimit"
+            },
+            {
+              "$ref": "#/$defs/NotApplicable"
+            },
+            {
+              "$ref": "#/$defs/Unknown"
+            }
+          ],
+          "title": "Customer Sla"
+        }
+      },
+      "required": [
+        "ashrae",
+        "customer_sla",
+        "binding",
+        "binding_source",
+        "chiller_min_run_min",
+        "chiller_min_off_min"
+      ],
+      "title": "ThermalLimits",
+      "type": "object"
+    },
+    "TimeBand": {
+      "additionalProperties": false,
+      "description": "A half-open local-clock window ``[start_minute, end_minute)`` on `CLOCK`.\n\nMinutes after local midnight; ``end_minute == 1440`` is midnight at the end of the day. A\nband never wraps midnight. A cell's kW is indexed by the **start** of a flex event: \"from\n00:15 the site can hold X kW for Y minutes\", which is how A4-03 states it. Authority and\nassessment are not: `check_instruction` refuses an event that touches an ``unavailable`` or\n``unknown`` cell anywhere in ``[start, end)``.",
+      "properties": {
+        "band_id": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]*$",
+          "title": "Band Id",
+          "type": "string"
+        },
+        "end_minute": {
+          "maximum": 1440,
+          "minimum": 1,
+          "title": "End Minute",
+          "type": "integer"
+        },
+        "start_minute": {
+          "maximum": 1439,
+          "minimum": 0,
+          "title": "Start Minute",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "band_id",
+        "start_minute",
+        "end_minute"
+      ],
+      "title": "TimeBand",
+      "type": "object"
+    },
+    "TrialledBasis": {
+      "additionalProperties": false,
+      "description": "Observed in a bounded trial of flex events against a baseline method fixed in advance\n(A4-04). Requires IC-4 evidence: the trial records and the registered baseline method.",
+      "properties": {
+        "baseline_method": {
+          "$ref": "#/$defs/EvidenceRef"
+        },
+        "kind": {
+          "const": "trialled",
+          "title": "Kind",
+          "type": "string"
+        },
+        "n_events": {
+          "minimum": 1,
+          "title": "N Events",
+          "type": "integer"
+        },
+        "observed_from": {
+          "format": "date-time",
+          "title": "Observed From",
+          "type": "string"
+        },
+        "observed_until": {
+          "format": "date-time",
+          "title": "Observed Until",
+          "type": "string"
+        },
+        "trial_evidence": {
+          "items": {
+            "$ref": "#/$defs/EvidenceRef"
+          },
+          "minItems": 1,
+          "title": "Trial Evidence",
+          "type": "array"
+        }
+      },
+      "required": [
+        "kind",
+        "trial_evidence",
+        "baseline_method",
+        "observed_from",
+        "observed_until",
+        "n_events"
+      ],
+      "title": "TrialledBasis",
+      "type": "object"
+    },
+    "Unavailable": {
+      "additionalProperties": false,
+      "description": "Not offered in this cell at all, for a coded reason. No instruction may start in it or\nrun into it (`check_instruction` reads the whole event).",
+      "properties": {
+        "detail": {
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Detail",
+          "type": "string"
+        },
+        "kind": {
+          "const": "unavailable",
+          "title": "Kind",
+          "type": "string"
+        },
+        "reason_code": {
+          "$ref": "#/$defs/UnavailableReason"
+        }
+      },
+      "required": [
+        "kind",
+        "reason_code",
+        "detail"
+      ],
+      "title": "Unavailable",
+      "type": "object"
+    },
+    "UnavailableReason": {
+      "description": "Why a cell is not offered at all (as distinct from offered at 0 kW).",
+      "enum": [
+        "control_authority_not_granted",
+        "outside_agreed_window",
+        "host_withdrawn",
+        "maintenance",
+        "plant_fault"
+      ],
+      "title": "UnavailableReason",
+      "type": "string"
+    },
+    "Unknown": {
+      "additionalProperties": false,
+      "description": "A value that exists but is not known. Always explicit, always with a reason; never ``None``.\n\nSerialised as ``{\"kind\": \"unknown\", \"reason\": \"...\"}``. ``kind`` is required (no default) so\na hand-written payload that omits it is refused rather than guessed at.",
+      "properties": {
+        "kind": {
+          "const": "unknown",
+          "title": "Kind",
+          "type": "string"
+        },
+        "reason": {
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Reason",
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind",
+        "reason"
+      ],
+      "title": "Unknown",
+      "type": "object"
+    },
+    "ZeroFlex": {
+      "additionalProperties": false,
+      "description": "Assessed, offered, and the answer is 0 kW (e.g. chillers at full load on a summer peak).\n\nDistinct from `Unavailable` (not offered) and `Unknown` (not assessed): a zero-flex cell is a\nfinding with the surface's evidence class behind it, like a flex cell. A cell without\nevidence of that class is `Unknown`.",
+      "properties": {
+        "kind": {
+          "const": "zero_flex",
+          "title": "Kind",
+          "type": "string"
+        },
+        "reason": {
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Reason",
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind",
+        "reason"
+      ],
+      "title": "ZeroFlex",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "description": "IC-11 v1.0.0 availability surface for one site's cooling plant.\n\nGrid: ``seasons`` partition the twelve months; ``bands`` partition the local day; ``cells``\nhold exactly one entry per (season, band), in season order then band order. Each cell is\n`Flex`, `ZeroFlex`, `Unavailable` or `Unknown`, never null. Power kW, energy kWh, time in\nminutes, temperatures in tenths of a degree: integers throughout.\n\nEvery curve kW is firm: deliverable for its duration at any event start inside the cell,\nwithin the binding IT-safety band. ``evidence_class`` is the floor for every ``flex`` and\n``zero_flex`` cell; a cell without evidence of that class is ``unknown``.",
+  "properties": {
+    "bands": {
+      "items": {
+        "$ref": "#/$defs/TimeBand"
+      },
+      "minItems": 1,
+      "title": "Bands",
+      "type": "array"
+    },
+    "cells": {
+      "items": {
+        "$ref": "#/$defs/AvailabilityCell"
+      },
+      "minItems": 1,
+      "title": "Cells",
+      "type": "array"
+    },
+    "clock": {
+      "const": "Europe/London",
+      "title": "Clock",
+      "type": "string"
+    },
+    "contract": {
+      "const": "IC-11",
+      "default": "IC-11",
+      "title": "Contract",
+      "type": "string"
+    },
+    "contract_version": {
+      "const": "1.0.0",
+      "default": "1.0.0",
+      "title": "Contract Version",
+      "type": "string"
+    },
+    "cooling_electrical_capacity_kw": {
+      "anyOf": [
+        {
+          "minimum": 1,
+          "type": "integer"
+        },
+        {
+          "$ref": "#/$defs/Unknown"
+        }
+      ],
+      "title": "Cooling Electrical Capacity Kw"
+    },
+    "evidence": {
+      "discriminator": {
+        "mapping": {
+          "metered": "#/$defs/MeteredBasis",
+          "modelled": "#/$defs/ModelledBasis",
+          "trialled": "#/$defs/TrialledBasis"
+        },
+        "propertyName": "kind"
+      },
+      "oneOf": [
+        {
+          "$ref": "#/$defs/ModelledBasis"
+        },
+        {
+          "$ref": "#/$defs/TrialledBasis"
+        },
+        {
+          "$ref": "#/$defs/MeteredBasis"
+        }
+      ],
+      "title": "Evidence"
+    },
+    "evidence_class": {
+      "$ref": "#/$defs/EvidenceClass"
+    },
+    "issued_at": {
+      "format": "date-time",
+      "title": "Issued At",
+      "type": "string"
+    },
+    "limits": {
+      "$ref": "#/$defs/ThermalLimits"
+    },
+    "record_class": {
+      "enum": [
+        "registered",
+        "synthetic_fixture"
+      ],
+      "title": "Record Class",
+      "type": "string"
+    },
+    "response": {
+      "discriminator": {
+        "mapping": {
+          "response_terms": "#/$defs/ResponseTerms",
+          "unknown": "#/$defs/Unknown"
+        },
+        "propertyName": "kind"
+      },
+      "oneOf": [
+        {
+          "$ref": "#/$defs/ResponseTerms"
+        },
+        {
+          "$ref": "#/$defs/Unknown"
+        }
+      ],
+      "title": "Response"
+    },
+    "seasons": {
+      "items": {
+        "$ref": "#/$defs/Season"
+      },
+      "minItems": 1,
+      "title": "Seasons",
+      "type": "array"
+    },
+    "site_id": {
+      "minLength": 1,
+      "pattern": "\\S",
+      "title": "Site Id",
+      "type": "string"
+    },
+    "surface_id": {
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]*$",
+      "title": "Surface Id",
+      "type": "string"
+    },
+    "topology": {
+      "items": {
+        "$ref": "#/$defs/CoolingTopology"
+      },
+      "minItems": 1,
+      "title": "Topology",
+      "type": "array"
+    },
+    "valid_from": {
+      "format": "date-time",
+      "title": "Valid From",
+      "type": "string"
+    },
+    "valid_until": {
+      "format": "date-time",
+      "title": "Valid Until",
+      "type": "string"
+    }
+  },
+  "required": [
+    "surface_id",
+    "site_id",
+    "record_class",
+    "topology",
+    "cooling_electrical_capacity_kw",
+    "issued_at",
+    "valid_from",
+    "valid_until",
+    "clock",
+    "evidence_class",
+    "evidence",
+    "limits",
+    "response",
+    "seasons",
+    "bands",
+    "cells"
+  ],
+  "title": "ThermalFlexAvailability",
+  "type": "object"
+}

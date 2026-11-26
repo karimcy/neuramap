@@ -1,0 +1,97 @@
+{% extends "base.html" %}
+{% block title %}Add equipment - GridQ{% endblock %}
+{% block crumbs %}<a href="/">Dashboard</a> <span class="sep">/</span> <a href="/equipment">Equipment</a> <span class="sep">/</span> <span class="here">Add</span>{% endblock %}
+{% block content %}
+
+<div class="card-head" style="margin-bottom:1rem">
+  <h1 style="margin:0">Add equipment</h1>
+  <a class="btn secondary" href="/equipment">Back to catalogue</a>
+</div>
+
+<p class="lede">Extend the catalogue with your own product. <strong>Type the specs from the
+  manufacturer datasheet</strong>, and attach the datasheet as the source of truth. Nothing is read
+  off the file for you: the figures you enter are the ones stored, so the catalogue stays honest.</p>
+
+{% if error %}
+<div class="panel error" role="alert"><strong>Could not add that product:</strong> {{ error }}</div>
+{% endif %}
+
+<form method="post" action="/equipment/upload" class="siteform" enctype="multipart/form-data">
+  <fieldset>
+    <legend>Product</legend>
+    <div class="field">
+      <label for="eq-category">Equipment type</label>
+      <select id="eq-category" name="category">
+        {% for key, label in labels.items() %}
+        <option value="{{ key }}" {% if category == key %}selected{% endif %}>{{ label }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="field-row">
+      <div class="field"><label for="maker">Manufacturer</label>
+        <input id="maker" name="maker" value="{{ form.get('maker', '') }}" placeholder="e.g. Tesla"></div>
+      <div class="field"><label for="model">Model</label>
+        <input id="model" name="model" value="{{ form.get('model', '') }}" placeholder="e.g. Powerwall 3"></div>
+    </div>
+  </fieldset>
+
+  {% for cat, spec in specs.items() %}
+  <fieldset class="eq-cat-fields" data-cat="{{ cat }}">
+    <legend>{{ labels[cat] }} specs</legend>
+    <div class="field-row">
+      {% for f in spec.numbers %}
+      <div class="field">
+        <label for="{{ cat }}-{{ f.key }}">{{ f.label }}</label>
+        <input id="{{ cat }}-{{ f.key }}" name="{{ cat ~ '__' ~ f.key }}" inputmode="decimal"
+          step="{{ f.step }}" value="{{ form.get(cat ~ '__' ~ f.key, '') }}">
+      </div>
+      {% endfor %}
+      {% for t in spec.texts %}
+      <div class="field">
+        <label for="{{ cat }}-{{ t.key }}">{{ t.label }}</label>
+        <input id="{{ cat }}-{{ t.key }}" name="{{ cat ~ '__' ~ t.key }}"
+          placeholder="{{ t.placeholder | default('') }}" value="{{ form.get(cat ~ '__' ~ t.key, '') }}">
+      </div>
+      {% endfor %}
+    </div>
+    {% for b in spec.bools %}
+    <div class="field">
+      <label for="{{ cat }}-{{ b.key }}" style="display:flex;align-items:center;gap:0.5rem;font-weight:600">
+        <input id="{{ cat }}-{{ b.key }}" type="checkbox" name="{{ cat ~ '__' ~ b.key }}" value="1"
+          style="width:auto" {% if form.get(cat ~ '__' ~ b.key) %}checked{% endif %}> {{ b.label }}</label>
+    </div>
+    {% endfor %}
+  </fieldset>
+  {% endfor %}
+
+  <fieldset>
+    <legend>Datasheet</legend>
+    <div class="field"><label for="datasheet">Manufacturer datasheet <span class="muted">(optional)</span></label>
+      <input id="datasheet" name="datasheet" type="file" accept=".pdf,.png,.jpg,.jpeg">
+      <span class="hint">PDF, PNG or JPG, up to 10 MB. Stored as the source of the specs above,
+        never parsed to fill them in.</span></div>
+  </fieldset>
+
+  <div style="display:flex;gap:0.6rem;flex-wrap:wrap">
+    <button type="submit" class="btn">Add to catalogue</button>
+    <a class="btn secondary" href="/equipment">Cancel</a>
+  </div>
+</form>
+
+<script>
+  (function () {
+    var sel = document.getElementById("eq-category");
+    var groups = document.querySelectorAll(".eq-cat-fields");
+    function sync() {
+      groups.forEach(function (g) {
+        var on = g.getAttribute("data-cat") === sel.value;
+        g.hidden = !on;
+        // Disable hidden groups' controls so the no-longer-visible fields are not submitted.
+        g.querySelectorAll("input").forEach(function (el) { el.disabled = !on; });
+      });
+    }
+    if (sel) { sel.addEventListener("change", sync); sync(); }
+  })();
+</script>
+
+{% endblock %}

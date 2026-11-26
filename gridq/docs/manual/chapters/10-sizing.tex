@@ -1,0 +1,267 @@
+\chapter{The sizing optimiser}
+\label{ch:sizing}
+\modtag{M4}{Sizing optimiser}{Deterministic core}
+
+The previous chapter showed how the platform decides what \emph{one} battery of a given size would earn and cost across a year of half-hourly operation. This chapter answers the question that sits on top of that: \emph{which} battery should the customer actually install? How big should it be?
+
+The sizing optimiser is the layer that chooses the three headline numbers in the system specification: the battery's power (how fast it can charge or discharge, in kilowatts), its duration (how many hours it can sustain that power for), and the energy that the two together imply (power multiplied by duration, in kilowatt-hours). It does this not by guessing or by applying a rule of thumb, but by searching a wide space of candidate sizes (a coarse sweep followed by a seeded refinement, described later in this chapter), running each candidate through the full pricing path, and keeping the size that produces the best return a lender would actually accept.
+
+\begin{plainnote}
+A bigger battery earns more, but it also costs more to buy and finance. Somewhere in between is the size that gives the project owner the best return on the money they put in -- but only among the sizes a bank would lend against. The sizing optimiser finds that point by brute force: it prices every candidate and picks the winner. It never invents a system; it only ever chooses from sizes it has fully evaluated.
+\end{plainnote}
+
+\pipelinepos{receives a validated \textbf{SiteModel} (Ch.~\ref{ch:contracts}) and the versioned assumptions (Ch.~\ref{ch:assumptions}); hands the chosen specification and the full evaluated grid to the financial model (Ch.~\ref{ch:finance}) and the outputs (Ch.~\ref{ch:outputs}).}
+
+\begin{contract}
+\textbf{In:}
+\begin{itemize}
+  \item A validated \code{SiteModel} (the canonical site: load, connection limits, tariff).
+  \item The versioned assumption library (covenant ratio, costs, degradation, durations).
+  \item A \emph{search space}: the candidate power and duration values to try.
+  \item An injected \emph{dispatch solver} (the half-hourly optimiser of Ch.~\ref{ch:dispatch}), an \emph{objective} (the bankable rule below), and optional \emph{debt terms}.
+\end{itemize}
+\textbf{Out:} a \code{SizingRun} holding, for every candidate evaluated, its dispatch-and-finance outcome; the chosen optimum (or an honest ``none feasible''); the list of candidates the covenant rejected; and a serialisable \code{SizingGrid} projection that feeds the 3D sizing surface in the outputs.
+\end{contract}
+
+\section{Two M4 components: the primitives and the engine that runs them}
+
+It is worth separating two things up front, because the codebase does.
+
+\begin{description}
+  \item[The sizing primitives.] A small, self-contained package (\fpath{sizing/}) defines the building blocks: the \emph{search space} (the grid of sizes to try), the \emph{objective} (the rule for which size is best and which are allowed at all), and the \emph{outer loop} that drives a dispatch solver and the financial model over every candidate. These primitives know nothing about how dispatch is actually solved; they are handed a solver and call it.
+  \item[The production engine.] A higher layer (\fpath{optimisation/engine.py}) wires the real half-hourly MILP solver into those primitives and exposes the result behind the engine interface that the rest of the platform talks to (the platform/engine seam of Ch.~\ref{ch:engine}). This is where the full evaluated grid is captured and surfaced for plotting.
+\end{description}
+
+This split is deliberate. The sizing logic is written once, against an abstract solver, and is ``MILP-ready'': swapping the placeholder solver for the real one changes the numbers but not a single line of the sizing loop.
+
+\begin{keyidea}[One engine, called many times]
+The platform does not have a separate ``sizing model'' that approximates returns. It has \emph{one} pricing engine -- dispatch then finance -- and the sizing optimiser simply calls that same engine once for every candidate size, then picks the best answer. Because sizing and the later underwriting re-price both reduce to the identical per-spec primitive, the size the optimiser chooses reprices to exactly the same numbers when underwritten. The specification and the underwriting pack therefore cannot disagree about the battery.
+\end{keyidea}
+
+\section{The search space: a grid of power by duration}
+
+The search space is a deterministic, validated grid. It has two axes:
+
+\begin{itemize}
+  \item \textbf{Power candidates} (kW). These are always supplied by the caller, never invented inside the sizing code. The right scale for a battery is site-specific -- it is bounded by the site's load, by how much the grid connection can carry, and by physical footprint -- so fabricating an absolute kW figure here would breach the platform's ``no invented site data'' rule. The production engine derives them as fractions of the site's binding capacity (see below).
+  \item \textbf{Duration candidates} (hours). These carry a labelled structural default of \code{(1, 2, 4)} hours. Durations are a small, structural set, and the assumption library is already keyed on exactly these values (for warranty cycle caps and Capacity Market de-rating factors). A caller may pass other durations, but values with no library key would have no assumptions to price against. This default injects no money or percentage into any output; it is a structural choice, not a hidden financial constant.
+\end{itemize}
+
+Each axis is validated on construction: every value must be a strictly positive number (a zero-kW or zero-hour battery is not a candidate, and negatives are rejected outright), and each axis is de-duplicated and sorted ascending. The grid itself is the Cartesian product of the two axes, enumerated in a fixed \code{(power, duration)} order so that two runs on the same inputs produce candidates in the same sequence.
+
+\begin{table}[H]
+\centering
+\caption{The search space and each candidate. Energy is always derived, never an independent input.}
+\label{tab:searchspace}
+\small\sffamily
+\begin{tabularx}{\textwidth}{@{}l l L@{}}
+\toprule
+\textbf{Quantity} & \textbf{Unit} & \textbf{Rule} \\
+\midrule
+Power axis & kW & Caller-supplied; strictly positive; de-duplicated; sorted ascending. \\
+Duration axis & h & Default \code{(1, 2, 4)}; caller may override; same validation. \\
+Candidate & -- & One \code{(power, duration)} pair from the Cartesian product. \\
+Energy & kWh & \emph{Derived}: \code{energy\_kwh = power\_kw $\times$ duration\_hours}, rounded to 6 d.p. \\
+Enumeration order & -- & By the \code{(power, duration)} tuple, ascending -- deterministic. \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\begin{caution}[Energy is derived, and order is by power-then-duration]
+A candidate stores only power and duration; its energy is computed from them on demand, so the three numbers can never drift apart. Enumeration is ordered by the \code{(power, duration)} pair, \emph{not} by derived energy: a 100\,kW $\times$ 4\,h system and a 200\,kW $\times$ 2\,h system both hold 400\,kWh, so ordering by energy would be ambiguous for such ties. An empty axis yields no candidates, and the loop treats that as ``nothing to evaluate'' rather than an error.
+\end{caution}
+
+\subsection{How the production engine searches: the two-stage continuous search}
+
+When the real engine sizes a site it does not ask a human for power candidates. Its default search is the labelled three-by-three grid; the two-stage continuous search described here is built and verified but \textbf{opt-in}, because on the shipped assumption releases capital cost is keyed per megawatt only -- added duration earns revenue at zero marginal capital cost, so any wide-duration search pins its recommendation to the band edge. That is a placeholder artifact, not an optimum, and the engine refuses to present it as one until the capital-cost shape gains an energy component (the C025 gate). Either search scales to the site's \emph{binding capacity}: the observed peak import if the site has metered load, otherwise the contracted connection limit (the maximum import capacity, or MIC). If the site has neither, there is no honest basis to scale from, and the engine returns a no-specification result rather than guessing.
+
+The search then runs in three stages, all deterministic:
+
+\begin{enumerate}
+  \item \textbf{Coarse sweep.} Ten labelled structural power fractions spanning 5 to 150 percent of the binding capacity are paired with eight durations from half an hour to eight hours. Every cell is priced through the full pricing path, but against a \emph{typical-period proxy}: one representative metered day per calendar stratum (each month, split weekday against weekend), chosen as the day closest to its peers (the medoid) and weighted by how many complete days it stands for. Only complete, gap-free days qualify; nothing is filled in or invented, and each proxy result is labelled as such.
+  \item \textbf{Seeded refinement.} A small evolutionary loop (differential evolution, driven by a fixed seed, with every evaluation memoised) explores the same continuous box, starting from the best coarse cells, for a budget of roughly two hundred evaluations. It is free to land between the coarse cells: durations such as 2.7 hours are real candidates. Duration-keyed assumption tables keep the conservative-flooring lookup (the largest tabulated duration at or below the candidate's); interpolating between tabulated points is deferred until sourced warranty and de-rating content lands. One caution travels with that choice: the warranty cycle table \emph{decreases} with duration, so flooring an off-key duration inherits the shorter duration's higher cap -- a known generosity, flagged for the interpolation-policy decision rather than silently accepted.
+  \item \textbf{Confirmation and polish.} A diverse set of top-ranked candidates (up to ten; near-clones are skipped so the set covers the optimum region, not one point) is re-solved on the \emph{full} metered series, followed by a bounded compass polish around the best confirmed candidate (a handful of exact solves, deterministic step schedule). The \emph{best} confirmed candidate that clears the covenant wins -- never merely the first to pass -- and only confirmed evaluations can be selected or reported.
+\end{enumerate}
+
+\begin{caution}[Proxy numbers guide, confirmed numbers report]
+The typical-period proxy exists to make a few hundred candidate evaluations affordable; it is search guidance, not an answer. Every proxy evaluation is labelled (a \code{proxy} flag and a provenance warning on the result), the chosen size is always re-solved on the full metered year before anything downstream sees it, and the engine's indicative fallback never picks a proxy evaluation. No reported number ever comes from an approximation.
+\end{caution}
+
+Every candidate evaluated in any stage is kept and persisted (stage-labelled) as the sizing cloud, so the plotted surface is a genuinely continuous picture of the trade-off space rather than nine points. The legacy three-by-three grid is the engine default (pending the C025 gate above) and the honest fallback when no metered series is available, where each candidate degrades to an insufficient-data result exactly as before.
+
+\section{The bankable objective: maximise return, subject to the covenant}
+
+The rule for ``best'' is the heart of the module. Stated plainly:
+
+\begin{quote}\sffamily
+Search power, energy and duration to maximise the \emph{levered} (equity) return, subject to the hard constraint that the conservative P90 debt service cover ratio stays at or above its covenant.
+\end{quote}
+
+Two terms need unpacking for a non-specialist reader.
+
+\begin{description}
+  \item[Levered (equity) return.] The return on the cash the project's owners actually invest, after the loan is serviced. Because debt is cheaper than equity, borrowing amplifies (``levers'') the equity return. This is the finance model's equity internal rate of return (IRR) on the central P50 case, and it is the number sizing tries to make as large as possible.
+  \item[P90 DSCR covenant.] DSCR is the debt service cover ratio: the cash a project generates in a year divided by the loan repayment due that year. A DSCR of 1.0 means the cash exactly covers the repayment; lenders demand a comfortable cushion above 1.0. The \emph{P90} DSCR is that ratio computed on a deliberately pessimistic (one-in-ten bad) cashflow. The \emph{covenant} is the minimum P90 DSCR the lender will accept. (See Ch.~\ref{ch:finance} and Appendix~\ref{app:glossary}.)
+\end{description}
+
+The crucial design choice is that the covenant is \emph{embedded inside the objective as a feasibility gate}, not bolted on as a check afterwards. A candidate the covenant would reject can never be selected, because the optimiser only ever ranks candidates that have already passed the gate.
+
+\subsection{The feasibility gate, exactly}
+
+A candidate is \emph{feasible} only if all of the following hold. If any fails, the candidate is not eligible to win, no matter how high its return:
+
+\begin{table}[H]
+\centering
+\caption{The feasibility gate. A missing input never counts as a pass.}
+\label{tab:gate}
+\small\sffamily
+\begin{tabularx}{\textwidth}{@{}l L@{}}
+\toprule
+\textbf{Condition} & \textbf{Why, and what a missing value means} \\
+\midrule
+Covenant known & The minimum P90 DSCR must be read from the assumption library. If it is unknown, \emph{no} candidate can be proven feasible. \\
+P90 DSCR available & The candidate's P90 DSCR must have been computed. It is only available when real debt terms are injected, because the library carries no debt structure in v1. Unavailable means not feasible -- never an assumed pass. \\
+P90 DSCR $\ge$ covenant & The conservative cover ratio must meet or beat the covenant. \\
+Not known non-deliverable & The spec must not have an explicit ``cannot be delivered to end of life'' verdict (see below). \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\begin{caution}[A missing number is never a silent pass]
+The gate is built so that absence of evidence is treated as failure, not success. No covenant, no DSCR, or an explicit non-deliverable verdict all make a candidate infeasible. A \code{None} value is never compared as if it were a number. This is what lets the platform run honestly on placeholder data: when the inputs to prove bankability are absent, nothing is declared bankable.
+\end{caution}
+
+\subsection{Ranking the feasible candidates}
+
+Among the candidates that pass the gate, the optimiser picks the maximum under a deterministic ranking key. The key prefers, in strict order: first a candidate that has a levered return at all, then the higher levered return; then (only as a labelled fallback when no debt is injected and there is no levered split) a candidate that has an unlevered project IRR, then the higher project IRR; then, as a tie-break, the \emph{smaller} system -- smaller power first, then smaller duration. Unavailable metrics sort last via an availability flag, so a missing number is never treated as a value. The smaller-system tie-break means that when two sizes earn the same return, the platform recommends the cheaper, less over-built one.
+
+\begin{keyidea}[The levered return is the primary metric, and it is honest about itself]
+The objective ranks first on the equity (levered) return, which exists only when real debt terms are supplied. Without debt there is no levered split, so the optimiser falls back to ranking on the unlevered project return and explicitly flags that a ranking on the fallback is \emph{not yet a bankable optimisation}. It never fabricates a levered figure to fill the gap.
+\end{keyidea}
+
+\section{Sizing day-one for end-of-life capability}
+
+A battery degrades over its life: it holds less energy and earns less each year. The platform sizes the system \emph{day one for its end-of-life duty}, with no augmentation (no mid-life top-up of cells). The consequence is subtle and important: the year that decides whether the project clears its covenant -- the \emph{binding} year -- may be late in the asset's life, when degradation has eaten into the cashflow and the P90 DSCR is at its weakest.
+
+This is handled cleanly by the division of labour. Degradation already flows through the financial model: revenue fades over the years, so the late-life P90 cashflow is lower, so the late-life P90 DSCR is lower. The sizing objective therefore does \emph{not} re-model degradation. The feasibility gate consumes the P90 DSCR that finance has already computed across the whole horizon, and the conservative (minimum across years) value is the one tested against the covenant. The only extra thing the gate does is reject a spec carrying an \emph{explicit} ``not deliverable to its final contract year'' verdict.
+
+\begin{caution}[Unassessed deliverability is a data-ask, not a pass]
+In the current placeholder world there is no signal that verifies late-life deliverability, so that verdict is recorded as \emph{unassessed} rather than fabricated to a pass. An unassessed verdict does not block a candidate (it is logged as a piece of data that would improve the quote); only an explicit \emph{false} verdict rejects it. A true verdict is only ever set by a real engine that has checked it. This follows the platform's honest-degradation principle: never invent a capability you have not verified.
+\end{caution}
+
+\section{The outer loop, step by step}
+
+Figure~\ref{fig:sizingloop} shows the whole loop. For each candidate in the enumerated grid the optimiser runs the same three steps: solve the dispatch, evaluate the finance, and test the covenant. Feasible candidates are kept; the best of them is selected; and the chosen specification plus the full grid are returned.
+
+\begin{figure}[H]
+\centering
+\resizebox{\textwidth}{!}{%
+\begin{tikzpicture}[node distance=9mm and 16mm]
+  \node[term] (start) {Site +\\assumptions};
+  \node[proc, right=of start] (grid) {Build search\\space\\\scriptsize power $\times$ duration grid};
+  \node[io, right=of grid] (cand) {Next\\candidate\\\scriptsize (power, duration)};
+
+  % the per-candidate pipeline
+  \node[proc, below=of cand] (dispatch) {Dispatch solve\\\scriptsize half-hourly MILP\\\scriptsize (Ch.~\ref{ch:dispatch})};
+  \node[proc, below=of dispatch] (finance) {Finance evaluate\\\scriptsize P50/P90 cashflows,\\\scriptsize P90 DSCR (Ch.~\ref{ch:finance})};
+  \node[decide, below=of finance] (gate) {P90 DSCR\\$\ge$ covenant?\\\scriptsize +deliverable};
+
+  \node[store, left=of gate, text width=26mm] (keep) {Keep as\\feasible};
+  \node[io, left=of finance, text width=26mm, fill=nodeDecision, draw=nodeDecisionBd] (reject)
+       {Record as\\\scriptsize rejected-by-covenant};
+
+  % after the loop
+  \node[decide, below=of gate] (more) {More\\candidates?};
+  \node[proc, below=of more] (rank) {Rank feasible\\by objective\\\scriptsize max levered return,\\\scriptsize smaller system tie-break};
+  \node[store, below=of rank, text width=34mm, minimum width=40mm] (out)
+       {\textbf{SizingRun}\\\scriptsize chosen spec (or none)\\\scriptsize + full evaluated grid};
+
+  % flow
+  \draw[flow] (start) -- (grid);
+  \draw[flow] (grid) -- (cand);
+  \draw[flow] (cand) -- (dispatch);
+  \draw[flow] (dispatch) -- (finance);
+  \draw[flow] (finance) -- (gate);
+  \draw[flow] (gate) -- node[flowlabel]{pass} (keep);
+  \draw[flow] (gate.west) to[out=150,in=-150] node[flowlabel]{fail} (reject.south);
+  \draw[flow] (gate) -- (more);
+  \draw[flowback] (more.east) to[out=0,in=0] node[flowlabel]{yes: loop} (cand.east);
+  \draw[flow] (more) -- node[flowlabel]{no} (rank);
+  \draw[flow] (keep) |- (rank.west);
+  \draw[flow] (rank) -- (out);
+\end{tikzpicture}}
+\caption{The sizing outer loop. The search space is enumerated; each candidate is dispatch-solved, finance-evaluated, and tested against the P90 DSCR covenant gate; feasible candidates are kept and the loop repeats; the best feasible candidate is selected; the chosen specification and the full evaluated grid are returned. The dashed arrow is the loop over candidates; the amber diamond is the covenant gate.}
+\label{fig:sizingloop}
+\end{figure}
+
+\subsection{What happens to one candidate}
+
+The per-candidate work is a single shared primitive -- the same one the standalone underwriting re-price uses -- so that sizing and underwriting can never drift. For one fixed candidate it:
+
+\begin{enumerate}
+  \item Builds a dispatch problem (the site, the assumptions, this candidate's power, energy and duration, the requested income streams and their constraints) and calls the injected dispatch solver.
+  \item Maps the solver's result onto the frozen \code{OptimisationResult} contract, carrying the implementation level and bankable status straight through (the placeholder is always BASELINE / not-bankable, which the schema enforces).
+  \item Runs the deterministic financial model on that result, threading through the candidate's annual charge and discharge volumes so finance can compute charging levies and the price-to-target.
+  \item Reads off the metrics the objective needs: the minimum P90 DSCR (if available), the covenant and whether the candidate passes it, the levered (equity) return, and the unlevered project IRR.
+\end{enumerate}
+
+\begin{caution}[An unpriceable candidate is recorded, not dropped]
+If the financial model cannot build a cashflow for a candidate (for example a dispatch that produced no positive sizing), that candidate is recorded with \code{priceable = false} and carries on; it is never selected and never raises an error. Honest accounting keeps every candidate visible in the grid, including the ones that could not be priced.
+\end{caution}
+
+\subsection{Selection and the bankable flag}
+
+After the loop, the feasible candidates are ranked and the maximum is selected. The run's overall \code{bankable} flag is set to true \emph{only} if the selected candidate is itself bankable \emph{and} its primary metric (the levered return) was actually computed. On the placeholder assumption set this can never be true, so every sizing run is honestly not bankable. The run also separately records the candidates the covenant \emph{explicitly} rejected (those whose DSCR was available but fell short), kept distinct from candidates whose DSCR was simply unavailable.
+
+\begin{keyidea}[At least one grid point is rejected, so the gate demonstrably fires]
+When real debt terms make the P90 DSCR computable, the grid is constructed so that at least one candidate fails the covenant and lands on the rejected-by-covenant list. This is not incidental: it is how the platform \emph{proves} the bankable gate is live rather than vacuous. A run where nothing was ever rejected could not demonstrate that the constraint is doing any work. The rejected list is the evidence that a sub-covenant size was offered up and turned away.
+\end{keyidea}
+
+\section{The full evaluated grid and the sizing surface}
+
+The frozen \code{OptimisationResult} carries only the \emph{chosen} candidate's specification. But the platform also needs the full picture -- every candidate it tried and how each scored -- so the proposal can show the customer \emph{why} this size, on an interactive 3D ``sizing surface''. That surface plots power against duration against levered return, highlights the region that meets the P90 DSCR covenant, and marks the chosen optimum.
+
+The sizing run therefore projects itself into a separate, serialisable \code{SizingGrid} record. This is an \emph{additive seam}: it copies each candidate's plottable scalars straight off its evaluation, inventing nothing, and is persisted alongside the quote without adding any field to the frozen result. The production engine captures the whole run on every solve -- even when no candidate produced a spec, so the surface can still show an honestly infeasible grid -- and exposes it for the quote pipeline to persist.
+
+\begin{table}[H]
+\centering
+\caption{What each point of the persisted sizing grid carries. Every field is copied from the evaluation; an unavailable metric stays \code{None}, never coerced to a number.}
+\label{tab:gridpoint}
+\small\sffamily
+\begin{tabularx}{\textwidth}{@{}l l L@{}}
+\toprule
+\textbf{Field} & \textbf{Unit} & \textbf{Meaning} \\
+\midrule
+power\_kw & kW & The candidate's power. \\
+duration\_hours & h & The candidate's duration. \\
+energy\_kwh & kWh & Derived: power $\times$ duration. \\
+levered\_return\_pct & \% & Equity IRR (P50 basis); \code{None} without injected debt -- the surface's height axis. \\
+project\_irr\_pct & \% & Unlevered project IRR (the labelled fallback). \\
+min\_p90\_dscr & ratio & Conservative cover ratio; \code{None} when no debt structure. \\
+passes\_covenant & true/false/none & Feasibility flag: \code{None} when DSCR is unavailable, never forced to false. \\
+priceable & bool & Whether finance could build a cashflow at all. \\
+bankable & bool & Whether this candidate cleared the bankable bar. \\
+solver\_status & enum & The dispatch solver's status for this candidate. \\
+end\_of\_life\_deliverable & true/false/none & Late-life capability verdict (\code{None} = unassessed data-ask). \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+The grid-level record wraps these points with the search-space size, the covenant the feasibility flags were measured against, the overall bankable flag, the human-readable selection reason, and the chosen optimum (or \code{None} when no candidate met the covenant -- honest, not an error).
+
+\section{Why sizing and underwriting cannot disagree}
+
+The platform makes a strong promise: the size in the customer proposal is the same size the lender underwrote, priced to the same numbers. The sizing module is where that promise is made structural. Sizing \emph{searches} specifications; underwriting \emph{prices} the chosen one. Both reduce to the identical per-spec primitive -- same dispatch solver, same value stack, same finance model. The underwriting re-price is deliberately handed only the raw inputs (site, assumptions, the chosen spec), not the sizer's pre-built result, and it reconstructs the dispatch-and-finance path independently. Because both paths run the same deterministic primitive on the same canonical inputs, the chosen spec reprices to byte-identical numbers. A timestamp-free \emph{financial fingerprint} (the load-bearing finance numbers, with the wall-clock metadata excluded) is compared between the two to prove it. The optimiser therefore cannot select a spec that underwriting would reject.
+
+\begin{rebuild}
+To re-implement the sizing optimiser from scratch:
+\begin{enumerate}
+  \item \textbf{Search space.} Define an immutable candidate as \code{(power\_kw, duration\_hours)} with energy \emph{derived} as their product (never stored independently). Validate both axes as strictly positive numbers; de-duplicate and sort each ascending. The grid is the Cartesian product, enumerated in \code{(power, duration)} order. Give duration a labelled structural default of \code{(1, 2, 4)} hours; require the caller to supply power candidates (or, in the production engine, scale them as fractions \code{(0.25, 0.5, 1.0)} of the site's observed peak, falling back to its connection limit).
+  \item \textbf{Objective.} Hold the covenant ratio. Expose a \emph{feasibility} test that returns true only if: the covenant is known, the P90 DSCR is available, the P90 DSCR meets the covenant, and the deliverability verdict is not explicitly false. Treat every missing value as failure. Expose a deterministic \emph{rank key} that maximises the levered return first, falls back to the project IRR, and tie-breaks toward the smaller system; sort unavailable metrics last via an availability flag so \code{None} is never compared as a number.
+  \item \textbf{Per-spec primitive.} Write one function that, for a fixed spec, builds a dispatch problem, calls an \emph{injected} solver, maps the result onto the frozen result contract, runs the financial model (threading dispatch volumes through), and returns the metrics the objective reads. Catch an unpriceable result and record it (\code{priceable = false}); never raise.
+  \item \textbf{Outer loop.} Enumerate the grid; evaluate each candidate via the primitive; collect the covenant-rejected ones separately. Filter to the feasible set; take the maximum under the rank key. Set the run's \code{bankable} flag true only when the selected candidate is bankable \emph{and} its levered metric exists. Return all evaluations, the selection, the rejected list, and the reason.
+  \item \textbf{Grid projection.} Project the run into a serialisable grid of plottable scalars (copy, no arithmetic), preserving enumeration order; carry the covenant and the chosen optimum (or none). Persist this additively, without adding fields to the frozen result.
+  \item \textbf{Production engine.} Compose the loop with the real MILP solver behind the engine interface; degrade to a no-spec result when there is no sizing basis or no dispatch; expose the captured run and dispatch volumes as duck-typed hooks for the quote pipeline.
+\end{enumerate}
+\textbf{Invariants to test:} energy always equals power $\times$ duration; enumeration order is deterministic and stable across runs; a missing covenant or DSCR yields no feasible candidate; with real debt at least one candidate is rejected by the covenant; the chosen spec's underwriting re-price has an identical financial fingerprint; \code{bankable} is never true on the placeholder solver.
+\end{rebuild}

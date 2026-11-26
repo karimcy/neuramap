@@ -1,0 +1,237 @@
+{% extends "base.html" %}
+{% block title %}Run your site - GridQ{% endblock %}
+{% block content %}
+<h1>Run your own site</h1>
+<p class="lede">Enter what you have. <strong>Leave anything you don&rsquo;t know blank</strong> - it comes
+  back as a ranked data ask, never a guessed value. The more you provide, the sharper (and more
+  bankable) the result.</p>
+
+{% if error %}
+<div class="panel error" role="alert"><strong>Could not load that site:</strong> {{ error }}</div>
+{% endif %}
+
+{% if example_note %}
+<div class="demobanner" style="margin:1.25rem 0">
+  <span class="badge badge-demo">REAL EXAMPLE</span>
+  <span>{{ example_note }}</span>
+</div>
+{% endif %}
+
+<form method="post" action="/run/real" class="siteform" enctype="multipart/form-data">
+  <fieldset>
+    <legend>Site &amp; load</legend>
+    <div class="field-row">
+      <div class="field"><label for="site_name">Site name</label>
+        <input id="site_name" name="site_name" value="{{ form.get('site_name','') }}"></div>
+      <div class="field"><label for="postcode">Postcode <span class="muted">(required)</span></label>
+        <input id="postcode" name="postcode" required value="{{ form.get('postcode','') }}"></div>
+    </div>
+    <div class="field-row">
+      <div class="field"><label for="annual_consumption_kwh">Annual consumption (kWh)</label>
+        <input id="annual_consumption_kwh" name="annual_consumption_kwh" inputmode="decimal" value="{{ form.get('annual_consumption_kwh','') }}">
+        <span class="hint">Needed for a T0 quote if you have no half-hourly file.</span></div>
+      <div class="field"><label for="max_import_kw">Peak import (kW)</label>
+        <input id="max_import_kw" name="max_import_kw" inputmode="decimal" value="{{ form.get('max_import_kw','') }}">
+        <span class="hint">Observed peak; bounds the battery if no HH file is supplied.</span></div>
+    </div>
+    <div class="field-row">
+      <div class="field"><label for="day_kwh_share">Day-rate share of consumption (0 to 1)</label>
+        <input id="day_kwh_share" name="day_kwh_share" inputmode="decimal" value="{{ form.get('day_kwh_share','') }}"
+          placeholder="e.g. 0.55">
+        <span class="hint">From your bill volumes (day kWh over total). Shapes the modelled profile when no HH file is supplied.</span></div>
+      <div class="field"><label for="peak_period">When does demand peak?</label>
+        <select id="peak_period" name="peak_period">
+          <option value="" {% if not form.get('peak_period') %}selected{% endif %}> - unknown - </option>
+          {% for p in ['daytime','overnight'] %}<option value="{{ p }}" {% if form.get('peak_period')==p %}selected{% endif %}>{{ p }}</option>{% endfor %}
+        </select>
+        <span class="hint">Observed peak timing; places the modelled peak honestly.</span></div>
+      <div class="field"><label for="midday_low">Near-zero midday import?</label>
+        <select id="midday_low" name="midday_low">
+          <option value="" {% if not form.get('midday_low') %}selected{% endif %}> - unknown - </option>
+          <option value="true" {% if form.get('midday_low')=='true' %}selected{% endif %}>yes</option>
+          <option value="false" {% if form.get('midday_low')=='false' %}selected{% endif %}>no</option>
+        </select>
+        <span class="hint">e.g. on-site PV or overnight-only operations.</span></div>
+    </div>
+    <div class="field"><label for="hh_file">Half-hourly meter file (CSV)</label>
+      <input id="hh_file" name="hh_file" type="file" accept=".csv">
+      <span class="hint">Optional but high-value: a 12-month half-hourly series upgrades you to T2 and
+        lets the real dispatch MILP solve. Columns: <code>timestamp</code> + <code>import_kw</code>
+        (or <code>import_kwh</code>).</span></div>
+  </fieldset>
+
+  <fieldset>
+    <legend>Connection</legend>
+    <div class="field-row">
+      <div class="field"><label for="mic_kw">MIC - import capacity (kW) <span class="muted">(required)</span></label>
+        <input id="mic_kw" name="mic_kw" inputmode="decimal" required value="{{ form.get('mic_kw','') }}"></div>
+      <div class="field"><label for="mec_kw">MEC - export capacity (kW)</label>
+        <input id="mec_kw" name="mec_kw" inputmode="decimal" value="{{ form.get('mec_kw','') }}"></div>
+      <div class="field"><label for="asc_kw">ASC - available supply capacity (kW)</label>
+        <input id="asc_kw" name="asc_kw" inputmode="decimal" value="{{ form.get('asc_kw','') }}"></div>
+    </div>
+    <div class="field-row">
+      <div class="field"><label for="voltage_level">Voltage level</label>
+        <select id="voltage_level" name="voltage_level">
+          <option value=""> -  unknown  - </option>
+          {% for v in ['LV','HV','EHV'] %}<option value="{{ v }}" {% if form.get('voltage_level')==v %}selected{% endif %}>{{ v }}</option>{% endfor %}
+        </select></div>
+      <div class="field"><label for="dno_region">DNO region</label>
+        <input id="dno_region" name="dno_region" value="{{ form.get('dno_region','') }}"
+          placeholder="e.g. NGED_EM"></div>
+    </div>
+  </fieldset>
+
+  <fieldset>
+    <legend>Tariff stack</legend>
+    <div class="field-row">
+      <div class="field"><label for="supplier">Supplier</label>
+        <input id="supplier" name="supplier" value="{{ form.get('supplier','') }}"></div>
+      <div class="field"><label for="standing_charge">Standing charge (£/day)</label>
+        <input id="standing_charge" name="standing_charge" inputmode="decimal" value="{{ form.get('standing_charge','') }}"></div>
+    </div>
+    <div class="field"><label for="import_rates">Import rates (£/kWh)</label>
+      <input id="import_rates" name="import_rates" value="{{ form.get('import_rates','') }}"
+        placeholder="red:0.42, amber:0.21, green:0.14  - or  single:0.24">
+      <span class="hint">Comma-separated <code>band:rate</code> pairs.</span></div>
+    <div class="field-row">
+      <div class="field"><label for="levies">Levy lines (£/kWh)</label>
+        <input id="levies" name="levies" value="{{ form.get('levies','') }}"
+          placeholder="ccl:0.00775, ro:0.025">
+        <span class="hint">Comma-separated <code>levy:rate</code> pairs from the bill (e.g. Climate Change Levy).</span></div>
+      <div class="field"><label for="capacity_charge_gbp_per_kva_day">Capacity charge (£/kVA/day)</label>
+        <input id="capacity_charge_gbp_per_kva_day" name="capacity_charge_gbp_per_kva_day" inputmode="decimal"
+          value="{{ form.get('capacity_charge_gbp_per_kva_day','') }}" placeholder="e.g. 0.0876">
+        <span class="hint">The availability charge billed on your agreed supply capacity (ASC).</span></div>
+    </div>
+    <div class="field-row">
+      <div class="field"><label for="duos_red_rate">DUoS red (£/kWh)</label>
+        <input id="duos_red_rate" name="duos_red_rate" inputmode="decimal" value="{{ form.get('duos_red_rate','') }}"></div>
+      <div class="field"><label for="duos_amber_rate">DUoS amber (£/kWh)</label>
+        <input id="duos_amber_rate" name="duos_amber_rate" inputmode="decimal" value="{{ form.get('duos_amber_rate','') }}"></div>
+      <div class="field"><label for="duos_green_rate">DUoS green (£/kWh)</label>
+        <input id="duos_green_rate" name="duos_green_rate" inputmode="decimal" value="{{ form.get('duos_green_rate','') }}"></div>
+    </div>
+    {# WP-UW-07 (D103/D104): the basis of every rate above, and where each part came from.
+       No option is preselected: the answer is the user's. "Not stated" is a real answer, recorded
+       for confirmation (H-01), never filled in silently. #}
+    <div class="field-row">
+      <div class="field"><label for="vat_basis">Do these rates include VAT?</label>
+        <select id="vat_basis" name="vat_basis" required>
+          <option value="" disabled {% if not form.get('vat_basis') %}selected{% endif %}> -  choose  - </option>
+          {% for v, l in [('excluded','Excluded - the invoice shows them before VAT'), ('included','Included - the invoice shows them with VAT'), ('not_stated','Not stated - assume excluded, flag for confirmation')] %}<option value="{{ v }}" {% if form.get('vat_basis')==v %}selected{% endif %}>{{ l }}</option>{% endfor %}
+        </select></div>
+      <div class="field"><label for="vat_rate_percent">VAT rate included (%)</label>
+        <input id="vat_rate_percent" name="vat_rate_percent" inputmode="decimal" value="{{ form.get('vat_rate_percent','') }}">
+        <span class="hint">Only when the rates include VAT: the rate the invoice shows.</span></div>
+    </div>
+    <div class="field-row">
+      <div class="field"><label for="levy_basis">Levies</label>
+        <select id="levy_basis" name="levy_basis" required>
+          <option value="" disabled {% if not form.get('levy_basis') %}selected{% endif %}> -  choose  - </option>
+          {% for v, l in [('itemised','Itemised above'), ('in_unit_rates','Inside the unit rates')] %}<option value="{{ v }}" {% if form.get('levy_basis')==v %}selected{% endif %}>{{ l }}</option>{% endfor %}
+        </select></div>
+      <div class="field"><label for="network_basis">Network (DUoS) charges</label>
+        <select id="network_basis" name="network_basis" required>
+          <option value="" disabled {% if not form.get('network_basis') %}selected{% endif %}> -  choose  - </option>
+          {% for v, l in [('itemised','Itemised above'), ('in_unit_rates','Inside the unit rates'), ('not_charged','Not charged (private wire)')] %}<option value="{{ v }}" {% if form.get('network_basis')==v %}selected{% endif %}>{{ l }}</option>{% endfor %}
+        </select></div>
+    </div>
+    <div class="field-row">
+      {% for fid, flabel in [('provenance_commodity','Where did the energy rates come from?'), ('provenance_network','Where did the network rates come from?'), ('provenance_levies','Where did the levy rates come from?')] %}
+      <div class="field"><label for="{{ fid }}">{{ flabel }}</label>
+        <select id="{{ fid }}" name="{{ fid }}" required>
+          <option value="" disabled {% if not form.get(fid) %}selected{% endif %}> -  choose  - </option>
+          {% for v, l in [('own_invoice',"This site's own invoice"), ('published_for_site',"The DNO's published rate for this site"), ('by_analogy','Another site or tariff'), ('assumed','Assumed or estimated'), ('not_charged','Not charged to this site')] %}<option value="{{ v }}" {% if form.get(fid)==v %}selected{% endif %}>{{ l }}</option>{% endfor %}
+        </select></div>
+      {% endfor %}
+    </div>
+  </fieldset>
+
+  <fieldset>
+    <legend>Consents &amp; grid arrangements</legend>
+    <p class="muted">Declared status - "unknown" is a valid answer; gaps come back as ranked data asks, never a block.</p>
+    <div class="field-row">
+      {% for fid, flabel in [('g98','G98 (small-scale)'), ('g99','G99 (export ≤ threshold)'), ('g100','G100 (export limiter)'), ('dno_application_state','DNO application state'), ('supplier_consent','Supplier consent')] %}
+      <div class="field"><label for="{{ fid }}">{{ flabel }}</label>
+        <select id="{{ fid }}" name="{{ fid }}">
+          {% for st in ['unknown','not_started','applied','approved','rejected','not_required'] %}
+            <option value="{{ st }}" {% if form.get(fid)==st %}selected{% endif %}>{{ st.replace('_',' ') }}</option>
+          {% endfor %}
+        </select></div>
+      {% endfor %}
+    </div>
+    <div class="field-row">
+      <div class="field"><label for="import_mpan">Import MPAN</label>
+        <input id="import_mpan" name="import_mpan" value="{{ form.get('import_mpan','') }}"></div>
+      <div class="field"><label for="export_mpan">Export MPAN</label>
+        <input id="export_mpan" name="export_mpan" value="{{ form.get('export_mpan','') }}"></div>
+    </div>
+    <div class="field-row">
+      <div class="field"><label for="export_route">Export route</label>
+        <select id="export_route" name="export_route">
+          {% for rt in ['unknown','none','ppa_export','flexibility_aggregator'] %}
+            <option value="{{ rt }}" {% if form.get('export_route')==rt %}selected{% endif %}>{{ rt.replace('_',' ') }}</option>
+          {% endfor %}
+        </select></div>
+      <div class="field"><label for="export_counterparty">Export counterparty</label>
+        <input id="export_counterparty" name="export_counterparty" value="{{ form.get('export_counterparty','') }}"></div>
+      <div class="field"><label for="aggregator_cut_pct">Aggregator cut (%, e.g. 20)</label>
+        <input id="aggregator_cut_pct" name="aggregator_cut_pct" inputmode="decimal" value="{{ form.get('aggregator_cut_pct','') }}"></div>
+    </div>
+    <div class="field-row">
+      <div class="field"><label for="export_tariff_gbp_per_kwh">Export tariff (£/kWh, if PPA)</label>
+        <input id="export_tariff_gbp_per_kwh" name="export_tariff_gbp_per_kwh" inputmode="decimal" value="{{ form.get('export_tariff_gbp_per_kwh','') }}"></div>
+      <div class="field"><label for="local_flex_agreed_rate_gbp_per_mwh">Local flex agreed rate (£/MWh, if any)</label>
+        <input id="local_flex_agreed_rate_gbp_per_mwh" name="local_flex_agreed_rate_gbp_per_mwh" inputmode="decimal" value="{{ form.get('local_flex_agreed_rate_gbp_per_mwh','') }}"></div>
+    </div>
+    {% include "_stream_consents.html" %}
+    {% include "_lender_terms.html" %}
+    {% include "_lifecycle.html" %}
+  </fieldset>
+
+  <fieldset>
+    <legend>Counterparty &amp; credit</legend>
+    <div class="field-row">
+      <div class="field"><label for="legal_name">Legal name</label>
+        <input id="legal_name" name="legal_name" value="{{ form.get('legal_name','') }}"></div>
+      <div class="field"><label for="company_number">Company number</label>
+        <input id="company_number" name="company_number" value="{{ form.get('company_number','') }}"></div>
+    </div>
+    <div class="field-row">
+      <div class="field"><label for="sector">Sector</label>
+        <input id="sector" name="sector" value="{{ form.get('sector','') }}"></div>
+      <div class="field"><label for="credit_status">Credit status</label>
+        <select id="credit_status" name="credit_status">
+          {% for cs in ['unknown','not_assessed','strong','adequate','weak'] %}
+            <option value="{{ cs }}" {% if form.get('credit_status')==cs %}selected{% endif %}>{{ cs.replace('_',' ') }}</option>
+          {% endfor %}
+        </select></div>
+    </div>
+    <p class="muted"><small>Counterparty credit is sensitive: it is processed for your run only,
+      stored privately, and never preloaded or shared.</small></p>
+  </fieldset>
+
+  <div><button class="btn big" type="submit">Run my site end-to-end &rarr;</button></div>
+  <noscript><p class="muted" style="margin-top:0.6rem"><small>Without JavaScript the run is
+    submitted synchronously and no load profile is modelled from your stated facts - upload a
+    half-hourly meter file for a solved result.</small></p></noscript>
+</form>
+{% endblock %}
+{% block scripts %}
+<script src="/static/run_progress.js?v={{ static_v }}"></script>
+<script>
+  // Submit through the streaming job (same machinery as the wizard): the full sizing search
+  // takes minutes, so the browser polls a background job instead of blocking on one request.
+  // With JS disabled the form's normal action (/run/real) still works as the honest fallback.
+  (function () {
+    "use strict";
+    var form = document.querySelector("form.siteform");
+    if (!form || !window.GridQRun) return;
+    form.addEventListener("submit", function (ev) {
+      ev.preventDefault();
+      window.GridQRun.run(new FormData(form));
+    });
+  })();
+</script>
+{% endblock %}

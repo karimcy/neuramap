@@ -1,0 +1,222 @@
+{
+ "contract": "IC-11",
+ "contract_version": "1.1.0",
+ "surface_id": "ic11-synthetic-chilled-water-trialled-self-issued",
+ "site_id": "SYNTHETIC-DC-CHILLED-WATER",
+ "record_class": "synthetic_fixture",
+ "topology": [
+  "crah_crac",
+  "water_cooled_chillers_with_towers"
+ ],
+ "cooling_electrical_capacity_kw": 1800,
+ "issued_at": "2026-10-26T09:00:00Z",
+ "valid_from": "2026-11-01T00:00:00Z",
+ "valid_until": "2027-11-01T00:00:00Z",
+ "clock": "Europe/London",
+ "evidence_class": "trialled",
+ "evidence": {
+  "kind": "trialled",
+  "trial_evidence": [
+   {
+    "kind": "evidence_ref",
+    "contract": "IC-4",
+    "contract_version": "1.1.0",
+    "evidence_hash": "sha256:7b4ac2d71f2e1d686f4776efdc44769cabe2fae419f52085a59d4f42c1b4a260"
+   }
+  ],
+  "baseline_method": {
+   "kind": "evidence_ref",
+   "contract": "IC-4",
+   "contract_version": "1.1.0",
+   "evidence_hash": "sha256:7db1389a7de85da60c3d797eb0c1ecd4ed549b853ef879a8f24460ff1e6bf6ea"
+  },
+  "observed_from": "2026-07-01T00:00:00Z",
+  "observed_until": "2026-09-30T00:00:00Z",
+  "n_events": 12
+ },
+ "limits": {
+  "ashrae": {
+   "ashrae_class": "A1",
+   "envelope": "recommended",
+   "temperature": {
+    "point": "it_inlet",
+    "min_tenths_c": 180,
+    "max_tenths_c": 270
+   },
+   "humidity": {
+    "kind": "humidity_limit",
+    "min_dew_point_tenths_c": -90,
+    "max_dew_point_tenths_c": 150,
+    "max_relative_humidity_percent": 60
+   },
+   "max_rate_of_change_tenths_c_per_hour": 200,
+   "source": "synthetic fixture: envelope as commonly cited for ASHRAE TC9.9 Thermal Guidelines for Data Processing Environments; edition not stated; figures unverified against the standard"
+  },
+  "customer_sla": {
+   "kind": "unknown",
+   "reason": "synthetic: the host's SLA has not been received"
+  },
+  "binding": {
+   "point": "it_inlet",
+   "min_tenths_c": 180,
+   "max_tenths_c": 250
+  },
+  "binding_source": "operator_margin",
+  "chiller_min_run_min": 15,
+  "chiller_min_off_min": 10
+ },
+ "response": {
+  "kind": "response_terms",
+  "min_notice_min": 5,
+  "ramp_min": 5
+ },
+ "seasons": [
+  {
+   "season_id": "jan_jun",
+   "months": [
+    1,
+    2,
+    3,
+    4,
+    5,
+    6
+   ]
+  },
+  {
+   "season_id": "jul_sep",
+   "months": [
+    7,
+    8,
+    9
+   ]
+  },
+  {
+   "season_id": "oct_dec",
+   "months": [
+    10,
+    11,
+    12
+   ]
+  }
+ ],
+ "bands": [
+  {
+   "band_id": "night",
+   "start_minute": 0,
+   "end_minute": 360
+  },
+  {
+   "band_id": "day",
+   "start_minute": 360,
+   "end_minute": 1140
+  },
+  {
+   "band_id": "evening",
+   "start_minute": 1140,
+   "end_minute": 1440
+  }
+ ],
+ "cells": [
+  {
+   "season_id": "jan_jun",
+   "band_id": "night",
+   "availability": {
+    "kind": "unknown",
+    "reason": "synthetic: the trial ran July to September; these months were not trialled"
+   }
+  },
+  {
+   "season_id": "jan_jun",
+   "band_id": "day",
+   "availability": {
+    "kind": "unknown",
+    "reason": "synthetic: the trial ran July to September; these months were not trialled"
+   }
+  },
+  {
+   "season_id": "jan_jun",
+   "band_id": "evening",
+   "availability": {
+    "kind": "unknown",
+    "reason": "synthetic: the trial ran July to September; these months were not trialled"
+   }
+  },
+  {
+   "season_id": "jul_sep",
+   "band_id": "night",
+   "availability": {
+    "kind": "flex",
+    "curve": [
+     {
+      "duration_min": 30,
+      "reduction_kw": 400,
+      "rebound": {
+       "energy_kwh": 160,
+       "peak_kw": 240,
+       "recovery_min": 50
+      }
+     },
+     {
+      "duration_min": 60,
+      "reduction_kw": 250,
+      "rebound": {
+       "energy_kwh": 200,
+       "peak_kw": 150,
+       "recovery_min": 90
+      }
+     }
+    ]
+   }
+  },
+  {
+   "season_id": "jul_sep",
+   "band_id": "day",
+   "availability": {
+    "kind": "zero_flex",
+    "reason": "synthetic: chillers at full load through the trial's summer days"
+   }
+  },
+  {
+   "season_id": "jul_sep",
+   "band_id": "evening",
+   "availability": {
+    "kind": "flex",
+    "curve": [
+     {
+      "duration_min": 30,
+      "reduction_kw": 150,
+      "rebound": {
+       "energy_kwh": 60,
+       "peak_kw": 90,
+       "recovery_min": 50
+      }
+     }
+    ]
+   }
+  },
+  {
+   "season_id": "oct_dec",
+   "band_id": "night",
+   "availability": {
+    "kind": "unknown",
+    "reason": "synthetic: the trial ran July to September; these months were not trialled"
+   }
+  },
+  {
+   "season_id": "oct_dec",
+   "band_id": "day",
+   "availability": {
+    "kind": "unknown",
+    "reason": "synthetic: the trial ran July to September; these months were not trialled"
+   }
+  },
+  {
+   "season_id": "oct_dec",
+   "band_id": "evening",
+   "availability": {
+    "kind": "unknown",
+    "reason": "synthetic: the trial ran July to September; these months were not trialled"
+   }
+  }
+ ]
+}

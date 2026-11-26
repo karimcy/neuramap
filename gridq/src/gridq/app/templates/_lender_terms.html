@@ -1,0 +1,64 @@
+{# Lender terms (WP-UW-03, D75). Optional: leave every field blank and the run states why it has no
+   DSCR. Fill any field and the whole block must validate (a half-entered term sheet is a 400, never
+   silently dropped). Nothing is pre-selected: every select starts blank so no rate, tenor, case or
+   covenant is ever defaulted by the form. Field names: lender_* (parsed by
+   finance.lender_terms.lender_terms_from_fields). Shared by the wizard and the real form. #}
+{% set lf = form if form is defined and form else {} %}
+<details class="lender-terms" style="margin-top:1.2rem"{% if lf.get('lender_tenor_years') or lf.get('lender_terms_json') %} open{% endif %}>
+  <summary><strong>Lender terms</strong> <span class="muted">(optional: sizes the debt and measures the DSCR)</span></summary>
+  <p class="muted">Enter a lender's terms as stated. Without them the result shows the DSCR as
+    unavailable, with the reason. Mark made-up terms as <em>synthetic</em>: they are labelled on
+    every page that shows the DSCR and can never support a bankable verdict.</p>
+  <div class="field-row">
+    <div class="field"><label for="lender_source">Source</label>
+      <select id="lender_source" name="lender_source">
+        <option value=""></option>
+        {% for v, l in [('term_sheet','term sheet'),('lender_indication','lender indication'),('synthetic','synthetic (not a lender)')] %}
+          <option value="{{ v }}" {% if lf.get('lender_source')==v %}selected{% endif %}>{{ l }}</option>
+        {% endfor %}
+      </select></div>
+    <div class="field"><label for="lender_reference">Reference (term sheet id, lender and date)</label>
+      <input id="lender_reference" name="lender_reference" value="{{ lf.get('lender_reference','') }}"></div>
+    <div class="field"><label for="lender_as_of">Dated</label>
+      <input id="lender_as_of" name="lender_as_of" type="date" value="{{ lf.get('lender_as_of','') }}"></div>
+  </div>
+  <div class="field-row">
+    <div class="field"><label for="lender_tenor_years">Tenor (years)</label>
+      <input id="lender_tenor_years" name="lender_tenor_years" inputmode="numeric" value="{{ lf.get('lender_tenor_years','') }}"></div>
+    <div class="field"><label for="lender_interest_rate_pct">All-in rate (%, e.g. 7.5)</label>
+      <input id="lender_interest_rate_pct" name="lender_interest_rate_pct" inputmode="decimal" value="{{ lf.get('lender_interest_rate_pct','') }}"></div>
+    <div class="field"><label for="lender_gearing_pct">Max gearing (% of capex)</label>
+      <input id="lender_gearing_pct" name="lender_gearing_pct" inputmode="decimal" value="{{ lf.get('lender_gearing_pct','') }}"></div>
+  </div>
+  <div class="field-row">
+    <div class="field"><label for="lender_amortisation">Amortisation</label>
+      <select id="lender_amortisation" name="lender_amortisation">
+        <option value=""></option>
+        {% for v in ['annuity','straight_line','sculpted'] %}
+          <option value="{{ v }}" {% if lf.get('lender_amortisation')==v %}selected{% endif %}>{{ v.replace('_',' ') }}</option>
+        {% endfor %}
+      </select></div>
+    <div class="field"><label for="lender_cashflow_case">Cash-flow case</label>
+      <select id="lender_cashflow_case" name="lender_cashflow_case">
+        <option value=""></option>
+        {% for v, l in [('P50','P50'),('P90','P90'),('LENDER','Lender (contracted P90)')] %}
+          <option value="{{ v }}" {% if lf.get('lender_cashflow_case')==v %}selected{% endif %}>{{ l }}</option>
+        {% endfor %}
+      </select></div>
+    <div class="field"><label for="lender_calculation_period">Covenant test period</label>
+      <select id="lender_calculation_period" name="lender_calculation_period">
+        <option value=""></option>
+        {% for v in ['annual','semi_annual','quarterly'] %}
+          <option value="{{ v }}" {% if lf.get('lender_calculation_period')==v %}selected{% endif %}>{{ v.replace('_',' ') }}</option>
+        {% endfor %}
+      </select></div>
+  </div>
+  <div class="field-row">
+    <div class="field"><label for="lender_sculpting_target_dscr">Sculpting target DSCR (sculpted only)</label>
+      <input id="lender_sculpting_target_dscr" name="lender_sculpting_target_dscr" inputmode="decimal" value="{{ lf.get('lender_sculpting_target_dscr','') }}"></div>
+    <div class="field"><label for="lender_default_dscr">Default covenant DSCR</label>
+      <input id="lender_default_dscr" name="lender_default_dscr" inputmode="decimal" value="{{ lf.get('lender_default_dscr','') }}"></div>
+    <div class="field"><label for="lender_lock_up_dscr">Lock-up DSCR</label>
+      <input id="lender_lock_up_dscr" name="lender_lock_up_dscr" inputmode="decimal" value="{{ lf.get('lender_lock_up_dscr','') }}"></div>
+  </div>
+</details>

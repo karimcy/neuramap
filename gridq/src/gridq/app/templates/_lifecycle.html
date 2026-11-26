@@ -1,0 +1,13 @@
+{# Lifecycle inputs (WP-UW-17). Optional: leave blank and the run labels construction, IDC, the
+   terminal value, decommissioning and replacements as excluded, each with its data request. Paste
+   the whole object as JSON (the same schema as the CLI's --lifecycle file); an invalid object is a
+   400, never silently dropped. Nothing is defaulted. Field name: lifecycle_json (parsed by
+   finance.lifecycle.lifecycle_inputs_from_fields). Shared by the wizard and the real form. #}
+{% set lcf = form if form is defined and form else {} %}
+<details class="lifecycle-inputs" style="margin-top:1.2rem"{% if lcf.get('lifecycle_json') %} open{% endif %}>
+  <summary><strong>Lifecycle inputs</strong> <span class="muted">(optional: construction, COD delay, CM agreement, terminal value, decommissioning, replacements)</span></summary>
+  <p class="muted">State each figure with its source. Anything left out is excluded from the
+    cashflows and labelled on the result with what to supply.</p>
+  <div class="field"><label for="lifecycle_json">Lifecycle inputs (JSON)</label>
+    <textarea id="lifecycle_json" name="lifecycle_json" rows="6" spellcheck="false">{{ lcf.get('lifecycle_json', '') }}</textarea></div>
+</details>

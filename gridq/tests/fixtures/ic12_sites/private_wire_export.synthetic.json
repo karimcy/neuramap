@@ -1,0 +1,154 @@
+{
+  "site_id": "SYNTHETIC-ic12-private-wire-export",
+  "site_name": "SYNTHETIC private-wire site with export and a provisioning curve (not a real site)",
+  "postcode": "ZZ3 3AA",
+  "country": "GB",
+  "data_tier": "T2_VALIDATED_12_MONTH_HALF_HOURLY",
+  "load_data": {
+    "annual_kwh": 3030000.0,
+    "half_hourly_file_ref": "examples/demo_site/hh_2025.csv",
+    "half_hourly_rows": 17520,
+    "start_date": "2025-01-01",
+    "end_date": "2025-12-31",
+    "max_import_kw": 720.0,
+    "max_export_kw": 180.0
+  },
+  "annual_consumption_kwh": 3030000.0,
+  "tariff_stack": {
+    "supplier": "SYNTHETIC Private Wire Operator",
+    "tariff_name": "SYNTHETIC private-wire supply",
+    "import_rates": {"day": 0.1499, "night": 0.1201, "weekend": 0.1150},
+    "export_rates": {"flat": 0.0525},
+    "levies": {"cclevy": 0.00775},
+    "source": "SYNTHETIC private-wire agreement",
+    "confidence": "medium",
+    "basis": {
+      "schema_version": "0.1.0",
+      "vat": "excluded",
+      "vat_attestation": "stated_by_record",
+      "levies": "itemised",
+      "network_charges": "not_charged",
+      "vat_rate_fraction": null
+    },
+    "provenance": {
+      "schema_version": "0.1.0",
+      "commodity": "assumed",
+      "network": "not_charged",
+      "levies": "assumed"
+    }
+  },
+  "connection": {
+    "mic_kw": 1000.0,
+    "mec_kw": 250.0,
+    "voltage_level": "LV",
+    "dno_region": "SSEN_SEPD",
+    "export_headroom_kw": 70.0,
+    "anm_or_curtailment_notes": "SYNTHETIC: export curtailed under a fictitious ANM scheme"
+  },
+  "consents": {
+    "g98": "not_required",
+    "g99": "approved",
+    "g100": "approved",
+    "export_mpan": "1900000000002",
+    "dno_application_state": "approved",
+    "supplier_consent_state": "approved"
+  },
+  "physical_gates": {
+    "footprint_available": true,
+    "fire_separation_ok": true,
+    "access_ok": false,
+    "planning_or_landlord_issue": true,
+    "notes": "SYNTHETIC: landlord consent outstanding"
+  },
+  "counterparty": {
+    "legal_name": "SYNTHETIC Operator C plc (not a real company)",
+    "company_number": "00000002",
+    "legal_entity_type": "plc",
+    "credit_status": "not_assessed",
+    "notes": "SYNTHETIC"
+  },
+  "supply_boundary": {"behind_the_meter": false, "notes": "SYNTHETIC: private wire beyond the meter"},
+  "confidentiality": {"nda_status": "requested"},
+  "provisioning_requirements": [
+    {
+      "requirement_id": "SYNTHETIC-pr-curve",
+      "windows": [
+        {"months": [10, 11, 12, 1, 2, 3], "start_time": "06:00", "end_time": "10:00"},
+        {"start_time": "22:00", "end_time": "00:00"}
+      ],
+      "additional_load_profile_daily_kw": [
+        0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
+        40.0, 40.0, 40.0, 40.0, 40.0, 40.0, 40.0, 40.0, 0.0, 0.0, 0.0, 0.0,
+        0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
+        0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 25.0, 25.0, 25.0, 25.0
+      ],
+      "serve_metered_shortfall": true,
+      "import_cap_kw": 950.0,
+      "tenor_years": 10.0,
+      "counterparty": "SYNTHETIC fleet operator",
+      "reference": "SYNTHETIC-PR-0002",
+      "declared_counterfactual_gbp_per_year": 42000.0,
+      "counterfactual_basis": "SYNTHETIC reinforcement quote, annualised over the term"
+    }
+  ],
+  "export_arrangement": {
+    "route": "flexibility_aggregator",
+    "counterparty": "SYNTHETIC Aggregator Ltd",
+    "aggregator_cut_pct": 0.2,
+    "export_tariff_gbp_per_kwh": 0.0525,
+    "local_flex_agreed_rate_gbp_per_mwh": 300.0,
+    "notes": "SYNTHETIC export route"
+  },
+  "stream_consents": [
+    {
+      "stream": "ANCILLARY_DC_DM_DR",
+      "consented": true,
+      "agreed_rate_gbp": 16600.0,
+      "agreed_rate_unit": "gbp_per_mw_year",
+      "notes": "SYNTHETIC: DCL net less a 20 pct cut"
+    },
+    {
+      "stream": "LOCAL_FLEX_PICLO",
+      "consented": true,
+      "agreed_rate_gbp": 300.0,
+      "agreed_rate_unit": "gbp_per_mwh"
+    },
+    {"stream": "WHOLESALE_P415", "consented": true}
+  ],
+  "local_flex_awards": [
+    {
+      "commitment_id": "SYNTHETIC-award-2",
+      "stream": "LOCAL_FLEX_PICLO",
+      "committed_power_kw": 150.0,
+      "held_energy_kwh": 150.0,
+      "windows": [
+        {"months": [4, 5, 6, 7, 8, 9], "start_time": "10:00", "end_time": "16:00"}
+      ],
+      "tenor_years": 2.0,
+      "counterparty": "SYNTHETIC DNO (not a real counterparty)",
+      "reference": "SYNTHETIC-AWARD-0002"
+    },
+    {
+      "commitment_id": "SYNTHETIC-award-3",
+      "stream": "LOCAL_FLEX_PICLO",
+      "committed_power_kw": 50.0,
+      "windows": [
+        {"start_time": "23:00", "end_time": "00:00"},
+        {"start_time": "00:00", "end_time": "01:00"}
+      ]
+    }
+  ],
+  "derived_assumptions": [
+    {
+      "kind": "not_applicable",
+      "key": "tariff_stack.duos_red_rate",
+      "missing_input": "SYNTHETIC: DUoS red rate",
+      "basis": "SYNTHETIC: a private-wire supply bills no DUoS",
+      "derivation_method": "not_derivable",
+      "derived_by": "tests.fixtures.ic12_sites",
+      "confidence_ceiling": "low",
+      "confirmation_ask": "SYNTHETIC: confirm the private-wire bill carries no DUoS line"
+    }
+  ],
+  "source_references": ["SYNTHETIC private-wire agreement"]
+}

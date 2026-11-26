@@ -1,0 +1,27 @@
+{
+  "contract": "IC-4",
+  "contract_version": "1.1.0",
+  "record_class": "synthetic_fixture",
+  "evidence_type": "legal_opinion",
+  "title": "Synthetic legal opinion on a site's licence position (schema-test fixture)",
+  "issuer": {
+    "name": "SYNTHETIC-COUNSEL (fixture; not a real firm)",
+    "role": "legal_adviser",
+    "reference": "SYNTH-OPINION-0001"
+  },
+  "document_hash": "sha256:1dc2fb63af316f3fa0a7757d6334b1d6559de2b171834e1e40e7c009883c5269",
+  "issued_on": "2026-10-20",
+  "effective_from": "2026-10-20",
+  "expiry": {
+    "kind": "no_expiry",
+    "reason": "synthetic fixture: the opinion stands until withdrawn"
+  },
+  "scope": {
+    "kind": "site",
+    "site_id": "SYNTHETIC-SITE-HYBRID"
+  },
+  "verification": {
+    "kind": "unverified",
+    "reason": "synthetic fixture: not yet confirmed with counsel"
+  }
+}

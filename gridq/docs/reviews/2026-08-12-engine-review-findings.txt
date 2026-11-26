@@ -1,0 +1,148 @@
+ADVERSARIAL REVIEW — batch "engine.py" (branch agent/revenue-data-drive). READ-ONLY. 2026-08-13.
+Working notes; final verdict is delivered in the reviewer's message.
+
+=== HEADLINE ANSWER ===
+NO real site produces a viable specification. 0 viable candidates at knowl_hill (24 full-series),
+ewelme (29 full-series). Binding reason = ECONOMICS on gb_v1_6's placeholder capex/opex basis, not
+data: every candidate's project_irr_pct is None because every cashflow year is negative
+(finance/returns.py:119 correctly refuses). The box widening was NECESSARY BUT NOT SUFFICIENT.
+
+=== PER-CLAIM VERDICTS ===
+item-1 (box anchored on connection) — CODE CONFIRMED, REPORT'S DIRECTION CLAIM WRONG.
+  engine.py:962-1040 _sizing_basis; :374 wired; :1069 binding_capacity_kw=base; :1088 legacy.
+  MEASURED all six via _sizing_basis: all report basis='connection_limit'.
+    box_hi: knowl_hill 33.93->487.5 ; ewelme 271.8->1125.0 ; bishops_cleeve 188.8->375.0 ;
+            harwell/colnbrook/tanhouse UNCHANGED (mic == peak).
+  Wiring proven at runtime: two_stage_sizing received binding_capacity_kw=325.0 (knowl_hill),
+  750.0 (ewelme); max_power_full = 487.5 / 1125.0. Candidate counts 151 (127+24) knowl_hill —
+  identical to the diagnosis's pre-fix count.
+  REFUTED: "priced floors ... move UP on knowl_hill ... (the diagnosis measured Knowl Hill's floor
+  capped at GBP418/yr by the 33.93 kW ceiling)". Knowl Hill's post-fix max floor is GBP418.43 —
+  the SAME number. The GBP418 was never the ceiling's doing: discharge_ub = min(power, load)
+  (milp_solver.py:1036) saturates the BTM envelope at the site's 22.6 kW peak, and the old box
+  already reached 1.5x peak. Floor is EXACTLY FLAT at GBP418.43 from 113.75 kW to 487.5 kW.
+  Ewelme: floor did rise but trivially — 270.33 kW x 8h GBP27,958.83 (~old ceiling) -> 525/1125 kW
+  x 8h GBP28,882.87 (+3.3%) at ~2-4x the capex, and saturated above 525 kW.
+
+item-2a (false causal message) — CONFIRMED. engine.py:1144-1217. "leaves no charge headroom" and
+  "necessarily priced at or near zero" are GONE from source (grep: 0 hits in src/).
+  MIC~=peak survives as PLACEHOLDER-MIC DETECTOR only (engine.py:1194 + :112 tolerance 0.01),
+  labelled "a DATA ASK — not the reason for the verdict above".
+  Replacement states MEASURED headroom off the site's own series (_measured_charge_headroom :1219),
+  whether connection_charge_limit actually BOUND (:1255), and the run's own best floor (:1210).
+  Unavailable measurements are stated absent and explicitly do NOT claim there was no room.
+
+item-2b (data label on economic outcome) — CONFIRMED. engine.py:430-512 split.
+  Premise verified in source, not assumed: milp_solver.py:936-939 conn_limit = min(MIC,ASC) else
+  0.0 ; :1035 charge_ub = min(power, max(0, charge_conn_limit - net_load - aux)) => 0 in every HH
+  when undeclared. So INSUFFICIENT_DATA only at engine.py:465-474 (undeclared capacity);
+  every other state -> OPTIMAL/NO_VIABLE_CONFIGURATION at :490.
+  Measured: knowl_hill and ewelme both exit engine.py:490 optimal/no_viable_configuration.
+  Verdict-first contract: engine.py:1649 warnings=[reason, *extra].
+
+item-3 (required connection capacity) — PARTIAL. engine.py:735-830 + :555.
+  Computed ONLY on the success path (after `chosen`). Measured: last_required_connection_capacity()
+  is None on knowl_hill and ewelme. So on every real site today the D44 output does not exist, and
+  the no-MIC branch still returns INSUFFICIENT_DATA (a refusal) with no derived assumption —
+  schemas/derived.py:62 lists connection.mic_kw but nothing wires it to the engine.
+
+MD-F-05(b) — CONFIRMED for the engine half; netting contract defined AND implemented there.
+  engine.py:1443-1531 _rebase_dispatch_floor_streams; :118 stream map; :1533-1591 restate;
+  :1402-1417 wired. Engine passes NO cannibalised_floor_gbp => no double deduction.
+  valuation.py:882-883 clamp confirmed (max(0, gross - cannibalised)).
+  BUT the counterpart is NOT retired: the 3 tests pinning the rejected alternative still PASS
+  (tests/test_market_entry_eligibility.py:748/761/771 — verified, 3 passed).
+
+=== NEW DEFECTS ===
+N1 SEARCH BOX LOSES ITS BOTTOM (introduced by this batch, material for the target site class).
+  Coarse floor and refinement lower bound are both 0.05 x basis (two_stage.py:335, :421; also N6
+  cover :204). Anchoring on the connection therefore RAISES the smallest searchable system:
+  knowl_hill 1.131 -> 16.25 kW ; ewelme 9.06 -> 37.5 kW ; bishops_cleeve 6.29 -> 12.5 kW.
+  Measured: min_power_full = 16.25 (knowl_hill), 37.5 (ewelme) — nothing below.
+  Because discharge is BTM-capped at the site peak, the economically relevant band at knowl_hill
+  is [0, 22.6] kW: pre-fix 7 coarse points inside it, post-fix ONE (16.25). The best floor/capex
+  ratio in the whole run is at the box's new lower edge (16.25 kW x 2.53h, GBP414.33 for ~GBP9.6k
+  capex vs 113.75 kW x 0.5h, GBP418.43 for ~GBP27k) — i.e. the search is pressed against a wall
+  it did not previously have. Changes no verdict today; removes exactly the region where a viable
+  spec would first appear. Suggested shape: lo = 0.05 x min(peak, limit), hi = 1.5 x basis.
+
+N2 app/demo.py STILL RUNS THE DELETED RULE (two capacity bases in one repo).
+  demo.py:217  base = site.load_data.max_import_kw or site.connection.mic_kw or 0.0
+  demo.py:297  base = peak if (peak and peak > 0) else (mic ...)
+  DemoEngine is the real MILP (app/upside.py:86, app/app.py:900+) and stamps
+  ImplementationLevel.PRODUCTION (demo.py:496). Same defect, unfixed, live.
+
+N3 app/demo.py:484-487 STILL DOUBLE-COUNTS THE EXPORT FLOOR (MD-F-05(b) verbatim).
+  update["value_streams"] = [*chosen.optimisation_result.value_streams, contracted] — gross export
+  appended to the UNCHANGED no-export streams, no rebase, cannibalised never measured
+  (demo.py:426 builds ExportUpside without cannibalised_floor_gbp).
+  Latent only because the demo site's WHOLESALE_P415 stream_consent has agreed_rate_gbp = null, so
+  agreed_rate() returns None. Set that rate and the app's demo floor is overstated.
+
+N4 TWO LIVE, CONTRADICTORY NETTING IMPLEMENTATIONS, BOTH TEST-PINNED.
+  valuation.py:853/882-883 (clamped subtraction on the export entry) is still callable, and
+  tests/test_market_entry_eligibility.py:748, :761, :771 PASS (verified). Engine relies on a
+  string strip of "NOT NETTED" (engine.py:130, :1574) to suppress the other half's now-false
+  sentence. Not a runtime double-count today (no caller passes the param) but reads as fixed.
+
+N5 rebase is a NO-OP when no dispatch-derived priced-floor stream is present.
+  engine.py:1520 `if not moved: return rebased, None` -> rebased=False -> the stale "GROSS — NOT
+  NETTED" sentence is NOT stripped and the floor is genuinely overstated by cannibalised. Loudly
+  labelled, so an honest degrade, but it is a residual the contract's step 3 does not cover.
+
+N6 (minor) stale test name asserting the refuted framing:
+  tests/test_selection_metric_and_verdicts.py:155
+  test_n7_capacity_mic_equal_to_the_observed_peak_is_a_data_verdict — body updated, name not.
+
+N7 (minor) _measured_charge_headroom says "half-hours" for any interval
+  (engine.py:1247 uses n from the series while dt = interval_min/60 at :1241).
+
+=== MEASURED SIX-SITE MATRIX (gb_v1_6, MilpEngine.solve, this tree) ===
+site           basis(kW)  box_hi   min/max power full   full  viable  max floor GBP   exit
+knowl_hill     325.0 conn  487.5   16.25 / 487.5         24     0       418.43        engine.py:490 optimal/no_viable
+ewelme         750.0 conn 1125.0   37.5  / 1125.0        29     0     28,882.87       engine.py:490 optimal/no_viable
+bishops_cleeve 250.0 conn  375.0   12.5  / 375.0         24     0     14,465.77       engine.py:490 optimal/no_viable
+harwell        213.81 conn 320.7   10.69 / 320.715       24     0     18,449.10       engine.py:490 optimal/no_viable
+tanhouse       488.581 conn 732.9  24.429/ 732.871        24     0     27,216.82       engine.py:490 optimal/no_viable
+colnbrook      915.077 conn 1372.6 45.75 / 1372.615       24     0     42,852.63       engine.py:490 optimal/no_viable
+ALL SIX MEASURED DIRECTLY. 0 viable candidates anywhere. All six exit engine.py:490
+optimal / no_viable_configuration. All six report basis='connection_limit'.
+Three flipped label (insufficient_data -> optimal/no_viable_configuration): harwell, tanhouse,
+colnbrook - all three verified directly, not inferred.
+
+Pre/post max-floor comparison vs DIAGNOSIS_NOTES (the whole "numbers move UP" claim):
+  knowl_hill      418.4  -> 418.43   (+0.007%)  power 33.93 -> 113.75 kW  == FLAT
+  bishops_cleeve 14,397  -> 14,465.77 (+0.48%)  power 188.8 -> 375.0  kW  == ~FLAT
+  ewelme        ~27,959  -> 28,882.87 (+3.3%)   power ~271.8-> 525.0  kW  == ~FLAT
+  harwell       18,509.8 -> 18,449.10 (-0.33%)  box UNCHANGED -> the delta is NOT from this batch
+                (other agents' concurrent valuation/milp_solver/cashflows edits are in this tree)
+Mechanism: discharge_ub = min(power, load) (milp_solver.py:1036) saturates the BTM envelope at the
+site peak, and the OLD box already reached 1.5 x peak, so widening upward cannot raise the floor.
+
+HARWELL LABEL FLIP MEASURED: insufficient_data/insufficient_data -> optimal/no_viable_configuration,
+exit engine.py:490. warnings[0] = the verdict; the placeholder-MIC ask is warnings[3] and is
+labelled "a DATA ASK - not the reason for the verdict above".
+Replacement note verified TRUE against the site's own series (matches DIAGNOSIS §2 to 3 s.f.):
+  harwell median 118.7 (118.674), mean 110.1 (110.090), max 213.8; positive 17,519/17,520
+  colnbrook median 706.6 (706.646), tanhouse median 373.0 (373.005)
+and it states "The connection charge limit did NOT bind in any of the 24 candidate(s) confirmed on
+the full series" - the direct refutation of the deleted false sentence.
+
+=== CHECKS ===
+MANDATED TEST COMMAND: 47 tests, ALL PASSED, EXIT=0
+  (test_engine_connection_basis 27 + test_optimisation_engine 10 + test_selection_metric 10).
+  test_optimisation_engine.py was never mentioned in the batch's verification block - now green.
+DETERMINISM MEASURED: two independent harwell processes (different nice, concurrent load) produced
+  byte-identical sizing_basis, result, all 24+127 candidates, run warnings and exit.
+ruff check src/gridq/optimisation/engine.py -> All checks passed! (rc=0)
+ruff check tests/test_engine_connection_basis.py -> All checks passed! (rc=0)
+ruff format --check both -> 2 files already formatted (rc=0)
+mypy -> Success: no issues found in 156 source files (EXIT=0) — matches the claim exactly.
+Literal scan of the diff: only 0.01 (labelled detector tolerance, :112), 8760.0/60.0 (calendar),
+  round() dp. NO invented GBP/% constant. CONFIRMED.
+Determinism: basis note is a pure function of site data; run identity unaffected (warnings are not
+  in input_hash). test_determinism_golden.py now SKIPS on non-Linux (module applies C034's skip
+  marker, tests/test_determinism_golden.py:152-153) — it does not fail on ARM; and its golden is
+  minted on the DEMO path, which this batch did not touch.
+  tests/test_sizing_search.py:158 (result.warnings == []) is sizing/search.py, not the engine —
+  claim verified.

@@ -1,0 +1,31 @@
+{
+  "contract": "IC-4",
+  "contract_version": "1.0.0",
+  "record_class": "synthetic_fixture",
+  "evidence_type": "aggregator_agreement",
+  "title": "Synthetic aggregator agreement that has expired (schema-test fixture)",
+  "issuer": {
+    "name": "SYNTHETIC-AGGREGATOR (fixture; not a real company)",
+    "role": "aggregator",
+    "reference": "SYNTH-AGG-0007"
+  },
+  "document_hash": "sha256:af0b4c9c22490381092d4b39c54607e5314f49295c1b54bfaeccc76d110d1d8f",
+  "issued_on": "2025-10-01",
+  "effective_from": "2025-10-01",
+  "expiry": {
+    "kind": "expires_on",
+    "expires_on": "2026-10-01"
+  },
+  "scope": {
+    "kind": "stream",
+    "stream": "BALANCING_MECHANISM",
+    "site_id": "SYNTHETIC-SITE-HYBRID"
+  },
+  "verification": {
+    "kind": "verified",
+    "verifier": "SYNTHETIC-VERIFIER (fixture)",
+    "verifier_role": "independent_third_party",
+    "method": "document_inspection",
+    "verified_on": "2025-10-20"
+  }
+}

@@ -1,0 +1,228 @@
+\chapter{The scenario engine}
+\label{ch:scenarios}
+\modtag{M6}{Scenario engine}{Deterministic core}
+
+A lender does not want a single number for what a battery will earn. The future is uncertain: power prices might be soft or strong, a grant might land or lapse, the project might switch on a year later than planned. The lender wants to know what the project earns in a normal year and what it earns in a bad year, so it can size a loan against the bad year and still be paid back. The scenario engine is the part of the platform that turns ``the future is uncertain'' into exactly those two numbers, in a way that can be audited line by line.
+
+It does this without any guesswork dressed up as precision. Instead of simulating thousands of random futures, the engine evaluates a small, named handful of cases -- a Low one, a Central one, and a High one -- each carrying a stated probability, and reads two figures off the resulting spread: a central estimate (the ``P50'') and a conservative one (the ``P90''). Those two figures are what the financial model turns into cashflows and what the lender underwrites.
+
+\begin{plainnote}
+\textbf{P50 and P90 in plain words.} Imagine ranking every plausible outcome from worst to best. The \emph{P50} is the one in the middle: a coin-flip says the real outcome is higher or lower, so it is the honest ``expected'' figure. The \emph{P90} is a pessimistic one: the outcome should be at least this good about nine times out of ten. Lenders lend against the P90 because they are paid back out of the bad years, not the good ones. The scenario engine's job is to produce a defensible P50 and P90 rather than a single, falsely confident point estimate.
+\end{plainnote}
+
+\pipelinepos{receives a base case (the P50 and P90 cashflows of one priced battery, Ch.~\ref{ch:finance}), the versioned scenario weights and price bands (Ch.~\ref{ch:assumptions}), and any pinned external price forecast; hands a weighted P50/P90 distribution to the financial model (Ch.~\ref{ch:finance}) and a per-case price series to the dispatch optimiser (Ch.~\ref{ch:dispatch}).}
+
+\begin{contract}
+\textbf{In:}
+\begin{itemize}
+  \item A \emph{base case} exposing two cashflow series, \code{p50\_cashflows} and \code{p90\_cashflows} (one figure per modelled year, year~0 being the capex outflow). Any object with these two lists satisfies the engine; in practice it is a priced \code{FinancialCase}.
+  \item A \emph{scenario set}: the Low / Central / High cases to evaluate together, each with a probability weight, a price multiplier, a cost multiplier, and a time-to-energisation delay. Weights are read from the versioned assumption library (Ch.~\ref{ch:assumptions}); price and cost bands are explicit, sourced input.
+  \item Optionally, a hash-pinned \code{ForecastReference} to an external price curve (for example a Modo Energy wholesale forecast), carried as provenance only.
+\end{itemize}
+\textbf{Out:} a \code{ScenarioRunResult} holding one evaluated \code{ScenarioResult} per case and a \code{WeightedSummary} -- the probability-weighted P50 and P90 cashflow series and their undiscounted totals -- stamped with the assumption version, a machine-readable bankable status, and every warning the run accumulated. The engine never produces a valuation: no discounting, no internal rate of return, no debt cover. Those belong to the financial model.
+\end{contract}
+
+\section{Discrete cases, not a cloud of draws}
+
+The engine's central design choice is to be \emph{honestly coarse}. Rather than draw a continuous probability distribution over the future and sample it, it evaluates a few named cases and reports the spread between them. Each case is one \emph{scenario}, and the cases evaluated together are a \emph{scenario set}.
+
+A scenario is a small, self-contained description of one possible future, built from sourced parameters and nothing invented:
+
+\begin{table}[H]
+\centering
+\caption{The fields of one scenario. Every value is either explicit, sourced input or read from the assumption library; none is fabricated inside the engine.}
+\label{tab:scenariofields}
+\small\sffamily
+\begin{tabularx}{\textwidth}{@{}l l L@{}}
+\toprule
+\textbf{Field} & \textbf{Type} & \textbf{Meaning and rule} \\
+\midrule
+Name & label & One of \code{low}, \code{central}, \code{high}, or \code{custom}. \\
+Probability weight & 0--1 & How likely this case is. Across a set the weights should sum to 1.0. \\
+Price multiplier & $>0$ & Scales the operating-year (revenue-driven) cashflows. \code{1.0} means no change. \\
+Cost multiplier & $>0$ & Scales the year-0 capex outflow. \code{1.0} means no change. \\
+COD delay (months) & $\geq 0$ & Months the commercial operation date slips. Affects \emph{timing} only. \\
+Policy branch & label & A descriptive policy-axis tag. In v1 it carries no numeric effect by itself. \\
+Forecast reference & optional & A hash-pinned pointer to an external price curve, if one backs this case. \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+Central is special: it is the base case itself, with every multiplier set to \code{1.0} and no delay. So evaluating the Central scenario reproduces the input cashflows exactly. Low and High then express the downside and upside as multipliers relative to that anchor.
+
+\begin{keyidea}[Honest coarseness beats false precision]
+A lender reviews a handful of named, defensible cases far more readily than a fan chart of thousands of random draws. More importantly, while the platform runs on placeholder assumptions, simulating thousands of futures over un-calibrated inputs would manufacture confidence the inputs cannot support. A small set of weighted cases keeps the coarseness visible and the reasoning legible. That is a deliberate choice, not a missing feature.
+\end{keyidea}
+
+\section{How a case is applied to the base cashflows}
+
+Given a scenario, the engine transforms the base case's two cashflow series (P50 and P90 alike) in a fixed order. The transformation is deliberately simple and first-order, because a coarse-but-honest adjustment is preferable to a precise-looking one the inputs cannot justify.
+
+\begin{enumerate}
+  \item \textbf{Scale by the multipliers.} The year-0 figure (the capex outflow) is multiplied by the \emph{cost} multiplier; every later year (the operating cashflows) is multiplied by the \emph{price} multiplier. This is a first-order revenue and cost sensitivity applied to the net series, not a split into income lines the engine cannot justify from a net figure.
+  \item \textbf{Shift for the energisation delay.} If the commercial operation date (COD, the day the battery starts earning) slips by a whole number of years, the operating cashflows are pushed that many years later. The capex stays at year~0. Revenue that would fall beyond the modelled horizon is dropped, never created: a delay defers income, it does not invent it.
+  \item \textbf{Total the result.} The engine sums each adjusted series into an undiscounted P50 total and P90 total for that case. These are coarse running totals for comparison, not present values.
+\end{enumerate}
+
+Several edge cases are handled explicitly rather than silently:
+
+\begin{table}[H]
+\centering
+\caption{Edge cases in applying a scenario, and how the engine responds. The pattern is always to warn rather than to fake a number or to fail.}
+\label{tab:scenarioedge}
+\small\sffamily
+\begin{tabularx}{\textwidth}{@{}L L@{}}
+\toprule
+\textbf{Situation} & \textbf{Response} \\
+\midrule
+Year-0 cashflow is non-negative (no capex outflow where one is expected) & Apply the cost multiplier anyway, and warn to confirm the cashflow sign convention. \\
+A delay that is \emph{not} a whole number of years (a sub-annual slip) & Leave timing unchanged and warn: v1 models COD at annual granularity only, so a month-level shift would be false precision. \\
+The base case has only a year-0 figure and no operating years & The price multiplier has no effect; warn so the caller is not misled. \\
+Any cashflow is infinite or not-a-number & Warn loudly: the scenario totals will also be non-finite, and the base case must be fixed first. \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\begin{caution}[The policy branch is a label, never a hidden number]
+A scenario carries a \emph{policy branch} tag so a case can be described as, say, a particular subsidy regime. In v1 that label changes no figure on its own. Any policy effect must be carried by the explicit price and cost multipliers or the delay, all of which must themselves be sourced. A non-default branch is automatically flagged ``descriptive only'' so a tag can never smuggle uncalibrated precision into the numbers.
+\end{caution}
+
+\section{Weights, and reading P50 and P90 off the set}
+
+Once each case has been evaluated, the engine combines them into the two figures the lender needs. The combining step is a probability-weighted average across the cases, performed element by element across the years.
+
+The weights come from the assumption library, under a single versioned entry (\code{scenario\_weights.\allowbreak central\_low\_high}), so the relative likelihood of Low, Central, and High is content that can be versioned and audited, never a constant buried in code (Ch.~\ref{ch:assumptions}). Discrete weights such as 0.25 / 0.50 / 0.25 are meant to sum to 1.0. The engine enforces this honestly rather than silently:
+
+\begin{itemize}
+  \item If the weights already sum to 1.0 (within a tiny floating-point tolerance) they are used unchanged.
+  \item If they do not, they are \emph{normalised} -- divided by their total so they sum to 1.0 -- and a warning records that this happened, so a mis-weighted set is never used silently.
+  \item If the weights sum to zero or less (which cannot be normalised), the engine falls back to equal weights and warns, rather than dividing by zero or inventing a distribution.
+\end{itemize}
+
+The weighted P50 series is then the sum, year by year, of each case's P50 series multiplied by its normalised weight; the weighted P90 series is formed the same way from the cases' P90 series. Series of different lengths are zero-padded to the longest horizon before summing, so a delayed case with a shorter effective operating life still combines correctly.
+
+\begin{plainnote}
+\textbf{Why two series, not one.} The base case already carries its own P50 and P90 cashflows: the central and conservative views of \emph{one} battery's economics. The scenario engine layers the Low / Central / High price-and-policy spread on \emph{top} of that, applying each case's multipliers to both series. The result is a weighted P50 (the headline expected cashflow) and a weighted P90 (the conservative cashflow the loan is sized against). The two ideas -- the conservatism already inside a single case, and the spread across cases -- stack rather than compete.
+\end{plainnote}
+
+Figure~\ref{fig:scenflow} shows the whole flow: versioned cases and weights produce a weighted distribution, from which P50 and P90 are read and handed to the value stack and the financial model.
+
+\begin{figure}[H]
+\centering
+\resizebox{\textwidth}{!}{%
+\begin{tikzpicture}[node distance=9mm and 16mm]
+  % inputs on the left
+  \node[store] (assum) {\textbf{Assumption library}\\\scriptsize versioned Low/Central/High\\\scriptsize weights + price bands};
+  \node[io, below=of assum] (base) {\textbf{Base case}\\\scriptsize P50 \& P90 cashflows\\\scriptsize of one priced battery};
+  \node[ext, below=of base] (forecast) {\textbf{ForecastReference}\\\scriptsize hash-pinned external\\\scriptsize price curve (provenance)};
+
+  % the three cases
+  \node[proc, right=of assum, yshift=-9mm] (low) {\textbf{Low case}\\\scriptsize price/cost multipliers\\\scriptsize + COD delay, weight $w_L$};
+  \node[proc, below=of low] (central) {\textbf{Central case}\\\scriptsize identity (1.0)\\\scriptsize $=$ base, weight $w_C$};
+  \node[proc, below=of central] (high) {\textbf{High case}\\\scriptsize price/cost multipliers\\\scriptsize + COD delay, weight $w_H$};
+
+  % normalise + weight
+  \node[decide, right=of central] (norm) {\textbf{Weights}\\\scriptsize sum to 1.0?\\\scriptsize else normalise + warn};
+  \node[store, right=of norm] (dist) {\textbf{Weighted distribution}\\\scriptsize weighted P50 \&\\\scriptsize weighted P90 series};
+
+  % outputs
+  \node[io, above=of dist, yshift=2mm] (p50) {\textbf{P50}\\\scriptsize central cashflow};
+  \node[io, below=of dist, yshift=-2mm] (p90) {\textbf{P90}\\\scriptsize conservative cashflow};
+  \node[procwide, right=of dist] (down) {\textbf{Value stack \& financial model}\\\scriptsize P50/P90 cashflows,\\\scriptsize DSCR sensitivities (M5)};
+
+  % arrows: inputs to cases
+  \draw[flow] (assum.east) -- (low.west);
+  \draw[flow] (base.east) to[out=0,in=180] (central.west);
+  \draw[flow] (forecast.east) to[out=0,in=180] (high.west);
+
+  % cases to weighting
+  \draw[flow] (low.east) to[out=0,in=180] (norm.west);
+  \draw[flow] (central.east) -- (norm.west);
+  \draw[flow] (high.east) to[out=0,in=180] (norm.west);
+
+  % weighting to distribution
+  \draw[flow] (norm.east) -- (dist.west);
+  \draw[flow] (dist.north) -- (p50.south);
+  \draw[flow] (dist.south) -- (p90.north);
+
+  % distribution to downstream
+  \draw[flow] (p50.east) to[out=0,in=160] (down.north west);
+  \draw[flow] (p90.east) to[out=0,in=200] (down.south west);
+
+  % grouping box over the cases
+  \begin{scope}[on background layer]
+    \node[groupbox, fit=(low)(central)(high), inner sep=6pt,
+          label={[note]above:DISCRETE WEIGHTED CASES}] {};
+  \end{scope}
+\end{tikzpicture}}
+\caption{The scenario engine. Versioned weights and price bands (with the base case and any pinned forecast) define discrete Low / Central / High cases; their weights are normalised; a probability-weighted P50 and P90 distribution is read off and fed to the value stack and the financial model. The forecast reference travels as provenance only and never sets a multiplier.}
+\label{fig:scenflow}
+\end{figure}
+
+\section{Time-to-energisation as a scenario axis}
+
+How long a project takes to switch on is itself a source of uncertainty, and one a lender cares about: a battery that energises a year late earns a year less inside the financing horizon. The engine therefore treats the commercial operation date as a scenario axis through the COD delay, expressed in whole months.
+
+The modelling is deliberately conservative. A whole-year delay shifts the operating cashflows later by that many years while leaving the capex at year~0; income that would have fallen in the years now past the modelled horizon is dropped, not carried forward. A sub-annual delay is not modelled at all in v1: the engine leaves the timing unchanged and attaches a warning that the slip is being treated as an approximation, because pretending to month-level timing precision would be exactly the kind of false confidence the platform forbids. This keeps a delay scenario honest: it can only ever defer value, never manufacture it, and it never claims a precision the annual model does not have.
+
+\section{The external forecast: provenance, never a priced floor}
+
+Some inputs are simply not GridQ's to assume. A wholesale price curve from a provider such as Modo Energy is third-party market data with its own source and vintage. The platform's foundational rule is that every number traces to an input, an assumption version, and a code version, and that nothing on the pricing path is invented. Copying a forecast value into an assumption file would launder external data into a GridQ ``assumption'' and lose its source, and would open the door to a plausible-but-fabricated curve filling a gap. The scenario engine therefore never holds forecast values; it holds a \emph{reference} to the file they came from.
+
+That reference is a \code{ForecastReference}: the provider, a stable file locator, the provider's version label, and a content hash of the curve, plus its coverage window and price unit. The hash is the provenance identity, and it is always recomputed from the actual curve when a reference is built, never trusted from a supplied value. A \code{verified} flag records whether the reference was built or re-checked against a real file on disk; a directly constructed or in-memory reference is unverified.
+
+\begin{table}[H]
+\centering
+\caption{The pinned forecast reference. The first three fields plus the content hash are required and non-empty; a malformed hash is rejected outright, not merely warned.}
+\label{tab:forecastref}
+\small\sffamily
+\begin{tabularx}{\textwidth}{@{}l L@{}}
+\toprule
+\textbf{Field} & \textbf{Meaning} \\
+\midrule
+Source & The provider or origin, for example ``Modo Energy''. \\
+File reference & A path or stable locator of the real forecast file (real curves live outside the repository). \\
+Forecast version & The provider's vintage label, so a lender can ask which curve priced the quote. \\
+Content hash & A canonical \code{sha256:} hash of the price curve, format-independent and recomputed from the data. \\
+File hash & Optional literal source-file bytes hash, present when built from a real file. \\
+Coverage start / end & The date window the forecast covers. \\
+Verified & True only when built or re-checked against a real file; unverified references are treated as not backing a bankable number. \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+Two rules keep the forecast firmly on the provenance side of the wall:
+
+\begin{itemize}
+  \item \textbf{The forecast never sets a multiplier.} Even when a real curve backs every case, the Low and High \emph{price multipliers} remain explicit, sourced input. The engine does not read prices out of the file to derive a spread, and it does not invent one. The forecast's job is to make the price \emph{input} traceable and to feed the dispatch optimiser a per-case price series (Ch.~\ref{ch:dispatch}); it is not the source of the cashflow adjustment.
+  \item \textbf{The forecast is carried only as gated upside.} Wholesale, balancing, and ancillary value stay outside the priced floor until a route-to-market partner is known. A pinned reference makes that upside \emph{traceable}; it does not move it into the floor and does not make a run bankable.
+\end{itemize}
+
+\begin{caution}[Unverified or absent forecast: warn, downgrade, never fabricate]
+If a case carries a forecast reference whose hash was not confirmed against a real file, the engine warns and forces the whole run to \emph{not bankable}, so a fabricated-looking pointer cannot ride through as bankable backing. If no Low or High band is supplied at all, that case collapses to Central (identity multipliers) and the engine emits a \emph{ranked data ask} naming the missing band, rather than papering over the gap with an invented spread. When a forecast file later drifts from its recorded hash, the per-case price series resolves to empty with a loud ``re-pin and reprice'' warning, never a silently stale curve.
+\end{caution}
+
+\section{Monte Carlo, deferred behind the same interface}
+
+The richer technique a portfolio eventually wants is Monte Carlo: sampling thousands of correlated futures across many sites rather than three named cases. The platform deliberately defers it, but designs for it. The engine sits behind a single small interface -- a \emph{scenario evaluator} that takes a base case and a scenario set and returns a run result. The v1 discrete engine is one implementation of that interface; a future portfolio Monte Carlo evaluator drops in by implementing the same one method and returning the same shape of result. Callers depend on the interface and the result, not on the concrete engine, so they need not change.
+
+\begin{keyidea}[One seam, two evaluators]
+Monte Carlo is a portfolio tool (it needs correlations across many sites) and it needs calibrated inputs to be worth running, neither of which the single-site v1 has. Deferring it is the honest choice. Reserving the interface for it now means the move from discrete cases to sampled draws is a versioned, deliberate swap behind an unchanged seam, not a rewrite of everything downstream. Whichever evaluator runs, the rest of the platform sees the same \code{ScenarioRunResult}.
+\end{keyidea}
+
+\section{Bankability of a scenario run}
+
+A scenario run never asserts that a quote is bankable. The most it will report is ``review required'', and it downgrades to ``not bankable'' whenever the inputs do not support more. Specifically: if the weights come from a placeholder or needs-review assumption (as they do on the current \code{gb\_v0\_1} placeholder set), the run is marked not bankable; and if any case carries an unverified forecast reference, the run is forced not bankable regardless. This is the platform-wide rule that a placeholder number must never masquerade as a bankable one, enforced here at the scenario layer. The run also inherits and surfaces the base case's own caveats, and it always attaches a standing note that its outputs are undiscounted cashflows and weighted totals, not a valuation.
+
+\begin{rebuild}
+To re-implement the scenario engine from scratch:
+\begin{enumerate}
+  \item \textbf{Define the data shapes.} A \emph{scenario} carries a name, a probability weight in $[0,1]$, a strictly positive price multiplier and cost multiplier (defaulting to \code{1.0}), a non-negative COD delay in months, a descriptive policy branch label, and an optional forecast reference. A \emph{scenario set} carries an id, the assumption version it was built against, the list of scenarios (ids unique within the set), a bankable status, and any validation warnings. A \emph{run result} carries one evaluated result per scenario plus a weighted summary (the two weighted series and their totals).
+  \item \textbf{Apply a scenario in a fixed order.} Multiply year~0 by the cost multiplier and every later year by the price multiplier; then, for a whole-year delay only, shift the operating years later and drop revenue past the horizon; then sum to undiscounted P50 and P90 totals. Warn, do not fail, on a non-negative year~0, a sub-annual delay, an operating-free base case, or non-finite cashflows.
+  \item \textbf{Read weights from the assumption library}, never from a constant in code. Normalise them to sum to 1.0 if they do not, recording that it happened; fall back to equal weights (with a warning) if the total is non-positive.
+  \item \textbf{Form the weighted distribution} as the element-wise probability-weighted sum of the per-case series, zero-padding ragged series to the longest horizon. The weighted P50 and P90 series, and their totals, are the deliverable.
+  \item \textbf{Treat any external forecast as a hash-pinned reference only.} Recompute its content hash from the curve; never let it set a multiplier; force the run not bankable if a reference is present but unverified.
+  \item \textbf{Hold the interface open for Monte Carlo.} Express the engine as one method (base case + set $\rightarrow$ run result) so a later sampling evaluator can replace it without touching callers.
+  \item \textbf{Invariants to test.} Central with identity multipliers reproduces the base case exactly; equal-and-summing-to-one weights need no normalisation while off-sum weights are normalised and flagged; a whole-year delay defers but never increases total operating cashflow; an unverified or present-but-drifted forecast forces not bankable; identical inputs and assumption version reproduce identical output (full determinism, no randomness).
+\end{enumerate}
+\end{rebuild}

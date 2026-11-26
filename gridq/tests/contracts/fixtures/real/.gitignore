@@ -1,0 +1,5 @@
+# Real DNO data is under the Atlas eyes-only gate (see README.md): keep it out of git.
+*
+!.gitignore
+!README.md
+!MANIFEST.json

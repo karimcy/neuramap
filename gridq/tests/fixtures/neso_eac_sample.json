@@ -1,0 +1,15 @@
+{
+  "success": true,
+  "result": {
+    "records": [
+      {"_id": 1, "auctionID": 2661, "auctionProduct": "DRH", "serviceType": "Response", "deliveryStart": "2026-04-01T02:00:00", "deliveryEnd": "2026-04-01T06:00:00", "clearedVolume": 500, "clearingPrice": -8.0},
+      {"_id": 2, "auctionID": 2661, "auctionProduct": "DRL", "serviceType": "Response", "deliveryStart": "2026-04-01T02:00:00", "deliveryEnd": "2026-04-01T06:00:00", "clearedVolume": 500, "clearingPrice": 16.0},
+      {"_id": 3, "auctionID": 2661, "auctionProduct": "DCH", "serviceType": "Response", "deliveryStart": "2026-04-01T06:00:00", "deliveryEnd": "2026-04-01T10:00:00", "clearedVolume": 480, "clearingPrice": 2.0},
+      {"_id": 4, "auctionID": 2661, "auctionProduct": "DCL", "serviceType": "Response", "deliveryStart": "2026-04-01T06:00:00", "deliveryEnd": "2026-04-01T10:00:00", "clearedVolume": 480, "clearingPrice": 4.0},
+      {"_id": 5, "auctionID": 2661, "auctionProduct": "DMH", "serviceType": "Response", "deliveryStart": "2026-04-02T00:00:00", "deliveryEnd": "2026-04-02T04:00:00", "clearedVolume": 300, "clearingPrice": 0.0},
+      {"_id": 6, "auctionID": 2661, "auctionProduct": "DML", "serviceType": "Response", "deliveryStart": "2026-04-02T00:00:00", "deliveryEnd": "2026-04-02T04:00:00", "clearedVolume": 300, "clearingPrice": 10.0},
+      {"_id": 7, "auctionID": 2662, "auctionProduct": "NBR", "serviceType": "Reserve", "deliveryStart": "2026-04-02T00:00:00", "deliveryEnd": "2026-04-02T04:00:00", "clearedVolume": 200, "clearingPrice": 99.0},
+      {"_id": 8, "auctionID": 2662, "auctionProduct": "DCH", "serviceType": "Response", "deliveryStart": "2026-04-03T00:00:00", "deliveryEnd": "2026-04-03T04:00:00", "clearedVolume": 200, "clearingPrice": null}
+    ]
+  }
+}

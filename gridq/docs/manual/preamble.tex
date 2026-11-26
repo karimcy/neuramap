@@ -1,0 +1,233 @@
+% =====================================================================
+%  GridQ Platform Manual — shared preamble (FROZEN)
+%  Every chapter is written against the macros defined here and must
+%  compile with this preamble unchanged. Do not add packages in chapters.
+% =====================================================================
+
+% ---- Engine / encoding -------------------------------------------------
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{lmodern}
+\usepackage{microtype}
+\usepackage[british]{babel}
+
+% ---- Page geometry -----------------------------------------------------
+\usepackage[a4paper,top=2.6cm,bottom=2.6cm,left=2.7cm,right=2.7cm,headheight=15pt]{geometry}
+\usepackage{float}
+\usepackage{lastpage}
+
+% ---- Colour palette (brand) -------------------------------------------
+\usepackage{xcolor}
+\definecolor{gridqOrange}{HTML}{FF6B35}   % brand accent
+\definecolor{gridqOrangeDk}{HTML}{C9521F}
+\definecolor{gridqInk}{HTML}{0F172A}      % near-black text / headings
+\definecolor{gridqSlate}{HTML}{334155}
+\definecolor{gridqGrey}{HTML}{64748B}
+\definecolor{gridqMist}{HTML}{E2E8F0}     % light rule / borders
+\definecolor{gridqBg}{HTML}{F8FAFC}       % page-tint backgrounds
+\definecolor{gridqBlue}{HTML}{2563EB}     % "rebuild" boxes / links
+\definecolor{gridqBlueBg}{HTML}{EFF4FF}
+\definecolor{gridqGreen}{HTML}{15803D}
+\definecolor{gridqGreenBg}{HTML}{ECFDF3}
+\definecolor{gridqAmber}{HTML}{B45309}
+\definecolor{gridqAmberBg}{HTML}{FFFBEB}
+\definecolor{gridqViolet}{HTML}{6D28D9}
+\definecolor{gridqVioletBg}{HTML}{F5F3FF}
+
+% Diagram node fills (kept muted so labels stay readable)
+\definecolor{nodeProcess}{HTML}{E7EEF9}   % process / step
+\definecolor{nodeProcessBd}{HTML}{2563EB}
+\definecolor{nodeIO}{HTML}{FFF1E8}        % input / output data
+\definecolor{nodeIOBd}{HTML}{FF6B35}
+\definecolor{nodeDecision}{HTML}{FFF7E0}  % decision / gate
+\definecolor{nodeDecisionBd}{HTML}{B45309}
+\definecolor{nodeStore}{HTML}{ECFDF3}     % datastore / artifact
+\definecolor{nodeStoreBd}{HTML}{15803D}
+\definecolor{nodeTerm}{HTML}{EEF2F6}      % terminal start/end
+\definecolor{nodeTermBd}{HTML}{334155}
+\definecolor{nodeExt}{HTML}{F5F3FF}       % external / perimeter
+\definecolor{nodeExtBd}{HTML}{6D28D9}
+
+% ---- Maths / symbols (load before fonts that touch math) --------------
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{textcomp}
+
+% ---- Tables ------------------------------------------------------------
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage{longtable}
+\usepackage{tabularx}
+\usepackage{makecell}
+\usepackage{multirow}
+\renewcommand{\arraystretch}{1.25}
+% A left-aligned auto-width column for tabularx
+\newcolumntype{L}{>{\raggedright\arraybackslash}X}
+\newcolumntype{R}{>{\raggedleft\arraybackslash}X}
+
+% ---- Lists -------------------------------------------------------------
+\usepackage{enumitem}
+\setlist{leftmargin=1.4em,itemsep=2pt,topsep=3pt}
+
+% ---- Graphics ----------------------------------------------------------
+\usepackage{graphicx}
+\graphicspath{{figures/}{./}}
+
+% ---- TikZ (flow diagrams) ---------------------------------------------
+\usepackage{tikz}
+\usetikzlibrary{positioning,shapes.geometric,arrows.meta,calc,fit,backgrounds,decorations.pathreplacing}
+
+% Standard flowchart node styles — chapters use ONLY these.
+\tikzset{
+  fnbase/.style={
+    font=\sffamily\small, align=center, text=gridqInk,
+    minimum height=10mm, inner sep=3.2pt, line width=0.7pt,
+    rounded corners=2pt
+  },
+  % process / pipeline step (rectangle)
+  proc/.style={fnbase, rectangle, draw=nodeProcessBd, fill=nodeProcess,
+    minimum width=34mm, text width=32mm},
+  % wide process for top-level stages
+  procwide/.style={proc, minimum width=46mm, text width=44mm},
+  % input / output data (parallelogram)
+  io/.style={fnbase, trapezium, trapezium left angle=70, trapezium right angle=110,
+    draw=nodeIOBd, fill=nodeIO, minimum width=30mm, text width=30mm, trapezium stretches=true},
+  % stored artifact / record (cylinder)
+  store/.style={fnbase, cylinder, shape border rotate=90, aspect=0.18,
+    draw=nodeStoreBd, fill=nodeStore, minimum width=30mm, text width=28mm,
+    inner ysep=4pt},
+  % decision / gate (diamond)
+  decide/.style={fnbase, diamond, aspect=1.7, draw=nodeDecisionBd, fill=nodeDecision,
+    minimum width=30mm, text width=26mm, inner sep=1pt},
+  % external system / agentic perimeter (dashed)
+  ext/.style={fnbase, rectangle, draw=nodeExtBd, fill=nodeExt, dashed,
+    minimum width=32mm, text width=30mm},
+  % terminal start / end (pill)
+  term/.style={fnbase, rectangle, rounded corners=5mm, draw=nodeTermBd, fill=nodeTerm,
+    minimum width=26mm, text width=24mm},
+  % a faint label on the side
+  note/.style={font=\sffamily\scriptsize\itshape, text=gridqGrey, align=left},
+  % arrows
+  flow/.style={-{Stealth[length=2.4mm,width=2mm]}, line width=0.9pt, draw=gridqSlate},
+  flowback/.style={flow, dashed, draw=gridqGrey},
+  flowlabel/.style={font=\sffamily\scriptsize, text=gridqSlate, fill=white, inner sep=1.5pt},
+}
+% Group-box behind a set of nodes (use on background layer)
+\tikzset{
+  groupbox/.style={rounded corners=4pt, draw=gridqMist, line width=1pt, fill=gridqBg},
+}
+
+% ---- Code / JSON listings ---------------------------------------------
+\usepackage{listings}
+\lstdefinestyle{gridqbase}{
+  basicstyle=\ttfamily\footnotesize\color{gridqInk},
+  backgroundcolor=\color{gridqBg},
+  frame=single, rulecolor=\color{gridqMist}, framesep=6pt,
+  xleftmargin=10pt, xrightmargin=4pt,
+  breaklines=true, breakatwhitespace=false, columns=fullflexible,
+  keepspaces=true, showstringspaces=false, upquote=true,
+  tabsize=2, captionpos=b,
+  commentstyle=\color{gridqGrey}\itshape,
+  keywordstyle=\color{gridqBlue}\bfseries,
+  stringstyle=\color{gridqGreen},
+}
+\lstdefinestyle{py}{style=gridqbase, language=Python,
+  morekeywords={dataclass, frozen, Protocol, None, True, False}}
+\lstdefinestyle{json}{style=gridqbase,
+  morestring=[b]"}
+\lstdefinestyle{txt}{style=gridqbase}
+\lstset{style=gridqbase}
+% inline code
+\newcommand{\code}[1]{{\ttfamily\small\color{gridqInk}#1}}
+\newcommand{\fpath}[1]{{\ttfamily\small\color{gridqSlate}#1}}
+
+% ---- Callout boxes (tcolorbox) ----------------------------------------
+\usepackage[most]{tcolorbox}
+\tcbset{
+  calloutbase/.style={
+    enhanced, breakable, sharp corners=downhill, arc=2pt,
+    boxrule=0pt, leftrule=3pt, top=6pt, bottom=6pt, left=9pt, right=9pt,
+    fonttitle=\sffamily\bfseries\small, fontupper=\small,
+    coltitle=gridqInk, before skip=10pt, after skip=10pt,
+  }
+}
+% Key idea / takeaway
+\newtcolorbox{keyidea}[1][Key idea]{calloutbase,
+  colback=gridqAmberBg, colframe=gridqOrange, title={#1}}
+% How to rebuild this (the recreate-from-scratch recipe)
+\newtcolorbox{rebuild}[1][How to rebuild this step]{calloutbase,
+  colback=gridqBlueBg, colframe=gridqBlue, title={#1}}
+% Data contract: inputs / outputs
+\newtcolorbox{contract}[1][Inputs and outputs]{calloutbase,
+  colback=gridqGreenBg, colframe=gridqGreen, title={#1}}
+% Plain-language definition / note
+\newtcolorbox{plainnote}[1][In plain terms]{calloutbase,
+  colback=gridqBg, colframe=gridqSlate, title={#1}}
+% Caution / non-obvious rule
+\newtcolorbox{caution}[1][Watch out]{calloutbase,
+  colback=gridqVioletBg, colframe=gridqViolet, title={#1}}
+
+% ---- Section / heading styling ----------------------------------------
+\usepackage{titlesec}
+\usepackage{titletoc}
+\titleformat{\chapter}[display]
+  {\sffamily\bfseries\color{gridqInk}}
+  {\flushright\fontsize{52}{52}\selectfont\color{gridqMist}\thechapter}
+  {-8pt}
+  {\Huge\raggedright}
+  [\vspace{2pt}{\color{gridqOrange}\titlerule[2.5pt]}]
+\titlespacing*{\chapter}{0pt}{6pt}{22pt}
+\titleformat{\section}
+  {\sffamily\Large\bfseries\color{gridqInk}}{\thesection}{0.7em}{}
+\titleformat{\subsection}
+  {\sffamily\large\bfseries\color{gridqSlate}}{\thesubsection}{0.6em}{}
+\titleformat{\subsubsection}
+  {\sffamily\normalsize\bfseries\color{gridqSlate}}{}{0em}{}
+
+% ---- Headers / footers -------------------------------------------------
+\usepackage{fancyhdr}
+\pagestyle{fancy}
+\fancyhf{}
+\renewcommand{\headrulewidth}{0.6pt}
+\renewcommand{\footrulewidth}{0pt}
+\renewcommand{\headrule}{\hbox to\headwidth{\color{gridqMist}\leaders\hrule height \headrulewidth\hfill}}
+\fancyhead[L]{\sffamily\footnotesize\color{gridqGrey}\nouppercase{\leftmark}}
+\fancyhead[R]{\sffamily\footnotesize\color{gridqGrey}GridQ Platform Manual}
+\fancyfoot[C]{\sffamily\footnotesize\color{gridqGrey}\thepage}
+\fancypagestyle{plain}{\fancyhf{}\renewcommand{\headrulewidth}{0pt}%
+  \fancyfoot[C]{\sffamily\footnotesize\color{gridqGrey}\thepage}}
+
+% ---- Captions ----------------------------------------------------------
+\usepackage{caption}
+\captionsetup{font={sf,small},labelfont={bf,color=gridqOrangeDk},
+  labelsep=period, skip=8pt, width=0.92\textwidth}
+
+% ---- Hyperlinks / PDF metadata ----------------------------------------
+\usepackage[hidelinks]{hyperref}
+\hypersetup{
+  colorlinks=true, linkcolor=gridqOrangeDk, citecolor=gridqBlue,
+  urlcolor=gridqBlue, filecolor=gridqBlue,
+  bookmarksnumbered=true, bookmarksopen=true,
+  pdftitle={GridQ Behind-the-Meter BESS Underwriting Platform — User Manual},
+  pdfauthor={GridQ / Neura}, pdfsubject={Platform user and rebuild manual},
+}
+\usepackage{bookmark}
+
+% ---- Small helpers shared by chapters ---------------------------------
+% Module tag used at the head of a chapter, e.g. \modtag{M0}{Ingestion}{Perimeter}
+\newcommand{\modtag}[3]{%
+  \noindent\begin{tcolorbox}[enhanced,sharp corners,boxrule=0pt,colback=gridqInk,
+    colupper=white,left=10pt,right=10pt,top=5pt,bottom=5pt,before skip=2pt,after skip=12pt]
+  {\sffamily\bfseries\color{gridqOrange}#1}\;\;{\sffamily\bfseries\large #2}%
+  \hfill{\sffamily\footnotesize\color{gridqMist}#3}\end{tcolorbox}}
+% A figure float helper for flow diagrams (centres + frames lightly handled by caller)
+% Convenience for "pipeline position" breadcrumb
+\newcommand{\pipelinepos}[1]{\hfill{\sffamily\footnotesize\color{gridqGrey}Pipeline position: #1}\par\vspace{4pt}}
+
+% Better \ttfamily line breaking for long identifiers/paths
+\usepackage{seqsplit}
+
+% Framed screenshot helper: \screenshot{<width fraction>}{<file>}
+\newcommand{\screenshot}[2]{%
+  {\setlength{\fboxsep}{0pt}\setlength{\fboxrule}{0.6pt}%
+   \fcolorbox{gridqMist}{white}{\includegraphics[width=#1\textwidth]{#2}}}}

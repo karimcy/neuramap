@@ -1,0 +1,79 @@
+\documentclass[11pt,openright]{report}
+\input{preamble}
+
+\begin{document}
+
+% =====================================================================
+%  TITLE PAGE
+% =====================================================================
+\begin{titlepage}
+\thispagestyle{empty}
+\begin{tikzpicture}[remember picture,overlay,every node/.style={inner sep=0pt,outer sep=0pt}]
+  % background bands
+  \fill[gridqInk] (current page.north west) rectangle ([yshift=-11cm]current page.north east);
+  \fill[gridqOrange] ([yshift=-11cm]current page.north west) rectangle ([yshift=-11.32cm]current page.north east);
+  % reference: left text edge matches the 2.7cm geometry margin
+  \coordinate (LM) at ([xshift=2.7cm]current page.north west);
+  % brand line
+  \node[anchor=north west, font=\sffamily\bfseries\fontsize{15}{15}\selectfont, text=gridqOrange]
+    at ([yshift=-2.0cm]LM) {GridQ\,/\,Neura};
+  \node[anchor=north west, font=\sffamily\normalsize, text=white]
+    at ([yshift=-2.62cm]LM) {Behind-the-Meter Battery Storage};
+  % main title
+  \node[anchor=north west, align=left, text=white,
+        font=\sffamily\bfseries\fontsize{34}{41}\selectfont, text width=15cm]
+    at ([yshift=-4.7cm]LM) {The BESS Sizing \&\\ Underwriting Platform};
+  % subtitle
+  \node[anchor=north west, font=\sffamily\Large, text=gridqMist]
+    at ([yshift=-8.6cm]LM) {Complete User \& Rebuild Manual};
+  % tagline below the band
+  \node[anchor=north west, align=left, text width=15cm]
+    at ([yshift=-13.6cm]LM)
+    {{\sffamily\large\bfseries\color{gridqInk} From one site's half-hourly meter data to three consistent artifacts:}\\[5pt]
+     {\sffamily\large\color{gridqSlate} a system specification, a bankable underwriting pack, and a customer proposal.}};
+\end{tikzpicture}
+\vfill
+\noindent{\color{gridqMist}\rule{\textwidth}{1pt}}\\[8pt]
+\begin{tabularx}{\textwidth}{@{}L L R@{}}
+{\sffamily\footnotesize\color{gridqGrey}Document}\newline {\sffamily\small\color{gridqInk}Platform manual, version~1} &
+{\sffamily\footnotesize\color{gridqGrey}Scope}\newline {\sffamily\small\color{gridqInk}Full pipeline, every module} &
+{\sffamily\footnotesize\color{gridqGrey}Audience}\newline {\sffamily\small\color{gridqInk}Technical \& commercial readers}
+\end{tabularx}
+\end{titlepage}
+
+% =====================================================================
+%  TABLE OF CONTENTS
+% =====================================================================
+\pagenumbering{roman}
+\setcounter{tocdepth}{1}
+\tableofcontents
+\cleardoublepage
+\pagenumbering{arabic}
+\setcounter{page}{1}
+
+% =====================================================================
+%  BODY
+% =====================================================================
+\input{chapters/01-introduction}
+\input{chapters/02-overview}
+\input{chapters/03-data-contracts}
+\input{chapters/04-ingestion}
+\input{chapters/05-assumptions}
+\input{chapters/06-provenance}
+\input{chapters/07-engine-seam}
+\input{chapters/08-value-stack}
+\input{chapters/09-dispatch}
+\input{chapters/10-sizing}
+\input{chapters/11-scenarios}
+\input{chapters/12-finance}
+\input{chapters/13-quotes}
+\input{chapters/14-telemetry}
+\input{chapters/15-outputs}
+\input{chapters/16-app}
+\input{chapters/17-cli}
+
+\appendix
+\input{chapters/A-glossary}
+\input{chapters/B-assumptions-reference}
+
+\end{document}

@@ -1,0 +1,63 @@
+{
+  "site_id": "SYNTHETIC-ic12-sole-trader-ppa",
+  "site_name": "SYNTHETIC annual-only sole-trader site with a PPA export route (not a real site)",
+  "postcode": "ZZ5 5AA",
+  "country": "GB",
+  "data_tier": "T0_ANNUAL_KWH_TARIFF_POSTCODE",
+  "load_data": {"annual_kwh": 88000.0, "max_import_kw": 35.0, "max_export_kw": 12.5},
+  "tariff_stack": {
+    "supplier": "SYNTHETIC Energy Supply Co",
+    "tariff_name": "SYNTHETIC weekday/weekend tariff",
+    "standing_charge_per_day_gbp": 0.95,
+    "import_rates": {"weekday": 0.2650, "weekend": 0.2210},
+    "export_rates": {"ppa": 0.0710},
+    "levies": {"ccl": 0.00775},
+    "windowed_levies": {
+      "weekend_peak": {
+        "rate_gbp_per_kwh": 0.0150,
+        "months": [6, 7, 8],
+        "weekday_windows": [],
+        "weekend_windows": [{"start": "11:00", "end": "15:00"}],
+        "basis": "SYNTHETIC weekend-only levy window",
+        "source": "SYNTHETIC test fixture",
+        "confidence": "low"
+      }
+    },
+    "source": "SYNTHETIC quote",
+    "confidence": "low",
+    "basis": {
+      "schema_version": "0.1.0",
+      "vat": "excluded",
+      "vat_attestation": "stated_by_record",
+      "levies": "itemised",
+      "network_charges": "itemised",
+      "vat_rate_fraction": null
+    },
+    "provenance": {
+      "schema_version": "0.1.0",
+      "commodity": "assumed",
+      "network": "assumed",
+      "levies": "assumed"
+    }
+  },
+  "connection": {"mic_kw": 40.0, "mec_kw": 15.0, "voltage_level": "LV", "dno_region": "UKPN_EPN"},
+  "consents": {"g98": "approved", "g99": "not_required", "export_mpan": "1900000000003"},
+  "physical_gates": {"footprint_available": true, "fire_separation_ok": false},
+  "counterparty": {
+    "legal_name": "SYNTHETIC Market Garden (sole trader, not a real business)",
+    "legal_entity_type": "sole_trader",
+    "credit_status": "adequate",
+    "expected_tenure_years": 7.0
+  },
+  "confidentiality": {"nda_status": "expired", "nda_reference": "SYNTHETIC-NDA-0002"},
+  "export_arrangement": {
+    "route": "ppa_export",
+    "counterparty": "SYNTHETIC Offtaker Ltd",
+    "export_tariff_gbp_per_kwh": 0.0710
+  },
+  "stream_consents": [
+    {"stream": "DFS", "consented": true, "agreed_rate_gbp": 3.0, "agreed_rate_unit": "gbp_per_kwh"}
+  ],
+  "source_references": ["SYNTHETIC supplier quote"],
+  "missing_data": ["SYNTHETIC: any half-hourly data"]
+}

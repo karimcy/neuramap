@@ -1,0 +1,171 @@
+\chapter{Reference: the assumption library contents}
+\label{app:assumptions}
+
+This appendix lists, section by section, the full contents of the current Great Britain assumption release, \code{gb\_v0\_1}. It is the companion to Chapter~\ref{ch:assumptions}, which explains how the library is loaded, validated, version-stamped and repriced; here we simply tabulate the values.
+
+Two caveats apply to everything below. First, \textbf{every value in this release is a placeholder}: a stand-in chosen so the pipeline can run end to end, never a market-calibrated figure. That is why every quote built on \code{gb\_v0\_1} is deliberately marked \emph{not bankable}. Second, the release is \emph{frozen}: correcting any value here is done by cutting a new versioned file, never by editing this one. The \emph{status} column below uses \emph{ph} for \emph{placeholder} and \emph{nr} for \emph{needs\_review}; no value in this release is \emph{confirmed}.
+
+\begin{table}[H]
+\centering
+\caption{Release header for \code{gb\_v0\_1}.}
+\label{tab:b-header}
+\small\sffamily
+\begin{tabularx}{\textwidth}{@{}l L@{}}
+\toprule
+\textbf{Field} & \textbf{Value} \\
+\midrule
+Market & GB \\
+Version & \code{gb\_v0\_1} \\
+Released & 2026-06-17 \\
+Currency & GBP \\
+Notes & First placeholder GB assumption set; nothing confirmed; do not present as bankable. \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\section{Battery technology and physics}
+
+These sections describe the asset itself: what it costs, how it ages, how efficiently it cycles, and the throughput limits the optimiser must respect. The physics inputs are owned by the optimisation side (Olly); the cost inputs by the underwriting side (Oli).
+
+\begin{table}[H]
+\centering
+\caption{Capital and operating cost of the battery, degradation, efficiency, parasitic load and warranty caps.}
+\label{tab:b-battery}
+\small\sffamily
+\begin{tabularx}{\textwidth}{@{}>{\raggedright\arraybackslash}p{3.6cm} L l c L@{}}
+\toprule
+\textbf{Section \textperiodcentered{} key} & \textbf{Value} & \textbf{Unit} & \textbf{St.} & \textbf{Governs} \\
+\midrule
+\code{battery\_capex} \newline {\ttfamily\small\color{gridqInk}\seqsplit{installed\_cost}} & 500{,}000 & GBP/MW & ph & All-in installed cost; the single biggest lever on capex, IRR and DSCR. \\
+\code{battery\_capex} \newline {\ttfamily\small\color{gridqInk}\seqsplit{installed\_cost\_benchmark\_band}} & low 300{,}000, high 900{,}000 & GBP/MW & ph & Plausibility band; a modelled unit cost outside it is flagged, never blocked. \\
+\code{battery\_opex} \newline {\ttfamily\small\color{gridqInk}\seqsplit{annual\_fixed\_opex}} & 12{,}000 & GBP/MW/yr & ph & Fixed operations-and-maintenance floor; excludes energy and levy costs. \\
+\code{degradation} \newline {\ttfamily\small\color{gridqInk}\seqsplit{annual\_capacity\_fade\_pct}} & 2.5 & \%/yr & ph & Capacity fade; day-one sizing must hold end-of-life capability (no augmentation). \\
+\code{round\_trip\_efficiency} \newline {\ttfamily\small\color{gridqInk}\seqsplit{ac\_round\_trip}} & 0.88 & ratio & ph & AC-coupled round-trip efficiency; losses bought at the price faced. \\
+\code{parasitic\_load} \newline {\ttfamily\small\color{gridqInk}\seqsplit{standby\_kw\_per\_mw}} & 5.0 & kW/MW & ph & Standby (HVAC, battery management) draw, billed at the host tariff. \\
+\code{warranty\_cycle\_limits} \newline {\ttfamily\small\color{gridqInk}\seqsplit{max\_cycles\_per\_year\_by\_duration\_h}} & 1h: 548, 2h: 365, 4h: 250 & cycles/yr & ph & Hard throughput caps by duration; over-cycling is unavailable to the optimiser. \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\section{Financing, debt cover and risk haircuts}
+
+These sections turn the modelled performance into a financeable proposition: the return the price must clear, how a customer's credit becomes a loan, the debt-cover line that may not be breached, and the haircuts that step an optimistic figure down to a conservative one.
+
+\begin{table}[H]
+\centering
+\caption{Financing terms, the credit-band map, the DSCR covenant and the two revenue haircuts.}
+\label{tab:b-finance}
+\small\sffamily
+\begin{tabularx}{\textwidth}{@{}>{\raggedright\arraybackslash}p{3.6cm} L l c L@{}}
+\toprule
+\textbf{Section \textperiodcentered{} key} & \textbf{Value} & \textbf{Unit} & \textbf{St.} & \textbf{Governs} \\
+\midrule
+\code{financing} \newline {\ttfamily\small\color{gridqInk}\seqsplit{target\_equity\_irr\_pct}} & 12.0 & \% & ph & Target equity return the price recommendation must hit. \\
+\code{financing} \newline {\ttfamily\small\color{gridqInk}\seqsplit{credit\_rate\_tenor\_policy}} & strong: 6.0\%\,/\,12yr; \newline adequate: 7.5\%\,/\,10yr; \newline weak: 9.5\%\,/\,7yr & per band: \% and years & ph & Deterministic credit-band to (rate, tenor) map; worse band means higher rate or shorter tenor. Unknown bands are absent by design. \\
+\code{dscr\_covenants} \newline {\ttfamily\small\color{gridqInk}\seqsplit{min\_p90\_dscr}} & 1.30 & ratio & ph & Minimum debt-cover ratio on the P90 case; the optimiser cannot select what this would reject. \\
+\code{p50\_p90\_haircuts} \newline {\ttfamily\small\color{gridqInk}\seqsplit{p90\_revenue\_haircut\_pct}} & 15.0 & \% & ph & The P50-to-P90 revenue step-down the conservative case uses. \\
+\code{p50\_p90\_haircuts} \newline {\ttfamily\small\color{gridqInk}\seqsplit{perfect\_foresight\_haircut\_pct}} & 20.0 & \% & nr & Discounts the optimiser's hindsight advantage; must be calibrated. \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\section{Value streams: the bankable import floor}
+
+These sections value the income the battery earns behind the meter without leaving the site. They form the bankable floor: each is conservative, site-derived in practice, and priced only where it genuinely applies.
+
+\begin{table}[H]
+\centering
+\caption{Import-side and connection-side value streams that make up the bankable floor.}
+\label{tab:b-floor}
+\small\sffamily
+\begin{tabularx}{\textwidth}{@{}>{\raggedright\arraybackslash}p{3.6cm} l l c L@{}}
+\toprule
+\textbf{Section \textperiodcentered{} key} & \textbf{Value} & \textbf{Unit} & \textbf{St.} & \textbf{Governs} \\
+\midrule
+\code{tariff\_arbitrage} \newline {\ttfamily\small\color{gridqInk}\seqsplit{indicative\_value\_gbp\_per\_mw\_yr}} & 30{,}000 & GBP/MW/yr & ph & Import-side arbitrage; actual value site-derived from half-hourly load and tariff. \\
+\code{duos} \newline {\ttfamily\small\color{gridqInk}\seqsplit{red\_band\_avoidance\_gbp\_per\_mw\_yr}} & 18{,}000 & GBP/MW/yr & ph & Distribution-charge red-band avoidance (post-TCR; no Triad). Site-derived in practice. \\
+\code{mic\_asc\_headroom} \newline {\ttfamily\small\color{gridqInk}\seqsplit{value\_gbp\_per\_mw\_yr}} & 12{,}000 & GBP/MW/yr & ph & Value released where the connection limit (MIC/ASC) actually binds. \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\section{Value streams: contracted upside}
+
+These streams are real income but conditional: they are de-rated and deliverability-gated, and priced only when the contract is actually available. They are upside above the floor, not part of it.
+
+\begin{table}[H]
+\centering
+\caption{Contracted upside streams: de-rated and deliverability-gated, never the priced floor.}
+\label{tab:b-upside}
+\small\sffamily
+\begin{tabularx}{\textwidth}{@{}>{\raggedright\arraybackslash}p{3.6cm} L l c L@{}}
+\toprule
+\textbf{Section \textperiodcentered{} key} & \textbf{Value} & \textbf{Unit} & \textbf{St.} & \textbf{Governs} \\
+\midrule
+\code{capacity\_market} \newline {\ttfamily\small\color{gridqInk}\seqsplit{clearing\_price\_gbp\_per\_kw\_yr}} & 30.0 & GBP/kW/yr & nr & Indicative Capacity Market clearing price; needs a real auction or forecast series. \\
+\code{capacity\_market} \newline {\ttfamily\small\color{gridqInk}\seqsplit{de\_rating\_factor\_by\_duration\_h}} & 1h: 0.40, 2h: 0.65, 4h: 0.95 & ratio & nr & De-rates the Capacity Market contribution by duration; deliverability verified to the final contract year. \\
+\code{local\_flex\_piclo} \newline {\ttfamily\small\color{gridqInk}\seqsplit{utilisation\_price\_gbp\_per\_mwh}} & 150.0 & GBP/MWh & nr & Local-flexibility utilisation price; priced only when a tender is open in the site's network area. \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\section{Value streams: gated upside}
+
+These three streams need a route-to-market partner (and, for export, the relevant consents) before they can be valued at all. They are held at placeholder \emph{zero} and never enter the priced floor.
+
+\begin{table}[H]
+\centering
+\caption{Gated upside streams, held at zero until a route-to-market partner's terms are known.}
+\label{tab:b-gated}
+\small\sffamily
+\begin{tabularx}{\textwidth}{@{}>{\raggedright\arraybackslash}p{3.6cm} l l c L@{}}
+\toprule
+\textbf{Section \textperiodcentered{} key} & \textbf{Value} & \textbf{Unit} & \textbf{St.} & \textbf{Governs} \\
+\midrule
+\code{wholesale\_p415} \newline {\ttfamily\small\color{gridqInk}\seqsplit{gated\_upside\_value\_gbp\_per\_mw\_yr}} & 0 & GBP/MW/yr & nr & Wholesale upside; zero until the route-to-market partner or API assumptions are known. \\
+\code{balancing\_mechanism} \newline {\ttfamily\small\color{gridqInk}\seqsplit{gated\_upside\_value\_gbp\_per\_mw\_yr}} & 0 & GBP/MW/yr & nr & Balancing-mechanism upside; needs the partner plus export consents (G99/G100). \\
+\code{ancillary\_services} \newline {\ttfamily\small\color{gridqInk}\seqsplit{dc\_dm\_dr\_value\_gbp\_per\_mw\_yr}} & 0 & GBP/MW/yr & nr & Frequency response (DC/DM/DR) with decay; needs a forecast source and minimum portfolio scale. \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\section{Cost lines and operating standing charges}
+
+These recurring costs sit between gross income and the cash available to service debt. They are modest individually, but, as the notes in the release stress, a wrong cost line silently flatters every quote, so each must be confirmed before reliance.
+
+\begin{table}[H]
+\centering
+\caption{Recurring operating cost lines.}
+\label{tab:b-costs}
+\small\sffamily
+\begin{tabularx}{\textwidth}{@{}>{\raggedright\arraybackslash}p{3.6cm} l l c L@{}}
+\toprule
+\textbf{Section \textperiodcentered{} key} & \textbf{Value} & \textbf{Unit} & \textbf{St.} & \textbf{Governs} \\
+\midrule
+\code{business\_rates} \newline {\ttfamily\small\color{gridqInk}\seqsplit{annual\_gbp\_per\_mw}} & 8{,}000 & GBP/MW/yr & nr & Business-rates treatment of behind-the-meter storage; confirm before it flatters quotes. \\
+\code{insurance} \newline {\ttfamily\small\color{gridqInk}\seqsplit{annual\_pct\_of\_capex}} & 0.5 & \% of capex/yr & ph & Annual insurance as a percentage of installed capex. \\
+\code{metering\_idno} \newline {\ttfamily\small\color{gridqInk}\seqsplit{annual\_gbp\_per\_site}} & 1{,}200 & GBP/site/yr & ph & Metering and independent-network standing cost per site. \\
+\code{dno\_costs} \newline {\ttfamily\small\color{gridqInk}\seqsplit{annual\_gbp\_per\_site}} & 1{,}500 & GBP/site/yr & ph & Distribution-operator operating cost; excludes one-off connection capex. \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\section{Quote validity and scenario weights}
+
+These two sections are commercial-policy and modelling defaults rather than market figures: how long a quote stands, the tolerance beyond which a moving assumption forces a reprice, and the probabilities of the three price scenarios.
+
+\begin{table}[H]
+\centering
+\caption{Quote-validity policy and the scenario probability weights.}
+\label{tab:b-policy}
+\small\sffamily
+\begin{tabularx}{\textwidth}{@{}>{\raggedright\arraybackslash}p{3.6cm} L l c L@{}}
+\toprule
+\textbf{Section \textperiodcentered{} key} & \textbf{Value} & \textbf{Unit} & \textbf{St.} & \textbf{Governs} \\
+\midrule
+\code{quote\_validity} \newline {\ttfamily\small\color{gridqInk}\seqsplit{indicative\_validity\_days}} & 30 & days & ph & How long an indicative quote stays valid before it lapses or must reprice. \\
+\code{quote\_validity} \newline {\ttfamily\small\color{gridqInk}\seqsplit{reprice\_tolerance\_pct}} & 5.0 & \% & ph & Relative tolerance beyond which a material assumption move forces a reprice. \\
+\code{scenario\_weights} \newline {\ttfamily\small\color{gridqInk}\seqsplit{central\_low\_high}} & low 0.25, central 0.50, high 0.25 & probability weights & ph & Discrete probabilities of the Low, Central and High price cases; sum to 1.0. \\
+\bottomrule
+\end{tabularx}
+\end{table}

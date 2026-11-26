@@ -1,0 +1,308 @@
+"""Regulatory register (WP-GRC-03): the refusal gate every pack renderer must call.
+
+``require_verified(row_id, as_of=<the pack's date>)`` returns a register row only when its §12 claim
+has been checked against a primary source and found to match, recently enough, and a person has signed
+the row off. ``as_of`` is required: no clock is read. It raises for every other case:
+
+* ``UnknownRow``: no such row;
+* ``RowUnverified``: no primary source could be found or read, so the claim is unconfirmed;
+* ``RowChanged``: the primary source now says something different from spec §12; the message
+  carries both values;
+* ``RowExpired``: the backing evidence has expired by the pack's date;
+* ``RowStale``: an evidence object was verified more than ``MAX_VERIFICATION_AGE_DAYS`` before the
+  pack's date, or after it (research/fable_review.md RG-1, instruction C11);
+* ``RowNotSignedOff``: the row has no valid person's sign-off (``sign_off``; rule at ``SIGN_OFF_RULE``);
+* ``RegisterIntegrityError``: the register file is inconsistent (an evidence object's content hash
+  does not match its body, a kept source copy does not match its document hash, or a ``verified`` row
+  has no verified IC-4 evidence).
+
+**Future pack renderers (A8 lender/investor packs, the D1 registry views, grant reports) must call
+``require_verified`` for every regulatory date or threshold they print, and must not print a row it
+refuses.** No pack renderer exists yet (2026-11-17). Its first callers are the load-control segment rule
+loader and facts brief (WP-GRC-16, ``load_control/rule.py`` and ``brief.py``). No row is signed off yet,
+so today it refuses every row.
+
+This module is standard-library only so it runs in the Atlas venv (Python 3.10). The IC-4 contract
+itself (``gridq.contracts.evidence``, Python >= 3.11) is applied when the register is built
+(``build_register.py``, run with the GridQ venv). Here the IC-4 content hash of each evidence object
+is recomputed with the contract's canonical-JSON rule (sorted keys, compact separators, NFC strings,
+``ensure_ascii=False``), so an edit to the JSON after the build is caught without importing GridQ.
+"""
+from __future__ import annotations
+
+import gzip
+import hashlib
+import json
+import re
+import unicodedata
+from datetime import date, datetime
+from functools import lru_cache
+from pathlib import Path
+from typing import Any, Optional
+
+HERE = Path(__file__).resolve().parent
+REGISTER = HERE / "regulatory_register.json"
+
+# RG-1 / C11. A pack may quote a row only if every evidence object it rests on was verified no more than
+# 90 days before the pack's date. Why 90: every evidence object here is `no_expiry` (56 of 56 on 2026-11-17),
+# so IC-4 expiry never refuses anything, and a row verified once would otherwise be quotable for ever. The
+# sources change without notice to us: REG-01 itself records Ofgem approving BSC P511 on 10 Aug 2026 for
+# implementation on 24 Aug 2026, fourteen days later. No age makes a quote safe against that, so the age is a
+# ceiling on staleness and the person signing off checks the row at the pack's date. A quarter is the
+# planning unit of spec §16 and the claims register uses the same age for an acceptance test
+# (roadmap/check_claims.py:ACCEPTANCE_TEST_MAX_AGE_DAYS), so both governance registers go stale together.
+# Re-verifying moves `verified_on` forward and voids the sign-off, so the age is also the longest a sign-off
+# can stand.
+MAX_VERIFICATION_AGE_DAYS = 90
+
+SIGN_OFF_RULE = (
+    "a row a pack quotes carries `sign_off: {by: <the person's own name>, role: <their role, e.g. the "
+    "compliance/ISMS lead of spec §14.2>, on: <YYYY-MM-DD>}`, written in rows.yaml by that person and never by "
+    "an agent; `by` names a person (not an agent, a tool or an organisation), and `on` is not before the "
+    "row's latest evidence verified_on and not after the pack's date"
+)
+SIGN_OFF_FIELDS = ("by", "role", "on")
+# Names that are not a person. A speed bump, not authentication: copied from atlas/reviews.py:AGENT_WORDS
+# (this module is standard-library only and does not import atlas), plus "neura", the organisation that is
+# the IC-4 verifier of every evidence object here.
+NOT_A_PERSON_WORDS = frozenset({
+    "claude", "fable", "opus", "sonnet", "haiku", "agent", "assistant", "bot", "gpt", "chatgpt", "codex",
+    "copilot", "llm", "automated", "automation", "script", "test", "neura",
+})
+
+__all__ = [
+    "MAX_VERIFICATION_AGE_DAYS",
+    "REGISTER",
+    "SIGN_OFF_RULE",
+    "RegisterRefusal",
+    "RegisterIntegrityError",
+    "RowChanged",
+    "RowExpired",
+    "RowNotSignedOff",
+    "RowStale",
+    "RowUnverified",
+    "UnknownRow",
+    "evidence_content_hash",
+    "load",
+    "problems",
+    "require_verified",
+    "row",
+    "sign_off_problems",
+]
+
+
+class RegisterRefusal(Exception):
+    """Base class: the row may not be quoted in a pack."""
+
+
+class UnknownRow(RegisterRefusal, KeyError):
+    pass
+
+
+class RowUnverified(RegisterRefusal):
+    pass
+
+
+class RowChanged(RegisterRefusal):
+    pass
+
+
+class RowExpired(RegisterRefusal):
+    pass
+
+
+class RowStale(RegisterRefusal):
+    pass
+
+
+class RowNotSignedOff(RegisterRefusal):
+    pass
+
+
+class RegisterIntegrityError(RegisterRefusal):
+    pass
+
+
+def _normalise(node: Any) -> Any:
+    if isinstance(node, dict):
+        return {unicodedata.normalize("NFC", str(k)): _normalise(v) for k, v in node.items()}
+    if isinstance(node, list):
+        return [_normalise(v) for v in node]
+    if isinstance(node, str):
+        return unicodedata.normalize("NFC", node)
+    if isinstance(node, float) and node == 0.0:
+        return 0.0
+    return node
+
+
+def evidence_content_hash(evidence_object: dict) -> str:
+    """IC-4 ``content_hash`` of a JSON-mode evidence object (gridq.contracts._base.canonical_json)."""
+    canon = json.dumps(_normalise(evidence_object), sort_keys=True, separators=(",", ":"),
+                       ensure_ascii=False, allow_nan=False)
+    return "sha256:" + hashlib.sha256(canon.encode("utf-8")).hexdigest()
+
+
+def _fetched_bytes(p: Path) -> bytes:
+    """Kept copies are gzip-compressed (``.gz``); the document hash is of the decompressed (fetched) bytes."""
+    raw = p.read_bytes()
+    return gzip.decompress(raw) if p.suffix == ".gz" else raw
+
+
+@lru_cache(maxsize=4)
+def _load(path: str) -> dict:
+    return json.loads(Path(path).read_text(encoding="utf-8"))
+
+
+def load(path: Optional[Path] = None) -> dict:
+    return _load(str(path or REGISTER))
+
+
+def row(row_id: str, *, path: Optional[Path] = None) -> dict:
+    """The raw register row, whatever its status (for display of the register itself, not for packs)."""
+    for r in load(path)["rows"]:
+        if r["id"] == row_id:
+            return r
+    raise UnknownRow(f"{row_id!r} is not a regulatory register row")
+
+
+def _row_problems(r: dict, base: Path, check_files: bool) -> list:
+    errs = []
+    st = r.get("verification_status")
+    if st not in ("verified", "changed", "unverified"):
+        errs.append(f"{r.get('id')}: unknown verification_status {st!r}")
+    for e in r.get("evidence", []):
+        eo = e["evidence_object"]
+        if evidence_content_hash(eo) != e["evidence_hash"]:
+            errs.append(f"{r['id']}: evidence object does not match its IC-4 content hash")
+        if eo.get("contract") != "IC-4" or eo.get("record_class") != "registered":
+            errs.append(f"{r['id']}: evidence is not a registered IC-4 object")
+        if "neura" in eo["issuer"]["name"].lower():
+            errs.append(f"{r['id']}: Neura cannot be an issuer")
+        if eo["document_hash"] != "sha256:" + e["source"]["sha256"]:
+            errs.append(f"{r['id']}: document_hash differs from the source sha256")
+        copy = e["source"].get("local_copy")
+        if check_files and copy:
+            p = base / copy
+            if not p.is_file():
+                errs.append(f"{r['id']}: kept source copy missing: {copy}")
+            elif hashlib.sha256(_fetched_bytes(p)).hexdigest() != e["source"]["sha256"]:
+                errs.append(f"{r['id']}: kept source copy {copy} does not match its document hash")
+    if st in ("verified", "changed"):
+        if not any(e["evidence_object"]["verification"]["kind"] == "verified" for e in r.get("evidence", [])):
+            errs.append(f"{r['id']}: a {st} row has no verified IC-4 evidence object")
+    if not r.get("evidence") and not r.get("absent_reason"):
+        errs.append(f"{r['id']}: no evidence and no absent_reason")
+    return errs
+
+
+def problems(path: Optional[Path] = None, *, check_files: bool = True) -> list:
+    """Every integrity problem in the register file. Empty list means consistent."""
+    reg = load(path)
+    base = (path or REGISTER).parent
+    errs = []
+    ids = [r["id"] for r in reg["rows"]]
+    if len(ids) != len(set(ids)):
+        errs.append("duplicate row ids")
+    for r in reg["rows"]:
+        errs += _row_problems(r, base, check_files)
+    return errs
+
+
+def _iso_date(v: Any) -> Optional[date]:
+    if isinstance(v, datetime):
+        return None
+    if isinstance(v, date):
+        return v
+    try:
+        return date.fromisoformat(str(v))
+    except ValueError:
+        return None
+
+
+def _verified_dates(r: dict) -> list:
+    """The IC-4 ``verification.verified_on`` of each evidence object; None where it is absent or not a date."""
+    return [_iso_date((e["evidence_object"].get("verification") or {}).get("verified_on"))
+            for e in r.get("evidence", [])]
+
+
+def sign_off_problems(r: dict, as_of: date) -> list:
+    """Why the row's ``sign_off`` does not meet ``SIGN_OFF_RULE`` at the pack's date ``as_of`` (empty: it does)."""
+    so = r.get("sign_off")
+    if not so:
+        return ["no person's sign-off (sign_off)"]
+    if not isinstance(so, dict):
+        return ["sign_off must be a mapping with " + ", ".join(SIGN_OFF_FIELDS)]
+    errs = [f"sign_off.{f} is required" for f in SIGN_OFF_FIELDS if not str(so.get(f) or "").strip()]
+    by = str(so.get("by") or "").strip()
+    if by and (len(by) < 3 or set(re.findall(r"[a-z]+", by.lower())) & NOT_A_PERSON_WORDS):
+        errs.append(f"sign_off.by {by!r} does not name a person (an agent, a tool or an organisation "
+                    f"cannot sign off)")
+    if str(so.get("on") or "").strip():
+        on = _iso_date(so["on"])
+        verified = [d for d in _verified_dates(r) if d is not None]
+        if on is None:
+            errs.append(f"sign_off.on {so['on']!r} is not an ISO date")
+        else:
+            if verified and on < max(verified):
+                errs.append(f"sign_off.on {on} is before the row's latest verification ({max(verified)}); "
+                            f"a re-verified row needs a new sign-off")
+            if on > as_of:
+                errs.append(f"sign_off.on {on} is after the pack's date {as_of}")
+    return errs
+
+
+def require_verified(row_id: str, *, as_of: date, path: Optional[Path] = None) -> dict:
+    """Return the row if, and only if, its §12 claim is verified against a primary source, every
+    verification is recent at the pack's date, and a person has signed the row off.
+
+    ``as_of`` is the pack's date and is required (RG-1): no clock is read. It refuses a row whose
+    evidence has expired on that date (IC-4 ``expires_on`` is exclusive), a row with an evidence
+    object verified more than ``MAX_VERIFICATION_AGE_DAYS`` before it or after it (``RowStale``), and a
+    row without a sign-off meeting ``SIGN_OFF_RULE`` (``RowNotSignedOff``). A rule that is not yet in
+    force is *not* refused: a pack may quote a future effective date.
+    """
+    if not isinstance(as_of, date) or isinstance(as_of, datetime):
+        raise TypeError(f"as_of must be the pack's date (datetime.date), got {as_of!r}")
+    r = row(row_id, path=path)
+    errs = _row_problems(r, (path or REGISTER).parent, check_files=True)
+    if errs:
+        raise RegisterIntegrityError("; ".join(errs))
+    st = r["verification_status"]
+    if st == "unverified":
+        why = r.get("absent_reason") or r.get("note") or "no primary source confirms it"
+        raise RowUnverified(f"{row_id} is unverified and may not be quoted in a pack: {why}")
+    if st == "changed":
+        raise RowChanged(
+            f"{row_id} has changed and may not be quoted in a pack: spec §12 says "
+            f"{r['spec_value']!r}; the primary source says {r['source_value']!r}"
+        )
+    for e in r["evidence"]:
+        eo = e["evidence_object"]
+        exp = eo["expiry"]
+        if exp["kind"] == "expires_on" and as_of >= date.fromisoformat(exp["expires_on"]):
+            raise RowExpired(f"{row_id}: evidence expired on {exp['expires_on']} (as of {as_of})")
+    for d in _verified_dates(r):
+        if d is None:
+            raise RowStale(f"{row_id}: an evidence object has no verification date, so its age is unknown")
+        if d > as_of:
+            raise RowStale(f"{row_id}: verified on {d}, after the pack's date {as_of}")
+        if (as_of - d).days > MAX_VERIFICATION_AGE_DAYS:
+            raise RowStale(f"{row_id}: verified on {d}, {(as_of - d).days} days before the pack's date "
+                           f"{as_of}; the maximum is {MAX_VERIFICATION_AGE_DAYS} days. Re-verify the row "
+                           f"against its primary source")
+    so = sign_off_problems(r, as_of)
+    if so:
+        raise RowNotSignedOff(f"{row_id} may not be quoted in a pack: " + "; ".join(so)
+                              + f". Rule: {SIGN_OFF_RULE}")
+    return r
+
+
+if __name__ == "__main__":
+    import sys
+
+    errs = problems()
+    reg = load()
+    if errs:
+        print(f"FAIL ({len(errs)}):\n  - " + "\n  - ".join(errs))
+        sys.exit(1)
+    print(f"PASS — {len(reg['rows'])} rows, {reg['counts']}")

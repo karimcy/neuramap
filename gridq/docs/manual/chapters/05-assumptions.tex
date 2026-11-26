@@ -1,0 +1,245 @@
+\chapter{The assumption library}
+\label{ch:assumptions}
+\modtag{X.1}{Assumption library}{Cross-cutting}
+
+Every quote the platform produces is built from numbers: how much a battery costs to install, how quickly it degrades, what a unit of avoided peak charge is worth, the interest rate a lender charges a given customer, the return the price must clear. There are dozens of such numbers, and almost every stage of the pipeline needs some of them. The obvious way to supply them is to write each value where it is used. The platform forbids that absolutely. Instead every number lives in one place: a single, versioned \emph{assumption library}.
+
+The rule is short and has no exceptions. \textbf{No pricing, finance, dispatch, sizing or output module may hold a number of its own.} If a stage needs the installed cost of a battery, it does not write \code{500000} into its code; it asks the library for \code{battery\_capex.installed\_cost} and uses whatever comes back. A value can therefore be found, reviewed, corrected and audited in exactly one location, and every quote can say which exact set of values it was built from.
+
+\begin{plainnote}
+Think of the library as the single master rate-card the whole business prices from. Nobody is allowed to keep a private copy of a rate scribbled in a drawer. When the card is reissued it gets a new edition number printed on it, and every quote staples on a note saying which edition it used. If the card later changes by more than a hair, quotes priced on the old edition are not quietly patched; they are re-quoted against the new one.
+\end{plainnote}
+
+\pipelinepos{Sits beside the whole deterministic core. Loaded once at the start of a run; read by ingestion's plausibility gates, the value stack, dispatch, sizing, the scenario engine, the financial model and credit. Its version tag is stamped onto the resulting quote record (Chapter~\ref{ch:provenance}).}
+
+\begin{contract}
+\textbf{In.} A version string naming a release, for example \code{gb\_v0\_1}. The loader resolves it to a single file on disk (\fpath{assumptions/<version>.yaml}; \code{.yml} and \code{.json} are also accepted).\\
+\textbf{Out.} One validated, in-memory \emph{assumption library} object: a release header plus every section of numbers, each number wrapped in its full documentation (value, unit, source, review status, owner, confidence, review date, notes). The same object also answers the question ``does a quote priced on version A need repricing against version B?''. If the named version is missing, malformed, or omits any required section, loading fails loudly rather than returning a partial set.
+\end{contract}
+
+\section{Why one versioned source, and nothing else}
+
+Two of the platform's five guarantees (Chapter~\ref{ch:overview}) depend directly on this module: \emph{traceability} -- every number can be tied back to what produced it -- and \emph{one versioned source for every assumption}. A private constant scattered in code breaks both at once. If a discount rate were written into the financial model and also, slightly differently, into a spreadsheet that generated a price curve, the two would drift apart, and no quote could honestly say which value it used. Worse, a lender auditing the pack could not reproduce a figure without reading the source code line by line.
+
+Centralising every number removes that whole class of problem. Because the library is the only door to these values, three properties follow for free:
+
+\begin{itemize}
+  \item \textbf{Consistency.} Two stages that need the same number get the same number, by construction, because there is only one.
+  \item \textbf{Auditability.} Every value carries its own provenance: where it came from, who owns confirming it, how confident the platform is in it, and when it was last looked at. No number is undocumented.
+  \item \textbf{Reproducibility.} A quote records the library version it used. Anyone holding that version can recompute the quote and get the identical answer, because the inputs are fully pinned (Chapter~\ref{ch:provenance}).
+\end{itemize}
+
+\begin{keyidea}[No private constants, ever]
+The single most important rule of this module is what it forbids elsewhere. If any module in the deterministic core ever contains a bare numeric literal that influences a priced figure, the abstraction has failed. Every such number must be fetched from the versioned library by section and name, so that changing it is a versioned event and every quote can name the version it trusted.
+\end{keyidea}
+
+\section{What one assumption looks like}
+
+The library is not a flat list of numbers. Each value is a small, self-documenting record, and every one of its descriptive fields is \emph{required}: a number with a missing source or no review status is a loading error, not an accepted entry. This is how the platform enforces ``no number is undocumented''. The fields are listed in Table~\ref{tab:assumptionfields}.
+
+\begin{table}[H]
+\centering
+\caption{The fields every assumption entry must carry. All are required; a missing field fails validation, so no number can enter the library undocumented.}
+\label{tab:assumptionfields}
+\small\sffamily
+\begin{tabularx}{\textwidth}{@{}l L@{}}
+\toprule
+\textbf{Field} & \textbf{What it records} \\
+\midrule
+\code{value} & The number itself, or a small structured value (for example a rate-and-tenor pair per credit band, or a factor per battery duration). \\
+\code{unit} & The unit the value is expressed in: \code{GBP/MW}, \code{ratio}, \code{percent}, \code{cycles/yr}, and so on. A redenomination is treated as a material change even at the same number. \\
+\code{source} & Where the value came from: a named document, a data provider, or the honest word \code{placeholder}. \\
+\code{status} & Its place on the review lifecycle: \emph{placeholder}, \emph{needs\_review}, or \emph{confirmed}. \\
+\code{owner\_or\_reviewer} & Who is responsible for confirming it. \\
+\code{confidence} & Low, medium or high confidence in the value as it stands. \\
+\code{last\_reviewed} & The date the entry was last examined. \\
+\code{notes} & Context, caveats, and what would raise the confidence. \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\begin{plainnote}
+The status field carries an honest health warning. A value marked \emph{placeholder} is a stand-in chosen so the pipeline can run end to end; it is usable but must never be dressed up as a confirmed, bankable number. Values move along the lifecycle \emph{placeholder} $\rightarrow$ \emph{needs\_review} $\rightarrow$ \emph{confirmed} as they are sourced and checked. The current GB release, \code{gb\_v0\_1}, is entirely placeholders, which is exactly why every quote it produces is deliberately marked \emph{not bankable}.
+\end{plainnote}
+
+\section{Loading and validating a release}
+
+A release is a single file, named for its version, holding a release header plus a fixed set of named sections of assumptions. Loading it is a deliberately strict, single-door operation, so that a malformed or incomplete library is caught at the start of a run rather than producing a quietly wrong quote. The loader performs the steps in Figure~\ref{fig:assumload}.
+
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}[node distance=7mm and 14mm]
+  \node[io] (ver) {Version string\\\scriptsize e.g. \code{gb\_v0\_1}};
+  \node[proc, below=of ver] (resolve) {Resolve to a file\\\scriptsize \code{.yaml} / \code{.yml} / \code{.json}};
+  \node[decide, below=of resolve] (exists) {File\\found?};
+  \node[proc, below=of exists] (parse) {Parse the file\\\scriptsize to a mapping};
+  \node[decide, below=of parse] (sections) {All required\\sections\\present?};
+  \node[store, below=of sections] (lib) {Validated\\\textbf{assumption library}\\\scriptsize header + all sections};
+  \node[term, right=22mm of exists] (fail1) {Load error\\\scriptsize unknown version};
+  \node[term, right=22mm of sections] (fail2) {Validation error\\\scriptsize missing / mistyped\\section or field};
+
+  \draw[flow] (ver) -- (resolve);
+  \draw[flow] (resolve) -- (exists);
+  \draw[flow] (exists) -- node[flowlabel,left]{yes} (parse);
+  \draw[flow] (exists) -- node[flowlabel,above]{no} (fail1);
+  \draw[flow] (parse) -- (sections);
+  \draw[flow] (sections) -- node[flowlabel,left]{yes} (lib);
+  \draw[flow] (sections) -- node[flowlabel,above]{no} (fail2);
+\end{tikzpicture}
+\caption{Loading a release is strict and fails loudly. A version that has no file, a file that will not parse, or a file missing any required section never yields a usable library; there is no partial load.}
+\label{fig:assumload}
+\end{figure}
+
+The release header records the market (\code{GB}), the version string, the release date, and the currency. The sections that follow are not free-form: the library schema names every section that a valid GB release must carry, and each section is a labelled group of assumption entries. Because the sections are fixed and checked, a section that is missing, misspelt, or holding the wrong shape of data is a validation error. This is the mechanism behind ``all required sections must be present'': you cannot accidentally ship a release that forgot to state, say, the financing terms.
+
+\begin{caution}[A new value means a new file, never an in-place edit]
+A released library file is frozen. Correcting a value, confirming a placeholder, or adding an assumption is done by cutting a \emph{new versioned file} with a new version string, never by editing a file that has already produced quotes. This is what keeps old quotes honest: a quote pinned to \code{gb\_v0\_1} keeps reading exactly the numbers \code{gb\_v0\_1} held, no matter what later releases change. GB-specific values are \emph{content} in these files; the engine never branches on the market, so a new market is simply a new file, not new code.
+\end{caution}
+
+\section{The version tag travels onto every quote}
+
+Loading happens once at the start of a run. The library is then read, but never altered, by every deterministic stage that needs a number. Figure~\ref{fig:assumfeed} shows the shape of that fan-out: one versioned store feeding the whole core, with its version string flowing through to the finished quote record.
+
+\begin{figure}[H]
+\centering
+\resizebox{\textwidth}{!}{%
+\begin{tikzpicture}[node distance=9mm and 16mm]
+  % the store
+  \node[store, fill=gridqGreenBg, draw=nodeStoreBd, minimum width=40mm, text width=38mm] (lib)
+    {\textbf{Assumption library}\\\scriptsize one versioned file\\\scriptsize \code{gb\_v0\_1}};
+
+  % consumer stages, stacked to the right
+  \node[proc, right=30mm of lib, yshift=33mm] (gates) {Ingestion plausibility gates\\\scriptsize capex band, cycle caps};
+  \node[proc, below=of gates] (value) {Value \& constraint stack\\\scriptsize stream values, DUoS, MIC/ASC};
+  \node[proc, below=of value] (dispatch) {Dispatch optimiser\\\scriptsize efficiency, parasitic, cycles};
+  \node[proc, below=of dispatch] (sizing) {Sizing optimiser\\\scriptsize degradation, capex};
+  \node[proc, below=of sizing] (scen) {Scenario engine\\\scriptsize Low/Central/High weights};
+  \node[proc, below=of scen] (fin) {Financial model \& credit\\\scriptsize IRR target, DSCR, costs, rate/tenor};
+
+  % fan-out arrows
+  \draw[flow] (lib.east) to[out=20,in=180] (gates.west);
+  \draw[flow] (lib.east) to[out=10,in=180] (value.west);
+  \draw[flow] (lib.east) to[out=0,in=180] (dispatch.west);
+  \draw[flow] (lib.east) to[out=-5,in=180] (sizing.west);
+  \draw[flow] (lib.east) to[out=-12,in=180] (scen.west);
+  \draw[flow] (lib.east) to[out=-22,in=180] (fin.west);
+
+  % quote record collecting the version tag
+  \node[store, right=26mm of fin, yshift=33mm, fill=gridqGreenBg, draw=nodeStoreBd,
+        minimum width=38mm, text width=36mm] (quote)
+    {\textbf{Quote record}\\\scriptsize numbers + \textbf{version tag}\\\scriptsize \code{assumption\_version}};
+
+  % version tag flows down the right onto the quote
+  \draw[flow, draw=gridqOrange] (lib.south) to[out=-90,in=180]
+    node[flowlabel, below, pos=0.62]{version tag stamped on}  ([yshift=-4mm]fin.south west) -- ([xshift=-2mm]fin.south);
+  \draw[flow] (fin.east) to[out=0,in=180] (quote.west);
+
+  % grouping box around the deterministic consumers
+  \begin{scope}[on background layer]
+    \node[groupbox, fit=(gates)(value)(dispatch)(sizing)(scen)(fin),
+          inner sep=7pt, label={[note,anchor=south]north:DETERMINISTIC CORE: reads, never writes}] {};
+  \end{scope}
+\end{tikzpicture}}
+\caption{One versioned store feeds every deterministic stage. Each stage reads the numbers it needs and writes none of its own. The version string the run loaded is stamped onto the quote record, so the quote always names the exact set of values that produced it.}
+\label{fig:assumfeed}
+\end{figure}
+
+That stamped version is what makes a quote auditable. The quote record carries the library version alongside hashes of its inputs and a code version (Chapter~\ref{ch:provenance}); together these pin the computation so completely that anyone holding the same version can reproduce the quote exactly. A quote with no version recorded cannot be tied to the values that produced it, and ``bankable'' requires precisely that traceability, so such a quote can never be bankable.
+
+\begin{keyidea}[A quote is valid only against the version that produced it]
+The library version is not decoration on the quote; it is part of the quote's identity. The figures in an underwriting pack mean what they mean only in the context of one specific set of assumptions. Read against a different release they may no longer hold. That is why the next section never silently updates an old quote when the numbers move: it reprices.
+\end{keyidea}
+
+\section{The reprice trigger: when a moving number forces a re-quote}
+
+Assumptions do not stand still. Battery prices fall, lenders revise rates, a placeholder is confirmed at a different value. When the library moves, a quote that was priced against the old version is, strictly, stale. The platform's response is governed by one rule from the System Brief: \textbf{a material change triggers a reprice, never a silent edit.} The hard part is deciding what counts as \emph{material}, and the module makes that decision falsifiable rather than a matter of judgement.
+
+The check compares the library a quote was priced against, leaf by leaf, with the library currently in force. ``Leaf by leaf'' matters because some assumptions are structured: a per-duration de-rating factor, or a per-band rate-and-tenor map, is flattened to its individual numbers so each can be compared on its own. For every leaf the check asks a single question, against a tolerance that is itself read from the library (so the check carries no hidden constant of its own):
+
+\begin{table}[H]
+\centering
+\caption{How the reprice check classifies each difference between the priced-against library and the current one. Any breach forces a reprice before the quote can be signed.}
+\label{tab:reprice}
+\small\sffamily
+\begin{tabularx}{\textwidth}{@{}L l L@{}}
+\toprule
+\textbf{What changed} & \textbf{Verdict} & \textbf{Why} \\
+\midrule
+A numeric value moved by no more than the tolerance & within tolerance & An immaterial drift; the quote stands. \\
+A numeric value moved by more than the tolerance & \textbf{breach} & A material move; the figures may no longer hold. \\
+A numeric value moved away from exactly zero & \textbf{breach} & A relative move from zero is treated as effectively infinite, hence always material. \\
+An assumption was added or removed & \textbf{breach} & A structural change; the pricing basis itself differs. \\
+A value's unit changed & \textbf{breach} & A redenomination is material even at the same number. \\
+A non-numeric value changed & \textbf{breach} & Cannot be compared by magnitude, so any change is treated as material. \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+The tolerance is a relative percentage: a leaf is within tolerance only if the size of its move, as a fraction of its old value, stays at or below that percentage. In the current release the tolerance is a placeholder five per cent. Where the old value was exactly zero, no relative move is small, so any change from zero is a breach by definition. The check tallies every differing leaf, marks which are breaches, and if any breach exists it returns a verdict of \emph{reprice required}, together with a plain-language summary naming each offending value and how far it moved.
+
+\begin{plainnote}
+The verdict deliberately reads only the assumptions' values and units. The release header (version string, release date, currency) is out of scope. A pure version bump that changes no actual number therefore never forces a reprice on its own: only a real movement in the figures, or a structural change to which figures exist, can do that.
+\end{plainnote}
+
+When the verdict is \emph{reprice required}, the correct action is to produce a fresh quote snapshot against the current library, not to patch the old one. The old snapshot stays frozen and pinned to its version; the new one is computed cleanly and carries the new version tag. The quote lifecycle that this drives -- and the rule that, for an underwritten quote, a move beyond tolerance before signature forces a reprice -- is covered in Chapter~\ref{ch:quotes}.
+
+\section{The major assumption sections}
+
+A release is organised into named sections, each governing one part of the calculation. Table~\ref{tab:sections} maps the major sections to what they drive in the pipeline. The full contents of the current GB release, value by value, are tabulated in Appendix~\ref{app:assumptions}; this table is the conceptual map.
+
+\begin{table}[H]
+\centering
+\caption{The major sections of a GB release and what each governs. The full set of values for the current release is in Appendix~\ref{app:assumptions}.}
+\label{tab:sections}
+\small\sffamily
+\begin{tabularx}{\textwidth}{@{}l L l@{}}
+\toprule
+\textbf{Section} & \textbf{What it governs} & \textbf{Read by} \\
+\midrule
+\code{battery\_capex} & Installed cost per MW, plus a plausibility band a modelled cost outside which is flagged. & Sizing, finance \\
+\code{battery\_opex} & Fixed annual operations-and-maintenance cost per MW. & Finance \\
+\code{degradation} & Annual capacity fade; sizing must hold end-of-life capability with no augmentation. & Sizing, dispatch \\
+\code{round\_trip\_efficiency} & The AC round-trip efficiency; losses are bought at the price actually faced. & Dispatch \\
+\code{parasitic\_load} & Standby draw (HVAC, battery management) billed at the host tariff. & Dispatch \\
+\code{warranty\_cycle\_limits} & Hard throughput caps in cycles per year by duration; over-cycling is not available. & Dispatch \\
+\code{financing} & Target equity return the price must clear, and the credit-band to rate-and-tenor map. & Finance, credit \\
+\code{dscr\_covenants} & The minimum debt-cover ratio on the conservative (P90) case the optimiser cannot violate. & Finance, sizing \\
+\code{p50\_p90\_haircuts} & The P50-to-P90 revenue haircut, and the perfect-foresight haircut that discounts ideal dispatch. & Scenarios, finance \\
+\code{tariff\_arbitrage} & Indicative import-side arbitrage value; site-derived in practice. & Value stack \\
+\code{duos} & Distribution-charge red-band avoidance value, part of the bankable import floor. & Value stack \\
+\code{mic\_asc\_headroom} & Value released where the grid connection limit actually binds. & Value stack \\
+\code{capacity\_market} & The Capacity Market clearing price and the de-rating factor by duration. & Value stack \\
+\code{local\_flex\_piclo} & Local-flexibility utilisation price; priced only when a tender is open. & Value stack \\
+\code{wholesale\_p415} & Gated wholesale upside; placeholder zero until a route-to-market partner is known. & Value stack (gated) \\
+\code{balancing\_mechanism} & Gated balancing-mechanism upside; needs the partner and export consents. & Value stack (gated) \\
+\code{ancillary\_services} & Gated frequency-response upside; needs a forecast source and portfolio scale. & Value stack (gated) \\
+\code{business\_rates} & Annual business rates per MW; a cost line that silently flatters every quote if wrong. & Finance \\
+\code{insurance} & Annual insurance as a percentage of installed capex. & Finance \\
+\code{metering\_idno} & Annual metering and network standing cost per site. & Finance \\
+\code{dno\_costs} & Annual distribution-operator operating cost per site. & Finance \\
+\code{quote\_validity} & How long an indicative quote stays valid, and the reprice tolerance percentage. & Lifecycle, reprice \\
+\code{scenario\_weights} & The probability weights of the Low, Central and High cases (they sum to one). & Scenarios \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+A few of these deserve a sentence in plain terms, because they are the levers a lender cares about most:
+
+\begin{itemize}
+  \item \textbf{The DSCR covenant} (debt service coverage ratio, see Appendix~\ref{app:glossary}) is the pass-or-fail line the lender sets: cash available to service debt divided by debt due, in the conservative P90 case, must stay at or above this ratio. The optimiser cannot select a system that would breach it.
+  \item \textbf{The P50/P90 and perfect-foresight haircuts} turn an optimistic figure into a bankable one. The P90 haircut steps the median (P50) revenue down to the conservative (P90) level debt is sized on; the perfect-foresight haircut discounts the fact that a dispatch optimiser with hindsight always looks better than reality will be.
+  \item \textbf{The credit rate-and-tenor map} is how a customer's credit standing becomes a loan: each credit band maps to an interest rate and a loan term, with a worse band always meaning a higher rate or a shorter tenor. Bands the platform cannot assess are deliberately absent from the map, so an unknown credit results in ``no rate available'' rather than an invented one.
+  \item \textbf{The gated upside sections} (wholesale, balancing mechanism, ancillary services) are held at placeholder zero on purpose. They are conditional upside that depends on a route-to-market partner, and they are never allowed into the priced, bankable floor.
+\end{itemize}
+
+\begin{rebuild}[How to rebuild this module]
+\begin{enumerate}
+  \item \textbf{Define the assumption record.} A value plus eight required descriptive fields: \code{value} (scalar or a small structured value), \code{unit}, \code{source}, \code{status} (one of \emph{placeholder}, \emph{needs\_review}, \emph{confirmed}), \code{owner\_or\_reviewer}, \code{confidence}, \code{last\_reviewed}, \code{notes}. Make every field mandatory: a missing one is a validation error so no number is undocumented.
+  \item \textbf{Define the release shape.} A header (market, version string, release date, currency) plus a \emph{fixed, named} list of sections, each a labelled group of assumption records. Name the sections explicitly in the schema so a missing or mistyped section is a validation error, not a silent gap. Reject unknown fields.
+  \item \textbf{Write one strict loader.} Take a version string; resolve it to exactly one file (\code{.yaml}/\code{.yml}/\code{.json}); fail loudly if no file matches, if it will not parse, if its top level is not a mapping, or if validation finds a missing section or field. Return the validated library object; never return a partial one. Make this the only door to these numbers.
+  \item \textbf{Forbid private constants downstream.} Every other module fetches values by section and name. Test that the core holds no bare numeric literal that influences a priced figure.
+  \item \textbf{Carry the version onto the quote.} Stamp the loaded version string onto every quote record so each quote names the values that produced it.
+  \item \textbf{Implement the reprice check.} Flatten each assumption's value to its leaves. Compare priced-against versus current leaf by leaf: a numeric leaf moving by more than a \emph{tolerance read from the library} is a breach; a move from exactly zero is a breach; an added, removed, unit-changed, or non-numeric-changed leaf is always a breach. Compare only values and units, never the header. Return ``reprice required'' if any breach exists, with a human-readable summary.
+  \item \textbf{Test the invariants.} A release missing a section fails to load; an undocumented value fails to load; a five-per-cent move within tolerance does not reprice while a six-per-cent move does; a unit change at the same number reprices; a version bump that changes no value does not reprice; and every quote records a version.
+\end{enumerate}
+\end{rebuild}

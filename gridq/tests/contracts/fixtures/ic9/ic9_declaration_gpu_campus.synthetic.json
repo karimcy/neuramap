@@ -1,0 +1,526 @@
+{
+ "contract": "IC-9",
+ "contract_version": "1.0.0",
+ "record_class": "synthetic_fixture",
+ "declaration_id": "ic9-synthetic-gpu-campus-2027",
+ "site_id": "SYNTHETIC-DC-GPU-CAMPUS",
+ "operator_id": "SYNTHETIC-OPERATOR-GPU",
+ "issued_at": "2026-12-01T00:00:00Z",
+ "valid_from": "2027-01-01T00:00:00Z",
+ "valid_until": "2028-01-01T00:00:00Z",
+ "supersedes": {
+  "kind": "not_applicable",
+  "reason": "synthetic fixture: the first declaration for this site"
+ },
+ "measurement_point": "it_load",
+ "clock": "Europe/London",
+ "sla_classes": [
+  {
+   "class_id": "SYNTHETIC-CLASS-BATCH-TRAINING",
+   "operator_label": "SYNTHETIC-batch training, checkpoint and resume",
+   "workload_action": "deferred",
+   "energy_return": {
+    "kind": "returns_later",
+    "return_window_min": 240
+   },
+   "call_limits": {
+    "kind": "call_limits",
+    "max_events": {
+     "kind": "event_budget",
+     "max_events": 12,
+     "window_days": 30
+    },
+    "max_cumulative": {
+     "kind": "duration_budget",
+     "max_minutes": 1440,
+     "window_days": 30
+    },
+    "min_rest": {
+     "kind": "minimum_rest",
+     "minutes": 240
+    }
+   },
+   "sla_evidence": {
+    "kind": "evidence_ref",
+    "contract": "IC-4",
+    "contract_version": "1.1.0",
+    "evidence_hash": "sha256:dc1545ec9c33f01b08bd1f2e988e20b24b28da3d0e90f6ad63895b78a101caed"
+   }
+  },
+  {
+   "class_id": "SYNTHETIC-CLASS-MOVABLE-INFERENCE",
+   "operator_label": "SYNTHETIC-inference moved to another site",
+   "workload_action": "moved",
+   "energy_return": {
+    "kind": "no_return"
+   },
+   "call_limits": {
+    "kind": "call_limits",
+    "max_events": {
+     "kind": "unknown",
+     "reason": "synthetic fixture: the event budget for moved inference is not yet agreed"
+    },
+    "max_cumulative": {
+     "kind": "not_applicable",
+     "reason": "synthetic fixture: no cumulative-duration budget"
+    },
+    "min_rest": {
+     "kind": "minimum_rest",
+     "minutes": 60
+    }
+   },
+   "sla_evidence": {
+    "kind": "unknown",
+    "reason": "synthetic fixture: no service-level document exists"
+   }
+  }
+ ],
+ "envelopes": [
+  {
+   "envelope_id": "env-checkpoint",
+   "sla_class_id": "SYNTHETIC-CLASS-BATCH-TRAINING",
+   "response": {
+    "kind": "response_terms",
+    "min_notice_s": 900,
+    "ramp_s": 120
+   },
+   "price": {
+    "kind": "price_offer",
+    "currency": "GBP",
+    "availability": {
+     "kind": "not_applicable",
+     "reason": "synthetic fixture: no availability fee in this placeholder"
+    },
+    "utilisation": {
+     "kind": "utilisation_price",
+     "pence_per_mwh": 1000
+    },
+    "per_event": {
+     "kind": "not_applicable",
+     "reason": "synthetic fixture: no event fee in this placeholder"
+    },
+    "price_basis": {
+     "kind": "synthetic_placeholder"
+    }
+   },
+   "curve": {
+    "kind": "absolute_kw",
+    "points": [
+     {
+      "max_hold_min": 30,
+      "turn_down_kw": 4000
+     },
+     {
+      "max_hold_min": 120,
+      "turn_down_kw": 3000
+     },
+     {
+      "max_hold_min": 240,
+      "turn_down_kw": 2000
+     }
+    ]
+   },
+   "rebound": {
+    "kind": "rebound_size",
+    "recovery_permille": 1000,
+    "max_rebound_kw": {
+     "kind": "unknown",
+     "reason": "synthetic fixture: the resume ramp is not yet measured"
+    }
+   },
+   "exclusion_group": "training-pool"
+  },
+  {
+   "envelope_id": "env-migrate",
+   "sla_class_id": "SYNTHETIC-CLASS-MOVABLE-INFERENCE",
+   "response": {
+    "kind": "response_terms",
+    "min_notice_s": 1800,
+    "ramp_s": 600
+   },
+   "price": {
+    "kind": "price_offer",
+    "currency": "GBP",
+    "availability": {
+     "kind": "availability_price",
+     "pence_per_mw_per_hour": 500
+    },
+    "utilisation": {
+     "kind": "not_applicable",
+     "reason": "synthetic fixture: no utilisation fee in this placeholder"
+    },
+    "per_event": {
+     "kind": "event_fee",
+     "pence": 2000
+    },
+    "price_basis": {
+     "kind": "synthetic_placeholder"
+    }
+   },
+   "curve": {
+    "kind": "absolute_kw",
+    "points": [
+     {
+      "max_hold_min": 120,
+      "turn_down_kw": 1500
+     },
+     {
+      "max_hold_min": 480,
+      "turn_down_kw": 1000
+     }
+    ]
+   },
+   "rebound": {
+    "kind": "not_applicable",
+    "reason": "synthetic fixture: moved work does not return at this site"
+   },
+   "exclusion_group": {
+    "kind": "not_applicable",
+    "reason": "synthetic fixture: stacks with either training envelope"
+   }
+  },
+  {
+   "envelope_id": "env-power-cap",
+   "sla_class_id": "SYNTHETIC-CLASS-BATCH-TRAINING",
+   "response": {
+    "kind": "response_terms",
+    "min_notice_s": 60,
+    "ramp_s": 30
+   },
+   "price": {
+    "kind": "unknown",
+    "reason": "synthetic fixture: the operator has not stated a price for power capping"
+   },
+   "curve": {
+    "kind": "absolute_kw",
+    "points": [
+     {
+      "max_hold_min": 60,
+      "turn_down_kw": 2500
+     },
+     {
+      "max_hold_min": 600,
+      "turn_down_kw": 1500
+     }
+    ]
+   },
+   "rebound": {
+    "kind": "rebound_size",
+    "recovery_permille": {
+     "kind": "unknown",
+     "reason": "synthetic fixture: the catch-up energy is not yet measured"
+    },
+    "max_rebound_kw": {
+     "kind": "unknown",
+     "reason": "synthetic fixture: the catch-up ramp is not yet measured"
+    }
+   },
+   "exclusion_group": "training-pool"
+  }
+ ],
+ "availability": {
+  "seasons": [
+   {
+    "season_id": "winter",
+    "months": [
+     1,
+     2,
+     3,
+     10,
+     11,
+     12
+    ]
+   },
+   {
+    "season_id": "summer",
+    "months": [
+     4,
+     5,
+     6,
+     7,
+     8,
+     9
+    ]
+   }
+  ],
+  "day_groups": [
+   {
+    "day_group_id": "weekday",
+    "iso_weekdays": [
+     1,
+     2,
+     3,
+     4,
+     5
+    ]
+   },
+   {
+    "day_group_id": "weekend",
+    "iso_weekdays": [
+     6,
+     7
+    ]
+   }
+  ],
+  "bands": [
+   {
+    "band_id": "night",
+    "start_minute": 0,
+    "end_minute": 420
+   },
+   {
+    "band_id": "day",
+    "start_minute": 420,
+    "end_minute": 960
+   },
+   {
+    "band_id": "peak",
+    "start_minute": 960,
+    "end_minute": 1140
+   },
+   {
+    "band_id": "evening",
+    "start_minute": 1140,
+    "end_minute": 1440
+   }
+  ],
+  "cells": [
+   {
+    "season_id": "winter",
+    "day_group_id": "weekday",
+    "band_id": "night",
+    "state": {
+     "kind": "offered",
+     "envelope_ids": [
+      "env-checkpoint",
+      "env-migrate",
+      "env-power-cap"
+     ]
+    }
+   },
+   {
+    "season_id": "winter",
+    "day_group_id": "weekday",
+    "band_id": "day",
+    "state": {
+     "kind": "unavailable",
+     "reason_code": "workload_protected"
+    }
+   },
+   {
+    "season_id": "winter",
+    "day_group_id": "weekday",
+    "band_id": "peak",
+    "state": {
+     "kind": "offered",
+     "envelope_ids": [
+      "env-checkpoint",
+      "env-migrate",
+      "env-power-cap"
+     ]
+    }
+   },
+   {
+    "season_id": "winter",
+    "day_group_id": "weekday",
+    "band_id": "evening",
+    "state": {
+     "kind": "offered",
+     "envelope_ids": [
+      "env-checkpoint",
+      "env-power-cap"
+     ]
+    }
+   },
+   {
+    "season_id": "winter",
+    "day_group_id": "weekend",
+    "band_id": "night",
+    "state": {
+     "kind": "offered",
+     "envelope_ids": [
+      "env-checkpoint",
+      "env-migrate",
+      "env-power-cap"
+     ]
+    }
+   },
+   {
+    "season_id": "winter",
+    "day_group_id": "weekend",
+    "band_id": "day",
+    "state": {
+     "kind": "offered",
+     "envelope_ids": [
+      "env-checkpoint",
+      "env-power-cap"
+     ]
+    }
+   },
+   {
+    "season_id": "winter",
+    "day_group_id": "weekend",
+    "band_id": "peak",
+    "state": {
+     "kind": "offered",
+     "envelope_ids": [
+      "env-checkpoint",
+      "env-power-cap"
+     ]
+    }
+   },
+   {
+    "season_id": "winter",
+    "day_group_id": "weekend",
+    "band_id": "evening",
+    "state": {
+     "kind": "offered",
+     "envelope_ids": [
+      "env-checkpoint",
+      "env-power-cap"
+     ]
+    }
+   },
+   {
+    "season_id": "summer",
+    "day_group_id": "weekday",
+    "band_id": "night",
+    "state": {
+     "kind": "offered",
+     "envelope_ids": [
+      "env-checkpoint",
+      "env-migrate",
+      "env-power-cap"
+     ]
+    }
+   },
+   {
+    "season_id": "summer",
+    "day_group_id": "weekday",
+    "band_id": "day",
+    "state": {
+     "kind": "unavailable",
+     "reason_code": "workload_protected"
+    }
+   },
+   {
+    "season_id": "summer",
+    "day_group_id": "weekday",
+    "band_id": "peak",
+    "state": {
+     "kind": "offered",
+     "envelope_ids": [
+      "env-migrate"
+     ]
+    }
+   },
+   {
+    "season_id": "summer",
+    "day_group_id": "weekday",
+    "band_id": "evening",
+    "state": {
+     "kind": "offered",
+     "envelope_ids": [
+      "env-checkpoint",
+      "env-power-cap"
+     ]
+    }
+   },
+   {
+    "season_id": "summer",
+    "day_group_id": "weekend",
+    "band_id": "night",
+    "state": {
+     "kind": "offered",
+     "envelope_ids": [
+      "env-checkpoint",
+      "env-migrate",
+      "env-power-cap"
+     ]
+    }
+   },
+   {
+    "season_id": "summer",
+    "day_group_id": "weekend",
+    "band_id": "day",
+    "state": {
+     "kind": "offered",
+     "envelope_ids": [
+      "env-checkpoint",
+      "env-power-cap"
+     ]
+    }
+   },
+   {
+    "season_id": "summer",
+    "day_group_id": "weekend",
+    "band_id": "peak",
+    "state": {
+     "kind": "offered",
+     "envelope_ids": [
+      "env-checkpoint",
+      "env-power-cap"
+     ]
+    }
+   },
+   {
+    "season_id": "summer",
+    "day_group_id": "weekend",
+    "band_id": "evening",
+    "state": {
+     "kind": "unknown",
+     "reason": "synthetic fixture: weekend evenings not yet assessed"
+    }
+   }
+  ],
+  "overrides": [
+   {
+    "override_id": "ovr-dated-offer-2027-07-06",
+    "start": "2027-07-06T07:00:00Z",
+    "end": "2027-07-06T15:00:00Z",
+    "state": {
+     "kind": "offered",
+     "envelope_ids": [
+      "env-migrate"
+     ]
+    },
+    "reason": "synthetic fixture: a dated offer of the migration envelope over a protected day"
+   },
+   {
+    "override_id": "ovr-blackout-2027-12-24",
+    "start": "2027-12-24T00:00:00Z",
+    "end": "2027-12-27T00:00:00Z",
+    "state": {
+     "kind": "unavailable",
+     "reason_code": "operator_withdrawn"
+    },
+    "reason": "synthetic fixture: the operator withdraws every envelope over a holiday freeze"
+   }
+  ]
+ },
+ "resolved_hash": "sha256:998f83244f9f9bf4fd2231066495da3438eda655d7a5ecc5eb31890201896170",
+ "stacking": {
+  "kind": "stacking",
+  "merit_order": [
+   "env-checkpoint",
+   "env-power-cap",
+   "env-migrate"
+  ],
+  "max_concurrent_turn_down_kw": 5000
+ },
+ "it_reference": {
+  "kind": "it_reference",
+  "retained_it_floor_kw": 2000
+ },
+ "basis": {
+  "kind": "operator_declared",
+  "supporting_evidence": [
+   {
+    "kind": "evidence_ref",
+    "contract": "IC-4",
+    "contract_version": "1.1.0",
+    "evidence_hash": "sha256:05847d603f543794f017d84d6110c623199d59591a35964fd69d2658ccebbef7"
+   }
+  ]
+ }
+}

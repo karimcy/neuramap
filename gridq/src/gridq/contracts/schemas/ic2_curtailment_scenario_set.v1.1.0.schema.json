@@ -1,0 +1,737 @@
+{
+  "$defs": {
+    "ConnectionAgreementRef": {
+      "additionalProperties": false,
+      "description": "The IC-1 agreement the restrictions apply under, by content hash.",
+      "properties": {
+        "agreement_hash": {
+          "pattern": "^sha256:[0-9a-f]{64}$",
+          "title": "Agreement Hash",
+          "type": "string"
+        },
+        "contract": {
+          "const": "IC-1",
+          "title": "Contract",
+          "type": "string"
+        },
+        "contract_version": {
+          "pattern": "^1\\.(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)$",
+          "title": "Contract Version",
+          "type": "string"
+        },
+        "kind": {
+          "const": "connection_agreement_ref",
+          "title": "Kind",
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind",
+        "contract",
+        "contract_version",
+        "agreement_hash"
+      ],
+      "title": "ConnectionAgreementRef",
+      "type": "object"
+    },
+    "EvidenceClass": {
+      "description": "What the set rests on (roadmap principle: live, replayed real data, or modelled).\n\nThere is no \"live\": a scenario set is a distribution, never a live reading.",
+      "enum": [
+        "replayed_real_data",
+        "modelled",
+        "synthetic_fixture"
+      ],
+      "title": "EvidenceClass",
+      "type": "string"
+    },
+    "EvidenceRef": {
+      "additionalProperties": false,
+      "description": "A reference to an IC-4 instance by its content hash (what IC-1 and others embed).",
+      "properties": {
+        "contract": {
+          "const": "IC-4",
+          "title": "Contract",
+          "type": "string"
+        },
+        "contract_version": {
+          "pattern": "^1\\.(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)$",
+          "title": "Contract Version",
+          "type": "string"
+        },
+        "evidence_hash": {
+          "pattern": "^sha256:[0-9a-f]{64}$",
+          "title": "Evidence Hash",
+          "type": "string"
+        },
+        "kind": {
+          "const": "evidence_ref",
+          "title": "Kind",
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind",
+        "contract",
+        "contract_version",
+        "evidence_hash"
+      ],
+      "title": "EvidenceRef",
+      "type": "object"
+    },
+    "IssuerRole": {
+      "description": "Who issued the document. **Neura is not an issuer role**: a claim Neura authors about\nitself or a site is an assumption or a derived record, never evidence. Neura may *verify*.",
+      "enum": [
+        "dno",
+        "idno",
+        "neso",
+        "elexon",
+        "emr_settlement",
+        "ofgem",
+        "government",
+        "supplier",
+        "aggregator",
+        "customer",
+        "host",
+        "meter_operator",
+        "oem",
+        "insurer",
+        "lender",
+        "independent_engineer",
+        "legal_adviser",
+        "certification_body",
+        "data_provider",
+        "funder",
+        "research_partner",
+        "independent_verifier"
+      ],
+      "title": "IssuerRole",
+      "type": "string"
+    },
+    "ModelledRun": {
+      "additionalProperties": false,
+      "description": "Scenarios produced by the A1 engine (WP-CONN-04), identified by its run inputs.",
+      "properties": {
+        "engine": {
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Engine",
+          "type": "string"
+        },
+        "engine_version": {
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Engine Version",
+          "type": "string"
+        },
+        "evidence": {
+          "items": {
+            "$ref": "#/$defs/EvidenceRef"
+          },
+          "title": "Evidence",
+          "type": "array"
+        },
+        "input_hash": {
+          "pattern": "^sha256:[0-9a-f]{64}$",
+          "title": "Input Hash",
+          "type": "string"
+        },
+        "kind": {
+          "const": "modelled",
+          "title": "Kind",
+          "type": "string"
+        },
+        "seed": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "$ref": "#/$defs/NotApplicable"
+            }
+          ],
+          "title": "Seed"
+        }
+      },
+      "required": [
+        "kind",
+        "engine",
+        "engine_version",
+        "input_hash",
+        "seed",
+        "evidence"
+      ],
+      "title": "ModelledRun",
+      "type": "object"
+    },
+    "NotApplicable": {
+      "additionalProperties": false,
+      "description": "A term that does not exist for this record (e.g. a LIFO position on a firm connection).\n\nDistinct from `Unknown`: \"not applicable\" is a statement about the agreement, \"unknown\" is a\nstatement about our knowledge of it. Both carry a reason.",
+      "properties": {
+        "kind": {
+          "const": "not_applicable",
+          "title": "Kind",
+          "type": "string"
+        },
+        "reason": {
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Reason",
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind",
+        "reason"
+      ],
+      "title": "NotApplicable",
+      "type": "object"
+    },
+    "PublishedSource": {
+      "additionalProperties": false,
+      "description": "One recorded response from a publisher; its bytes are hashed, as an IC-4 document is.\n\n``registered_evidence`` is the IC-4 `EvidenceRef` once the response is registered as evidence\n(type ``regulatory_publication``); until then it is `Unknown` with the reason.",
+      "properties": {
+        "attribution": {
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Attribution",
+          "type": "string"
+        },
+        "dataset": {
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Dataset",
+          "type": "string"
+        },
+        "distribution_gate": {
+          "anyOf": [
+            {
+              "minLength": 1,
+              "pattern": "\\S",
+              "type": "string"
+            },
+            {
+              "$ref": "#/$defs/NotApplicable"
+            }
+          ],
+          "title": "Distribution Gate"
+        },
+        "licence": {
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Licence",
+          "type": "string"
+        },
+        "publisher": {
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Publisher",
+          "type": "string"
+        },
+        "publisher_role": {
+          "$ref": "#/$defs/IssuerRole"
+        },
+        "registered_evidence": {
+          "discriminator": {
+            "mapping": {
+              "evidence_ref": "#/$defs/EvidenceRef",
+              "unknown": "#/$defs/Unknown"
+            },
+            "propertyName": "kind"
+          },
+          "oneOf": [
+            {
+              "$ref": "#/$defs/EvidenceRef"
+            },
+            {
+              "$ref": "#/$defs/Unknown"
+            }
+          ],
+          "title": "Registered Evidence"
+        },
+        "response_sha256": {
+          "pattern": "^sha256:[0-9a-f]{64}$",
+          "title": "Response Sha256",
+          "type": "string"
+        },
+        "retrieved_at": {
+          "format": "date-time",
+          "title": "Retrieved At",
+          "type": "string"
+        },
+        "url": {
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Url",
+          "type": "string"
+        }
+      },
+      "required": [
+        "publisher",
+        "publisher_role",
+        "dataset",
+        "url",
+        "retrieved_at",
+        "response_sha256",
+        "licence",
+        "attribution",
+        "distribution_gate",
+        "registered_evidence"
+      ],
+      "title": "PublishedSource",
+      "type": "object"
+    },
+    "Rational": {
+      "additionalProperties": false,
+      "description": "An exact weight in (0, 1], in lowest terms: ``{\"numerator\": 1, \"denominator\": 3}``.",
+      "properties": {
+        "denominator": {
+          "minimum": 1,
+          "title": "Denominator",
+          "type": "integer"
+        },
+        "numerator": {
+          "minimum": 1,
+          "title": "Numerator",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "numerator",
+        "denominator"
+      ],
+      "title": "Rational",
+      "type": "object"
+    },
+    "ReplayedRealData": {
+      "additionalProperties": false,
+      "description": "Scenarios replayed from published observations, by a stated derivation.",
+      "properties": {
+        "derivation": {
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Derivation",
+          "type": "string"
+        },
+        "kind": {
+          "const": "replayed_real_data",
+          "title": "Kind",
+          "type": "string"
+        },
+        "sources": {
+          "items": {
+            "$ref": "#/$defs/PublishedSource"
+          },
+          "minItems": 1,
+          "title": "Sources",
+          "type": "array"
+        }
+      },
+      "required": [
+        "kind",
+        "sources",
+        "derivation"
+      ],
+      "title": "ReplayedRealData",
+      "type": "object"
+    },
+    "RestrictionEvent": {
+      "additionalProperties": false,
+      "description": "One restriction event: when, how deep on average, how deep at peak, with what notice.\n\n``source_ref`` is the publisher's own event id for replayed data, so any event can be traced\nto the recorded response; a modelled event has none.",
+      "properties": {
+        "end": {
+          "format": "date-time",
+          "title": "End",
+          "type": "string"
+        },
+        "mean_depth_mw": {
+          "minimum": 0,
+          "title": "Mean Depth Mw",
+          "type": "number"
+        },
+        "notice_s": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "$ref": "#/$defs/Unknown"
+            }
+          ],
+          "title": "Notice S"
+        },
+        "peak_depth_mw": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "$ref": "#/$defs/Unknown"
+            }
+          ],
+          "title": "Peak Depth Mw"
+        },
+        "source_ref": {
+          "anyOf": [
+            {
+              "minLength": 1,
+              "pattern": "\\S",
+              "type": "string"
+            },
+            {
+              "$ref": "#/$defs/NotApplicable"
+            }
+          ],
+          "title": "Source Ref"
+        },
+        "start": {
+          "format": "date-time",
+          "title": "Start",
+          "type": "string"
+        }
+      },
+      "required": [
+        "start",
+        "end",
+        "mean_depth_mw",
+        "peak_depth_mw",
+        "notice_s",
+        "source_ref"
+      ],
+      "title": "RestrictionEvent",
+      "type": "object"
+    },
+    "RestrictionSeries": {
+      "additionalProperties": false,
+      "description": "A dense series of restriction depth (MW, mean over each interval), stored as change points.\n\nThe depth is how far the permitted import (or export) is reduced below the set's reference\ncapacity in that interval, averaged over the interval. ``0.0`` means unrestricted.",
+      "properties": {
+        "n_intervals": {
+          "minimum": 1,
+          "title": "N Intervals",
+          "type": "integer"
+        },
+        "resolution_s": {
+          "enum": [
+            60,
+            1800
+          ],
+          "title": "Resolution S",
+          "type": "integer"
+        },
+        "steps": {
+          "items": {
+            "$ref": "#/$defs/Step"
+          },
+          "minItems": 1,
+          "title": "Steps",
+          "type": "array"
+        }
+      },
+      "required": [
+        "resolution_s",
+        "n_intervals",
+        "steps"
+      ],
+      "title": "RestrictionSeries",
+      "type": "object"
+    },
+    "Scenario": {
+      "additionalProperties": false,
+      "description": "One weighted scenario: its period, its series and its events.",
+      "properties": {
+        "events": {
+          "items": {
+            "$ref": "#/$defs/RestrictionEvent"
+          },
+          "title": "Events",
+          "type": "array"
+        },
+        "half_hourly": {
+          "$ref": "#/$defs/RestrictionSeries"
+        },
+        "label": {
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Label",
+          "type": "string"
+        },
+        "minute": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/RestrictionSeries"
+            },
+            {
+              "$ref": "#/$defs/NotApplicable"
+            }
+          ],
+          "title": "Minute"
+        },
+        "period_start": {
+          "format": "date-time",
+          "title": "Period Start",
+          "type": "string"
+        },
+        "scenario_id": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]*$",
+          "title": "Scenario Id",
+          "type": "string"
+        },
+        "weight": {
+          "$ref": "#/$defs/Rational"
+        }
+      },
+      "required": [
+        "scenario_id",
+        "label",
+        "weight",
+        "period_start",
+        "half_hourly",
+        "minute",
+        "events"
+      ],
+      "title": "Scenario",
+      "type": "object"
+    },
+    "SignalBasis": {
+      "description": "Which physical signal the restriction history describes (spec A1-04, WP-CONN-05).\n\nPublished DNO curtailment is almost all generation-export curtailment; using it for a demand\nsite's import restriction is a proxy, and this field makes that visible on every set.",
+      "enum": [
+        "generation_export_curtailment",
+        "demand_import_restriction",
+        "loading_headroom"
+      ],
+      "title": "SignalBasis",
+      "type": "string"
+    },
+    "Step": {
+      "additionalProperties": false,
+      "description": "From interval ``index`` until the next step, the restriction depth is ``mw``.",
+      "properties": {
+        "index": {
+          "minimum": 0,
+          "title": "Index",
+          "type": "integer"
+        },
+        "mw": {
+          "minimum": 0,
+          "title": "Mw",
+          "type": "number"
+        }
+      },
+      "required": [
+        "index",
+        "mw"
+      ],
+      "title": "Step",
+      "type": "object"
+    },
+    "SyntheticShape": {
+      "additionalProperties": false,
+      "description": "Schema-test data with a realistic shape; not a site anyone holds. Consumers must refuse it\noutside tests.",
+      "properties": {
+        "kind": {
+          "const": "synthetic_fixture",
+          "title": "Kind",
+          "type": "string"
+        },
+        "modelled_on": {
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Modelled On",
+          "type": "string"
+        },
+        "statement": {
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Statement",
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind",
+        "statement",
+        "modelled_on"
+      ],
+      "title": "SyntheticShape",
+      "type": "object"
+    },
+    "Unknown": {
+      "additionalProperties": false,
+      "description": "A value that exists but is not known. Always explicit, always with a reason; never ``None``.\n\nSerialised as ``{\"kind\": \"unknown\", \"reason\": \"...\"}``. ``kind`` is required (no default) so\na hand-written payload that omits it is refused rather than guessed at.",
+      "properties": {
+        "kind": {
+          "const": "unknown",
+          "title": "Kind",
+          "type": "string"
+        },
+        "reason": {
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Reason",
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind",
+        "reason"
+      ],
+      "title": "Unknown",
+      "type": "object"
+    },
+    "WeightBasis": {
+      "description": "How the weights were set. The rule itself is stated in ``weight_rule``.",
+      "enum": [
+        "equal_over_observed_periods",
+        "model_probability"
+      ],
+      "title": "WeightBasis",
+      "type": "string"
+    }
+  },
+  "additionalProperties": false,
+  "description": "IC-2 v1.1.0. Weighted restriction scenarios for one site.\n\nWeights: each is an exact rational {numerator, denominator} in lowest terms, and they must\nsum to exactly 1 in rational arithmetic, with NO tolerance. Why: equal weights over three\nobserved periods are 1/3, which no decimal or float represents exactly; any tolerance would\nmake \"sums to one\" a judgement two consumers can answer differently; and integers have one\ncanonical JSON form, so weights never perturb the hash.\n\nSeries: depth in MW (mean over each interval), step-encoded (first step at index 0, indices\nstrictly increasing, adjacent values different: one encoding per dense series). The minute\nseries, where present, must average to the half-hourly one within 1e-9 MW; the half-hourly\nenergy must equal the events' energy (mean depth x duration) within 1e-6 MWh plus 1e-9\nrelative. Both tolerances absorb float rounding only. Scenarios are sorted by\n``scenario_id``; events by start, non-overlapping, inside the scenario's period.",
+  "properties": {
+    "connection_agreement": {
+      "discriminator": {
+        "mapping": {
+          "connection_agreement_ref": "#/$defs/ConnectionAgreementRef",
+          "not_applicable": "#/$defs/NotApplicable",
+          "unknown": "#/$defs/Unknown"
+        },
+        "propertyName": "kind"
+      },
+      "oneOf": [
+        {
+          "$ref": "#/$defs/ConnectionAgreementRef"
+        },
+        {
+          "$ref": "#/$defs/NotApplicable"
+        },
+        {
+          "$ref": "#/$defs/Unknown"
+        }
+      ],
+      "title": "Connection Agreement"
+    },
+    "contract": {
+      "const": "IC-2",
+      "default": "IC-2",
+      "title": "Contract",
+      "type": "string"
+    },
+    "contract_version": {
+      "default": "1.1.0",
+      "enum": [
+        "1.0.0",
+        "1.1.0"
+      ],
+      "title": "Contract Version",
+      "type": "string"
+    },
+    "depth_definition": {
+      "minLength": 1,
+      "pattern": "\\S",
+      "title": "Depth Definition",
+      "type": "string"
+    },
+    "direction": {
+      "enum": [
+        "import",
+        "export"
+      ],
+      "title": "Direction",
+      "type": "string"
+    },
+    "evidence_class": {
+      "$ref": "#/$defs/EvidenceClass"
+    },
+    "n_half_hours": {
+      "minimum": 1,
+      "title": "N Half Hours",
+      "type": "integer"
+    },
+    "provenance": {
+      "discriminator": {
+        "mapping": {
+          "modelled": "#/$defs/ModelledRun",
+          "replayed_real_data": "#/$defs/ReplayedRealData",
+          "synthetic_fixture": "#/$defs/SyntheticShape"
+        },
+        "propertyName": "kind"
+      },
+      "oneOf": [
+        {
+          "$ref": "#/$defs/ReplayedRealData"
+        },
+        {
+          "$ref": "#/$defs/ModelledRun"
+        },
+        {
+          "$ref": "#/$defs/SyntheticShape"
+        }
+      ],
+      "title": "Provenance"
+    },
+    "reference_capacity_mw": {
+      "anyOf": [
+        {
+          "exclusiveMinimum": 0,
+          "type": "number"
+        },
+        {
+          "$ref": "#/$defs/Unknown"
+        }
+      ],
+      "title": "Reference Capacity Mw"
+    },
+    "scenarios": {
+      "items": {
+        "$ref": "#/$defs/Scenario"
+      },
+      "minItems": 1,
+      "title": "Scenarios",
+      "type": "array"
+    },
+    "set_id": {
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]*$",
+      "title": "Set Id",
+      "type": "string"
+    },
+    "signal_basis": {
+      "$ref": "#/$defs/SignalBasis"
+    },
+    "site_id": {
+      "minLength": 1,
+      "pattern": "\\S",
+      "title": "Site Id",
+      "type": "string"
+    },
+    "weight_basis": {
+      "$ref": "#/$defs/WeightBasis"
+    },
+    "weight_rule": {
+      "minLength": 1,
+      "pattern": "\\S",
+      "title": "Weight Rule",
+      "type": "string"
+    }
+  },
+  "required": [
+    "set_id",
+    "site_id",
+    "direction",
+    "signal_basis",
+    "depth_definition",
+    "reference_capacity_mw",
+    "connection_agreement",
+    "evidence_class",
+    "provenance",
+    "weight_basis",
+    "weight_rule",
+    "n_half_hours",
+    "scenarios"
+  ],
+  "title": "CurtailmentScenarioSet",
+  "type": "object"
+}

@@ -1,0 +1,711 @@
+{
+  "$defs": {
+    "Aspect": {
+      "enum": [
+        "whole",
+        "phase_l1",
+        "phase_l2",
+        "phase_l3",
+        "supply",
+        "return",
+        "ambient",
+        "internal"
+      ],
+      "title": "Aspect",
+      "type": "string"
+    },
+    "AssetKind": {
+      "enum": [
+        "site_boundary",
+        "bess",
+        "pcs",
+        "pv",
+        "genset",
+        "chiller",
+        "crah",
+        "ups",
+        "it_load"
+      ],
+      "title": "AssetKind",
+      "type": "string"
+    },
+    "EvidenceRef": {
+      "additionalProperties": false,
+      "description": "A reference to an IC-4 instance by its content hash (what IC-1 and others embed).",
+      "properties": {
+        "contract": {
+          "const": "IC-4",
+          "title": "Contract",
+          "type": "string"
+        },
+        "contract_version": {
+          "pattern": "^1\\.(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)$",
+          "title": "Contract Version",
+          "type": "string"
+        },
+        "evidence_hash": {
+          "pattern": "^sha256:[0-9a-f]{64}$",
+          "title": "Evidence Hash",
+          "type": "string"
+        },
+        "kind": {
+          "const": "evidence_ref",
+          "title": "Kind",
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind",
+        "contract",
+        "contract_version",
+        "evidence_hash"
+      ],
+      "title": "EvidenceRef",
+      "type": "object"
+    },
+    "FreshnessPolicy": {
+      "additionalProperties": false,
+      "description": "When a series reads stale and when lost (`age_at`). Required, with no default.",
+      "properties": {
+        "kind": {
+          "const": "freshness_policy",
+          "title": "Kind",
+          "type": "string"
+        },
+        "lost_after_ms": {
+          "minimum": 1,
+          "title": "Lost After Ms",
+          "type": "integer"
+        },
+        "stale_after_ms": {
+          "minimum": 1,
+          "title": "Stale After Ms",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "kind",
+        "stale_after_ms",
+        "lost_after_ms"
+      ],
+      "title": "FreshnessPolicy",
+      "type": "object"
+    },
+    "MeasurementRole": {
+      "enum": [
+        "revenue_meter",
+        "operational_meter",
+        "scada",
+        "device_reported",
+        "setpoint_echo",
+        "derived"
+      ],
+      "title": "MeasurementRole",
+      "type": "string"
+    },
+    "MeterBinding": {
+      "additionalProperties": false,
+      "description": "The meter behind a metered point and its certificate (IC-4), or ``unknown`` until the\nmeter registry (WP-TEL-04) holds it.",
+      "properties": {
+        "certificate": {
+          "discriminator": {
+            "mapping": {
+              "evidence_ref": "#/$defs/EvidenceRef",
+              "unknown": "#/$defs/Unknown"
+            },
+            "propertyName": "kind"
+          },
+          "oneOf": [
+            {
+              "$ref": "#/$defs/EvidenceRef"
+            },
+            {
+              "$ref": "#/$defs/Unknown"
+            }
+          ],
+          "title": "Certificate"
+        },
+        "kind": {
+          "const": "meter_binding",
+          "title": "Kind",
+          "type": "string"
+        },
+        "meter_id": {
+          "maxLength": 120,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]*$",
+          "title": "Meter Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind",
+        "meter_id",
+        "certificate"
+      ],
+      "title": "MeterBinding",
+      "type": "object"
+    },
+    "NotApplicable": {
+      "additionalProperties": false,
+      "description": "A term that does not exist for this record (e.g. a LIFO position on a firm connection).\n\nDistinct from `Unknown`: \"not applicable\" is a statement about the agreement, \"unknown\" is a\nstatement about our knowledge of it. Both carry a reason.",
+      "properties": {
+        "kind": {
+          "const": "not_applicable",
+          "title": "Kind",
+          "type": "string"
+        },
+        "reason": {
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Reason",
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind",
+        "reason"
+      ],
+      "title": "NotApplicable",
+      "type": "object"
+    },
+    "PointName": {
+      "additionalProperties": false,
+      "description": "What a series measures: one quantity, on one asset, in one measurement role and aspect.\nIts canonical string is `point_key`; site and tenant are not part of it (they are on the\nrecord).",
+      "oneOf": [
+        {
+          "properties": {
+            "aspect": {
+              "enum": [
+                "phase_l1",
+                "phase_l2",
+                "phase_l3",
+                "whole"
+              ]
+            },
+            "quantity": {
+              "const": "active_power"
+            }
+          }
+        },
+        {
+          "properties": {
+            "aspect": {
+              "enum": [
+                "phase_l1",
+                "phase_l2",
+                "phase_l3",
+                "whole"
+              ]
+            },
+            "quantity": {
+              "const": "reactive_power"
+            }
+          }
+        },
+        {
+          "properties": {
+            "aspect": {
+              "enum": [
+                "phase_l1",
+                "phase_l2",
+                "phase_l3",
+                "whole"
+              ]
+            },
+            "quantity": {
+              "const": "apparent_power"
+            }
+          }
+        },
+        {
+          "properties": {
+            "aspect": {
+              "enum": [
+                "whole"
+              ]
+            },
+            "quantity": {
+              "const": "energy_import"
+            }
+          }
+        },
+        {
+          "properties": {
+            "aspect": {
+              "enum": [
+                "whole"
+              ]
+            },
+            "quantity": {
+              "const": "energy_export"
+            }
+          }
+        },
+        {
+          "properties": {
+            "aspect": {
+              "enum": [
+                "whole"
+              ]
+            },
+            "quantity": {
+              "const": "frequency"
+            }
+          }
+        },
+        {
+          "properties": {
+            "aspect": {
+              "enum": [
+                "phase_l1",
+                "phase_l2",
+                "phase_l3"
+              ]
+            },
+            "quantity": {
+              "const": "voltage"
+            }
+          }
+        },
+        {
+          "properties": {
+            "aspect": {
+              "enum": [
+                "phase_l1",
+                "phase_l2",
+                "phase_l3"
+              ]
+            },
+            "quantity": {
+              "const": "current"
+            }
+          }
+        },
+        {
+          "properties": {
+            "aspect": {
+              "enum": [
+                "whole"
+              ]
+            },
+            "quantity": {
+              "const": "state_of_energy"
+            }
+          }
+        },
+        {
+          "properties": {
+            "aspect": {
+              "enum": [
+                "whole"
+              ]
+            },
+            "quantity": {
+              "const": "state_of_charge"
+            }
+          }
+        },
+        {
+          "properties": {
+            "aspect": {
+              "enum": [
+                "ambient",
+                "internal",
+                "return",
+                "supply"
+              ]
+            },
+            "quantity": {
+              "const": "temperature"
+            }
+          }
+        }
+      ],
+      "properties": {
+        "aspect": {
+          "$ref": "#/$defs/Aspect"
+        },
+        "asset_id": {
+          "pattern": "^[a-z0-9][a-z0-9-]{0,31}$",
+          "title": "Asset Id",
+          "type": "string"
+        },
+        "asset_kind": {
+          "$ref": "#/$defs/AssetKind"
+        },
+        "quantity": {
+          "$ref": "#/$defs/Quantity"
+        },
+        "role": {
+          "$ref": "#/$defs/MeasurementRole"
+        }
+      },
+      "required": [
+        "asset_kind",
+        "asset_id",
+        "quantity",
+        "role",
+        "aspect"
+      ],
+      "title": "PointName",
+      "type": "object"
+    },
+    "Quantity": {
+      "enum": [
+        "active_power",
+        "reactive_power",
+        "apparent_power",
+        "energy_import",
+        "energy_export",
+        "frequency",
+        "voltage",
+        "current",
+        "state_of_energy",
+        "state_of_charge",
+        "temperature"
+      ],
+      "title": "Quantity",
+      "type": "string"
+    },
+    "SourceAddress": {
+      "additionalProperties": false,
+      "description": "Where the edge reads the point (provenance, never identity).",
+      "properties": {
+        "address": {
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Address",
+          "type": "string"
+        },
+        "kind": {
+          "const": "source_address",
+          "title": "Kind",
+          "type": "string"
+        },
+        "protocol": {
+          "$ref": "#/$defs/SourceProtocol"
+        }
+      },
+      "required": [
+        "kind",
+        "protocol",
+        "address"
+      ],
+      "title": "SourceAddress",
+      "type": "object"
+    },
+    "SourceProtocol": {
+      "enum": [
+        "modbus_tcp",
+        "sunspec",
+        "iec61850_mms",
+        "dnp3",
+        "iec60870_5_104",
+        "bacnet_ip",
+        "snmp_v3",
+        "opc_ua",
+        "mqtt",
+        "simulated"
+      ],
+      "title": "SourceProtocol",
+      "type": "string"
+    },
+    "SourceScaling": {
+      "additionalProperties": false,
+      "description": "How the adapter turns the source's number into the canonical unit:\n``raw * scale_num / scale_den + offset``, rounded half to even at the adapter.",
+      "properties": {
+        "kind": {
+          "const": "source_scaling",
+          "title": "Kind",
+          "type": "string"
+        },
+        "offset": {
+          "title": "Offset",
+          "type": "integer"
+        },
+        "scale_den": {
+          "minimum": 1,
+          "title": "Scale Den",
+          "type": "integer"
+        },
+        "scale_num": {
+          "minimum": 1,
+          "title": "Scale Num",
+          "type": "integer"
+        },
+        "source_unit_ucum": {
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Source Unit Ucum",
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind",
+        "source_unit_ucum",
+        "scale_num",
+        "scale_den",
+        "offset"
+      ],
+      "title": "SourceScaling",
+      "type": "object"
+    },
+    "TenantKey": {
+      "additionalProperties": false,
+      "description": "The data owner (an IC-13 organisation) and the site. Lender and verifier organisations\nnever own telemetry; they read it through IC-13 scopes.",
+      "properties": {
+        "kind": {
+          "const": "tenant_key",
+          "title": "Kind",
+          "type": "string"
+        },
+        "org_id": {
+          "maxLength": 80,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:@-]*$",
+          "title": "Org Id",
+          "type": "string"
+        },
+        "org_kind": {
+          "enum": [
+            "customer",
+            "neura"
+          ],
+          "title": "Org Kind",
+          "type": "string"
+        },
+        "site_id": {
+          "maxLength": 80,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:@-]*$",
+          "title": "Site Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind",
+        "org_id",
+        "org_kind",
+        "site_id"
+      ],
+      "title": "TenantKey",
+      "type": "object"
+    },
+    "Unit": {
+      "enum": [
+        "W",
+        "var",
+        "VA",
+        "Wh",
+        "mHz",
+        "mV",
+        "mA",
+        "basis_point",
+        "millidegree_C"
+      ],
+      "title": "Unit",
+      "type": "string"
+    },
+    "Unknown": {
+      "additionalProperties": false,
+      "description": "A value that exists but is not known. Always explicit, always with a reason; never ``None``.\n\nSerialised as ``{\"kind\": \"unknown\", \"reason\": \"...\"}``. ``kind`` is required (no default) so\na hand-written payload that omits it is refused rather than guessed at.",
+      "properties": {
+        "kind": {
+          "const": "unknown",
+          "title": "Kind",
+          "type": "string"
+        },
+        "reason": {
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Reason",
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind",
+        "reason"
+      ],
+      "title": "Unknown",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "description": "IC-14 v1.0.0: one series, declared once and bound by hash into each of its batches and\ncurated records. A changed descriptor starts a new stream epoch.",
+  "properties": {
+    "brick_class": {
+      "anyOf": [
+        {
+          "minLength": 1,
+          "pattern": "\\S",
+          "type": "string"
+        },
+        {
+          "$ref": "#/$defs/NotApplicable"
+        }
+      ],
+      "title": "Brick Class"
+    },
+    "contract": {
+      "const": "IC-14",
+      "default": "IC-14",
+      "title": "Contract",
+      "type": "string"
+    },
+    "contract_version": {
+      "const": "1.0.0",
+      "default": "1.0.0",
+      "title": "Contract Version",
+      "type": "string"
+    },
+    "data_class": {
+      "enum": [
+        "neura_operational",
+        "customer_commercial",
+        "customer_personal"
+      ],
+      "title": "Data Class",
+      "type": "string"
+    },
+    "freshness": {
+      "$ref": "#/$defs/FreshnessPolicy"
+    },
+    "kind": {
+      "const": "series_descriptor",
+      "title": "Kind",
+      "type": "string"
+    },
+    "max_batch_bytes": {
+      "minimum": 1,
+      "title": "Max Batch Bytes",
+      "type": "integer"
+    },
+    "meter": {
+      "discriminator": {
+        "mapping": {
+          "meter_binding": "#/$defs/MeterBinding",
+          "not_applicable": "#/$defs/NotApplicable",
+          "unknown": "#/$defs/Unknown"
+        },
+        "propertyName": "kind"
+      },
+      "oneOf": [
+        {
+          "$ref": "#/$defs/MeterBinding"
+        },
+        {
+          "$ref": "#/$defs/Unknown"
+        },
+        {
+          "$ref": "#/$defs/NotApplicable"
+        }
+      ],
+      "title": "Meter"
+    },
+    "name": {
+      "$ref": "#/$defs/PointName"
+    },
+    "plausible_max": {
+      "maximum": 9007199254740991,
+      "minimum": -9007199254740991,
+      "title": "Plausible Max",
+      "type": "integer"
+    },
+    "plausible_min": {
+      "maximum": 9007199254740991,
+      "minimum": -9007199254740991,
+      "title": "Plausible Min",
+      "type": "integer"
+    },
+    "record_class": {
+      "enum": [
+        "live",
+        "synthetic_fixture"
+      ],
+      "title": "Record Class",
+      "type": "string"
+    },
+    "resolution": {
+      "enum": [
+        "event_20hz",
+        "operational_1s",
+        "standard_1min"
+      ],
+      "title": "Resolution",
+      "type": "string"
+    },
+    "series_id": {
+      "minLength": 1,
+      "pattern": "\\S",
+      "title": "Series Id",
+      "type": "string"
+    },
+    "site_id": {
+      "maxLength": 80,
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:@-]*$",
+      "title": "Site Id",
+      "type": "string"
+    },
+    "source": {
+      "discriminator": {
+        "mapping": {
+          "not_applicable": "#/$defs/NotApplicable",
+          "source_address": "#/$defs/SourceAddress"
+        },
+        "propertyName": "kind"
+      },
+      "oneOf": [
+        {
+          "$ref": "#/$defs/SourceAddress"
+        },
+        {
+          "$ref": "#/$defs/NotApplicable"
+        }
+      ],
+      "title": "Source"
+    },
+    "source_scaling": {
+      "discriminator": {
+        "mapping": {
+          "not_applicable": "#/$defs/NotApplicable",
+          "source_scaling": "#/$defs/SourceScaling"
+        },
+        "propertyName": "kind"
+      },
+      "oneOf": [
+        {
+          "$ref": "#/$defs/SourceScaling"
+        },
+        {
+          "$ref": "#/$defs/NotApplicable"
+        }
+      ],
+      "title": "Source Scaling"
+    },
+    "tenant": {
+      "$ref": "#/$defs/TenantKey"
+    },
+    "unit": {
+      "$ref": "#/$defs/Unit"
+    }
+  },
+  "required": [
+    "tenant",
+    "site_id",
+    "series_id",
+    "data_class",
+    "record_class",
+    "kind",
+    "name",
+    "unit",
+    "resolution",
+    "source",
+    "source_scaling",
+    "brick_class",
+    "plausible_min",
+    "plausible_max",
+    "meter",
+    "freshness",
+    "max_batch_bytes"
+  ],
+  "title": "SeriesDescriptor",
+  "type": "object"
+}

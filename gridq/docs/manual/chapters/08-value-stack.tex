@@ -1,0 +1,254 @@
+\chapter{The value and constraint stack}
+\label{ch:valuestack}
+
+\modtag{M2}{Value and constraint stack}{Deterministic core}
+
+A battery on a commercial site does not earn money in one way. It can shave an expensive part of the electricity bill, it can be paid to stand ready in a national capacity scheme, it can deliver into a local network operator's flexibility tender, and -- once the right partner and permissions are in place -- it can trade in wholesale and balancing markets. Each of these is a separate \emph{income stream}, with its own rules about when it is allowed, how reliable it is, and how it is valued.
+
+This module's job is to model all of those ways of earning as small, interchangeable pieces that the rest of the platform can treat identically. Every income stream is written behind one common shape: it can say what data it needs, decide whether it is available for this particular site, value itself against a proposed battery schedule, and declare the physical limits it places on that schedule. The core of the platform then handles a stream without ever knowing which market it belongs to.
+
+\begin{plainnote}[The market is content, not code]
+The single design rule of this module, taken verbatim from the platform brief, is that \emph{if the core ever has to ask ``is this Great Britain?'' the abstraction has failed}. Everything specific to the GB market -- which streams exist, which meter fields they read, which prices they use -- lives in one clearly-labelled content file and in the versioned assumption library (Chapter~\ref{ch:assumptions}). The generic machinery names no market at all. Adding a second country would mean writing a new content file, never editing the core.
+\end{plainnote}
+
+\pipelinepos{receives a validated \textbf{SiteModel} (Ch.~\ref{ch:contracts}) and the versioned \textbf{assumption library} (Ch.~\ref{ch:assumptions}); hands the dispatch optimiser (Ch.~\ref{ch:dispatch}) the value functions to maximise and the constraints to respect, and hands the finance model (Ch.~\ref{ch:finance}) a per-stream value-and-firmness breakdown.}
+
+\begin{contract}
+\textbf{In.} A validated \code{SiteModel} (tariff structure, connection limits, observed peak load, export consents, network region); the assumption library at a pinned version (the prices and factors each stream uses); a proposed battery \emph{dispatch schedule} to value (the charge/discharge plan from Ch.~\ref{ch:dispatch}); a \emph{scenario} carrying a price multiplier (Ch.~\ref{ch:scenarios}); and an optional, market-agnostic \emph{gate context} carrying three run-level facts the site data cannot hold.
+
+\smallskip
+\textbf{Out.} For each registered stream: a \code{GateResult} (is it available, and on what terms) and a per-stream \code{ValueStreamResult} carrying the annual revenue or cost, the stream's \emph{firmness}, its gate status, any unlock condition, the exact assumption keys used, and any not-bankable warnings. Plus a list of \emph{dispatch-constraint descriptors} naming the physical limits each stream imposes on the optimiser. Nothing here is a fabricated number: every figure is an assumption-library value multiplied by a quantity the dispatch schedule actually delivered.
+\end{contract}
+
+\section{The generic stream interface}
+
+Every income stream, whatever it is, implements the same six-part interface. This is the contract the rest of the platform relies on, and it is the reason the core never special-cases a market.
+
+\begin{table}[H]
+\centering
+\caption{The six things every value stream can do. The core calls these and nothing else.}
+\label{tab:streamiface}
+\small\sffamily
+\begin{tabularx}{\textwidth}{@{}l L@{}}
+\toprule
+\textbf{Member} & \textbf{What it provides} \\
+\midrule
+\textbf{Identity} & A stable stream id from the frozen vocabulary, plus a human-readable display name for the documents. \\
+\textbf{Required inputs} & The list of data items the stream needs to be assessed or priced. A missing item becomes a line on the site's ranked data ask, never a guess. \\
+\textbf{Availability gate} & A deterministic check: given this site and these assumptions, is the stream open, conditional, closed, or undeterminable? (Section~\ref{sec:gates}.) \\
+\textbf{Value function} & Given a battery dispatch schedule, the site, the assumptions and a scenario, the annual pounds the stream is worth. It values \emph{only} a schedule that is actually supplied. \\
+\textbf{Constraints} & The physical limits the stream imposes on the optimiser, expressed as named descriptors that point at the field or assumption holding the binding number. \\
+\textbf{Firmness and decay} & How reliable the stream's income is (Section~\ref{sec:firmness}), and, where relevant, how its capability erodes over the asset's life. \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\subsection{Price and scenario inputs, kept at arm's length}
+
+A value function is handed two objects whose internal shape it deliberately does not depend on: the dispatch schedule and the scenario. The dispatch schedule is the half-hourly charge-and-discharge plan produced by the optimiser (Chapter~\ref{ch:dispatch}); its full form is that module's to define. The scenario is the Low/Central/High price case from the scenario engine (Chapter~\ref{ch:scenarios}).
+
+Rather than bind to either representation, a value function reads only the few \emph{aggregate quantities} it needs, by name. From the schedule it reads a small \emph{read model}: the sized battery's power (in megawatts) and storage duration (in hours), and a handful of optional delivered-energy figures (total annual discharge, discharge inside the network red-band windows, discharge inside an awarded local-flex tender's windows, and an engine-verified deliverable capacity). From the scenario it reads a single price multiplier, defaulting to one if the scenario does not supply it. This is the same loose coupling the finance model uses, and it lets the dispatch and scenario modules evolve their own data shapes without ever breaking the value stack.
+
+\begin{keyidea}[One MWh is one decision, so double-counting is impossible]
+The deepest invariant of the whole module: the battery follows \emph{one} dispatch schedule, and every stream is valued against that same schedule. A megawatt-hour discharged at 5pm is one decision the optimiser made once. The streams do not each get their own private battery to dispatch; they read the shared plan and price their slice of it. Because the schedule is singular, two streams cannot both claim the same energy. To make this watertight the customer-facing PPA/bill-savings stream -- the headline ``savings'' figure -- is deliberately priced at zero inside the stack, because its value is already itemised across the tariff-arbitrage, network-charge-avoidance and connection-headroom streams; counting it again would double-count the same avoided cost.
+\end{keyidea}
+
+\subsection{The versioned stream registry}
+
+The streams a platform offers are held in a \emph{registry}: an ordered, id-keyed collection that the core consumes streams through. The registry is itself market-agnostic -- it simply holds whatever streams it was built with -- and it rejects duplicate ids so the set is unambiguous. A caller can ask for all streams, for a specific stream by id, or for the subset matching a requested list of ids (ids it does not know are simply skipped: the registry is the authority on what exists).
+
+The current default registry is the GB value stack: nine streams, in the fixed order of the stream vocabulary. This ordered set is the ``versioned stream registry of valid stream ids'' the optimisation result contract refers to, and the same vocabulary that the contract tags (Ch.~\ref{ch:contracts}) and the contracted-versus-merchant split in finance (Ch.~\ref{ch:finance}) read against. A second market would supply its own builder function and wrap it in a registry of its own; the core would not change.
+
+\section{Firm, contracted, conditional, excluded}
+\label{sec:firmness}
+
+Before any pounds are computed, each stream has a \emph{firmness}: how much a lender can rely on its income. Firmness is the property that decides whether a stream belongs in the \emph{priced floor} (the conservative income a deal is underwritten on) or is merely listed as upside. The four levels are summarised in Table~\ref{tab:firmness}.
+
+\begin{table}[H]
+\centering
+\caption{The four firmness levels and how they map to a stream's gate.}
+\label{tab:firmness}
+\small\sffamily
+\begin{tabularx}{\textwidth}{@{}l l L@{}}
+\toprule
+\textbf{Firmness} & \textbf{In the floor?} & \textbf{Meaning} \\
+\midrule
+\textbf{Firm} & Yes & Import-side savings that need no external partner: the gate is open and the data is present. \\
+\textbf{Contracted} & Yes & Income that becomes contractual when its precondition holds (Capacity Market, local flexibility). In the floor only once that precondition is confirmed. \\
+\textbf{Conditional} & No & Unlockable but a precondition is unmet. Listed as conditional upside with the exact condition that would unlock it. \\
+\textbf{Excluded} & No & A required input is wholly absent; the stream cannot be assessed at all. \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\begin{caution}[Firmness is not the same question as value]
+``Will this stream be in the floor?'' (firmness) is kept strictly separate from ``what is it worth?'' (the pounds). The gate sets the firmness; the value function sets the number. A firm stream still reports zero pounds when no dispatch schedule is supplied (there is nothing to value yet). A conditional stream may carry a clearly-labelled upside figure -- for example a Capacity Market value computed before deliverability is confirmed -- but its conditional firmness keeps it out of the priced floor regardless. The finance floor counts only streams whose firmness is firm or contracted.
+\end{caution}
+
+The three categories of stream differ only in the firmness an \emph{open} gate implies. Floor streams open to firm; contracted streams open to contracted; gated-upside streams can never open at all (the best they reach is conditional). This is enforced structurally, in three independent places, so a speculative stream cannot slip into the bankable floor by accident: the gated-upside base class refuses to report an open gate, and both the gate-result and the per-stream-result validators reject any gated stream marked firm.
+
+\section{How the availability gate works}
+\label{sec:gates}
+
+A stream's gate is a \emph{pure, deterministic} function of the site model and the assumption library: no randomness, no wall-clock time, no invented value. It returns one of four statuses, and a single shared builder turns that status into a consistent result so a stream can never report a contradictory (status, firmness) pair.
+
+\begin{table}[H]
+\centering
+\caption{The four gate statuses and what each implies.}
+\label{tab:gatestatus}
+\small\sffamily
+\begin{tabularx}{\textwidth}{@{}l l l L@{}}
+\toprule
+\textbf{Status} & \textbf{Priceable now?} & \textbf{Implied firmness} & \textbf{When it is reported} \\
+\midrule
+\textbf{Open} & Yes & firm or contracted & Every required input is present; the stream enters the priced floor. \\
+\textbf{Conditional} & No & conditional & Unlockable, but a precondition is unmet; carries an unlock condition. \\
+\textbf{Closed} & No & excluded & A required input is wholly absent; the stream cannot be assessed. \\
+\textbf{Unknown} & No & excluded & The gate could not be determined; treated conservatively as excluded. \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+The builder enforces the mapping: a result is priceable \emph{if and only if} its status is open; a non-open gate can never be firm; an open gate can never be excluded; a conditional gate must always carry the condition that would unlock it. These checks live in exactly one place, so the rest of the code cannot get the pairing wrong.
+
+\subsection{Gate predicates read only the site's own data}
+
+The gates themselves are built from small market-agnostic predicates -- ``does the tariff have a usable price spread to arbitrage?'', ``is there network red-band rate data?'', ``is a connection limit recorded?'', ``is there an observed peak?'', ``are export consents approved and is export capability greater than zero?'' Each predicate reads the site's own fields and reports what is present or missing. Critically, a predicate that lacks its input returns \emph{false} -- producing a missing-requirement line -- never a guessed \emph{true}. The GB content file simply wires each predicate to the right meter field and assumption section.
+
+\subsection{Three facts the site model cannot hold}
+
+Three things a gate may need are not the site's own data, so they do not belong on the frozen site model: whether the battery's \emph{de-rated deliverability} holds to the final contract year at end-of-life capability (this is derived by the sized engine), whether a \emph{local-flexibility tender} is currently open in the site's network region (time-varying external market state), and the \emph{aggregated portfolio power} a fleet-level stream needs (a single-site run has none). These three flow in through a separate, generic \emph{gate context} object. Every field of it defaults to ``unknown'', so calling a gate with no context behaves identically to the data-only case: the affected streams stay conditional. This is generic run context the core threads through unread; it is not a market branch and not an assumption-library value.
+
+\subsection{Pricing a stream out, and listing it as conditional upside}
+
+When a gate's precondition fails -- a consent is not approved, metering is too thin to show a peak, or a portfolio is below the threshold for a fleet stream -- the stream is \emph{priced out of the floor}. It is not silently dropped. The gate reports a conditional (or closed) status, attaches the precise \code{missing\_requirements} that blocked it, and, for a conditional stream, an \code{unlock\_condition} stating exactly what would let it in: ``a route-to-market partner and approved export consents'', say, or ``a local-flex tender open in the site's network area plus a contracted award''. That list of unlock conditions is what the proposal and underwriting pack present as the deal's conditional upside, and it feeds the ranked data ask that tells the customer which missing item would most improve the quote.
+
+\begin{figure}[H]
+\centering
+\resizebox{\textwidth}{!}{%
+\begin{tikzpicture}[node distance=9mm and 15mm]
+  % inputs
+  \node[io] (sched) {Dispatch schedule\\\scriptsize one shared charge/discharge plan (Ch.~\ref*{ch:dispatch})};
+  \node[io, below=of sched] (assum) {Assumptions + scenario\\\scriptsize prices, factors, multiplier};
+  \node[store, below=of assum] (site) {SiteModel + GateContext\\\scriptsize tariff, connection, consents,\\\scriptsize deliverability / tender / portfolio};
+
+  % the per-stream value function (one shown; applied to every registered stream)
+  \node[proc, right=22mm of assum, minimum width=40mm, text width=38mm] (vf)
+     {\textbf{Stream value function}\\\scriptsize for each registered stream\\\scriptsize value = assumption $\times$ delivered qty};
+
+  % gate
+  \node[decide, right=of vf] (gate) {Gate\\open?};
+
+  % three buckets
+  \node[proc, right=20mm of gate, yshift=20mm, text width=34mm] (floor)
+     {\textbf{Priced floor}\\\scriptsize firm + contracted};
+  \node[proc, right=20mm of gate, text width=34mm] (contracted)
+     {\textbf{Contracted}\\\scriptsize once precondition holds};
+  \node[proc, right=20mm of gate, yshift=-20mm, dashed, draw=nodeExtBd, fill=nodeExt, text width=34mm] (upside)
+     {\textbf{Gated upside}\\\scriptsize conditional, never firm,\\\scriptsize carries unlock condition};
+
+  % sum
+  \node[store, right=18mm of contracted, text width=30mm] (total)
+     {\textbf{Total value}\\\scriptsize per-stream breakdown\\\scriptsize + firmness (Ch.~\ref*{ch:finance})};
+
+  % arrows in
+  \draw[flow] (sched.east) to[out=0,in=160] (vf.west);
+  \draw[flow] (assum.east) -- (vf.west);
+  \draw[flow] (site.east) to[out=0,in=200] (vf.west);
+
+  \draw[flow] (vf) -- (gate);
+
+  % gate to buckets
+  \draw[flow] (gate.north) to[out=90,in=180] node[flowlabel,above]{firm} (floor.west);
+  \draw[flow] (gate.east) -- node[flowlabel]{contracted} (contracted.west);
+  \draw[flow] (gate.south) to[out=-90,in=180] node[flowlabel,below]{conditional} (upside.west);
+
+  % buckets to total
+  \draw[flow] (floor.east) to[out=0,in=120] (total.north);
+  \draw[flow] (contracted.east) -- (total.west);
+  \draw[flow] (upside.east) to[out=0,in=240] (total.south);
+
+  % grouping the priced floor
+  \begin{scope}[on background layer]
+    \node[groupbox, fit=(floor)(contracted), inner sep=6pt,
+          label={[note,anchor=south]north:PRICED FLOOR (bankable)}] {};
+  \end{scope}
+\end{tikzpicture}}
+\caption{One shared dispatch decision feeds every stream's value function. Each stream passes through its availability gate, which sorts it into the priced floor (firm or contracted), or lists it as gated upside with an unlock condition. The slices sum to a per-stream breakdown the finance model reads. Because all streams price the same single schedule, no megawatt-hour can be counted twice.}
+\label{fig:valueflow}
+\end{figure}
+
+\section{The three buckets of streams}
+
+The nine GB streams fall into three categories. Their gates and value formulas are the only GB-specific content; the categories themselves are generic.
+
+\subsection{The bankable floor (priced, firm)}
+
+These are the import-side savings the site captures without any external partner. Their gate opens to \emph{firm} the moment the necessary site data is present.
+
+\begin{itemize}
+  \item \textbf{Tariff arbitrage} -- buying cheaply and discharging when the supply rate is high. The gate needs a multi-rate import tariff (at least two distinct price points: a single flat rate has no spread to arbitrage) and load data. Valued, indicatively, as a per-megawatt-year figure times the sized power.
+  \item \textbf{Network red-band avoidance} -- avoiding the most expensive distribution-use-of-system charges by not importing during the network's red-band windows. (This is the post-reform treatment; there is no Triad story.) The gate needs the red-band rate data and load.
+  \item \textbf{Connection-headroom value (MIC/ASC)} -- the worth of staying within the site's agreed import and supply capacity, charged only where the connection actually binds the dispatch. The gate needs a recorded connection limit and an observed peak; an annual-only (coarse-tier) site has no peak, so the gate closes honestly.
+  \item \textbf{PPA / bill savings} -- the customer-facing headline. Priced at \emph{zero} inside the stack on purpose, because its value is the sum of the three streams above; the customer price-per-unit is set later by the finance layer.
+\end{itemize}
+
+\begin{caution}[Avoiding the expensive red band and staying inside the connection]
+Two of the floor streams are really about \emph{not} paying costs. Discharging across the network's red-band windows avoids the priciest distribution charges, and keeping import below the agreed maximum import and supply capacity (MIC/ASC) avoids penalties and reinforcement. Both are modelled as constraints on the optimiser (windows the battery must discharge into; a charge limit the battery must not breach) and as value the stream books only where the limit actually binds. The battery's own charging load counts against the import connection, so the optimiser is told the charge power is capped at the binding limit -- the lower of the import and supply capacities.
+\end{caution}
+
+\subsection{Contracted streams (priced once they hold)}
+
+These become contractual revenue when a precondition is confirmed, and sit at conditional until then.
+
+\begin{itemize}
+  \item \textbf{Capacity Market} -- payment for standing ready to deliver in a national capacity scheme. The asset's contribution is \emph{de-rated} by its storage duration (a longer-duration battery counts for more), and it must hold that de-rated capacity in every contract year at end-of-life capability, sized day-one with no later augmentation. The deliverability fact arrives via the gate context; until it is confirmed the stream is conditional. Valued as a clearing price (pounds per kilowatt-year) times the de-rated capacity, where the de-rated figure is the engine-verified deliverable capacity if supplied, otherwise the sized power times the duration-based de-rating factor, with the annual capacity-fade percentage surfaced as the decay that erodes capability over life.
+  \item \textbf{Local flexibility} -- delivering into a distribution network operator's flexibility tender (Piclo and similar). The gate needs the site's network region (to match a tender) and, via the gate context, an open tender plus a contracted award. Valued as a utilisation price (pounds per megawatt-hour) times the energy delivered inside the awarded tender windows.
+\end{itemize}
+
+\subsection{Gated upside (never in the floor)}
+
+These three streams can be very valuable, but they can never be \emph{firm} and never enter the priced floor. They live in a separate ``gated upside'' list on the result, not among the priced streams.
+
+\begin{itemize}
+  \item \textbf{Wholesale and balancing via P415} -- trading energy and offering into the balancing mechanism through the P415 retail-energy-market arrangement. Unlocks only with a confirmed route-to-market partner and approved export consents (the export permissions G99/G100).
+  \item \textbf{Balancing Mechanism} -- direct balancing-market participation. Unlocks with a route-to-market partner plus an aggregated portfolio above a minimum threshold (a single site is too small).
+  \item \textbf{Ancillary services (DC/DM/DR)} -- the frequency-response products, whose value decays over the asset's life. Unlocks with a route-to-market partner and a portfolio above threshold.
+\end{itemize}
+
+\begin{caution}[Why the gated streams price to zero today]
+The route-to-market partner is not yet known, so the assumption-library values for these three streams are deliberately a confirmed-status placeholder of \emph{zero}. The ``route-to-market available'' predicate returns true only when its assumption is both \emph{confirmed} and \emph{positive}, so on today's placeholders the streams stay conditional upside and price at exactly zero. The de-rating and decay machinery is fully wired and will activate unchanged the moment a real positive value lands -- by a version bump to the assumption library, not a code edit. This is how a placeholder can never masquerade as a bankable number.
+\end{caution}
+
+\section{Valuing a schedule without inventing revenue}
+
+The value function never fabricates money. It prices a stream \emph{only} over a dispatch schedule that is actually supplied, and only ever as an assumption-library number multiplied by a quantity that schedule delivered. With no schedule, or with a closed or excluded gate, the stream reports zero pounds plus an explanatory note. Every priced figure carries a loud not-bankable warning naming the exact assumption key it used and that key's status, because on the current placeholder assumption set (\code{gb\_v0\_1}) every value is a stand-in. A scenario price multiplier other than one is applied and noted. The order of operations inside the value function is fixed:
+
+\begin{enumerate}
+  \item Run the gate to obtain the real firmness and status. This always happens, schedule or not.
+  \item If there is no schedule, or the gate is closed or unknown, return a revenue-free result carrying the real firmness and a note. Stop.
+  \item Otherwise read the schedule into the small aggregate read model. If it cannot be read, return revenue-free with a warning. Never invent the quantities.
+  \item Compute the pounds: assumption value times the delivered quantity times the scenario multiplier. Attach the not-bankable warning naming the key, the assumption keys used, and any decay or conditional-upside note.
+\end{enumerate}
+
+\section{Constraints the streams impose on the optimiser}
+
+A stream does not only earn value; it constrains how the battery may be dispatched. Each stream declares its limits as \emph{descriptors}: a stable id, a human description, a constraint family (connection limit, throughput cap, availability window, held state-of-energy, export limit, deliverability), and a pointer to the site field or assumption key that holds the binding number. The descriptors carry \emph{no} fabricated values: the actual numbers are read from the site model or assumptions at solve time. Examples include the connection charge limit (charge power capped at the lower of import and supply capacity), the warranty throughput cap (annual full-cycle-equivalents are hard-limited; the optimiser may not over-cycle), the red-band discharge window, the Capacity Market deliverability and held-energy-band constraints, the local-flex tender window, and the export limit. The dispatch optimiser (Chapter~\ref{ch:dispatch}) reads these descriptors and applies the global physics (round-trip losses, parasitic load, warranty caps) engine-wide.
+
+\begin{rebuild}[How to rebuild this module]
+\begin{enumerate}
+  \item \textbf{Define the interface.} A value stream exposes: a stable id and display name; a list of required inputs (key, description, whether it blocks pricing); a deterministic \code{check\_gates(site, assumptions, context)} returning a gate result; a \code{value\_function(schedule, site, assumptions, scenario, context)} returning a per-stream result; and a \code{constraints(site, assumptions)} returning constraint descriptors.
+  \item \textbf{Define the gate result and its invariants.} Fields: stream id, status (open/conditional/closed/unknown), priceable-now flag, firmness, missing-requirements list, optional unlock condition, warnings. Validate, in one builder: priceable iff open; non-open is never firm; open is never excluded; a gated-upside id is never firm; a conditional gate must carry an unlock condition.
+  \item \textbf{Write the gate predicates market-agnostic.} Pure functions over the site model and assumption \emph{status} that return false (a missing requirement) when their input is absent -- never a guessed true. No market name appears.
+  \item \textbf{Add the generic gate context.} A small object with three optional, default-unknown fields: deliverability confirmed, tender open, portfolio MW and its threshold. A \code{None} context must reproduce data-only behaviour exactly.
+  \item \textbf{Build three category base classes.} Floor (open $\Rightarrow$ firm), contracted (open $\Rightarrow$ contracted), gated-upside (refuses an open gate; restricted to the gated ids). Each holds a revenue-free default value function that prices nothing.
+  \item \textbf{Write the dispatch read model.} A structural shape exposing power, duration, and optional delivered-energy and deliverable-capacity figures, plus a normaliser that turns any duck-typed schedule into it or raises a read error (the caller then prices nothing).
+  \item \textbf{Put the market content in one file.} The concrete streams: wire each gate predicate to the right field, override the value function with the formula (assumption value $\times$ delivered quantity $\times$ scenario multiplier), and attach a not-bankable warning naming the assumption key. No market branch anywhere else.
+  \item \textbf{Register the streams.} An ordered, id-keyed registry rejecting duplicate ids, with a default-registry composition root assembling the market's stream set.
+  \item \textbf{What to test.} Protocol conformance; the registry returns the expected streams; the gate-result invariants hold; gated streams can never be firm and price zero on placeholders; no schedule or a closed gate yields zero pounds; the gate context opens and prices Capacity Market and local flex and is additive; the same inputs always produce the same output (determinism); and no two streams can claim the same delivered energy.
+\end{enumerate}
+\end{rebuild}
+
+\begin{keyidea}[What to remember]
+Every way a battery earns money is one small object behind one generic interface, so the core never special-cases a market. A gate decides each stream's firmness and sorts it into the priced floor (firm or contracted), or lists it as conditional upside with an explicit unlock condition. Value is only ever an assumption-library number times a quantity the single shared dispatch schedule delivered, so no figure is invented and no megawatt-hour is counted twice.
+\end{keyidea}

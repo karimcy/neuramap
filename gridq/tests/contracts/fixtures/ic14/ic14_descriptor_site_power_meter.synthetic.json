@@ -1,0 +1,55 @@
+{
+ "contract": "IC-14",
+ "contract_version": "1.0.0",
+ "tenant": {
+  "kind": "tenant_key",
+  "org_id": "SYNTHETIC-ORG-HYBRID",
+  "org_kind": "customer",
+  "site_id": "SYNTHETIC-SITE-HYBRID"
+ },
+ "site_id": "SYNTHETIC-SITE-HYBRID",
+ "series_id": "SYNTHETIC-ORG-HYBRID/SYNTHETIC-SITE-HYBRID/site_boundary.main.active_power.revenue_meter.whole",
+ "data_class": "customer_commercial",
+ "record_class": "synthetic_fixture",
+ "kind": "series_descriptor",
+ "name": {
+  "asset_kind": "site_boundary",
+  "asset_id": "main",
+  "quantity": "active_power",
+  "role": "revenue_meter",
+  "aspect": "whole"
+ },
+ "unit": "W",
+ "resolution": "operational_1s",
+ "source": {
+  "kind": "source_address",
+  "protocol": "simulated",
+  "address": "sim:meter/p"
+ },
+ "source_scaling": {
+  "kind": "source_scaling",
+  "source_unit_ucum": "kW",
+  "scale_num": 1000,
+  "scale_den": 1,
+  "offset": 0
+ },
+ "brick_class": "Active_Power_Sensor",
+ "plausible_min": -20000000,
+ "plausible_max": 20000000,
+ "meter": {
+  "kind": "meter_binding",
+  "meter_id": "SYNTHETIC-METER-HYBRID-BOUNDARY",
+  "certificate": {
+   "kind": "evidence_ref",
+   "contract": "IC-4",
+   "contract_version": "1.1.0",
+   "evidence_hash": "sha256:0a324742384d55b23c531be9fbde205885e3b0a51fb0565beb7a1ccd526d344e"
+  }
+ },
+ "freshness": {
+  "kind": "freshness_policy",
+  "stale_after_ms": 120000,
+  "lost_after_ms": 600000
+ },
+ "max_batch_bytes": 65536
+}

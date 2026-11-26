@@ -1,0 +1,254 @@
+\chapter{The web application and demo shell}
+\label{ch:app}
+
+\modtag{App}{Web application and demo}{Perimeter, presentation}
+
+Everything earlier in this manual happens out of sight: a meter file becomes a validated site, a site becomes a priced quote record, and a quote record becomes three documents. The web application is the one place a human can drive that machine and watch it work. It is a small website that lets someone type a site in, press a button, and see a battery recommendation, a set of cashflows, the dispatch the optimiser chose, and the customer-facing proposal appear -- live, from a real run, not from a screenshot prepared earlier.
+
+The single most important fact about this application is what it does \emph{not} do. It does not price anything. It contains no second copy of the optimiser, no shadow financial model, no quietly different way of computing a saving. It calls exactly the same package functions the command-line tool calls (Ch.~\ref{ch:cli}), gets back the same frozen quote record, and only \emph{renders} it. There is no separate pricing path. The website is a window onto the deterministic core, never a second author of numbers.
+
+\begin{plainnote}
+Picture a calculator with a glass front. You can press the keys and read the display, and the display is genuinely lit by the circuitry inside; the glass adds nothing to the sum. This application is the glass front. The arithmetic all happens in the modules behind it, and the screen only shows you what they returned.
+\end{plainnote}
+
+\pipelinepos{wraps the whole pipeline -- it builds a \textbf{SiteModel} (Ch.~\ref{ch:ingestion}) from a guided form, calls \textbf{generate\_quote} exactly as the CLI does (Ch.~\ref{ch:cli}), and renders the resulting \textbf{QuoteRecord} and its \textbf{documents} (Ch.~\ref{ch:outputs})}
+
+\begin{contract}
+\textbf{Inputs} the application receives:
+\begin{itemize}
+  \item a person at a browser, filling in a guided form: site identity, connection size, consumption, an optional half-hourly meter file, tariff, and equipment preferences;
+  \item alternatively, a single click choosing the \textbf{demo}, which loads a committed illustrative site instead of a typed one.
+\end{itemize}
+\textbf{Outputs} the application produces:
+\begin{itemize}
+  \item a persisted \textbf{run} -- the stamped quote record, its site context, and its telemetry event, saved under the run's deterministic identifier;
+  \item a set of rendered \textbf{screens} -- a results dashboard, a system specification, the memo, proposal and report, and the telemetry view -- every figure read verbatim off the record;
+  \item \textbf{honest signals} -- the data tier, the ranked data-asks, the not-bankable status, and a clear demo or estimate badge wherever the inputs are not a real, metered, bankable site.
+\end{itemize}
+The application never computes a financial figure. The only arithmetic it performs is chart geometry: where to place a point on an axis, never what the point is worth.
+\end{contract}
+
+\section{Two run modes, chosen on purpose}
+
+The application offers two ways to produce a quote, and it never picks between them silently. The choice is the visitor's, made up front, and it is visible on every screen that follows.
+
+\begin{description}
+  \item[Real-site mode (the primary path).] The visitor enters their own site and, ideally, attaches their own half-hourly meter file. The application builds a real \code{SiteModel}, runs the live pipeline -- ingestion, grading, the real dispatch and sizing optimiser, finance, and the three documents -- and shows the genuine result. Where inputs are missing, it degrades honestly: it still answers, marks the quote not bankable, and surfaces the ranked list of data that would most improve it. It invents nothing.
+  \item[Demo mode (opt-in).] A clearly labelled illustrative dataset, committed to the repository, is run through the \emph{same} real engine, with one addition: a set of illustrative debt terms is injected so that the full picture -- the three-dimensional sizing surface, the firm-versus-gated income split, the customer proposal -- has something to show. Every number is still produced by the deterministic engine from labelled inputs; the run still comes back honestly not bankable; and the illustrative nature is stamped on the run as a warning and badged across the interface.
+\end{description}
+
+\begin{keyidea}[The demo is the real engine on labelled data, not a fake]
+The demo is not a mock-up. It runs the actual dispatch optimiser and the actual sizing search over a synthetic-but-committed twelve-month load, with debt terms that are labelled ``illustrative, not underwritten''. Nothing is fabricated: every figure is the engine's own output from inputs that are honestly disclosed as illustrative. The demo exists so a viewer can see the whole flow light up, while the not-bankable status and the demo badge keep it from ever being mistaken for a real, financeable site.
+\end{keyidea}
+
+\section{The demo user journey}
+
+Both modes share one guided journey. The visitor moves through a five-stage wizard, the pipeline runs in the background while a live progress bar advances, and the run then opens onto a set of navigable screens. Figure~\ref{fig:app-journey} traces the whole path and, crucially, shows that the box marked ``run the pipeline'' is the very same deterministic core the command-line tool drives.
+
+\begin{figure}[H]
+\centering
+\resizebox{\textwidth}{!}{%
+\begin{tikzpicture}[node distance=7mm and 14mm]
+  % entry
+  \node[term] (start) {Visitor\\arrives};
+  \node[decide, right=of start] (mode) {Real or\\demo?};
+
+  % wizard column
+  \node[ext, below=18mm of mode, text width=34mm, minimum width=36mm] (wizard)
+     {\textbf{5-stage wizard}\\\scriptsize site \textperiodcentered{} consumption \textperiodcentered{} load\\\scriptsize profile \textperiodcentered{} equipment \textperiodcentered{} review};
+  \node[io, left=16mm of wizard, text width=30mm] (demoset)
+     {Demo dataset\\\scriptsize committed, labelled\\\scriptsize illustrative site};
+  \node[io, below=of wizard] (site) {\textbf{SiteModel}\\\scriptsize validated, graded T0--T2};
+
+  % the shared core (one box, two callers)
+  \node[procwide, below=of site, minimum width=58mm, text width=56mm] (core)
+     {\textbf{Deterministic core}\\\scriptsize generate\_quote: ingestion grade \textperiodcentered{} engine\\\scriptsize \textperiodcentered{} finance \textperiodcentered{} quote record \textperiodcentered{} documents};
+  \node[ext, right=20mm of core, text width=26mm, minimum width=28mm] (cli)
+     {CLI\\\scriptsize same call,\\\scriptsize same answer};
+
+  \node[store, below=of core] (run) {\textbf{Run saved}\\\scriptsize quote + site + telemetry,\\\scriptsize keyed by quote id};
+
+  % results fan-out
+  \node[proc, below=18mm of run, text width=30mm] (dash)
+     {\textbf{Results dashboard}\\\scriptsize surface, dispatch,\\\scriptsize value stack, finance};
+  \node[proc, left=14mm of dash, text width=26mm] (spec)
+     {System spec\\\scriptsize power, energy,\\\scriptsize duration};
+  \node[decide, right=14mm of dash, text width=24mm] (gate)
+     {Bankable?\\\scriptsize gate};
+  \node[ext, below=of gate, text width=28mm, minimum width=30mm] (proposal)
+     {Memo \& proposal\\\scriptsize prose drafted,\\\scriptsize numbers injected};
+  \node[store, below=18mm of dash] (telem)
+     {Telemetry\\\scriptsize how the run\\\scriptsize was produced};
+
+  % arrows
+  \draw[flow] (start) -- (mode);
+  \draw[flow] (mode.south) -- node[flowlabel,pos=0.6]{real} (wizard.north);
+  \draw[flow] (demoset.east) -- node[flowlabel]{demo} (wizard.west);
+  \draw[flow] (wizard) -- (site);
+  \draw[flow] (site) -- (core);
+  \draw[flow] (core) -- (run);
+  \draw[flow] (run) -- (dash);
+  \draw[flow] (dash) -- (spec);
+  \draw[flow] (dash) -- (gate);
+  \draw[flow] (gate.south) -- node[flowlabel,pos=0.45]{gated} (proposal.north);
+  \draw[flow] (dash) -- (telem);
+  % shared-core link to the CLI
+  \draw[flowback] (cli.west) -- node[flowlabel]{shared}(core.east);
+
+  \begin{scope}[on background layer]
+    \node[groupbox, fit=(site)(core)(run), inner sep=7pt,
+          label={[note,rotate=90,anchor=south]west:DETERMINISTIC CORE}] {};
+    \node[groupbox, draw=nodeExtBd, fill=gridqVioletBg, fit=(wizard), inner sep=4pt] {};
+    \node[groupbox, draw=nodeExtBd, fill=gridqVioletBg, fit=(proposal), inner sep=4pt] {};
+  \end{scope}
+\end{tikzpicture}}
+\caption{The demo user journey. A visitor chooses real-site or demo mode, completes the five-stage wizard (the demo pre-fills it from a committed illustrative dataset), and the application calls the deterministic core -- the same \code{generate\_quote} the CLI uses -- as a background job. The saved run fans out to a results dashboard, a system specification, the gated memo and proposal, and the telemetry view. The violet dashed boxes are the AI-assisted perimeter; the central box authors every number and is shared with the command line.}
+\label{fig:app-journey}
+\end{figure}
+
+\section{What the screens look like}
+
+The figures in this section are captured from a live run of the deployed application, not mock-ups. They show the entry page and the result screens a real run produces. Every figure on these screens is read verbatim from the stamped quote record.
+
+\begin{figure}[H]
+\centering
+\screenshot{0.99}{figures/app-landing.png}
+\caption{The landing page. A visitor starts a new quote here or opens the labelled demo. The interface is self-contained and makes no outbound network calls at run time.}
+\label{fig:app-landing}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\screenshot{0.82}{figures/app-dashboard-top.png}
+\caption{The top of the results dashboard. The chosen system (power, energy, duration) sits above a diagram of how the battery connects behind the meter, and the three-dimensional sizing surface shows every power and duration candidate the optimiser evaluated, with the covenant-feasible region and the chosen optimum marked (Ch.~\ref{ch:sizing}).}
+\label{fig:app-dashboard-top}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\screenshot{0.8}{figures/app-dashboard-finance.png}
+\caption{The value stack and finance panels of the same run. The priced floor lists each firm income stream with its annual figure and gate state; the gated upside is shown separately at a labelled zero. The finance panel reports the returns, the minimum conservative (P90) debt cover ratio against its covenant, and the price that hits the target return (chapters~\ref{ch:valuestack} and~\ref{ch:finance}).}
+\label{fig:app-dashboard-finance}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\screenshot{0.86}{figures/app-artifacts.png}
+\caption{The artifacts view. The three documents generated from the record -- the underwriting memo, the customer proposal, and the report -- are listed for download, each one regenerable identically from the saved quote (Ch.~\ref{ch:outputs}).}
+\label{fig:app-artifacts}
+\end{figure}
+
+\section{The five-stage wizard}
+
+The wizard is the application's version of ingestion (Ch.~\ref{ch:ingestion}). A non-expert visitor rarely has a clean \code{SiteModel} JSON file to hand, so the wizard collects the same information through a guided, validated form and assembles the site object behind the scenes. It walks five stages in order.
+
+\begin{table}[H]
+\centering
+\caption{The five wizard stages and what each contributes to the SiteModel.}
+\label{tab:wizard}
+\small\sffamily
+\begin{tabularx}{\textwidth}{@{}l L L@{}}
+\toprule
+\textbf{Stage} & \textbf{What the visitor gives} & \textbf{What it sets on the site} \\
+\midrule
+\textbf{1. Site} & Name, postcode, connection size (in kVA), and the grid region. & Site identity, postcode, and the maximum import capacity that bounds the battery. \\
+\textbf{2. Consumption} & Annual electricity use, peak demand, and business type. & The annual energy total and a peak figure, plus context for the load shape. \\
+\textbf{3. Load profile} & Either an uploaded half-hourly meter file, or nothing (use the annual figure). & The half-hourly trace that lets the optimiser dispatch, or a flag that one must be modelled. \\
+\textbf{4. Equipment} & An optional preference from the equipment catalogue. & Display context only -- it never reaches the optimiser. \\
+\textbf{5. Review} & A last look, then the run button. & Triggers the background pipeline job. \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+Three points about the wizard matter for understanding what the resulting quote means.
+
+\textbf{Field mapping is the wizard's only liberty.} The form speaks the visitor's language and the schema speaks its own. The grid connection is entered in kVA and read by the site builder as the import-capacity figure that caps battery power; business type, tariff type, map coordinates, and the chosen equipment are interface context the deterministic engine never consumes. This is presentation translation, not computation: no value is invented, blanks stay blank, and an incoherent entry becomes a field-level message rather than a server crash.
+
+\textbf{Reference tariff rates fill likely gaps, and say so.} A visitor who does not know their exact unit rates can still get a floor estimated. When they leave the tariff blank, the application fills in standard published-style reference rates for the tariff type they picked -- time-of-use bands the engine can actually arbitrage against -- and attaches a warning saying these are reference rates, not the customer's confirmed tariff. It never overwrites a value the visitor gave. The run stays not bankable until the real tariff is confirmed.
+
+\textbf{A missing meter file is modelled honestly, never faked.} The optimiser can only dispatch against a half-hourly trace. If the visitor gives an annual figure but no meter file, the application generates a synthetic profile (Section~\ref{sec:synthetic}) so the run can solve and produce an estimate instead of giving up. The site is then graded only to the partial tier, never the validated one, and the run carries a clear ``synthetic, not bankable'' label.
+
+\begin{figure}[H]
+\centering
+\screenshot{0.99}{figures/app-wizard.png}
+\caption{The first wizard stage. The guided form collects the same information a \code{SiteModel} JSON would carry, validates each field as it is entered, and assembles the site object behind the scenes.}
+\label{fig:app-wizard}
+\end{figure}
+
+\begin{caution}[The run only completes if it actually solved a system]
+Producing a quote object is not the same as producing a result. A very thin site may enumerate candidate sizes yet never solve a real dispatch. The application checks for genuine completion -- a real dispatch profile, or at least one candidate that priced or returned a figure -- before it shows a run as finished. A site too thin to size anything yields a plain message asking for annual usage or a meter file, never a blank or misleading screen.
+\end{caution}
+
+\subsection{Running as a background job}
+
+Pressing run does not freeze the browser. The application starts the pipeline on a background worker, hands the browser a job identifier, and the page polls that job until it reports done (with the new quote's identifier), still running, or errored. The progress bar only reaches ``done'' when the deterministic pipeline has genuinely returned a quote identifier; the completion signal is real, not a timed animation. When the job completes, the browser navigates to the saved run. Both the wizard and the demo use this same background-job mechanism, so the demo, too, walks the wizard, shows the progress animation, and lands on the rich result.
+
+\begin{figure}[H]
+\centering
+\screenshot{0.99}{figures/app-run.png}
+\caption{The run in progress. A live progress bar advances as the background worker carries the site through the pipeline; it only reports done once the deterministic core has genuinely returned a quote identifier.}
+\label{fig:app-run}
+\end{figure}
+
+\section{The synthetic-data helper}
+\label{sec:synthetic}
+
+The synthetic helper turns the three things a non-expert reliably knows -- annual consumption, building type, and often peak demand -- into a full year of half-hourly load, so a manual entry can be dispatched. It is the reason the manual path produces an estimate rather than a refusal.
+
+The method is deliberately simple and fully deterministic. A reference daily shape for the chosen business type (an office peaks midday, a hotel peaks evening, a warehouse runs flat through the working day) is repeated across a fixed reference year, modulated by a weekday-versus-weekend factor and a mild seasonal factor that lifts winter a little. The resulting curve is then scaled so its total energy equals exactly the annual figure entered. If a peak demand was given and the modelled peak falls short, the profile is stretched about its mean -- peaks up, troughs down -- to approach that peak, and then re-scaled so the annual total is still met exactly. There is no wall-clock time and no randomness anywhere, so the same entry always yields the same profile and therefore the same reproducible quote identifier.
+
+\begin{keyidea}[Modelled, not metered -- and labelled as such]
+The synthetic profile is an estimate of a shape, not a record of one. The platform marks it by grading the site only to the partial half-hourly tier, never the validated tier, and by stamping a synthetic warning on the run. A synthetic shape can never carry a bankable result. This is the ``degrade honestly'' principle (Ch.~\ref{ch:overview}) made concrete: the platform always answers, but it never dresses a modelled shape up as metered fact.
+\end{keyidea}
+
+\section{The equipment view}
+
+The application carries a small, curated catalogue of real, currently-shipping commercial products: solar modules priced per watt-peak, battery systems priced per kilowatt-hour, and inverters priced per watt. It powers a browsable equipment page and the wizard's equipment stage.
+
+The catalogue is display-only. It informs the picker a visitor sees; it does not feed the optimiser and carries no underwriting numbers. Sizing and dispatch remain entirely the optimiser's job (chapters~\ref{ch:dispatch} and~\ref{ch:sizing}), untouched by whatever a visitor browses or selects. The listed prices are indicative list ballparks for the interface, not quotes. Stating the price basis explicitly per category -- per watt-peak, per kilowatt-hour, per watt -- keeps the unit honest for each kind of kit.
+
+\section{Showing the upside without banking it}
+
+A real engine run prices a firm floor: the income streams the platform is willing to stand behind, such as bill savings, network-charge avoidance, and the de-rated Capacity Market. The speculative, route-to-market streams -- wholesale and the balancing mechanism, fast-acting ancillary services, and local flexibility -- are gated upside (Ch.~\ref{ch:valuestack}). The engine cannot price them here, because their availability flows through gates the application does not control.
+
+For one clearly named view -- a ``theoretical upside'' project -- the application overlays an explicit illustrative value on those gated streams: a ballpark annual rate per megawatt multiplied by the engine-sized power, shown against each stream and aggregated into a portfolio picture. These figures are honest about their nature. They are labelled illustrative ceilings, they are never written into the deterministic quote record, and they are never bankable. The dispatch, the priced floor, and the Capacity Market figures shown alongside them remain the genuine engine output. The upside is shown so the commercial ambition is visible, but it is walled off from anything a lender would rely on.
+
+\begin{caution}[Two different illustrative overlays, both walled off]
+The demo's illustrative \emph{debt terms} and the upside view's illustrative \emph{route-to-market revenues} are separate devices, and neither is ever applied to a real-mode run. Both exist only to let a viewer see a fuller picture; both are badged; and both leave the underlying run honestly not bankable. The deterministic record never absorbs either of them.
+\end{caution}
+
+\section{Real-mode gating: never show a placeholder as bankable}
+
+The discipline that runs through the whole platform -- numbers are computed, prose is drafted, and a placeholder never masquerades as a bankable figure (Ch.~\ref{ch:overview}) -- is enforced at the surface, not just inside the core. The application has a single number-to-string path: every figure shown on screen is read off the stamped quote record's view model and turned into text by one shared formatting layer. Templates interpolate finished strings; they never add, subtract, sum, or divide a financial value. The only computation the presentation layer does is chart geometry -- where to draw an axis tick or interpolate a surface mesh for display -- and even that fills a genuine gap in the evaluated grid with the worst observed value rather than an invented one, and discloses how many cells were floored.
+
+On the current placeholder assumption release every quote is deliberately not bankable, because the assumption values are stand-ins rather than market-calibrated figures. The interface honours that without exception. Not bankable is treated as the honest normal state, shown in a neutral colour; the alarming red is reserved for true validation errors. A demo run wears a demo badge; a synthetic-load run wears an estimate label; a reference-tariff run says so. A viewer is never left thinking a placeholder, a modelled shape, or an illustrative ceiling is a financeable fact.
+
+\begin{keyidea}[The surface cannot author a number]
+Because the application reads every figure from the frozen record and formats it through one shared layer, and because automated checks forbid arithmetic on financial fields inside the templates, ``the interface never authors a number'' is a structural property rather than a matter of care. The window can only show what the core computed. This is what lets the same demo be shown to a lender without fear that the screen invented something the record does not contain.
+\end{keyidea}
+
+\section{How it is served and deployed}
+
+The application is a thin server-rendered website: a small web server that builds each page from the record on the server side and sends finished HTML to the browser. It was chosen deliberately over a heavier single-page approach because it keeps the whole stack in one language, needs no separate build step, and -- most importantly -- makes ``no pricing in the browser'' easy to hold, since the browser receives finished pages rather than raw figures to manipulate.
+
+It is self-contained by design. Its styling, its charting code, and its interactive surface are all served from the application itself; it makes no outbound network calls at run time and pulls nothing from a content-delivery network. That keeps it reproducible and lets it run in a locked-down environment. Each run is persisted to a gitignored store keyed by the deterministic quote identifier, so re-submitting an identical site overwrites identically and a visitor can revisit a run by its link.
+
+For hosting, the application ships with a container image and a fully pinned dependency lock, so the same image runs locally and on any of several standard hosts, each of which terminates encryption for it. A cheap unauthenticated health probe lets a host's load balancer check the application is alive. Because the real-site mode accepts third-party data on what may be a public address, an optional password gate can be switched on by setting one environment variable; it guards every page except the health probe and the static assets, and it stays dormant -- every route open -- when that variable is unset, so the default posture and the test suite are unchanged. No credential ever lives in the repository.
+
+\begin{caution}[Privacy: real submissions are the visitor's own]
+A visitor's real-mode submission, including the sensitive counterparty and consent details on their site, is processed only for their own run and saved only so they can revisit it. The run store is gitignored and never publicly indexed, no real third-party data is shipped in the image (only the labelled synthetic demo dataset is), and a deletion path exists to remove a run. If durable storage is enabled for real users, the password gate should be switched on and a retention sweep added.
+\end{caution}
+
+\begin{rebuild}[How to rebuild this module]
+\begin{enumerate}
+  \item \textbf{Stand up a thin server-rendered web app} with a template engine, confined to a single application package. It contains orchestration and presentation only: no domain logic, no pricing, no figure authoring.
+  \item \textbf{Offer two explicit modes.} Real-site mode builds a \code{SiteModel} from a guided form and runs the real engine; demo mode loads a committed, labelled illustrative site and runs the same engine with illustrative debt injected. Never auto-select between them.
+  \item \textbf{Build the five-stage wizard} (site, consumption, load profile, equipment, review) as the application's ingestion front end. Map form fields to the schema with translation only (kVA to import capacity, business type as context); turn incoherent input into field-level messages, never a crash; leave unknown fields blank as data-asks.
+  \item \textbf{Fill likely gaps honestly.} When the tariff is blank, apply reference rates for the chosen tariff type and warn that they are reference, not confirmed; never overwrite a supplied value. When no meter file is given but annual usage is, generate a deterministic synthetic half-hourly profile (business-type shape, weekday/weekend and seasonal factors, scaled to the annual total, optionally stretched toward a stated peak), grade the site to the partial tier only, and label the run synthetic.
+  \item \textbf{Run the pipeline as a background job} and poll it: the progress bar reaches done only when \code{generate\_quote} actually returns a quote identifier and the run truly solved a system (a real dispatch, or a candidate that priced or returned). Persist the run -- quote, site, telemetry -- under its deterministic quote identifier.
+  \item \textbf{Render every figure from the stamped record} through one shared number-to-string layer. Templates format finished strings only; forbid arithmetic on financial fields with an automated check. Permit only chart geometry, and fill display gaps with the worst observed value, disclosed, never an invented one.
+  \item \textbf{Gate honestly.} Treat not-bankable as the neutral normal state; reserve red for real errors. Badge demo runs, estimate (synthetic) runs, reference-tariff runs, and the illustrative upside overlay. Keep both illustrative overlays (demo debt, route-to-market upside) out of the deterministic record and out of every real-mode run.
+  \item \textbf{Serve it self-contained} (no outbound network, assets bundled), with a health probe, an optional dormant password gate driven by one environment variable, a gitignored per-run store, and a deletion path. Ship a pinned container image so local and hosted runs are identical.
+  \item \textbf{Test that:} the app boots and routes respond; an identical submission yields an identical quote identifier; no template performs arithmetic on a financial field; every figure shown equals the corresponding record field; a thin site degrades to a clear data-ask rather than a blank or a crash; and the password gate is off by default and guards everything but the probe and assets when on.
+\end{enumerate}
+\end{rebuild}

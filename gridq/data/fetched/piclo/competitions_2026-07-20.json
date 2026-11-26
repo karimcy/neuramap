@@ -1,0 +1,13 @@
+{
+  "dataset": "competitions",
+  "filename": "piclo_flex_uk_competitions.xlsx",
+  "record_count": 290321,
+  "source_url": "https://piclo-open-data.s3.eu-west-1.amazonaws.com/public-data/piclo_flex_uk_competitions.xlsx",
+  "summary": {
+    "availability_median_gbp_per_mw_h": null,
+    "availability_price_rows": 0,
+    "row_count": 290321,
+    "utilisation_median_gbp_per_mwh": 135.67,
+    "utilisation_price_rows": 224535
+  }
+}

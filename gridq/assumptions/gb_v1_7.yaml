@@ -1,0 +1,1712 @@
+# GridQ assumption library — GB, v1.7  (release: gb_v1_7)
+#
+# REGISTER-BACKED over gb_v1_6 (Tier A remediation, 2026-08-12): this release adds the constants the
+# open Tier A findings need, every one transcribed from docs/bess_constants_register.md (422 sourced
+# constants) or docs/bess_degradation_requirements.md, with the primary source and vintage carried
+# through verbatim. NOTHING here is invented: where the register does not hold a figure, the KEY is
+# added with a null value and `status: needs_review` plus the exact data ask, so the code can find it
+# and warn instead of silently defaulting.
+#
+# ONE value drifts from gb_v1_6 (see DEG-01 below):
+#   - battery_opex.degradation_marginal_cost_gbp_per_mwh   5.0 -> 21.3   (£/MWh discharged)
+# Every OTHER gb_v1_6 value is carried forward BYTE-IDENTICAL, including the whole capex/opex stack.
+# Capex and opex were deliberately NOT re-based: the register's grid-scale benchmarks
+# (£580k/MW survey, ~£24.6k/MW/yr implied opex) both carry an explicit "not transferable to
+# 0.1-5 MW behind-the-meter" caveat, so they are landed as SEPARATE reference-only benchmark keys and
+# `battery_capex.installed_cost` / `battery_opex.annual_fixed_opex` keep their values AND their
+# statuses. Note the opex benchmark points UPWARD (~2x the 12,000 placeholder): leaving the
+# placeholder is not conservative, it is optimistic, and it is flagged rather than tuned.
+#
+# DEG-01 (the one drift) — the MILP objective carries no degradation term at all, so the modelled
+# break-even arbitrage spread is ~£11.4/MWh against a true ~£32.7/MWh (~65% too low). The flat
+# £/MWh wear cost is re-based from gb_v1_6's unsourced illustrative 5.0 to the levelised C-34 figure
+# 21.3 £/MWh discharged = C_repl / (N_EFC,EOL x eta_dis) = 120,000 / (6,000 x 0.94). READ THE NOTES
+# ON THAT KEY BEFORE WIRING IT: finance ALREADY deducts this key post-hoc as an annual cost line, so
+# putting the same number in the dispatch objective charges wear ONCE for dispatch selection and must
+# not also be double-deducted in the cashflow. The flat value is calibrated at deep-cycle depth and
+# overcharges shallow cycling ~8x (C-35) — the depth-aware form needs
+# degradation.cycle_depth_stress_coefficients.
+#
+# SCHEMA LIMITS FOUND WHILE CUTTING THIS RELEASE (LIT-A-02, verified empirically against
+# src/gridq/assumptions/models.py at this commit — no src/ change was made):
+#   - `Assumption.value` is `Any` (models.py:36), so a nested, dated, per-region schedule IS
+#     expressible inside `value` (proven by loading one). It is NOT validated: `Any` accepts a typo'd
+#     inner key silently. Every nested shape below is therefore a CONVENTION, documented in `notes`.
+#   - Sibling effectivity FIELDS on an Assumption (valid_from / valid_to / season) are REJECTED
+#     (`GridQModel` extra='forbid', models.py:29-43). Effectivity is carried INSIDE `value` instead.
+#   - A NEW top-level section is REJECTED unless it is added to the model. So two keys the
+#     remediation brief named could not use their requested path and were placed in an existing
+#     section instead:
+#       macro.cpi_pct_per_year          -> financing.cpi_pct_per_year
+#       battery.soc_min/max_fraction    -> warranty_cycle_limits.soc_min/max_fraction
+#     (the second is the better home anyway: the SoC window is a warranty operating envelope, C-29).
+#
+# CM DE-RATING — PROPORTIONALITY WARNING. gb_v1_6 carries one duration-only table for the latest T-4,
+# which happens to be EXACTLY duration-proportional (0.1099/h at 1/2/4h). That property does NOT
+# generalise: of the 18 published auction x delivery-year combinations now carried in
+# capacity_market.de_rating_by_auction_and_delivery_year, only 2 are exactly proportional at 1/2/4h
+# (2029-30 T-4 and 2026-27 T-1); 16 break it, up to -0.41 absolute (2019-20 T-1: 4h = 0.9552 against
+# 4 x 0.3421 = 1.3684). Even inside the 2029-30 T-4 curve the half-hour bins deviate by +/-0.0008 and
+# the 6h/8h bins by +/-0.0015. Any reasoning that relies on exact duration-proportionality holds only
+# for the single integer-hour subset gb_v1_6 happened to carry.
+#
+# STATUS DISCIPLINE unchanged: 0 `confirmed` repo-wide, by design. No quote on this release may
+# present as bankable. gb_v0_1..gb_v1_6 stay FROZEN for provenance; this is a new file, never an
+# in-place edit. Loaded via load_assumptions("gb_v1_7"). Cutting it makes it latest_version(), so it
+# becomes the CLI default (MD-F-15 fix) — golden fixtures pinned to an older default may move.
+
+metadata:
+  market: GB
+  version: gb_v1_7
+  released: 2026-08-12
+  currency: GBP
+  notes: >-
+    GB assumptions, register-backed over gb_v1_6 (Tier A remediation): adds the constants the open
+    Tier A findings need — a marginal degradation cost in the dispatch objective (DEG-01), the SoC
+    operating window (D-169), published fleet availability distinct from degradation (H-17), the
+    per-licence-area CDCM DUoS band windows (LIT-F-05, 1 of 14 areas sourced, 13 named as missing),
+    Capacity Market de-rating and clearing prices keyed by auction type AND delivery year (D-25),
+    ENA Open Networks local-flex settlement mechanics (D-116), DC/DM/DR settlement K/F and EFA-block
+    prices (D-158), DFS registration and settlement (E-06), and the 1 MW eligibility thresholds plus
+    the same-GSP-Group aggregation rule (D-92). Every value is transcribed from
+    docs/bess_constants_register.md or docs/bess_degradation_requirements.md with its primary source
+    and vintage; unsourced constants are landed as null-valued needs_review homes carrying the data
+    ask. Exactly ONE value drifts from gb_v1_6 (degradation_marginal_cost_gbp_per_mwh 5.0 -> 21.3);
+    capex and opex are untouched by design. NOT confirmed - 0 confirmed repo-wide; no quote on this
+    release is bankable. All prior releases stay frozen for provenance.
+
+battery_capex:
+  installed_cost:
+    value: 500000
+    unit: GBP/MW
+    source: "Neura business plan (source_docs/neura_plan.html): 'average installed cost of roughly £500k per MW'."
+    status: needs_review
+    owner_or_reviewer: Oli
+    confidence: low
+    last_reviewed: 2026-06-24
+    notes: >-
+      Indicative all-in installed cost cited in the Neura plan ('roughly £500k/MW' — explicitly
+      indicative). Promoted placeholder->needs_review now that a real in-repo citation is attached;
+      confirm against real installer quotes / a capex benchmark library before relying on it
+      (see docs/assumptions_to_source.md, top-ranked). UNCHANGED in gb_v1_7 by design: the
+      register's grid-scale survey (installed_cost_grid_scale_survey_benchmark) is explicitly a
+      floor for a 0.1-5 MW BTM site, so it does not support re-basing this figure either way.
+  installed_cost_benchmark_band:
+    value:
+      low: 300000
+      high: 900000
+    unit: GBP/MW
+    source: "Internal plausibility band (L14 mechanism, 2026-06-24) — illustrative bounds, not a sourced market figure; confirm against a real capex benchmark library."
+    status: placeholder
+    owner_or_reviewer: Oli
+    confidence: low
+    last_reviewed: 2026-06-24
+    notes: >-
+      Plausibility band for installed capex (£/MW); an installer/modelled unit cost outside it is
+      flagged for review (never blocks, never changes a figure). Illustrative placeholder bounds
+      pending a real capex benchmark library.
+
+  installed_cost_gbp_per_kwh:
+    value: 175.0
+    unit: GBP/kWh
+    source: "PLACEHOLDER - perimeter research (BNEF ESS Cost Survey 2025: Europe turnkey avg US$177/kWh, 4h LFP installed US$180-260/kWh; NREL 2025 US$334/kWh upper anchor), recorded in docs/reviews/2026-07-03-capex-shape-research.md. Chosen inside the European installed band and reconciled to the Neura-plan all-in (see notes). Confirm against real installer quotes before ANY bankable use."
+    status: placeholder
+    owner_or_reviewer: Olly
+    confidence: low
+    last_reviewed: 2026-07-03
+    notes: >-
+      The ENERGY component of installed capex (C025): cells/racks/enclosures per kWh. When
+      present alongside the power component, finance prices capex as power_component x MW +
+      this x kWh, giving added duration real marginal capital cost - the wide-duration search
+      stops pinning to the band edge. Releases without this key are byte-identical (all-in
+      per-MW capex, duration unpriced).
+  installed_cost_gbp_per_mw_power_component:
+    value: 150000.0
+    unit: GBP/MW
+    source: "PLACEHOLDER - the residual that reconciles the decomposition to the sourced Neura-plan all-in at the 2-hour reference: 150,000 + 2,000 kWh/MW x GBP175/kWh = GBP500,000/MW (battery_capex.installed_cost, needs_review). Research basis: docs/reviews/2026-07-03-capex-shape-research.md."
+    status: placeholder
+    owner_or_reviewer: Olly
+    confidence: low
+    last_reviewed: 2026-07-03
+    notes: >-
+      The POWER component of installed capex (C025): PCS/inverter, balance of plant, EPC power
+      share and grid connection, per MW. Consumed only together with
+      installed_cost_gbp_per_kwh; the legacy all-in installed_cost stays as the fallback and
+      the reconciliation anchor.
+  installed_cost_grid_scale_survey_benchmark:
+    value:
+      survey_average_gbp_per_mw: 580000
+      survey_p16_p84_band_gbp_per_mw:
+        low: 400000
+        high: 700000
+      two_hour_median_gbp_per_mw: 650000
+      projection_gbp_per_kw_2h:
+        "2025": 618
+        "2030": 411
+        "2049": 363
+      projection_gbp_per_kw_4h:
+        "2025": 828
+        "2030": 610
+        "2049": 527
+      derived_split_2025:
+        power_gbp_per_kw: 408
+        energy_gbp_per_kwh: 105
+    unit: GBP/MW, GBP/kW, GBP/kWh (grid-scale reference only)
+    source: "Modo Energy, 'How much does it cost to build a battery energy storage system in 2024?' (BESS CapEx Survey), November 2024, https://modoenergy.com/research/en/battery-energy-storage-capex-containerised-bess-development-costs-oem-balance-plant-bop-grid-connections-survey-2024 — 30 respondents, 2.8 GW, avg duration 1.9 h, commissioning 2024-2028, 2024 money; and Modo Energy, 'Modelling Assumptions' (UK/Europe, July 2026 vintage), https://docs.modoenergy.com/pages/jul-2026/uk-europe/model-assumptions/ (real 2025 prices). Derived power/energy split is arithmetic on the published 2h and 4h points, NOT a published split. Transcribed via docs/bess_constants_register.md."
+    status: needs_review
+    owner_or_reviewer: Oli
+    confidence: low
+    last_reviewed: 2026-08-12
+    notes: >-
+      REFERENCE ONLY — never the capex input. Landed so the ~£1.55m/MW modelled capex flagged in
+      the review has a sourced yardstick, and so the £300k-£900k plausibility band has a published
+      comparator. The survey source states larger projects achieve lower per-MW cost, so this is a
+      FLOOR, not a central estimate, for a 0.1-5 MW behind-the-meter site: it does NOT license
+      lowering installed_cost. Vintages differ (survey 2024 money; projections real 2025), the
+      component split is derived, and the same source's '~£400/kW (1h) today' statement does not
+      reconcile exactly with the tabulated 2h/4h points.
+
+battery_opex:
+  annual_fixed_opex:
+    value: 12000
+    unit: GBP/MW/yr
+    source: "No citable source identified (W4-3 review 2026-06-24); carried forward from gb_v0_1 as an unconfirmed placeholder. See docs/assumptions_to_source.md."
+    status: placeholder
+    owner_or_reviewer: Oli
+    confidence: low
+    last_reviewed: 2026-06-24
+    notes: Fixed O&M placeholder; excludes energy/levy costs (those are dispatch-driven). Source from real O&M contracts / benchmark library. UNCHANGED in gb_v1_7 by design — see annual_fixed_opex_grid_scale_benchmark, which suggests this placeholder is roughly HALF a plausible figure (i.e. optimistic, not conservative).
+  annual_fixed_opex_grid_scale_benchmark:
+    value:
+      implied_gbp_per_mw_yr:
+        "2024": 22400
+        "2025": 24600
+      insurance_pct_of_system_value_per_year:
+        low: 0.5
+        high: 3.0
+      insurance_gbp_per_year_1mw_indicative:
+        low: 5000
+        high: 30000
+    unit: GBP/MW/yr; percent of insured value per year; GBP/yr (grid-scale reference only)
+    source: "DERIVED from Gresham House Energy Storage Fund plc, 'Annual Report and Financial Statements 2025', 2026, https://greshamhouse.com/wp-content/uploads/2026/04/GRID-Annual-Review_25_20.04-FINAL.pdf — revenue £68,600/MW/yr at a 64.2% EBITDA margin (2025) and £59,800/MW/yr at 62.5% (2024), 1,072 MW GB portfolio; covers O&M, insurance, business rates, land rent, optimiser fees and portfolio operating costs. Insurance range: Solarif, 'How much does battery storage fire insurance cost?', https://solarif.com/academy-article/how-much-does-battery-storage-fire-insurance-cost/ (LOW AUTHORITY — broker marketing). Transcribed via docs/bess_constants_register.md."
+    status: needs_review
+    owner_or_reviewer: Oli
+    confidence: low
+    last_reviewed: 2026-08-12
+    notes: >-
+      REFERENCE ONLY — never the opex input, and deliberately NOT used to re-base
+      annual_fixed_opex. Derived (not published as an opex figure) from a grid-scale portfolio; the
+      register's caveat is explicit that a 0.1-5 MW site should expect a materially HIGHER £/MW
+      figure. The direction matters: ~£24.6k/MW/yr against the 12,000 placeholder means the
+      library's opex is likely understated by ~2x or more, which flatters every quote. Flagged for
+      the human, not silently changed. Note the double-count risk with the separate `insurance` and
+      `business_rates` sections — this benchmark is all-in and those are additive.
+  degradation_marginal_cost_gbp_per_mwh:
+    value: 21.3
+    unit: GBP/MWh discharged (AC, at the meter)
+    source: "docs/bess_degradation_requirements.md C-34 (levelised form) and its Constants table row 'Derived c_deg (worked example) ~21.3 £/MWh discharged | £120k/MWh, 6,000 EFC, eta_dis 0.94 | derived, C-34'. Formula c_deg = C_repl / (N_EFC,EOL x eta_dis), following Reniers et al. 2018 (Journal of Power Sources) and Xu et al. 2017 (IEEE Trans. Smart Grid, arXiv:1709.05715). REPLACES gb_v1_6's unsourced illustrative 5.0. The C_repl input (£120,000/MWh = £120/kWh) is a worked-example figure, corroborated in order of magnitude by the register's derived 2025 energy-capex component of ~£105/kWh (Modo 'Modelling Assumptions', July 2026 vintage, https://docs.modoenergy.com/pages/jul-2026/uk-europe/model-assumptions/) — at £105/kWh the same formula gives £18.6/MWh."
+    status: needs_review
+    owner_or_reviewer: Olly
+    confidence: low
+    last_reviewed: 2026-08-12
+    notes: >-
+      THE FLAT MARGINAL WEAR COST PER MWh DISCHARGED. Basis: LEVELISED cycle-wear only (C-34) — it
+      is NOT a calendar-fade cost (calendar fade is degradation.annual_capacity_fade_pct and the
+      exponents in degradation.ageing_exponents) and it is per MWh of THROUGHPUT, not per cycle.
+      CHARGE IT ONCE. Finance already deducts this key post-hoc as an annual cost line (= value x
+      annual discharge MWh) while the MILP's ObjectiveWeights default to 0.0, so the optimiser
+      cannot currently see a cost the cashflow then subtracts. Wiring it into the dispatch
+      objective makes the same £ appear in two places: the objective must use it as the dispatch
+      signal and the cashflow must deduct it exactly once. DEPTH: the value is calibrated at deep
+      cycling; per C-35 a flat adder overcharges shallow cycling by ~8x at delta=0.1 versus
+      delta=0.8 and undercharges the deep tail — use degradation.cycle_depth_stress_coefficients
+      for the depth-aware marginal form. SENSITIVITY: c_deg scales linearly in C_repl and the
+      published C_repl range spans 6x ($300/kWh Xu 2017, $600/kWh Shi 2017, £500/kWh Uddin 2017 via
+      Butt & Verba 2026), so this is the single most likely source of a wildly wrong number. Stays
+      needs_review: a sourced, dated C_repl with a stated basis (cell / module / full system) and an
+      N_EFC,EOL taken at the modelled depth would settle it.
+  arbitrage_breakeven_spread_check_gbp_per_mwh:
+    value: 32.7
+    unit: GBP/MWh (required discharge-minus-charge spread)
+    source: "docs/bess_degradation_requirements.md C-36: Delta_p_min = p_charge x (1/eta_RT - 1) + c_deg = 70 x (1/0.86 - 1) + 21.3 = 11.4 + 21.3 = 32.7 £/MWh, at p_charge £70/MWh and eta_RT 0.86 (the PNNL AC-AC figure, Mongird et al. 2020, 'Grid Energy Storage Technology Cost and Performance Assessment', PNNL). Corroborated by docs/reviews/2026-08-12-findings-register.md §5 (DEG-01)."
+    status: needs_review
+    owner_or_reviewer: Olly
+    confidence: low
+    last_reviewed: 2026-08-12
+    notes: >-
+      A POST-SOLVE ASSERTION REFERENCE, never a price and never a revenue input. C-36 requires
+      asserting p_discharge >= p_charge/eta_RT + c_deg(delta) on every round trip; if the optimiser
+      is charging trades below this spread then either c_deg is absent from the objective (DEG-01)
+      or it is applied to the wrong variable. The 32.7 figure is only valid AT the stated p_charge
+      (£70/MWh) and eta_RT (0.86): recompute per site from the actual charge price rather than
+      treating 32.7 as a constant. An efficiency-only model sets the bar at 11.4 £/MWh — 65% too
+      low — and books every trade in the 11.4-32.7 band as profitable when it is loss-making.
+  parasitic_load_fraction_of_power:
+    value: 0.01
+    unit: fraction_of_rated_power
+    source: "PLACEHOLDER — illustrative auxiliary (HVAC/BMS/controls) draw as a fraction of rated power (goal workstream, 2026-07-02); no citable source. Real basis = OEM datasheet auxiliary consumption at site operating conditions. See docs/assumptions_to_source.md."
+    status: placeholder
+    owner_or_reviewer: Olly
+    confidence: low
+    last_reviewed: 2026-07-02
+    notes: >-
+      Continuous parasitic draw of the BESS itself, previously omitted entirely. When this key
+      is present the dispatch reduces the connection charge headroom by fraction x rated power
+      (the auxiliary draw occupies import capacity on top of site load, disclosed via a solver
+      warning) and finance prices an annual auxiliary-energy cost line from the same fraction
+      (disclosed, placeholder-labelled). Releases without the key are unchanged (no headroom
+      reduction, no cost line - absent, not zero). Any case using it stays not bankable until
+      confirmed against the OEM datasheet.
+
+degradation:
+  annual_capacity_fade_pct:
+    value: 2.5
+    unit: percent_per_year
+    source: "No citable source identified (W4-3 review 2026-06-24); carried forward from gb_v0_1 as an unconfirmed placeholder. Source = OEM datasheet/warranty. See docs/assumptions_to_source.md."
+    status: placeholder
+    owner_or_reviewer: Olly
+    confidence: low
+    last_reviewed: 2026-06-24
+    notes: >-
+      Calendar+cycle fade proxy. Day-one sizing must hold end-of-life capability (no augmentation).
+      Provenance relabel by the X.1 librarian, not an Olly review — confirm against the cell/OEM
+      datasheet and warranty fade curve.
+  ageing_exponents:
+    value:
+      calendar_time_exponent_p_nmc: 0.75
+      calendar_time_exponent_p_lfp: 0.5
+      cycle_throughput_exponent_q: 0.5
+    unit: dimensionless exponents
+    source: "docs/bess_degradation_requirements.md C-01/C-02/C-03 and its Constants table: p = 0.75 (NMC, Li(NiMnCo)O2 18650, 2014) Schmalstieg et al. 2014 via Reniers et al. 2018; p ~ 0.5 (LFP/graphite commercial cell, 2018) Naumann et al. 2018 (register marks this row as not re-fetched in-session); q = 0.5 (both NMC and LFP semi-empirical models, 2014-2020) Schmalstieg 2014 / Naumann 2020 via Reniers 2018."
+    status: needs_review
+    owner_or_reviewer: Olly
+    confidence: low
+    last_reviewed: 2026-08-12
+    notes: >-
+      THE CALENDAR-VS-CYCLE SPLIT the degradation cost must respect (C-01): total fade is an
+      ADDITIVE calendar term in t^p plus a cycle term in Ah^q, never one blended annual number.
+      Both exponents are SUB-LINEAR, so a linear-in-time or linear-in-throughput fade model
+      overstates early fade and understates late fade. Chemistry matters: pick p by chemistry, and
+      note the LFP row is the weaker citation. These exponents describe FADE, not cost — the cost
+      per MWh is battery_opex.degradation_marginal_cost_gbp_per_mwh and the depth dependence is
+      cycle_depth_stress_coefficients.
+  cycle_depth_stress_coefficients:
+    value:
+      k4: 0.000524
+      k5: 2.03
+      stress_function: "Phi(delta) = k4 * delta ** k5"
+      marginal_form: "c_deg(delta) = R * k4 * k5 * delta ** (k5 - 1) / eta_dis, R in GBP/MWh of rated energy"
+      alternative_k4_k5:
+        k4: 0.00045
+        k5: 1.3
+      relative_marginal_cost_delta_0_8_vs_0_1: 8.55
+    unit: dimensionless (k4, k5); GBP/MWh discharged for c_deg(delta)
+    source: "docs/bess_degradation_requirements.md C-35 and its Constants table: k4, k5 = 5.24e-4, 2.03 for Li(NiMnCo)O2 18650 lab tests (2017-2018) — Xu, B., Oudalov, A., Ulbig, A., Andersson, G., Kirschen, D. 2017 (IEEE Trans. Smart Grid, arXiv:1709.05715) and Shi, Y., Xu, B., Tan, Y., Kirschen, D., Zhang, B. 2017 (arXiv:1709.05715v2); alternative planning-case-study pair 4.5e-4, 1.3 from Shi et al. 2017. The 8.55x ratio is derived in C-35 as (0.8/0.1)^1.03."
+    status: needs_review
+    owner_or_reviewer: Olly
+    confidence: low
+    last_reviewed: 2026-08-12
+    notes: >-
+      THE DEPTH-AWARE MARGINAL WEAR COST (C-35), for the piecewise-linear objective term (C-16).
+      Phi is convex at k5 = 2.03, so the marginal cost of the next MWh depends on how deep the
+      current half-cycle already is: the marginal cost at delta = 0.8 is 8.55x that at delta = 0.1.
+      A flat adder calibrated on one deep cycle per day therefore SUPPRESSES shallow, high-value
+      frequency-response duty while UNDERCHARGING the deep tail. NMC parameterisation from lab
+      cells; the register keeps the alternative (k4 4.5e-4, k5 1.3) rather than averaging. LFP
+      coefficients exist separately (Naumann 2020 delta 4.0253, c 1.0923 via Butt & Verba 2026) and
+      are NOT carried here because they parameterise a different functional form.
+  degradation_cost_basis:
+    value:
+      formula: "c_deg = C_repl / (N_EFC_EOL * eta_dis)"
+      c_repl_gbp_per_mwh_rated: 120000
+      n_efc_to_eol: 6000
+      eta_discharge: 0.94
+      c_deg_gbp_per_mwh_discharged: 21.3
+      calibrated_at_cycle_depth: 0.8
+      published_c_repl_alternatives:
+        xu_2017_usd_per_kwh: 300
+        shi_2017_usd_per_kwh: 600
+        uddin_2017_gbp_per_kwh: 500
+        register_derived_energy_component_2025_gbp_per_kwh: 105
+      published_efc_to_eol_ranges:
+        lfp_to_80pct_soh_20_80_window: "3,500-5,000 EFC (Preger et al. 2020)"
+        warranty_cycle_caps_2025: "10,000-12,000 cycles (DNV 2025)"
+    unit: mixed (see keys); c_deg in GBP/MWh discharged
+    source: "docs/bess_degradation_requirements.md C-34 (formula and worked GB example), C-37 (replacement-cost basis and its 6x published range: Xu et al. 2017 US$300,000/MWh; Shi et al. 2017 US$0.6/Wh; Uddin et al. 2017 £500/kWh via Butt & Verba 2026) and the Constants table rows 'Cost basis for the degradation term'. EFC ranges: Preger, Y. et al. 2020 (Sandia, 'Degradation of Commercial Lithium-Ion Cells as a Function of Chemistry and Cycling Conditions'); DNV, 'Financing the energy transition: building bankable battery projects'. Energy-capex comparator via docs/bess_constants_register.md (Modo 'Modelling Assumptions', July 2026 vintage)."
+    status: needs_review
+    owner_or_reviewer: Olly
+    confidence: low
+    last_reviewed: 2026-08-12
+    notes: >-
+      THE AUDIT TRAIL for battery_opex.degradation_marginal_cost_gbp_per_mwh — kept as one entry so
+      the flat number can never be quoted without its inputs. Two of the three inputs are
+      worked-example choices, not published points: C_repl £120,000/MWh (nearest published GB
+      comparator ~£105/kWh energy-capex component, 2025 real) and N_EFC,EOL 6,000 (published LFP
+      EFC-to-80% at a 20-80% window is 3,500-5,000; warranty cycle caps are 10,000-12,000 on a
+      different, heavily disclaimed basis). eta_dis 0.94 is the worked-example discharge
+      efficiency; the library's AC round-trip is round_trip_efficiency.ac_round_trip. C-37 requires
+      C_repl to mean the SAME thing as the capex strategy: added cells/racks at forward prices if
+      augmenting, amortised residual value if running to EOL and decommissioning. Neither is chosen
+      here. WHAT WOULD SETTLE IT: one dated OEM/EPC replacement quote (£/kWh, stated basis) plus
+      the warranty's EFC-to-EOL at the modelled depth and C-rate.
+
+round_trip_efficiency:
+  ac_round_trip:
+    value: 0.88
+    unit: ratio
+    source: "NOT sourced. System Requirements (source_docs/System Requirements.html) mandates modelling AC round-trip losses ('round-trip losses bought at the price actually faced') but states NO figure; 0.88 is an industry-typical placeholder pending an OEM datasheet."
+    status: placeholder
+    owner_or_reviewer: Olly
+    confidence: low
+    last_reviewed: 2026-06-24
+    notes: >-
+      Provenance correction: gb_v0_1 cited 'system_requirements (≈12% round-trip loss)', but the
+      source document gives no such number — the ≈12% was not in the doc. 0.88 stays an honest
+      placeholder, not a sourced value, until an OEM datasheet confirms it (docs/assumptions_to_source.md).
+      UNCHANGED in gb_v1_7 (RTE feeds both the MILP and finance, so it is not moved as a side
+      effect of a degradation release) — but see ac_round_trip_measured_benchmark: 0.88 matches
+      PNNL's 2030 PROJECTION, while its 2020 measured AC-AC figure is 0.86.
+  ac_round_trip_measured_benchmark:
+    value:
+      measured_ac_ac_2020: 0.86
+      projected_2030: 0.88
+      measured_range_new: [0.83, 0.87]
+      measured_over_5_years_old: 0.81
+    unit: ratio
+    source: "Mongird, K. et al. 2020, 'Grid Energy Storage Technology Cost and Performance Assessment', PNNL (via docs/bess_degradation_requirements.md Constants table 'Efficiency and auxiliary load'): RTE AC-AC 86% net of aux load, 88% projected 2030; measured 83-87% over 1.5 yr of testing, 81% for units over 5 years old."
+    status: needs_review
+    owner_or_reviewer: Olly
+    confidence: low
+    last_reviewed: 2026-08-12
+    notes: >-
+      REFERENCE ONLY — the dispatch/finance input remains ac_round_trip. Landed because the
+      library's 0.88 is exactly PNNL's 2030 projection, not its measured figure, and because the
+      break-even spread assertion (battery_opex.arbitrage_breakeven_spread_check_gbp_per_mwh) is
+      computed at eta_RT = 0.86: using 0.88 in the dispatch while asserting break-even at 0.86 is
+      an inconsistency a reviewer will find. RTE also FADES (0.86 new -> 0.81 after 5 years), which
+      no single scalar can represent. A human must decide whether to move ac_round_trip to 0.86.
+
+parasitic_load:
+  standby_kw_per_mw:
+    value: 5.0
+    unit: kW/MW
+    source: "No citable source identified (W4-3 review 2026-06-24); carried forward from gb_v0_1 as an unconfirmed placeholder. Source = OEM/HVAC-BMS datasheet. See docs/assumptions_to_source.md."
+    status: placeholder
+    owner_or_reviewer: Olly
+    confidence: low
+    last_reviewed: 2026-06-24
+    notes: HVAC/BMS parasitic draw, billed at the host tariff. Librarian relabel, not an Olly review; confirm against the OEM datasheet.
+
+warranty_cycle_limits:
+  max_cycles_per_year_by_duration_h:
+    value:
+      "1": 548
+      "2": 365
+      "4": 250
+    unit: cycles/yr
+    source: "No citable source identified (W4-3 review 2026-06-24); carried forward from gb_v0_1 as an unconfirmed placeholder. Source = OEM warranty schedule. See docs/assumptions_to_source.md."
+    status: placeholder
+    owner_or_reviewer: Olly
+    confidence: low
+    last_reviewed: 2026-06-24
+    notes: Hard throughput caps by duration (h). Overcycling is not available to the optimiser. Librarian relabel; confirm against the OEM warranty schedule.
+  soc_min_fraction:
+    value: 0.15
+    unit: fraction of rated energy capacity
+    source: "docs/bess_degradation_requirements.md Constants table row 'SoC window, optimisation | 15-95 % | case-study assumption | 2017 | Xu et al. 2017' (arXiv:1709.05715; IEEE Trans. Smart Grid). Corroborated on usable depth (80%) by Mongird, K. et al. 2020, PNNL, 'Usable DoD, planning | 80 % | LFP and NMC, all durations'. Conflicting published window kept, NOT averaged: Carmona, R., Yang, X., Bhela, S., Zeng, C. 2024, arXiv:2409.03942 §3.1 use SOC in [0.20, 0.96] on a real PSE&G/PJM microgrid. docs/bess_modelling_requirements.md D-169 illustrates 0.10-0.95 and requires the bound be 'set from the OEM warranty, not from first principles'."
+    status: needs_review
+    owner_or_reviewer: Olly
+    confidence: low
+    last_reviewed: 2026-08-12
+    notes: >-
+      LOWER OPERATING SoC BOUND (D-169): enforce soc_min <= E[t]/E_max <= soc_max at every half
+      hour, strictly inside 0-100%, plus the terminal condition E[T] >= E[0] so the optimiser
+      cannot finance the last day by emptying the battery. This pair gives an 80% usable window,
+      matching PNNL's 80% planning DoD from an independent source. IT IS NOT AN OEM WARRANTY TERM:
+      the register holds no OEM/BMS reserve figure, and this release's own
+      max_cycles_per_year_by_duration_h is itself an unsourced placeholder, so there is no warranty
+      envelope in the library to derive it from. The published alternatives disagree (0.20-0.96
+      Carmona, the more conservative usable window; 0.10-0.95 in D-169's illustration). WHAT WOULD
+      SETTLE IT: the specific unit's OEM warranty operating envelope / BMS reserve, which C-29
+      requires be implemented as hard dispatch constraints.
+  soc_max_fraction:
+    value: 0.95
+    unit: fraction of rated energy capacity
+    source: "docs/bess_degradation_requirements.md Constants table row 'SoC window, optimisation | 15-95 % | case-study assumption | 2017 | Xu et al. 2017' (arXiv:1709.05715). Alternative kept unaveraged: 0.96 (Carmona et al. 2024, arXiv:2409.03942 §3.1). See soc_min_fraction for the full basis."
+    status: needs_review
+    owner_or_reviewer: Olly
+    confidence: low
+    last_reviewed: 2026-08-12
+    notes: >-
+      UPPER OPERATING SoC BOUND (D-169), paired with soc_min_fraction (80% usable window). Dwell at
+      high SoC accelerates calendar fade (C-10), so the upper bound is a degradation lever as well
+      as a warranty limit — it is NOT free headroom. Same caveat as soc_min_fraction: a published
+      case-study assumption, not an OEM warranty term.
+  warranty_cycle_cap_cycles_per_day:
+    value:
+      typical_low: 1.0
+      typical_high: 2.0
+      observed_range_low: 1.5
+      observed_range_high: 4.0
+      revenue_impact_pct_of_1_5_vs_4_per_day: {low: 10, high: 20}
+      warranty_term_years_low: 15
+      warranty_term_years_high: 25
+      eol_soh_pct_warranty_current: 65
+      eol_soh_pct_warranty_older: 70
+      eol_soh_pct_academic_convention: 80
+    unit: cycles/day; percent; years; percent SoH
+    source: "docs/bess_degradation_requirements.md Constants table 'End of life, warranty and availability': warranty cycle cap typical 1-2 cycles/day (Lorscheid & Kairies 2025); observed field spread 1.5-4 cycles/day and a +/-10-20% revenue impact between 1.5-1.6/day and 4/day (Enspired via Energy-Storage.news 2025); warranty term 15-25 yr (Lorscheid & Kairies 2025; Huang 2026); EOL SoH 65% current / 60% in some contracts (Huang 2026), 70% older 15-20 yr terms (Lorscheid & Kairies 2025), 80% academic convention (Preger et al. 2020). Corroborated on term and cycles by DNV, 'Financing the energy transition: building bankable battery projects' (15-25 yr, 10,000-12,000 cycles)."
+    status: needs_review
+    owner_or_reviewer: Olly
+    confidence: low
+    last_reviewed: 2026-08-12
+    notes: >-
+      THE PUBLISHED WARRANTY ENVELOPE, landed because max_cycles_per_year_by_duration_h carries no
+      source at all and these are the market terms it should be reconciled against. Sanity check:
+      365 cycles/yr at 2 h duration is 1.0 cycles/day (the conservative end of typical) and 548 at
+      1 h is 1.5/day (the bottom of the observed range) — so the existing per-duration caps are
+      inside, and at the tight end of, the published envelope. revenue_impact is carried as the
+      published +/-10-20% RANGE, not a midpoint (the register's rule: nothing is averaged), and is
+      directional only. EOL SoH is carried because
+      the cycle cap is only meaningful against a stated end-of-life threshold, and warranty EOL
+      (65-70%) is materially below the academic convention (80%) the cycle-life literature uses —
+      mixing the two overstates life. NOT a substitute for the specific unit's warranty schedule.
+
+financing:
+  target_equity_irr_pct:
+    value: 12.0
+    unit: percent
+    source: "Neura business plan (source_docs/neura_plan.html): 'investors need 12–13%' (also '13%+' for an unproven asset class, compressing toward an '11% required return' as it matures)."
+    status: needs_review
+    owner_or_reviewer: Oli (confirm with Sim — portfolio finance)
+    confidence: low
+    last_reviewed: 2026-06-24
+    notes: >-
+      Target equity return the price recommendation must hit. The plan cites a 12–13% band today
+      (13%+ for an unproven class, trending to ~11% as the asset class matures); 12.0 is the LOW end,
+      chosen conservatively (a higher hurdle is harder to clear). Promoted placeholder->needs_review on
+      this in-repo citation. This is a target hurdle, NOT Sim's confirmed portfolio cost of capital —
+      confirm with the Finance lane (Sim) per docs/assumptions_to_source.md.
+  debt_gearing_pct:
+    value: 60.0
+    unit: percent
+    source: "PLACEHOLDER — illustrative project-finance gearing (goal workstream, 2026-07-02); no citable source. Pending Sim's portfolio finance work (credit line / warrant structure, BLOCKERS B001). Confirm against a real term sheet before relying on it."
+    status: placeholder
+    owner_or_reviewer: Oli (confirm with Sim — portfolio finance)
+    confidence: low
+    last_reviewed: 2026-07-02
+    notes: >-
+      Share of capex funded by debt. Added so DebtTerms can assemble in real mode and the
+      P90-DSCR covenant gate is exercisable end-to-end (previously the gate could never fire
+      without injected debt terms — vacuous logic). Illustrative placeholder only: any
+      DSCR/covenant verdict priced on it is indicative, never bankable, until Sim confirms
+      the portfolio debt structure (B001).
+  credit_rate_tenor_policy:
+    value:
+      strong: {rate_pct: 6.0, tenor_years: 12}
+      adequate: {rate_pct: 7.5, tenor_years: 10}
+      weak: {rate_pct: 9.5, tenor_years: 7}
+    unit: "{credit_band: {rate_pct: percent, tenor_years: years}}"
+    source: "PLACEHOLDER — illustrative credit policy carried from gb_v0_1 (Sim to set real bands); folded into this release per decision D19 (gb_v1_0 was built from the committed gb_v0_1 and missed the D18 addition)."
+    status: placeholder
+    owner_or_reviewer: Sim (portfolio finance / credit policy)
+    confidence: low
+    last_reviewed: 2026-07-02
+    notes: >-
+      Deterministic credit-band -> (rate, tenor) mapping (M9 v1 deliverable, finance/credit.py).
+      Keys are CreditStatus values; only strong/adequate/weak are mappable. unknown/not_assessed
+      are deliberately absent -> unavailable, never invented. Worse band -> higher rate / shorter
+      tenor (monotonicity enforced in code). Values unchanged from gb_v0_1; still placeholder
+      credit policy until Sim confirms. Bump the library version when confirmed.
+  cpi_pct_per_year:
+    value: null
+    unit: percent per year
+    source: "NOT AGREED — deliberately empty. Two published GB frameworks exist and the register's own caveat says they are NOT interchangeable: (a) OBR long-term economic determinants, March 2024, via CEPA for DESNZ, 'Hurdle rate estimates for electricity sector technologies', 2025, Table 4.9 — CPI 1.95%, RPI 2.22%, GDP deflator 2.13% (15-year averages, FY24/25 to FY38/39), https://assets.publishing.service.gov.uk/media/68cd1d818c44a661b4995d9f/cepa-desnz-hurdle-rates-electricity.pdf; (b) Ofgem, 'Decision - Financial Framework: LDES Window 1 Cap and Floor regime', September 2025 — CPIH indexation with the cost of capital deflated at the Bank of England 2% CPI target, https://www.ofgem.gov.uk/sites/default/files/2025-09/LDES%20Window%201%20Financial%20Framework%20Decision.pdf. Transcribed via docs/bess_constants_register.md."
+    status: needs_review
+    owner_or_reviewer: Oli (confirm with Sim — portfolio finance)
+    confidence: low
+    last_reviewed: 2026-08-12
+    notes: >-
+      AN EMPTY HOME, per the D30 convention (H-15 / N13). The KEY exists so escalation machinery can
+      resolve it and warn instead of hard-coding a rate; the VALUE is a Tier B human decision and is
+      NOT supplied here. Three separate choices are required and none is a library constant: (1)
+      WHICH INDEX — CPI, RPI, CPIH, or a contractual percentage (CEPA deflates at CPI, Ofgem at
+      CPIH against the BoE 2% target; the two frameworks are not interchangeable); (2) WHICH RATE —
+      1.95% (OBR 15-yr CPI), 2.22% (RPI), 2.13% (GDP deflator), or the 2.0% BoE target; (3) WHICH
+      LINES are indexed — H-15 requires tagging opex, business rates, insurance, land rent and
+      CPI-linked contracted revenue individually, and deflating consistently with the discount-rate
+      basis. Two lines in this library already depend on the answer: T-4 Capacity Market prices are
+      CPI-indexed from a stated base winter (see capacity_market.clearing_price_by_auction_and_delivery_year)
+      and the Renewables Obligation buy-out moved from RPI to CPI indexation on 1 April 2026.
+      Running nominal revenue against real opex drifts ~2%/yr compounding — a ~35% error in
+      terminal-year margin over 15 years that no single-year check catches. Note the requested path
+      `macro.cpi_pct_per_year` is not expressible: `macro` is not a section in
+      src/gridq/assumptions/models.py, and adding one is a schema change.
+
+dscr_covenants:
+  min_p90_dscr:
+    value: 1.30
+    unit: ratio
+    source: "data_contracts (illustrative covenant) — carried forward from gb_v0_1; illustrative, not a confirmed lender term. Confirm with Sim / a real term sheet (see docs/assumptions_to_source.md)."
+    status: placeholder
+    owner_or_reviewer: Oli (confirm with Sim)
+    confidence: low
+    last_reviewed: 2026-06-24
+    notes: >-
+      Debt sized/sculpted on the P90 case; the optimiser cannot select what this would reject.
+      Illustrative covenant only — no real source — so it stays a placeholder. Ties to the missing
+      debt structure tracked in OPEN_COMMENTS C008.
+
+p50_p90_haircuts:
+  p90_revenue_haircut_pct:
+    value: 15.0
+    unit: percent
+    source: "No citable source identified (W4-3 review 2026-06-24); carried forward from gb_v0_1. Calibrate against M7 backtests. See docs/assumptions_to_source.md."
+    status: placeholder
+    owner_or_reviewer: Oli
+    confidence: low
+    last_reviewed: 2026-06-24
+    notes: P50->P90 revenue haircut placeholder; calibrate against backtests (M7) before relying on it.
+  perfect_foresight_haircut_pct:
+    value: 20.0
+    unit: percent
+    source: "No citable source identified (W4-3 review 2026-06-24); carried forward from gb_v0_1. Must be calibrated/versioned at M7. See docs/assumptions_to_source.md."
+    status: needs_review
+    owner_or_reviewer: Olly
+    confidence: low
+    last_reviewed: 2026-06-24
+    notes: Perfect-foresight haircut — must be calibrated/versioned (M7); no confidence asserted yet.
+
+tariff_arbitrage:
+  indicative_value_gbp_per_mw_yr:
+    value: 30000
+    unit: GBP/MW/yr
+    source: "No citable source identified (W4-3 review 2026-06-24); carried forward from gb_v0_1. Value is site-derived in practice from the half-hourly load + tariff; the £/MW/yr anchor is unconfirmed. See docs/assumptions_to_source.md."
+    status: placeholder
+    owner_or_reviewer: Olly
+    confidence: low
+    last_reviewed: 2026-06-24
+    notes: Import-side bankable-floor stream; actual value is site-derived from the half-hourly load+tariff (M0 ingestion), not a fixed library number.
+
+duos:
+  red_band_avoidance_gbp_per_mw_yr:
+    value: 18000
+    unit: GBP/MW/yr
+    source: "No citable source identified (W4-3 review 2026-06-24); carried forward from gb_v0_1. Source = DNO Use-of-System charging statements / Ofgem CDCM (region-specific). See docs/assumptions_to_source.md."
+    status: placeholder
+    owner_or_reviewer: Olly
+    confidence: low
+    last_reviewed: 2026-06-24
+    notes: >-
+      DUoS red-band avoidance (post-TCR treatment; no Triad story). Site- and DNO-region-specific in
+      practice; DUoS bands are published per-DNO charging statements (a forecast/series — referenced,
+      not stored as a single library constant). See OPEN_COMMENTS / docs/assumptions_to_source.md.
+      For scale, Modo Energy's 2026/27 benchmark finds DUoS optimisation is net POSITIVE in only 4
+      of 14 regions at HV, ranging from +£9.8k/MW/yr (South Eastern) to a COST of over £58k/MW/yr
+      (North of Scotland) — so a single positive national £/MW/yr is not safe in either sign.
+  band_windows_by_dno:
+    value:
+      NGED_EM:
+        licence_area: East Midlands
+        charging_year: "2026-27"
+        effective_from: "2026-04-01"
+        tariff_basis: CDCM LV and HV Designated Properties
+        timezone: Europe/London
+        bank_holiday_band: red
+        weekday_windows:
+          red: [{start: "16:00", end: "19:00"}]
+          amber: [{start: "07:30", end: "16:00"}, {start: "19:00", end: "21:00"}]
+          green: [{start: "00:00", end: "07:30"}, {start: "21:00", end: "24:00"}]
+        weekend_windows:
+          green: [{start: "00:00", end: "24:00"}]
+        red_months: all
+        edcm_super_red:
+          months: [11, 12, 1, 2]
+          days: monday_to_friday_including_bank_holidays
+          windows: [{start: "16:00", end: "19:00"}]
+      NGED_WM: null
+      NGED_SW: null
+      NGED_SWALES: null
+      UKPN_EPN: null
+      UKPN_LPN: null
+      UKPN_SPN: null
+      SSEN_SEPD: null
+      SSEN_SHEPD: null
+      SPEN_SPD: null
+      SPEN_SPM: null
+      NPG_NORTHEAST: null
+      NPG_YORKSHIRE: null
+      ENWL: null
+    unit: UK clock time (Europe/London), per licence area
+    source: "NGED_EM only: National Grid Electricity Distribution (East Midlands) plc, Use of System Charging Statement effective 1 April 2026, Annex 1 and Annex 2, https://commercial.nationalgrid.co.uk/downloads-view-reciteme/684677 — 'Red: Monday-Friday INCLUDING bank holidays, 16:00-19:00, ALL YEAR. Amber: Monday-Friday 07:30-16:00 and 19:00-21:00. Green: Monday-Friday 00:00-07:30 and 21:00-24:00, plus Saturday and Sunday 00:00-24:00 all year. EHV (EDCM) Super Red: Monday-Friday incl. bank holidays, November-February inclusive, 16:00-19:00.' Transcribed via docs/bess_constants_register.md. The other 13 licence areas are NOT sourced: the register holds only an unattributed three-DNO example set (16:00-19:30, 16:30-19:00, 16:00-19:00 weekday, 2025/26, NUS Consulting Group, 'DUoS Charges (UK Mainland) 2025', https://www.nusconsulting.com/energy-news/uk-duos-charges-2025/) which cannot be assigned to named areas."
+    status: needs_review
+    owner_or_reviewer: Olly
+    confidence: low
+    last_reviewed: 2026-08-12
+    notes: >-
+      REPLACES the single generic national weekday 16:00-19:00 red band (LIT-F-05). DUoS red-band
+      avoidance is one of only two priced-floor streams and its entire £ is set by WHEN the band
+      falls, so a wrong window shaves the wrong half hours. 1 of 14 GB licence areas is sourced;
+      the other 13 are present as EXPLICIT NULLS so a lookup miss is detectable — a null here means
+      'not sourced', never 'no red band' and never 'use the national default'. TWO CORRECTIONS TO
+      COMMON PRACTICE: (1) bank holidays are RED, not green, in NGED East Midlands — the register
+      calls treating them as green 'a common modelling error', and the treatment is per-DNO, so it
+      must be sourced per area, not assumed either way; (2) the EHV/EDCM Super Red band is Nov-Feb
+      only, unlike the all-year LV/HV red band, so an EHV site and an LV site on the same licence
+      area have different bands. Times are UK CLOCK TIME (Europe/London), not UTC — a UTC-indexed
+      half-hourly series is off by one hour through BST. Keys follow the in-repo `dno_region`
+      convention observed in examples/real (NGED_EM, NGED_WM, NGED_SW, SSEN_SEPD are real, seen
+      values); `connection.dno_region` is a free `str | None` with no enum
+      (src/gridq/schemas/connection.py:23), so the 10 identifiers not yet seen in any in-repo site
+      MUST be reconciled against ingestion's actual values before the lookup is trusted. Effectivity
+      (charging_year, effective_from) is carried INSIDE `value` because `Assumption` forbids sibling
+      fields; it is a convention, unvalidated by the schema. DATA ASK: the Annex 1 / Annex 2 band
+      tables from the 13 remaining DNO Use-of-System charging statements for the 2026/27 charging
+      year (NGED West Midlands, South West, South Wales; UKPN EPN/LPN/SPN; SSEN SEPD/SHEPD; SPEN
+      SPD/SP Manweb; Northern Powergrid Northeast/Yorkshire; Electricity North West), each with its
+      bank-holiday treatment and any seasonal variant.
+  unit_rates_p_per_kwh_by_dno:
+    value:
+      NGED_EM:
+        charging_year: "2026-27"
+        lv_site_specific: {red: 7.777, amber: 0.958, green: 0.054}
+        lv_sub_site_specific: {red: 5.147, amber: 0.560, green: 0.027}
+        hv_site_specific: {red: 2.837, amber: 0.257, green: 0.009}
+        non_domestic_aggregated_nhh: {red: 12.031, amber: 1.557, green: 0.093}
+        generation_export_credits:
+          lv_site_specific: {red: -7.711, amber: -0.998, green: -0.060}
+          lv_sub_site_specific: {red: -6.422, amber: -0.805, green: -0.047}
+          hv_site_specific: {red: -3.958, amber: -0.431, green: -0.021}
+      NGED_WM: null
+      NGED_SW: null
+      NGED_SWALES: null
+      UKPN_EPN: null
+      UKPN_LPN: null
+      UKPN_SPN: null
+      SSEN_SEPD: null
+      SSEN_SHEPD: null
+      SPEN_SPD: null
+      SPEN_SPM: null
+      NPG_NORTHEAST: null
+      NPG_YORKSHIRE: null
+      ENWL: null
+    unit: p/kWh (negative = export credit)
+    source: "NGED_EM only: National Grid Electricity Distribution (East Midlands) plc, Use of System Charging Statement, Notice of Charges effective 1 April 2026, Annex 1, December 2024, https://commercial.nationalgrid.co.uk/downloads-view-reciteme/684677 — CDCM tariffs for LV and HV Designated Properties, 1 April 2026 to 31 March 2027. Transcribed via docs/bess_constants_register.md."
+    status: needs_review
+    owner_or_reviewer: Olly
+    confidence: low
+    last_reviewed: 2026-08-12
+    notes: >-
+      Paired with band_windows_by_dno: the £ of red-band avoidance is the WINDOW times the RATE, so
+      a sourced window without a sourced rate is only half the constant. Red-to-green spread for
+      NGED East Midlands: LV 7.723, LV Sub 5.120, HV 2.828 p/kWh — the avoidable amount falls by
+      ~2.7x from LV to HV, so connection voltage changes the stream materially. Rates differ
+      materially by DNO; the other 13 areas are explicit nulls (same data ask as
+      band_windows_by_dno). NUMERICAL HAZARD the register flags: at LV the red GENERATION credit
+      (7.711 p/kWh) is almost identical to the LV red IMPORT charge (7.777 p/kWh), so a MILP
+      without a charge/discharge or import/export binary can exploit the near-equality and book a
+      cycle that does not exist physically. 2025/26 context, directional only: overall DUoS -6% on
+      average but +25% to -32% regionally, capacity charges +108% on average (Drax / NUS
+      Consulting) — do not hold rates flat across years.
+
+mic_asc_headroom:
+  value_gbp_per_mw_yr:
+    value: 12000
+    unit: GBP/MW/yr
+    source: "No citable source identified (W4-3 review 2026-06-24); carried forward from gb_v0_1. Value is site-derived where the connection binds. See docs/assumptions_to_source.md."
+    status: placeholder
+    owner_or_reviewer: Olly
+    confidence: low
+    last_reviewed: 2026-06-24
+    notes: Value where the connection (MIC/ASC) actually binds; only priced where it binds. Site-derived, not a fixed library number.
+
+capacity_market:
+  clearing_price_gbp_per_kw_yr:
+    value: 27.1
+    unit: GBP/kW/yr
+    source: "NESO Data Portal CKAN (CM auction clearing outcomes) URL https://api.neso.energy/api/3/action/datastore_search?resource_id=b1b58919-eaa4-40ea-80df-3d3e526f8223&limit=2000 sha256:abc99397eab5 fetched 2026-07-20; sidecar assumptions/provenance/gb_v1_6/cm_clearing.provenance.json. Latest T-4 auction = 2029-30 (T-4) Four Year Ahead Capacity Auction."
+    status: needs_review
+    owner_or_reviewer: Oli
+    confidence: low
+    last_reviewed: 2026-07-20
+    notes: >-
+      Re-sourced (Revenue-Data Drive slice 4) from the LIVE NESO CKAN clearing resource via
+      gridq.dev.fetch_neso_ckan --resource cm-clearing. Derivation: per auction, clearing price
+      £/kW/yr = "Forecast Cost (£)" / ("Capacity Awarded" MW × 1000); the latest T-4 (the primary
+      forward auction, DY 2029/30) cleared at 27.1 £/kW/yr (down from gb_v1_5's unsourced 30.0).
+      T-1 context (fetched same run): 2026-27 (T-1) One Year Ahead = 5.0 £/kW/yr. A forward
+      clearing price is an external per-auction series (referenced, re-fetched per delivery year),
+      so this stays needs_review; the CM stream remains CONDITIONAL (never firm). UNCHANGED in
+      gb_v1_7; the full per-auction series is now also carried at
+      clearing_price_by_auction_and_delivery_year, which agrees with this value for 2029-30 T-4.
+  de_rating_factor_by_duration_h:
+    value:
+      "1": 0.1099
+      "2": 0.2198
+      "4": 0.4396
+    unit: ratio
+    source: "NESO Data Portal CKAN (CM de-rating factors by technology class) URL https://api.neso.energy/api/3/action/datastore_search?resource_id=d94ff98d-39ba-40d6-9672-7433de0631ac&limit=2000 sha256:1b786c11450c fetched 2026-07-20; sidecar assumptions/provenance/gb_v1_6/cm_derating.provenance.json. Latest T-4 = 2029-30 (T-4) Four Year Ahead Capacity Auction, 'Storage (Duration 1h/2h/4h)' rows. Primary NESO source REPLACES the gb_v1_5 modoenergy secondary citation."
+    status: needs_review
+    owner_or_reviewer: Oli
+    confidence: low
+    last_reviewed: 2026-07-20
+    notes: >-
+      Re-sourced (Revenue-Data Drive slice 4) from the LIVE PRIMARY NESO CKAN de-rating resource
+      via gridq.dev.fetch_neso_ckan --resource cm-derating (latest T-4 storage-duration factors:
+      1h 0.1099, 2h 0.2198, 4h 0.4396). These fetched primary values WIN over gb_v1_5's
+      modoenergy-cited {1h 0.1047, 2h 0.2094, 4h 0.4174} (they differ slightly — the newer
+      DY-2029/30 scaled-EFC table). De-rating by duration; deliverability verified to the final
+      contract year at degraded capability. Factors are a versioned external per-auction series
+      (re-fetched per delivery year), so status stays needs_review; CM remains CONDITIONAL, never firm.
+      UNCHANGED in gb_v1_7 (byte-identical) so no caller breaks; it is the 2029-30 T-4 slice of
+      de_rating_by_auction_and_delivery_year, which supersedes it for any new consumer.
+  de_rating_by_auction_and_delivery_year:
+    value:
+      lookup_convention: "conservative floor: use the largest published duration bin <= the asset's declared duration; never interpolate, never round up"
+      full_curves:
+        T-4:
+          "2029-30":
+            "0.5": 0.0557
+            "1": 0.1099
+            "1.5": 0.1641
+            "2": 0.2198
+            "2.5": 0.2755
+            "3": 0.3297
+            "3.5": 0.3854
+            "4": 0.4396
+            "4.5": 0.4953
+            "6": 0.6608
+            "6.5": 0.7136
+            "7": 0.7693
+            "7.5": 0.8235
+            "8": 0.8777
+            "8.5_to_12": 0.9216
+        T-1:
+          "2026-27":
+            "0.5": 0.0688
+            "1": 0.1361
+            "1.5": 0.2049
+            "2": 0.2722
+            "2.5": 0.3410
+            "3": 0.4083
+            "3.5": 0.4756
+            "4": 0.5444
+            "4.5": 0.6117
+            "6": 0.7912
+            "6.5": 0.8495
+            "7": 0.9078
+            "7.5_to_12": 0.9216
+      history_1h_2h_4h:
+        T-1:
+          "2019-20": {"1": 0.3421, "2": 0.6280, "4": 0.9552}
+          "2020-21": {"1": 0.2470, "2": 0.4866, "4": 0.7298}
+          "2021-22": {"1": 0.2532, "2": 0.4917, "4": 0.7135}
+          "2022-23": {"1": 0.2587, "2": 0.5063, "4": 0.7484}
+          "2023-24": {"1": 0.1860, "2": 0.3702, "4": 0.6232}
+          "2024-25": {"1": 0.1134, "2": 0.2267, "4": 0.4460}
+          "2025-26": {"1": 0.1364, "2": 0.2715, "4": 0.5417}
+          "2026-27": {"1": 0.1361, "2": 0.2722, "4": 0.5444}
+        T-3:
+          "2022-23": {"1": 0.2136, "2": 0.4253, "4": 0.6704}
+        T-4:
+          "2021-22": {"1": 0.4041, "2": 0.9611}
+          "2022-23": {"1": 0.2940, "2": 0.5668, "4": 0.8000}
+          "2023-24": {"1": 0.2043, "2": 0.4104, "4": 0.6593}
+          "2024-25": {"1": 0.2477, "2": 0.4862, "4": 0.7376}
+          "2025-26": {"1": 0.1996, "2": 0.3973, "4": 0.6486}
+          "2026-27": {"1": 0.1181, "2": 0.2363, "4": 0.4586}
+          "2027-28": {"1": 0.0774, "2": 0.1539, "4": 0.3078}
+          "2028-29": {"1": 0.1047, "2": 0.2094, "4": 0.4174}
+          "2029-30": {"1": 0.1099, "2": 0.2198, "4": 0.4396}
+      tcwaa_plateau_inferred:
+        "2029-30_T-4": 0.9216
+        "2026-27_T-1": 0.9216
+        "2028-29_T-4": 0.9299
+      missing_bins: "5h and 5.5h were not returned by the NESO query for either full curve; deliberately ABSENT (the register says 'interpolate or re-query' — this library does neither)"
+    unit: fraction of Connection Capacity, keyed [auction_type][delivery_year][duration_h]
+    source: "NESO, Capacity Market De-Rating Factors (Data Portal dataset, resource d94ff98d-39ba-40d6-9672-7433de0631ac), accessed August 2026, https://www.neso.energy/data-portal/capacity-market-register/capacity_market_de-rating_factors — Equivalent Firm Capacity from NESO's time-sequential stochastic simulation under Capacity Market Rules Schedule 3B, multiplied by the Storage class Technology Class Weighted Average Availability, applied to Connection Capacity (or nominated Connection Capacity under Rule 3.5.6). TCWAA plateau values are INFERRED from the curve plateau, not published as TCWAA figures. Transcribed via docs/bess_constants_register.md."
+    status: needs_review
+    owner_or_reviewer: Oli
+    confidence: low
+    last_reviewed: 2026-08-12
+    notes: >-
+      RESTRUCTURES the duration-only table (D-25). A model MUST key on auction type as well as
+      delivery year, and the DIRECTION IS NOT SIGNED. The register's caveat states T-1 factors are
+      'systematically higher' than T-4 for the same delivery year, citing 2026-27 (T-4 1h 0.1181 vs
+      T-1 1h 0.1361) — but that generalisation is contradicted by the register's own published
+      history, which is why the full table is carried here rather than a rule: across the six
+      delivery years where BOTH are published, T-1 is higher in only ONE (2026-27, ratio 1.15) and
+      LOWER in the other five (2021-22 0.63x, 2022-23 0.88x, 2023-24 0.91x, 2024-25 0.46x, 2025-26
+      0.68x). Never substitute one auction's factor for the other's in either direction. The 12.4x
+      range for 4h storage across auctions (0.9552 down to 0.3078) is the reason a fixed de-rating
+      assumption is unsafe at all. PROPORTIONALITY WARNING:
+      only 2 of the 18 auction x delivery-year combinations here are exactly duration-proportional
+      at 1/2/4h (2029-30 T-4 and 2026-27 T-1); the other 16 are not, by up to -0.41 absolute at 4h
+      (2019-20 T-1). Even within the 2029-30 T-4 full curve, only the integer hours 1/2/3/4/7 are
+      exactly proportional — the half-hour bins deviate by +/-0.0008 and 6h/8h by +/-0.0015. Any
+      argument that rests on exact proportionality is valid only for the single integer-hour subset
+      gb_v1_6 carried. The 2021-22 T-4 2h value of 0.9611 is NOT an EFC result: that class was not
+      Duration Limited in that auction, so Rule 2.3.4(a) applied the TCWAA instead — do not read it
+      as a duration factor. Rules define de-rating factors 'expressed to two decimal places' but
+      NESO publishes four; four are carried. Effectivity (delivery year) is inside `value` because
+      `Assumption` forbids sibling fields. FLOOR-LOOKUP CONVENTION PRESERVED and stated explicitly
+      in the value.
+  dsr_de_rating_by_auction_and_delivery_year:
+    value:
+      T-1:
+        "2017-18": 0.8688
+        "2019-20": 0.8428
+        "2021-22": 0.7921
+        "2022-23": 0.7845
+        "2023-24": 0.7145
+        "2024-25": 0.7902
+        "2025-26": 0.7987
+        "2026-27": 0.8558
+      T-4:
+        "2018-19": 0.8970
+        "2020-21": 0.8688
+        "2026-27": 0.7145
+        "2027-28": 0.7902
+        "2028-29": 0.7987
+        "2029-30": 0.8558
+      TR:
+        "2016-17": 0.8680
+    unit: fraction of DSR Capacity, keyed [auction_type][delivery_year]
+    source: "NESO, Capacity Market De-Rating Factors dataset (Primary Fuel Type = DSR), accessed August 2026 (the register's DSR row states no access date of its own; it is the same dataset build as the storage de-rating rows, which record 'accessed August 2026'), https://www.neso.energy/data-portal/capacity-market-register/capacity_market_de-rating_factors — Average Availability of Non-BSC Balancing Services (AABS) under Capacity Market Rules Rule 2.3.4(b): the mean of declared availabilities of Non-BSC Balancing Services in High Demand Settlement Periods over the three most recent active Core Winter Periods divided by contracted volumes. Transcribed via docs/bess_constants_register.md."
+    status: needs_review
+    owner_or_reviewer: Oli
+    confidence: low
+    last_reviewed: 2026-08-12
+    notes: >-
+      THE OTHER CM ROUTE for a sub-1 MW behind-the-meter battery: it reaches the Capacity Market
+      only inside an aggregated DSR CMU, where this AABS factor applies instead of the
+      storage-duration EFC. It is roughly 6x the 1h storage factor (0.8558 vs 0.1099 for 2029-30
+      T-4), so the route choice dominates the CM revenue line — but it also carries aggregator fees
+      and a harder qualification path. Rule 2.3.4(e) closes the AABS route only for UNPROVEN DSR
+      CMUs bidding for multi-year agreements; Proven DSR Capacity requires three evidenced DSR
+      Volumes from separate settlement periods with a DNO Line Loss Factor letter (Rule
+      13.2.6(a)(i)-(iii)), which is effectively impossible for a greenfield asset. Whether the
+      one-year Unproven DSR route survives Delivery Body scrutiny is not settled in public
+      documentation. The storage-duration factors remain the CONSERVATIVE lower bound of the two
+      treatments, and are what de_rating_by_auction_and_delivery_year carries.
+  clearing_price_by_auction_and_delivery_year:
+    value:
+      T-1:
+        "2017-18": 6.95
+        "2018-19": 6.00
+        "2019-20": 0.77
+        "2020-21": 1.00
+        "2021-22": 45.00
+        "2022-23": 75.00
+        "2023-24": 60.00
+        "2024-25": 35.79
+        "2025-26": 20.00
+        "2026-27": 5.00
+      T-3:
+        "2022-23": 6.44
+      T-4:
+        "2018-19": 19.40
+        "2019-20": 18.00
+        "2020-21": 22.50
+        "2021-22": 8.40
+        "2023-24": 15.97
+        "2024-25": 18.00
+        "2025-26": 30.59
+        "2026-27": 63.00
+        "2027-28": 65.00
+        "2028-29": 60.00
+        "2029-30": 27.10
+      TR:
+        "2016-17": 27.50
+        "2017-18": 45.00
+      indexation:
+        T-4: "CPI-indexed from the stated base winter"
+        T-1: "not indexed"
+        t4_cpi_base_periods:
+          "2026-27": "Winter 2021/2022"
+          "2027-28": "Winter 2022/2023"
+          "2028-29": "Winter 2023/2024"
+          "2029-30": "Winter 2024/2025"
+      auction_parameters_2026_auctions:
+        price_cap_gbp_per_kw_yr: 75
+        net_cone_gbp_per_kw_yr: 49
+        price_taker_threshold_gbp_per_kw_yr: 25
+        reliability_standard_lole_hours: 3
+    unit: GBP/kW/yr of de-rated capacity, keyed [auction_type][delivery_year]
+    source: "NESO, Capacity Market Auction Static Data (Data Portal resource 784fa703-1460-42cd-a8bb-fba4dcabac8d), https://www.neso.energy/data-portal/capacity-market-register/capacity_market_auction_static_data. Auction parameters: DESNZ, 'Capacity Market auction parameters letter to NESO', July 2025 and Final auction parameters February 2026, https://www.gov.uk/government/publications/capacity-market-auction-parameters-letter-from-desnz-to-neso-february-2026/final-auction-parameters-t-1-and-t-4-capacity-market-auctions. Transcribed via docs/bess_constants_register.md."
+    status: needs_review
+    owner_or_reviewer: Oli
+    confidence: low
+    last_reviewed: 2026-08-12
+    notes: >-
+      Paired with de_rating_by_auction_and_delivery_year: a delivery year cannot be priced from a
+      de-rating factor alone, and mixing a factor from one auction with a price from another is the
+      exact basis error the register warns about. Prices are 'in the money of the auction': T-4
+      agreements are CPI-indexed from the stated base winter (so they DEPEND on the unresolved
+      financing.cpi_pct_per_year), T-1 agreements are not indexed. The 2022-23 T-1 cleared at the
+      then price cap of £75/kW/yr. Range across auctions is 0.77 to 75.00 £/kW/yr — a ~97x spread —
+      so a single library clearing price is only ever the latest observation, never a forecast; the
+      CM stream stays CONDITIONAL, never firm. A DELIBERATE GAP, not an omission: the published
+      series carries NO 2022-23 T-4 clearing price (that delivery year was served by a T-3 auction,
+      £6.44, which IS carried) — so it is absent here rather than filled. Note the asymmetry with
+      de_rating_by_auction_and_delivery_year, which DOES publish a 2022-23 T-4 de-rating slice: a
+      consumer pairing the two tables will find a de-rating factor with no matching price for that
+      auction and delivery year, and must refuse rather than substitute a neighbouring year.
+      Battery context for the two most recent auctions: 2029/30 T-4
+      cleared 1.2 GW de-rated from 4.1 GW connection capacity (implied ~29% average battery
+      de-rating, consistent with a ~2.7h fleet); in the 2026/27 T-1 at £5/kW/yr, NO battery at 4h
+      duration or above won an agreement.
+  min_connection_capacity_mw:
+    value: 1.0
+    unit: MW of connection capacity (or DSR capacity for a DSR CMU)
+    source: "The Electricity Capacity Regulations 2014 (SI 2014/2043), regulation 15, https://www.legislation.gov.uk/uksi/2014/2043/regulation/15 — minimum capacity threshold for prequalification, all CMU types. Transcribed via docs/bess_constants_register.md."
+    status: needs_review
+    owner_or_reviewer: Olly
+    confidence: low
+    last_reviewed: 2026-08-12
+    notes: >-
+      ELIGIBILITY GATE (D-92), evaluated BEFORE any CM revenue is booked. The threshold applies to
+      CONNECTION capacity, not de-rated capacity — so a 1 MW / 2 MWh battery qualifies on 1 MW of
+      connection even though its de-rated obligation is only ~0.22 MW. It directly excludes a
+      standalone behind-the-meter battery below 1 MW from the Capacity Market unless it is
+      aggregated into a multi-site DSR CMU (see dsr_de_rating_by_auction_and_delivery_year).
+      Related gates that are NOT capacity thresholds and are not carried as constants: the
+      nominated Connection Capacity floor of 50% of the Rule 3.5.2/3.5.5 value (Rule 3.5.6(b)),
+      which bounds duration-bin gaming to at most a doubling of declared duration; and the capex
+      thresholds that set agreement length (2029/30 T-4: 15-year £350/kW, 9-year £205/kW, 3-year
+      £65/kW, all per DE-RATED kW — getting that denominator wrong flips a project from a 15-year
+      to a 3-year agreement).
+
+local_flex_piclo:
+  utilisation_price_gbp_per_mwh:
+    value: 135.67
+    unit: GBP/MWh
+    source: "Piclo Data Hub (public S3, no auth) URL https://piclo-open-data.s3.eu-west-1.amazonaws.com/public-data/piclo_flex_uk_competitions.xlsx sha256:43594570afef fetched 2026-07-20; sidecar assumptions/provenance/gb_v1_6/piclo_competitions.provenance.json. GB-wide median of the 'Utilisation Guide Price (£/MWh)' column."
+    status: needs_review
+    owner_or_reviewer: Oli
+    confidence: low
+    last_reviewed: 2026-07-20
+    notes: >-
+      Re-sourced (Revenue-Data Drive slice 4) from the LIVE Piclo Data Hub Competitions dataset
+      via gridq.dev.fetch_piclo --dataset competitions. Derivation: median of 224,535 non-null
+      GB-wide 'Utilisation Guide Price (£/MWh)' values = 135.67 (down from gb_v1_5's unsourced
+      150.0). Availability guide prices in the same dataset were all null (a reported gap, not
+      sourced here). Local flex (Piclo et al.) is CONDITIONAL — only priced when a tender is open
+      in the site's DNO area and net of the aggregator cut; tender prices are time-varying external
+      market state (re-fetched), so status stays needs_review.
+  aggregator_cut_pct:
+    value: 0.20
+    unit: fraction
+    source: "Placeholder (issue 018, 2026-07-17): typical local-flex / route-to-market aggregator take is ~10-20% of gross utilisation revenue. No citable per-platform figure sourced yet; confirm against Piclo / aggregator terms (relates OPEN_COMMENTS C007). A per-site agreed rate overrides this via SiteModel.export_arrangement.aggregator_cut_pct."
+    status: placeholder
+    owner_or_reviewer: Oli
+    confidence: low
+    last_reviewed: 2026-07-17
+    notes: Fraction (0-1) of gross local-flex revenue taken by the aggregator; net = gross x (1 - cut). Site-level ExportArrangement.aggregator_cut_pct takes precedence; absent both, no cut is applied (0.0). UNCHANGED in gb_v1_7 — the constants register carries NO sourced aggregator revenue share for any GB platform, so this stays the only figure and stays a placeholder.
+  availability_price_gbp_per_mw_h_by_source:
+    value:
+      note: "Sources DISAGREE by 20-30x for the nominally identical product. Both are current and published. NOT averaged, NOT reconciled — pick per site from the actual tender."
+      nged_saou_da_ceiling_2025_26:
+        median: 3.16
+        min: 0.10
+        p25: 1.33
+        p75: 19.37
+        max: 83.33
+        basis: "per-CMZ CEILING prices across 95 CMZs, long-term HV tender to 31/03/2026; clears were 34% below ceiling at HV in the previous round"
+      nged_saou_da_realised_2024_25:
+        median: 5.15
+        p75: 15.15
+        basis: "realised dispatch-event availability, dispatches >= 50 kW"
+      nged_average_earnings_2024_25:
+        saou_availability: 18.54
+        basis: "market-wide average dominated by tiny domestic assets"
+      ukpn_saou_hv_demand_indicative_2026_tender:
+        lower_range: {min: 12, max: 420, median: 65}
+        higher_range: {min: 17, max: 600, median: 93}
+        basis: "UKPN published INDICATIVE fee ranges, 48 HV Demand zones, delivery Summer 2027 - Winter 2028/29"
+      ssen_awarded_battery_vaou_week_ahead:
+        "2024-25": {availability: 148.00, utilisation: 190.00, n: 2, mw_range: "1.0-18.0"}
+        "2025-26": {availability_median: 109, availability_range: [79, 126], utilisation_median: 164, n: 3, mw_range: "2.66-3.49"}
+        "2026-27": {availability_median: 136, availability_range: [79, 168], utilisation_median: 204, n: 5, mw_range: "2.22-4.35"}
+        basis: "ACTUAL awarded contracts where Technology Type = Battery; only 14 battery contracts in the whole SSEN register, most grid-scale"
+    unit: GBP/MW/h (availability); GBP/MWh (utilisation where stated)
+    source: "National Grid Electricity Distribution, 'NGED DSO - Revenue Estimator September 2025 V2.0', HV LT Trade Parameters sheet, 2025, https://www.flexiblepower.co.uk/downloads/1176; National Grid Electricity Distribution, 'C31E Supporting Data 2024-25', Dispatch tab (71,453 rows), 2025, https://www.flexiblepower.co.uk/downloads/1180; National Grid Electricity Distribution, 'Flexibility Market Insights Report', June 2025, p.7, https://www.flexiblepower.co.uk/downloads/1184; UK Power Networks, 'Competition Data - Summer 2026 Tender V2', Competition Data TR14 sheet, July 2026, https://d1lf1oz5vvdb9r.cloudfront.net/app/uploads/2026/07/Competition-Data-Summer-2026-Tender-V2.xlsx; Scottish and Southern Electricity Networks, 'Flexibility Services Contract Register v2.30', 30/07/2026, Call Off Contracts sheet, https://www.ssen.co.uk/globalassets/our-services/flexibility-services-document-library/contract-register/flexibility-services-contract-register-v2.30-v2.xlsx. Transcribed via docs/bess_constants_register.md."
+    status: needs_review
+    owner_or_reviewer: Olly
+    confidence: low
+    last_reviewed: 2026-08-12
+    notes: >-
+      FILLS THE AVAILABILITY HALF of the local-flex payment (D-116), which the pipeline currently
+      omits entirely — an UNDERSTATEMENT, because SAOU-type contracts earn most of their £ on
+      availability, not utilisation. Deliberately NOT collapsed to one number: UKPN's median
+      indicative availability (£65-93/MW/h) is 20-30x NGED's median CMZ ceiling (£3.16/MW/h) for
+      the nominally identical product, and NGED ceilings are not clears (previous round cleared 34%
+      below ceiling at HV). The SSEN rows are the only ACTUAL awarded battery prices in the
+      register and the sample is 14 contracts, mostly grid-scale. Do not apply LV-derived £/MW/h to
+      an HV-connected MW-scale battery: the register warns LV medians are inflated by tiny zones
+      where a few kW of requirement produces an extreme per-MW rate. This entry must NEVER produce
+      a default availability price — availability.availability_price_gbp_per_mw_h stays an empty
+      home per D30, asserted only from an AWARDED tender.
+  settlement_mechanics_by_product:
+    value:
+      availability_payment_formula: "AP_sm = sum_j ( AC_sj * AVP_sj * CC_sj * SA_sj ) * MPF_sm, with AC = availability price GBP/MW/h, AVP = availability period (minutes/60), CC = contracted capacity MW, SA in {0,1} (0 if declared or deemed unavailable)"
+      monthly_utilisation_performance_factor: "MPF_sm = 1 if there were no dispatch events in the month or delivery is within the Grace Factor, else MPF_sm = (1/p)(1/n) * sum_e sum_k MAX(MIN((MM_ek - BM_ek)/DC_ek, 1), 0). Signage: demand units negative for BM and MM, generation positive; DC positive for demand-reduction/generation-increase"
+      by_product:
+        NGED_SU: {utilisation_grace_factor_pct: 5, availability_grace_factor_pct: null, performance_multiplier: 3, payable_over_delivery_pct: 0}
+        NGED_SAOU: {utilisation_grace_factor_pct: 5, availability_grace_factor_pct: 5, performance_multiplier: 3, payable_over_delivery_pct: 0}
+        NGED_OU: {utilisation_grace_factor_pct: 0, availability_grace_factor_pct: null, performance_multiplier: 2, payable_over_delivery_pct: 0}
+        UKPN_ALL: {utilisation_grace_factor_pct: 5, availability_grace_factor_pct: 5, performance_multiplier: 3, payable_over_delivery_pct: 0}
+      payment_taper_at_grace_5pct_multiplier_3:
+        "100": 100
+        "95": 100
+        "94": 92
+        "90": 80
+        "85": 65
+        "80": 50
+        "76": 38
+        "63": 0
+      assessment_granularity: "per metered time period (typically per minute), NOT per event average; over-delivery in one period is not paid and does not compensate under-delivery in another"
+    unit: percent (grace, taper); dimensionless (multiplier); formula
+    source: "Energy Networks Association Open Networks, 'Standardised DNO Settlement Methodology', Version 1.0, August 2024, §4.1 and Table 4, https://www.flexiblepower.co.uk/downloads/1124; National Grid Electricity Distribution, 'Guidance for Electricity Distribution Flexibility Service Providers', March 2026, Table 6.1, https://www.flexiblepower.co.uk/downloads/1121; UK Power Networks, 'Participation Guidance V1.2', October 2024, §6.1 'Availability payment performance adjustments', https://d1lf1oz5vvdb9r.cloudfront.net/app/uploads/2024/10/Participation-Guidance-V1.2.pdf. Transcribed via docs/bess_constants_register.md and docs/bess_modelling_requirements.md D-116/D-117."
+    status: needs_review
+    owner_or_reviewer: Olly
+    confidence: low
+    last_reviewed: 2026-08-12
+    notes: >-
+      REPLACES availability_price x MW x hours (D-116) and utilisation_price x MWh (D-117). The
+      whole month's availability payment is conditional on delivery performance during that month's
+      utilisation events: at a 5% Grace Factor and Performance Multiplier of 3, delivering 80% pays
+      50%, and delivery at or below 63% pays ZERO. A single badly-delivered event can therefore
+      wipe a material fraction of a month's availability revenue — the clawback is multiplicative,
+      not additive. Assessment is per metered period (often per minute), so intra-event variability
+      is penalised harder than an event-average calculation suggests, and over-delivery is unpaid
+      and non-compensating (POD 0% for every product in the register). Empirical base rates for the
+      same DNO: >90% of instructed volume delivered on average, 84.9% of events achieved 95-100% of
+      target, and 6% of agreed delivery events failed to respond at all — so MPF < 1 is the normal
+      case, not the exception. `null` for a grace factor means the product has none published (NGED
+      records availability grace as N/A for SU and OU), never zero. Individual DNOs may set the
+      Grace Factor at their discretion under the ENA methodology: re-read the product sheet each
+      tender round. SPEN and Northern Powergrid were not separately verified.
+  product_types:
+    value:
+      SU: "Scheduled Utilisation — utilisation payment only, no availability payment"
+      SAOU: "Scheduled Availability, Operational Utilisation (Day Ahead Notice) — availability plus utilisation"
+      VAOU: "Variable Availability, Operational Utilisation (week-ahead in SSEN's register)"
+      OU: "Operational Utilisation — utilisation on operational notice"
+      nged_service_windows:
+        su_lv: [{name: Night, start: "00:00", end: "04:00"}, {name: Morning, start: "08:00", end: "12:00"}, {name: Afternoon, start: "12:00", end: "16:00"}, {name: Evening, start: "16:00", end: "20:00"}]
+        ou_availability: [{start: "00:00", end: "08:00"}, {start: "08:00", end: "16:00"}, {start: "16:00", end: "24:00"}]
+        hv_scheduled_availability: "DSO-defined Capacity Requirement Windows — NOT fixed; must be read from each trade opportunity"
+      baseline_seasons:
+        summer: "ISO weeks 13-38 (Apr-Sep)"
+        winter: "ISO weeks 39-12 (Oct-Mar)"
+      assumed_utilisation_rate_pct:
+        nged_saou_planning: 5
+        ukpn_saou_indicative_median: 22
+        ukpn_saou_indicative_range: [14, 37]
+      minimum_offer_size:
+        NGED: {min_capacity_kw: null, min_delivery_minutes: 30, note: "no capacity threshold published"}
+        UKPN: {min_capacity_kw: 10, min_delivery_minutes: 30, note: "per zone, aggregable; bids below 10 kW rejected"}
+        SSEN: {min_capacity_kw_su: 2.5, min_capacity_kw_vaou_ou_saou: 10}
+        SPEN: null
+        NPG: null
+    unit: mixed (product definitions, clock times, percent, kW, minutes)
+    source: "National Grid Electricity Distribution, 'Guidance for Electricity Distribution Flexibility Service Providers', March 2026, Table 2.1, §3.2 and Appendix 1, https://www.flexiblepower.co.uk/downloads/1121; National Grid Electricity Distribution, 'NGED DSO - Revenue Estimator September 2025 V2.0', Overview tab, 2025, https://www.flexiblepower.co.uk/downloads/1176 (5% assumed SAOU utilisation, valid 23/09/2025-31/03/2026); UK Power Networks, 'Participation Guidance V1.2', October 2024, §3.2 and 'Competition Data - Summer 2026 Tender V2', Competition Data TR14 sheet, 2026; Scottish and Southern Electricity Networks, 'Assessment of Bids and Offers in SSEN' V2.1, April 2026, §2.1, https://www.ssen.co.uk/globalassets/our-services/flexibility-services-document-library/service-documentation/assessment-of-bids-in-ssen-v2.1-apr-2026.pdf. Transcribed via docs/bess_constants_register.md."
+    status: needs_review
+    owner_or_reviewer: Olly
+    confidence: low
+    last_reviewed: 2026-08-12
+    notes: >-
+      The product a site can actually sell into decides whether it earns availability at all (SU and
+      OU pay utilisation only), and the SERVICE WINDOW decides whether local flex collides with DUoS
+      red-band avoidance and peak shaving — NGED's SU LV Evening window (16:00-20:00) overlaps the
+      NGED East Midlands red band (16:00-19:00) almost exactly, so those two streams are largely the
+      same half hours and must not both be booked at full value. Utilisation rates DISAGREE and are
+      kept unaveraged: NGED's own revenue-estimator planning assumption is 5% of available hours
+      (the tool is itself labelled an upper bound and the note says actual could be higher or
+      lower), against UKPN's indicative median of 22% for the same product family. `null` minimum
+      capacity for NGED means 'no threshold published', not 'zero'; SPEN and Northern Powergrid are
+      unverified nulls — they procure via Flexible Power and are LIKELY aligned to NGED practice,
+      but that is an inference and is not carried as a value. DATA ASK: SPEN and Northern Powergrid
+      minimum offer sizes and product sheets.
+
+wholesale_p415:
+  gated_upside_value_gbp_per_mw_yr:
+    value: 0
+    unit: GBP/MW/yr
+    source: "gated ZERO by design (not a missing source). The real £ path is engine-measured, not a library constant: Elexon MID (£/MWh, keyless Insights API — fetch-verified 2026-07-20, e.g. 2026-07-13 mean ~109.6 £/MWh) overlaid on the consented agreed export tariff, priced per site (register §7). No forward wholesale curve converts to a guaranteed BTM export £/MW/yr, so this stays 0."
+    status: needs_review
+    owner_or_reviewer: Olly (with RTM partner)
+    confidence: low
+    last_reviewed: 2026-07-20
+    notes: >-
+      GATED — never in the priced floor / P50-P90 / DSCR. Value STAYS 0 (Revenue-Data Drive slice 4
+      rewrote source/notes only): the real wholesale value is site-specific and engine-measured
+      (the D43 wholesale contracted-mode overlay = agreed export tariff £/kWh × overlay export MWh;
+      the Elexon-MID perfect-foresight delta is a SEPARATE indicative gated annotation), never a
+      single library £/MW/yr. Do NOT populate this key from a forecast (register §7).
+
+balancing_mechanism:
+  gated_upside_value_gbp_per_mw_yr:
+    value: 0
+    unit: GBP/MW/yr
+    source: "gated ZERO by design (not a missing source). A firm per-asset BM £/MW/yr needs either a paid Modo GB BESS index or the full BOALF×BOD settlement calc (BSC Section T) reconstructed per unit (register §9) — public data gives only an INDICATIVE fleet figure, and per-asset contracted BM value is commercial (VLP/aggregator). Documented-manual; not landed as a constant."
+    status: needs_review
+    owner_or_reviewer: Olly (with RTM partner)
+    confidence: low
+    last_reviewed: 2026-07-20
+    notes: >-
+      GATED — never in the priced floor. Value STAYS 0 (Revenue-Data Drive slice 4, note-only): per
+      register §9 a defensible BM number needs a paid Modo index or a full BOALF×BOD reconstruction
+      plus a VLP/aggregator appointment + agreed cut %; the consent-driven engine path prices BM as
+      agreed £/MW/yr × de-rated MW when the customer supplies a rate (never from this key). Requires
+      RTM partner + export consents (G99/G100); never populated from a forecast.
+  min_unit_capacity_mw:
+    value: 1.0
+    unit: MW of contract capacity
+    source: "NESO, 'Balancing Reserve' service page, https://www.neso.energy/industry-information/balancing-services/reserve-services/balancing-reserve — participation requires registration as a Balancing Mechanism unit in the Single Markets Platform, 'a minimum contract capacity of 1MW or above', and control and/or system telephony during all contracted windows. Corroborated on BM declaration granularity by NESO, 'Response Services (DC/DM/DR) Provider Guidance', v14, June 2026 — 'For BM, MW values must be declared as integers.' Transcribed via docs/bess_constants_register.md and docs/bess_modelling_requirements.md D-92."
+    status: needs_review
+    owner_or_reviewer: Olly
+    confidence: low
+    last_reviewed: 2026-08-12
+    notes: >-
+      ELIGIBILITY GATE (D-92), evaluated BEFORE any BM or Balancing Reserve revenue is booked:
+      eligible = registered_BMU AND contracted_MW >= 1.0 AND telephony_available. For a 0.1-0.5 MW
+      behind-the-meter battery this can be MOST of an assumed stack, credited on a route the asset
+      cannot legally take standalone. BM physical notifications must be integer MW, so fractional
+      capability above an integer boundary is unsellable. Also binding if BM revenue is credited
+      (D-170): MEL/MIL must be sustainable for at least 15 minutes with redeclaration a minimum of
+      17 minutes from the first point of instruction, and where a dynamic frequency response
+      contract is also held, capacity above the reserved headroom must be priced at +/-£99,999 so
+      it is not accepted (NESO's active Scenario 3a 'no erosion' stacking mode).
+  aggregation_rule:
+    value:
+      route: "Virtual Lead Party / Secondary BM Unit under BSC Modification P415"
+      p415_implemented: "2024-11-07"
+      p415_ofgem_decision: "2023-10-06"
+      open_balancing_platform_live: "2023-12-12"
+      response_services_aggregation: "same GSP Group only, subject to technical assurance"
+      aggregator_impact_matrix_required: true
+      aggregator_revenue_share_pct: null
+    unit: n/a (rule); percent for the revenue share
+    source: "Ofgem, 'Decision on BSC modification P415: Facilitating access to wholesale markets for flexibility dispatched by Virtual Lead Parties', 6 October 2023, https://www.ofgem.gov.uk/publications/decision-bsc-modification-p415; Elexon, 'Elexon implements landmark rule change to drive growth in flexibility', 7 November 2024, https://www.elexon.co.uk/2024/11/07/elexon-implements-landmark-rule-change-to-drive-growth-in-flexibility-and-progress-to-net-zero/; NESO, 'First stages of Open Balancing Platform go live', 12 December 2023, https://www.neso.energy/news/first-stages-open-balancing-platform-go-live; NESO, Grid Code BC1.A.10 Aggregator Impact Matrix, Issue 6 Revision 22, 2 April 2024, https://www.neso.energy/document/33851/download; NESO, 'Response Services (DC/DM/DR) Provider Guidance', v14, June 2026 (same-GSP-Group aggregation). Transcribed via docs/bess_constants_register.md."
+    status: needs_review
+    owner_or_reviewer: Olly
+    confidence: low
+    last_reviewed: 2026-08-12
+    notes: >-
+      THE AGGREGATION ROUTE that a sub-1 MW site needs before any BM or response revenue is
+      creditable (D-92). Two distinct rules, easily conflated: BM/wholesale access is via a VLP
+      under P415 (no geographic restriction stated), while RESPONSE (DC/DM/DR) aggregation is
+      restricted to assets behind the SAME GSP GROUP. That makes response aggregation
+      location-tied: moving an asset across a GSP Group boundary breaks the aggregation, which
+      matters directly for the host-default / relocation loss-given-default case. An Aggregator
+      Impact Matrix (per-GSP % impact plus postcodes and MSIDs) is a mandatory data prerequisite,
+      so MSID-level disclosure is required before revenue is bookable. aggregator_revenue_share_pct
+      is DELIBERATELY NULL: the constants register carries NO sourced aggregator cut for any GB
+      platform. The only figure in the library is local_flex_piclo.aggregator_cut_pct = 0.20, an
+      unsourced placeholder (~10-20% range asserted without a citation). DATA ASK: an executed or
+      quoted VLP/aggregator agreement stating the revenue share and any floor/minimum fee. Both
+      P415 and the Open Balancing Platform post-date most GB BESS literature, so models
+      parameterised on pre-2024 skip rates or pre-P415 route-to-market assumptions are stale.
+
+ancillary_services:
+  dc_dm_dr_value_gbp_per_mw_yr:
+    value: 28296.9
+    unit: GBP/MW/yr
+    source: "NESO Data Portal CKAN (EAC Response/Reserve results summary) URL https://api.neso.energy/api/3/action/datastore_search?resource_id=596f29ac-0387-4ba4-a6d3-95c243140707&limit=60000 sha256:22121dba2aca fetched 2026-07-20; sidecar assumptions/provenance/gb_v1_6/eac_results.provenance.json. Register §10 indicative equation: mean cleared £/MW/h across DC/DM/DR × 8760 h."
+    status: needs_review
+    owner_or_reviewer: Olly (with RTM partner)
+    confidence: low
+    last_reviewed: 2026-07-20
+    notes: >-
+      Re-sourced (Revenue-Data Drive slice 4) from the LIVE NESO CKAN EAC results resource via
+      gridq.dev.fetch_neso_ckan --resource eac-results. Derivation: mean clearing price 3.2302
+      £/MW/h across the six DC/DM/DR products (DCH/DCL/DMH/DML/DRH/DRL, 4032 EFA-block rows) over
+      the fetched window 2026-03-31..2026-07-21, × 8760 h = 28296.9 £/MW/yr (register §10). This is
+      now NONZERO but remains GATED upside / INDICATIVE only — never FIRM, never in the priced floor
+      / P50-P90 / DSCR; the consent-driven engine path prices ancillary as agreed £/MW/yr × de-rated
+      MW when a rate is supplied. Merchant prices are volatile (can be 0 or negative); needs a
+      minimum aggregated portfolio MW to realise. Status stays needs_review; nothing is confirmed.
+      UNCHANGED in gb_v1_7 — but note this flat annualisation is exactly what D-158 forbids for
+      pricing: see clearing_price_gbp_per_mw_h_by_product and performance_factor_k_parameters.
+  min_response_unit_capacity_mw:
+    value:
+      minimum: 1.0
+      maximum: 100.0
+      order_granularity: "whole MW integers only"
+      aggregation: "permitted only where assets sit behind the same GSP Group, subject to technical assurance"
+      applies_to: "both BM-registered and non-BM-registered assets, per Response Unit (not per asset)"
+    unit: MW per Response Unit
+    source: "NESO, 'Dynamic Response Services - Provider Guidance', v14, June 2026, slide 6, https://www.neso.energy/document/276606/download — 'A minimum response capacity of 1 MW is required per response unit'; 'Sell orders may only be submitted in whole MWs'; 'Aggregation is possible when assets sit behind same GSP Group'. Corroborated by NESO, 'Response Services Procurement Rules', Version 6, effective 31 July 2026, paragraph 8.3.3.1 and Schedule 1 'Maximum Sell Size', https://www.neso.energy/document/384601/download. Transcribed via docs/bess_constants_register.md."
+    status: needs_review
+    owner_or_reviewer: Olly
+    confidence: low
+    last_reviewed: 2026-08-12
+    notes: >-
+      THE BINDING ELIGIBILITY CONSTRAINT for behind-the-meter assets under 1 MW (D-92): the great
+      majority of the 0.1-5 MW C&I segment cannot access DC/DM/DR standalone, and the whole-MW
+      order granularity means the sellable quantity is an integer in {0, 1, 2, ...} — fractional
+      nameplate above an integer boundary is unsellable into the EAC. Combined with the same-GSP-
+      Group aggregation restriction, this is the gate DFS exists to fill below 1 MW (see
+      dfs_registered_unit_capacity_mw). Reserved Capacity further reduces the sellable MW for an
+      energy-limited unit: the maximum SYMMETRIC bidirectional contract per MW of rated power is DC
+      0.4545, DM 0.4167, DR 0.3571 MW per direction (unidirectional 0.909 / 0.833 / 0.714).
+  performance_factor_k_parameters:
+    value:
+      k_piecewise: "k_j = 1 if E < A; k_j = 1 - (E - A)/(B - A) if A <= E <= B; k_j = 0 if E > B"
+      block_factor: "K_e = min over all settlement-period k_j in the contracted service period (the MINIMUM, not the mean)"
+      settlement_formula: "S_aij = Round(((P_aj - ((1 - K_aij * F_aij) * PF_aj)) * V_aij * 0.5), 2), with PF = max(market clearing price, Minimum Adjustment Price)"
+      minimum_adjustment_price_gbp_per_mw_h: 1.0
+      error_thresholds:
+        DC: {A: 0.03, B: 0.07}
+        DM: {A: 0.03, B: 0.07}
+        DR: {A: 0.05, B: 0.25}
+        DR_stacked_with_DC_or_DM: {A: 0.03, B: 0.07}
+      rolling_minimum_error_window_s:
+        DC: 0.2
+        DM: 0.2
+        DR: 2.0
+      grace_period_error_tolerance_scaled: 0.25
+      assumed_realised_k: null
+    unit: dimensionless (k, K, A, B); GBP/MW/h; seconds
+    source: "NESO, 'Response Services Service Terms', Version 6, effective 31 July 2026, Schedule 2 service parameter table and Schedule 3 (K factor calculation, performance bounds, Minimum Adjustment Price), https://www.neso.energy/document/384606/download. Corroborated by NESO, 'Dynamic Response Services - Provider Guidance', v14, June 2026, slides 18-19, https://www.neso.energy/document/276606/download. Transcribed via docs/bess_constants_register.md."
+    status: needs_review
+    owner_or_reviewer: Olly
+    confidence: low
+    last_reviewed: 2026-08-12
+    notes: >-
+      REPLACES contracted MW x clearing price x hours (D-158). Two multiplicative haircuts, both
+      cliff-shaped: K (performance) and F (availability, see availability_factor_f_threshold_pct).
+      K_e takes the MINIMUM k across the block, so ONE degraded settlement period sets the payment
+      for the whole four-hour block — an annual availability scalar cannot represent this. Stacking
+      TIGHTENS tolerances: the lowest A and B apply, so stacking DR with DC moves DR from 5%/25% to
+      3%/7%. Because PF is floored at the £1/MW/h Minimum Adjustment Price, a total performance
+      failure on a product that cleared below £1/MW/h (or negative — DMH and DRH routinely clear
+      negative) results in a NET PAYMENT FROM THE PROVIDER TO NESO: the downside is not bounded at
+      zero revenue. Non-delivery liability is capped per Response Contract at the greater of
+      £250,000 and the aggregate availability payments for the contracted service period.
+      assumed_realised_k IS DELIBERATELY NULL: the register carries the FORMULA parameters but no
+      published distribution of realised K for GB batteries, so no expected value can be sourced.
+      The nearest published proxy is Modo Energy's GB calibration decomposition (availability ~5%,
+      capacity degradation ~3%, imperfect foresight ~10%), which is not K. DATA ASK: a published or
+      own-fleet distribution of realised per-settlement-period k and block K_e from 20 Hz
+      performance data.
+  availability_factor_f_threshold_pct:
+    value:
+      threshold_pct: 99.9
+      equivalent_unavailability_seconds_per_settlement_period: 1.8
+      behaviour: "F = 0 for the ENTIRE settlement period if availability < 99.9%; F = 1 if >= 99.9%"
+      performance_data_rate_hz: 20
+      rows_per_settlement_period_at_20hz: 36000
+      deemed_unavailable_if: "EDL communication fails for 10 or more consecutive minutes, or two consecutive Connection Indicators are missed"
+    unit: percent; seconds; Hz
+    source: "NESO, 'Response Services Service Terms', Version 6, effective 31 July 2026, Schedule 3 definition of F, and paragraphs 6.5, 15.1-15.11 (telemetry obligations), https://www.neso.energy/document/384606/download; NESO, 'Dynamic Response Services - Provider Guidance', v14, June 2026, slides 19-20 — 'if a unit has an availability of less than 99.9% then availability factor will be 0 for that settlement period'. Transcribed via docs/bess_constants_register.md."
+    status: needs_review
+    owner_or_reviewer: Olly
+    confidence: low
+    last_reviewed: 2026-08-12
+    notes: >-
+      THE CLIFF (D-158): 1.8 seconds of unavailability — individually or in aggregate — zeroes the
+      whole 30-minute settlement period, and because K_e is the minimum k across the block, a
+      zeroed period can carry into the block payment. This is why frequency-response revenue cannot
+      be de-rated by an annual availability scalar such as availability.fleet_availability_pct;
+      that scalar is for energy and payment volumes (H-17), not for F. Availability is computed
+      from 20 Hz data (36,000 rows per settlement period), and a comms failure alone (10
+      consecutive minutes of EDL loss, or two missed Connection Indicators) is deemed
+      unavailability — so the telemetry link is a revenue-critical asset, not IT overhead.
+  clearing_price_gbp_per_mw_h_by_product:
+    value:
+      basis: "day-ahead pay-as-clear, per 4-hour Response Window; FY runs April-March; FY26/27 covers 1 April to 11 August 2026 only"
+      fy26_27_mean:
+        DCL: 2.79
+        DCH: 2.00
+        DML: 7.09
+        DMH: -0.16
+        DRL: 16.64
+        DRH: -8.84
+      fy25_26_mean:
+        DCL: 3.23
+        DCH: 1.96
+        DML: 6.21
+        DMH: 1.57
+        DRL: 14.15
+        DRH: -3.25
+      fy24_25_mean:
+        DCL: 3.17
+        DCH: 2.30
+        DML: 5.34
+        DMH: 0.99
+        DRL: 9.25
+        DRH: -4.62
+      fy23_24_mean:
+        DCL: 1.51
+        DCH: 1.62
+        DML: 3.44
+        DMH: 0.29
+        DRL: 9.25
+        DRH: -4.55
+      fy26_27_mean_by_efa_block:
+        DCL: {EFA1: 1.88, EFA2: 3.16, EFA3: 2.03, EFA4: 2.54, EFA5: 5.23, EFA6: 1.87}
+        DCH: {EFA1: 1.32, EFA2: 0.99, EFA3: 3.78, EFA4: 4.16, EFA5: 0.98, EFA6: 0.74}
+        DML: {EFA1: 6.16, EFA2: 7.76, EFA3: 5.34, EFA4: 7.51, EFA5: 9.75, EFA6: 6.03}
+        DMH: {EFA1: -1.08, EFA2: -1.87, EFA3: 2.41, EFA4: 3.48, EFA5: -1.88, EFA6: -2.03}
+        DRL: {EFA1: 14.69, EFA2: 16.61, EFA3: 12.74, EFA4: 16.40, EFA5: 22.73, EFA6: 16.68}
+        DRH: {EFA1: -10.24, EFA2: -11.46, EFA3: -5.70, EFA4: -1.10, EFA5: -12.35, EFA6: -12.16}
+      efa_blocks:
+        EFA1: {start: "23:00", end: "03:00"}
+        EFA2: {start: "03:00", end: "07:00"}
+        EFA3: {start: "07:00", end: "11:00"}
+        EFA4: {start: "11:00", end: "15:00"}
+        EFA5: {start: "15:00", end: "19:00"}
+        EFA6: {start: "19:00", end: "23:00"}
+      static_ffr_fy26_27_mean: 4.45
+    unit: GBP/MW/h
+    source: "NESO Data Portal, 'Enduring Auction Capability (EAC) auction results', author's analysis of the Results Summary datasets, accessed 11 August 2026, https://www.neso.energy/data-portal/eac-auction-results; Static FFR from NESO Data Portal, 'Static Firm Frequency Response auction results', 31 March 2023 to 11 August 2026, https://www.neso.energy/data-portal/static-firm-frequency-response-auction-results. Transcribed via docs/bess_constants_register.md."
+    status: needs_review
+    owner_or_reviewer: Olly (with RTM partner)
+    confidence: low
+    last_reviewed: 2026-08-12
+    notes: >-
+      GATED UPSIDE ONLY — never FIRM, never in the priced floor / P50-P90 / DSCR, same treatment as
+      dc_dm_dr_value_gbp_per_mw_yr. Landed at EFA-BLOCK granularity because the block shape is
+      systematic and must not be averaged away (D-158): DCL peaks in EFA5 15:00-19:00 at 5.23 vs
+      1.87 in EFA6, exactly the block that collides with DUoS red-band avoidance and peak shaving.
+      TWO SIGNS: DMH and DRH clear NEGATIVE on average (the provider pays, in exchange for free
+      charging energy — DRH's FY26/27 mean of -8.84 £/MW/h reconciles almost exactly with 1,247
+      MWh/MW/yr of charging at ~£60/MWh), so a model that clamps ancillary revenue at zero
+      misprices both the cost and the coupled energy benefit. Prices are NON-STATIONARY: DCL
+      averaged £23.48/MW/h in 2022Q2 against £2.79 today, and DRH's sign has reversed since 2022.
+      Do not use a historical mean as a forward price. Stacking two different dynamic response
+      services (e.g. DC+DM) is NOT permitted; stacking one with the Balancing Mechanism is.
+  delivery_duration_and_energy_by_product:
+    value:
+      delivery_duration_minutes:
+        DC: 15
+        DM: 30
+        DR: 60
+      response_energy_volume_mwh_per_mw:
+        DC: 0.25
+        DM: 0.5
+        DR: 1.0
+      energy_recovery_pct_of_rev: 20
+      reserved_capacity_pct_of_offered:
+        DC: 10
+        DM: 20
+        DR: 40
+      throughput_mwh_per_mw_yr:
+        DCL: {jan_2026: 63.9, jun_2026: 75.9}
+        DCH: {jan_2026: 62.5, jun_2026: 72.0}
+        DML: {jan_2026: 322, jun_2026: 495}
+        DMH: {jan_2026: 337, jun_2026: 439}
+        DRL: {jan_2026: 1275, jun_2026: 1474}
+        DRH: {jan_2026: 1247, jun_2026: 1439}
+    unit: minutes; MWh per MW contracted; percent; MWh/MW/yr
+    source: "NESO, 'Response Services Service Terms', Version 6, effective 31 July 2026, Schedule 2 service parameters (Tsus, VmaxC, Reserved Capacity) and 'Response Services Procurement Rules', Version 6, Schedule 1 and paragraph 8.3.3.2, https://www.neso.energy/document/384606/download and https://www.neso.energy/document/384601/download; NESO, 'SOE Monitoring Guidance', V2, March 2025, Table 2 and section 3, https://www.neso.energy/document/347241/download. Throughput: author's calculation applying the Service Terms Schedule 2 delivery curves to NESO Data Portal 1-second system frequency data for January 2026 and June 2026, https://www.neso.energy/data-portal/system-frequency-data. Transcribed via docs/bess_constants_register.md."
+    status: needs_review
+    owner_or_reviewer: Olly
+    confidence: low
+    last_reviewed: 2026-08-12
+    notes: >-
+      THE ENERGY COST OF AN 'AVAILABILITY-ONLY' SERVICE, and the link between the ancillary stream
+      and the degradation cost. Response Energy Volume = contracted MW x delivery duration is a
+      WRITTEN RULE, not a modelling convenience: it ties sellable MW to available MWh, which is why
+      duration is an optimisation output. Energy Recovery (20% of REV per settlement period) and
+      Reserved Capacity (10/20/40% of offered quantity) both consume headroom that would otherwise
+      serve arbitrage or peak shaving in the SAME settlement period — they must be reserved, not
+      merely tracked. Throughput is the critical figure for the cycles-versus-arbitrage trade-off:
+      DR moves ~20x the energy of DC, and a 2-hour battery fully contracted on DRL takes ~640
+      equivalent full cycles per year FROM THE SERVICE ALONE, before any arbitrage. Priced at
+      battery_opex.degradation_marginal_cost_gbp_per_mwh, that wear is material against the
+      DRL clearing price. Throughput figures are annualised from single months (so seasonal) and are
+      quasi-steady-state; DR's 10 s ramp will slightly attenuate the true figure. Net state-of-
+      energy drift for a symmetric position reaches +/-1.5 MWh per 4-hour block per MW on DR, which
+      is 75% of a 1 MW / 2 MWh unit's usable capacity within one block.
+  dfs_registered_unit_capacity_mw:
+    value:
+      minimum: 0.1
+      maximum: 100.0
+      rounding: "to one decimal place"
+      zone_count: 12
+      zone_allocation_rule: "all Unit Meter Points in a DFS Unit must be located in the same DFS Zone"
+      exclusivity:
+        bm_unit: "a DFS Unit Meter Point shall not form part of a BM Unit except a Supplier Base BM Unit (Procurement Rules 4.7.6)"
+        other_balancing_or_dno_flex: "barred where the DFS Stacking List prohibits it (4.7.9)"
+        capacity_market: "permitted unless otherwise stated in the DFS Stacking List (4.7.8(a))"
+      metering: "I&C Boundary Meters must be Half-Hourly Settled unless Profile Class 3 or 4 (4.7.2); Code of Practice 11 accuracy class (4.7.7)"
+      zone_names: null
+    unit: MW; count
+    source: "NESO, 'Demand Flexibility Service Procurement Rules', v5.0, effective 18 May 2026, Schedule 1 and paras 4.2, 4.3.2(k), 4.7.2, 4.7.6, 4.7.7, 4.7.8, 4.7.9, 4.10, https://www.neso.energy/document/379391/download — Registered Unit Capacity must be 'an amount (if not an integer, rounded to one decimal place) from and including zero point one (0.1) MW to and including one hundred (100) MW'. Zone count: NESO, 'DFS 12 Zones GeoJson Map', https://www.neso.energy/document/376656/download. Transcribed via docs/bess_constants_register.md and docs/bess_modelling_requirements.md E-06."
+    status: needs_review
+    owner_or_reviewer: Olly
+    confidence: low
+    last_reviewed: 2026-08-12
+    notes: >-
+      DFS IS THE ONLY DIRECT NESO REVENUE ROUTE BELOW 1 MW (E-06), so omitting it makes the model
+      conclude that a 0.1-1 MW behind-the-meter battery earns zero NESO revenue — false since the
+      9 April 2026 service expansion. But it is CONDITIONALLY EXCLUSIVE with the rest of the stack,
+      and the governing document is the DFS Stacking List, not 'Primacy' (Primacy is a DNO
+      conflict-EXCLUSION process, not a general stacking resolver). Registration therefore has to
+      be a gate evaluated BEFORE revenue is booked, and DFS participation is mutually exclusive
+      with BM participation for the same meter point. zone_names IS DELIBERATELY NULL: the register
+      confirms there are 12 zones and cites the GeoJSON map, but carries neither the zone names nor
+      their boundaries, so a site cannot yet be allocated to a zone. DATA ASK: the DFS 12 Zones
+      GeoJSON (zone names plus boundaries, or a GSP-Group-to-zone mapping). Also note the Zonal Cap
+      per zone 'may be zero (0) MW', so a zone can be open with no procurable volume.
+  dfs_performance_factor_k_piecewise:
+    value:
+      settlement_formula: "S_ie = 0.5 * P_ie * Q_ie * K_ie"
+      realised_volume_pct: "RV = 100 * V / (Q * 0.5), V = DFS Settlement Volume MWh delivered against baseline, Q = OFFERED Service Volume MW"
+      k_schedule:
+        - {condition: "RV >= 120", k: 1.2}
+        - {condition: "50 <= RV < 120", k: "0.01 * RV"}
+        - {condition: "25 <= RV < 50", k: "0.01 * (2 * RV - 50)"}
+        - {condition: "0 <= RV < 25", k: 0.0}
+        - {condition: "-100 <= RV < 0", k: "0.01 * RV"}
+        - {condition: "RV < -100", k: -1.0}
+      utilisation_price_basis: "P = the Utilisation Price from the accepted DFS Bid, in GBP/MWh with pounds and pence each an integer; submissions are NOT curtailable, so acceptance is binary per submission; clearing ranks bids low to high until the zonal requirement is met without exceeding the Zonal Cap"
+      baseline_options: "P376 BL01 historic baseline (average of up to ten most recent like Working Days from a 60-day window, excluding Event Days and clock-change days, no in-day adjustment) OR the Self-Nominated Baselining Methodology (I&C and Generation Asset meter points only, never Domestic)"
+      historic_price_anchor_gbp_per_mwh: 4559
+    unit: dimensionless (K); GBP/MWh (P); MW (Q)
+    source: "NESO, 'Demand Flexibility Service Service Terms', v4.0, effective 9 April 2026, Schedule 1 (Utilisation Payments), https://www.neso.energy/document/379396/download; NESO, 'Demand Flexibility Service Procurement Rules', v5.0, 18 May 2026, paras 11.5 (submission format), 12 (assessment and clearing), 12.3 (non-curtailable), Schedule 3 Parts 2-4 (BL01 and Self-Nominated Baselining), https://www.neso.energy/document/379391/download. Historic anchor: Cornwall Insight for National Grid Electricity Distribution, 'Revenue Stacking for Flexibility', December 2023, Figure 4, https://www.flexiblepower.co.uk/downloads/1150 — DFS average 2022-23 live event price. Transcribed via docs/bess_constants_register.md."
+    status: needs_review
+    owner_or_reviewer: Olly
+    confidence: low
+    last_reviewed: 2026-08-12
+    notes: >-
+      Payment is on OFFERED volume Q scaled by performance K, so under-delivery is penalised through
+      K, not through a reduced Q. K IS NEGATIVE below zero realised delivery, reaching -1: any model
+      that clips K at zero understates the downside, and there is a DEAD ZONE where delivering
+      0-25% of contracted volume earns exactly zero. The 1.2 cap pays a 20% over-delivery bonus.
+      THE PRICE IS A BID, NOT A LIBRARY CONSTANT: no current DFS utilisation price is carried, and
+      the £4,559/MWh historic anchor is a 2022-23 average live-event price under the PREVIOUS
+      scheme, kept only as an order-of-magnitude marker — it must NOT be used as a forward price
+      for the post-April-2026 zonal service. BASELINE CHOICE IS MATERIAL for a battery behind a
+      variable C&I load: the BL01 historic baseline is contaminated by the battery's own prior
+      dispatch, which is exactly why the Self-Nominated option exists; model both and take the
+      higher expected K. DATA ASK: the Schedule 1 Guaranteed Acceptance Price and a current cleared
+      DFS utilisation price distribution by zone.
+
+business_rates:
+  annual_gbp_per_mw:
+    value: 8000
+    unit: GBP/MW/yr
+    source: "No citable source identified (W4-3 review 2026-06-24); carried forward from gb_v0_1. Source = VOA rateable value for BESS × the gov.uk non-domestic multiplier (a specialist valuation, not a public constant). See docs/assumptions_to_source.md."
+    status: needs_review
+    owner_or_reviewer: Oli (confirm treatment)
+    confidence: low
+    last_reviewed: 2026-06-24
+    notes: >-
+      Business-rates treatment of BTM BESS must be confirmed before it silently flatters every quote.
+      The £/MW depends on a VOA rateable value (specialist valuation) × the published multiplier — the
+      multiplier is a public constant but the RV is not, so the £/MW stays a placeholder. UNCHANGED in
+      gb_v1_7. For the record, the register now sources the MULTIPLIER side (England 2026/27
+      non-RHL: 0.430 under £51,000 RV, 0.480 for £51,000-£499,999, 0.508 for £500,000+;
+      decapitalisation rates 2.6% and 4.4%; antecedent valuation date 1 April 2024; BESS carries
+      Special Category Code 733 and is valued on the contractor's basis) but the VOA has published
+      NO £/MW or £/kW rateable-value scheme for BESS, and whether a behind-the-meter battery forms a
+      separate hereditament or merges into the host's assessment is unresolved — so the £/MW cannot
+      be derived without a specialist valuation. Wales differs from England.
+
+insurance:
+  annual_pct_of_capex:
+    value: 0.5
+    unit: percent_of_capex_per_year
+    source: "No citable source identified (W4-3 review 2026-06-24); carried forward from gb_v0_1. Source = an insurance broker quote. See docs/assumptions_to_source.md."
+    status: placeholder
+    owner_or_reviewer: Oli
+    confidence: low
+    last_reviewed: 2026-06-24
+    notes: Annual insurance as a percent of installed capex. Confirm against a broker quote. UNCHANGED in gb_v1_7; the register's only figure is a broker-marketing range of 0.5-3% of system value (LOW AUTHORITY), whose LOWER bound this value sits on — so the register does not support it and does not contradict it.
+
+metering_idno:
+  annual_gbp_per_site:
+    value: 1200
+    unit: GBP/site/yr
+    source: "No citable source identified (W4-3 review 2026-06-24); carried forward from gb_v0_1. Source = meter operator / IDNO standing-charge schedule. See docs/assumptions_to_source.md."
+    status: placeholder
+    owner_or_reviewer: Oli
+    confidence: low
+    last_reviewed: 2026-06-24
+    notes: Metering / IDNO standing costs per site. Confirm against a real MOP/IDNO schedule.
+
+dno_costs:
+  annual_gbp_per_site:
+    value: 1500
+    unit: GBP/site/yr
+    source: "No citable source identified (W4-3 review 2026-06-24); carried forward from gb_v0_1. Source = DNO operating-cost schedule (excludes one-off connection capex). See docs/assumptions_to_source.md."
+    status: placeholder
+    owner_or_reviewer: Oli
+    confidence: low
+    last_reviewed: 2026-06-24
+    notes: DNO-related operating costs (excludes one-off connection modification capex).
+
+quote_validity:
+  indicative_validity_days:
+    value: 30
+    unit: days
+    source: "Internal commercial policy (W4-3 review 2026-06-24) — a structural/policy default, not a market figure; carried forward from gb_v0_1 unconfirmed. Confirm with the commercial owner. See docs/assumptions_to_source.md."
+    status: placeholder
+    owner_or_reviewer: Oli
+    confidence: low
+    last_reviewed: 2026-06-24
+    notes: How long an indicative (banded) quote stays valid before it lapses or must reprice. A commercial-policy choice, not a sourced market number.
+  reprice_tolerance_pct:
+    value: 5.0
+    unit: "%"
+    source: "Internal commercial policy (L02 mechanism, 2026-06-24) — a structural/policy default, not a market figure; carried forward unconfirmed. Confirm with the commercial owner. See docs/assumptions_to_source.md."
+    status: placeholder
+    owner_or_reviewer: Oli
+    confidence: low
+    last_reviewed: 2026-06-24
+    notes: >-
+      Relative tolerance beyond which a material assumption move forces a quote to reprice
+      before signature (consistency contract #3 — a quote is valid only against the assumption
+      version that produced it). A commercial-policy choice, not a sourced market number.
+
+scenario_weights:
+  central_low_high:
+    value:
+      low: 0.25
+      central: 0.50
+      high: 0.25
+    unit: probability_weights
+    source: "Structural/policy default (W4-3 review 2026-06-24) — a labelled modelling default (weights sum to 1.0), not a sourced market figure; carried forward from gb_v0_1 unconfirmed. Calibrate at M7. See docs/assumptions_to_source.md."
+    status: placeholder
+    owner_or_reviewer: Oli
+    confidence: low
+    last_reviewed: 2026-06-24
+    notes: Discrete probability weights for the Low/Central/High price cases; must sum to 1.0. A labelled structural default pending M7 calibration.
+
+availability:
+  availability_price_gbp_per_mw_h:
+    value: null
+    unit: GBP/MW/h
+    source: NOT sourced — per-DNO Piclo/DSO tender results required (C007).
+    status: placeholder
+    owner_or_reviewer: Olly
+    confidence: low
+    last_reviewed: 2026-07-02
+    notes: 'Empty home per D30: an availability price (the contracted half of a flex payment) is asserted
+      only from an awarded tender — never defaulted.'
+  expected_availability_pct:
+    value: null
+    unit: pct
+    source: NOT sourced — OEM / operational availability data required.
+    status: placeholder
+    owner_or_reviewer: Olly
+    confidence: low
+    last_reviewed: 2026-07-02
+    notes: Battery availability factor for firm-commitment pricing; a firm availability promise cannot
+      be de-rated for outages until this is real.
+  fleet_availability_pct:
+    value: 95.0
+    unit: percent of hours available per year
+    source: "Modo Energy, 'Model Calibration' (GB, January 2026 vintage), https://docs.modoenergy.com/pages/jan-2026/uk-europe/gb/model-calibration/ — the GB calibration decomposition attributes ~5% of the modelled-to-achieved revenue gap to AVAILABILITY (grid outages and maintenance), listed SEPARATELY from capacity degradation ~3% and imperfect foresight ~10%; calibrated to the Modo BESS Index (>190 sites, ~7 GW, 75th percentile of fleet revenues). Corroborated by Mongird, K. et al. 2020, PNNL, 'Grid Energy Storage Technology Cost and Performance Assessment' — 'Downtime assumption 5%', national-lab planning basis. Upper-bound comparators NOT used: ~98% state-of-the-art modern containers (Huang 2026; downtime 175 h/yr at 98%, 263 h/yr at 97%) and 98.7% MW-weighted / 99.3% for large projects (DNV-verified Fluence fleet, https://www.energy-storage.news/dnv-verifies-98-7-availability-of-fluences-global-battery-energy-storage-fleet/). Transcribed via docs/bess_constants_register.md and docs/bess_degradation_requirements.md."
+    status: needs_review
+    owner_or_reviewer: Olly
+    confidence: low
+    last_reviewed: 2026-08-12
+    notes: >-
+      PUBLISHED FLEET AVAILABILITY, and it is DISTINCT FROM DEGRADATION (H-17). The two are separate
+      lines in the same source decomposition — availability ~5%, capacity degradation ~3% — so
+      applying degradation.annual_capacity_fade_pct and this factor together is NOT double-counting:
+      fade shrinks the MWh the asset can deliver, availability removes the HOURS in which it can
+      deliver anything. 95.0 is the CONSERVATIVE end of the published range and is chosen because
+      the register's caveat on the 98.7% vendor figure is explicit: strong selection bias,
+      single-vendor, utility-scale, MW-weighted, 'do not use as the availability input for a BTM
+      asset'. A behind-the-meter asset additionally loses hours to causes absent from every fleet
+      figure — host planned shutdown, comms link, aggregator platform — which push the true number
+      DOWN, not up. WHAT THIS IS NOT: it is an annual scalar on energy and payment volumes, and it
+      MUST NOT be used for the frequency-response availability factor F (see
+      ancillary_services.availability_factor_f_threshold_pct), where 1.8 seconds of unavailability
+      zeroes a whole settlement period and the block factor takes the minimum — an annual scalar is
+      invalid there. It is also NOT the site-specific firm-commitment factor
+      (expected_availability_pct, which stays an empty home per D30). H-17 requires availability be
+      decomposed into planned maintenance, augmentation-outage and forced-outage components with
+      their TIMING; a single scalar cannot represent an outage falling on a Capacity Market
+      Satisfactory Performance Day, which risks termination rather than lost hours. WHAT WOULD
+      SETTLE IT: an operational availability record for comparable BTM C&I assets, or the O&M
+      contract's guaranteed availability with its measurement basis.
+
+penalties:
+  cm_penalty_rate_fraction_of_clearing:
+    value: 0.25
+    unit: fraction of clearing price per MWh undelivered
+    source: UNVERIFIED perimeter research (CMS / EMR Delivery Body summaries recorded in docs/reviews/2026-07-01-deep-review.md)
+      — confirm against the Capacity Market Rules text before ANY use beyond labelled-placeholder machinery
+      exercise.
+    status: placeholder
+    owner_or_reviewer: Olly
+    confidence: low
+    last_reviewed: 2026-07-02
+    notes: Proposed CM non-delivery rate (clearing × 1/4 per MWh); research-grade placeholder. UNCHANGED in gb_v1_7 — but see cm_penalty_rate_basis, which sources the statutory rate as PE/24, not PE/4. This value appears to be ~6x too HIGH. It is flagged, deliberately not silently corrected, because a penalty reduction flatters every quote and must be a reviewed decision.
+  cm_monthly_cap_pct_of_revenue:
+    value: 200.0
+    unit: pct of monthly capacity revenue
+    source: UNVERIFIED perimeter research (CMS / EMR Delivery Body summaries recorded in docs/reviews/2026-07-01-deep-review.md)
+      — confirm against the Capacity Market Rules text before ANY use beyond labelled-placeholder machinery
+      exercise.
+    status: placeholder
+    owner_or_reviewer: Olly
+    confidence: low
+    last_reviewed: 2026-07-02
+    notes: Monthly penalty cap; research-grade placeholder. Value CORROBORATED by primary legislation in gb_v1_7 (see cm_penalty_rate_basis) — a human may promote the status.
+  cm_annual_cap_pct_of_revenue:
+    value: 100.0
+    unit: pct of annual capacity revenue
+    source: UNVERIFIED perimeter research (CMS / EMR Delivery Body summaries recorded in docs/reviews/2026-07-01-deep-review.md)
+      — confirm against the Capacity Market Rules text before ANY use beyond labelled-placeholder machinery
+      exercise.
+    status: placeholder
+    owner_or_reviewer: Olly
+    confidence: low
+    last_reviewed: 2026-07-02
+    notes: Annual penalty cap — consumed by finance (W8) as the bounded worst-case P90 penalty line
+      on contracted CM revenue; placeholder status keeps every such quote not_bankable. Value CORROBORATED
+      by primary legislation in gb_v1_7 (see cm_penalty_rate_basis) — a human may promote the status.
+  cm_penalty_rate_basis:
+    value:
+      penalty_rate_formula: "PR = PE / 24, i.e. the CPI-indexed clearing price in GBP/MW/year divided by 24, expressed in GBP/MWh of shortfall"
+      implied_fraction_of_clearing_per_mwh: 0.0416667
+      monthly_cap_pct_of_monthly_capacity_payment: 200
+      annual_cap_pct_of_annual_capacity_payments: 100
+      worked_example_2029_30_t4: "at PE = GBP27,100/MW/yr, PR = GBP1,129/MWh; a 1 MW shortfall for one 0.5 h settlement period costs about GBP565"
+      stress_events_declared_to_date: 0
+      capacity_market_notices_since_2019: 13
+      cmn_trigger: "Anticipated System Margin for a Settlement Period below 500 MW, at least 4 hours after the expiry of the current Settlement Period"
+      stress_event_definition: "a Settlement Period in which a System Operator Instigated Demand Control Event occurs lasting at least 15 continuous minutes"
+    unit: GBP/MWh; percent; count
+    source: "The Electricity Capacity Regulations 2014 (SI 2014/2043), Schedule 1 paragraphs 5(3) and 6(4) and regulation 41(3A), https://www.legislation.gov.uk/uksi/2014/2043; NESO, Capacity Market Auction Static Data (Annual Penalty Cap 100%, Monthly Penalty Cap 200% for every auction from 2016-17 TR to 2029-30 T-4), https://www.neso.energy/data-portal/capacity-market-register/capacity_market_auction_static_data; DESNZ/NESO, Capacity Market Rules consolidation 24 July 2026, Rules 8.4.1, 8.4.6(a)(ii), 8.4.7(b), 8.5.1(a); DESNZ, 'Capacity Market Ten-Year Review', December 2024, pp.13-14 and Figure 1, https://assets.publishing.service.gov.uk/media/675fee720fb02bbe4853ef3f/capacity-market-10-year-review.pdf. Transcribed via docs/bess_constants_register.md."
+    status: needs_review
+    owner_or_reviewer: Olly
+    confidence: low
+    last_reviewed: 2026-08-12
+    notes: >-
+      THE SOURCED CM PENALTY REGIME, landed alongside the three research-grade placeholders rather
+      than overwriting them. IT CONTRADICTS ONE OF THEM: the statutory penalty rate is PE/24 per
+      MWh (implied fraction 0.0417 of the annual clearing price per MWh of shortfall), while
+      cm_penalty_rate_fraction_of_clearing carries 0.25 — apparently PE/4, roughly 6x too high. The
+      correction is NOT applied here because it REDUCES a cost and therefore flatters every quote:
+      a human must make that call, and until they do the conservative placeholder stands. The two
+      CAPS (200% monthly, 100% annual) ARE confirmed by primary legislation and the NESO static
+      data for every auction to date, so their values need no change — only their status. The annual
+      cap means the worst-case annual outcome is losing the capacity payment plus paying an equal
+      amount, not an unbounded loss. CONTEXT FOR THE PROBABILITY: zero System Stress Events have
+      ever been declared since the Capacity Market began, and only 13 Capacity Market Notices since
+      2019, so the base-case expected non-delivery penalty is near zero — the real CM risk sits on
+      Satisfactory Performance Day / Extended Performance Test failure and termination, which is
+      categorically different from losing hours of revenue and cannot be modelled as an availability
+      haircut.
+
+tnuos:
+  demand_residual_gbp_per_year:
+    value: null
+    unit: GBP/year
+    source: NOT sourced — requires the site's TNUoS band + the NGESO tariff tables.
+    status: placeholder
+    owner_or_reviewer: Olly
+    confidence: low
+    last_reviewed: 2026-07-02
+    notes: 'The banded, post-TCR demand residual: the UN-FIRMABLE bill line the W9 bill decomposition
+      must show honestly (research notes a large April-2026 rise — unverified); never estimated per-site.'

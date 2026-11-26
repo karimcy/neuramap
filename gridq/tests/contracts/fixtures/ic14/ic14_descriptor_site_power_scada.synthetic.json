@@ -1,0 +1,49 @@
+{
+ "contract": "IC-14",
+ "contract_version": "1.0.0",
+ "tenant": {
+  "kind": "tenant_key",
+  "org_id": "SYNTHETIC-ORG-HYBRID",
+  "org_kind": "customer",
+  "site_id": "SYNTHETIC-SITE-HYBRID"
+ },
+ "site_id": "SYNTHETIC-SITE-HYBRID",
+ "series_id": "SYNTHETIC-ORG-HYBRID/SYNTHETIC-SITE-HYBRID/site_boundary.main.active_power.scada.whole",
+ "data_class": "customer_commercial",
+ "record_class": "synthetic_fixture",
+ "kind": "series_descriptor",
+ "name": {
+  "asset_kind": "site_boundary",
+  "asset_id": "main",
+  "quantity": "active_power",
+  "role": "scada",
+  "aspect": "whole"
+ },
+ "unit": "W",
+ "resolution": "operational_1s",
+ "source": {
+  "kind": "source_address",
+  "protocol": "simulated",
+  "address": "sim:scada/p"
+ },
+ "source_scaling": {
+  "kind": "source_scaling",
+  "source_unit_ucum": "kW",
+  "scale_num": 1000,
+  "scale_den": 1,
+  "offset": 0
+ },
+ "brick_class": "Active_Power_Sensor",
+ "plausible_min": -20000000,
+ "plausible_max": 20000000,
+ "meter": {
+  "kind": "not_applicable",
+  "reason": "synthetic fixture: a SCADA reading names no meter"
+ },
+ "freshness": {
+  "kind": "freshness_policy",
+  "stale_after_ms": 120000,
+  "lost_after_ms": 600000
+ },
+ "max_batch_bytes": 65536
+}

@@ -1,0 +1,187 @@
+{
+  "schema_version": "0.1.0",
+  "site_id": "demo_coldstore",
+  "site_name": "Demo Cold Store (illustrative)",
+  "postcode": "LE17 4XN",
+  "country": "GB",
+  "data_tier": "T2_VALIDATED_12_MONTH_HALF_HOURLY",
+  "load_data": {
+    "schema_version": "0.1.0",
+    "annual_kwh": 1103372.0,
+    "half_hourly_file_ref": "examples/demo_site/hh_2025.csv",
+    "half_hourly_rows": 17520,
+    "start_date": "2025-01-01",
+    "end_date": "2025-12-31",
+    "missing_intervals": null,
+    "max_import_kw": 248.5,
+    "max_export_kw": 0.0,
+    "validation_warnings": []
+  },
+  "annual_consumption_kwh": 1103372.0,
+  "tariff_stack": {
+    "schema_version": "0.1.0",
+    "supplier": "Illustrative Energy Co",
+    "tariff_name": "C&I HH (illustrative)",
+    "standing_charge_per_day_gbp": 1.85,
+    "import_rates": {
+      "red": 0.3,
+      "amber": 0.18,
+      "green": 0.13
+    },
+    "export_rates": {},
+    "duos_red_rate": 0.13,
+    "duos_amber_rate": 0.02,
+    "duos_green_rate": 0.005,
+    "levies": {
+      "RO": 0.025,
+      "CfD": 0.008
+    },
+    "source": "synthetic_demo",
+    "confidence": "high",
+    "basis": {
+      "schema_version": "0.1.0",
+      "vat": "excluded",
+      "vat_attestation": "stated_by_record",
+      "levies": "itemised",
+      "network_charges": "itemised",
+      "vat_rate_fraction": null
+    },
+    "provenance": {
+      "schema_version": "0.1.0",
+      "commodity": "assumed",
+      "network": "assumed",
+      "levies": "assumed"
+    }
+  },
+  "connection": {
+    "schema_version": "0.1.0",
+    "mic_kw": 500.0,
+    "mec_kw": 500.0,
+    "asc_kw": 500.0,
+    "voltage_level": "HV",
+    "dno_region": "NGED_EM",
+    "import_headroom_kw": 140.0,
+    "export_headroom_kw": null,
+    "anm_or_curtailment_notes": "MEC = MIC (import = export capacity), synthetic demo, issue 018"
+  },
+  "consents": {
+    "schema_version": "0.1.0",
+    "g98": "approved",
+    "g99": "approved",
+    "g100": "approved",
+    "export_mpan": "1900000000001",
+    "dno_application_state": "approved",
+    "supplier_consent_state": "approved",
+    "notes": "Full consents declared (synthetic demo, issue 018): G98/G99/G100 approved, export MPAN present."
+  },
+  "supply_boundary": {
+    "schema_version": "0.1.0",
+    "import_mpan": "1900000000000"
+  },
+  "export_arrangement": {
+    "schema_version": "0.1.0",
+    "route": "flexibility_aggregator",
+    "counterparty": "Illustrative Aggregator Co (synthetic demo)",
+    "aggregator_cut_pct": 0.2,
+    "export_tariff_gbp_per_kwh": 0.075,
+    "local_flex_agreed_rate_gbp_per_mwh": 300.0,
+    "notes": "Illustrative export arrangement (synthetic demo, Revenue-Data acceptance): aggregator cut 20%, illustrative export tariff \u00a30.075/kWh and illustrative local-flex agreed rate \u00a3300/MWh. These are illustrative demo INPUTS a customer would supply, not underwritten market prices."
+  },
+  "stream_consents": [
+    {
+      "schema_version": "0.1.0",
+      "stream": "ANCILLARY_DC_DM_DR",
+      "consented": true,
+      "agreed_rate_gbp": 12000.0,
+      "notes": "Illustrative demo consent (Revenue-Data acceptance): customer authorises ancillary DC/DM/DR at an illustrative agreed \u00a312,000/MW/yr. A commercially-agreed rate INPUT, not a market-cleared price; never bankable.",
+      "agreed_rate_unit": "gbp_per_mw_year"
+    },
+    {
+      "schema_version": "0.1.0",
+      "stream": "BALANCING_MECHANISM",
+      "consented": true,
+      "agreed_rate_gbp": 15000.0,
+      "notes": "Illustrative demo consent (Revenue-Data acceptance): customer authorises Balancing Mechanism participation at an illustrative agreed \u00a315,000/MW/yr. A commercially-agreed rate INPUT, not a market-cleared price; never bankable.",
+      "agreed_rate_unit": "gbp_per_mw_year"
+    },
+    {
+      "schema_version": "0.1.0",
+      "stream": "CAPACITY_MARKET",
+      "consented": true,
+      "agreed_rate_gbp": 45.0,
+      "notes": "Illustrative demo consent (Revenue-Data acceptance): customer authorises the Capacity Market at an illustrative agreed \u00a345/kW/yr. A commercially-agreed rate INPUT, not a market-cleared clearing price; deliverability physics still hold CM out of the priced floor (CONDITIONAL).",
+      "agreed_rate_unit": "gbp_per_kw_year"
+    },
+    {
+      "schema_version": "0.1.0",
+      "stream": "DUOS_RED_BAND_AVOIDANCE",
+      "consented": true,
+      "agreed_rate_gbp": null,
+      "notes": "Illustrative demo consent (Revenue-Data acceptance): customer authorises DUoS red-band avoidance. Load-derived firm-floor stream \u2014 no agreed rate needed; consent is authorisation, not value."
+    },
+    {
+      "schema_version": "0.1.0",
+      "stream": "LOAD_SERVICE",
+      "consented": true,
+      "agreed_rate_gbp": null,
+      "notes": "Illustrative demo consent (Revenue-Data acceptance): customer authorises the load-service / firming stream. Priced from declared provisioning requirements only \u2014 no agreed rate here."
+    },
+    {
+      "schema_version": "0.1.0",
+      "stream": "LOCAL_FLEX_PICLO",
+      "consented": true,
+      "agreed_rate_gbp": null,
+      "notes": "Illustrative demo consent (Revenue-Data acceptance): customer authorises local flexibility / Piclo. Its agreed rate lives on ExportArrangement.local_flex_agreed_rate_gbp_per_mwh (\u00a3300/MWh, illustrative), netted by the aggregator cut."
+    },
+    {
+      "schema_version": "0.1.0",
+      "stream": "MIC_ASC_HEADROOM",
+      "consented": true,
+      "agreed_rate_gbp": null,
+      "notes": "Illustrative demo consent (Revenue-Data acceptance): customer authorises MIC/ASC headroom use. \u00a30 by construction (its value is realised through connection-bounded arbitrage) \u2014 consent is authorisation, not value."
+    },
+    {
+      "schema_version": "0.1.0",
+      "stream": "PPA_OR_BILL_SAVINGS",
+      "consented": true,
+      "agreed_rate_gbp": null,
+      "notes": "Illustrative demo consent (Revenue-Data acceptance): customer authorises the PPA / bill-savings stream. Aggregate \u00a30 in the value stack (itemised across tariff arbitrage + DUoS); the PPA \u00a3/kWh is set by the finance pricing layer."
+    },
+    {
+      "schema_version": "0.1.0",
+      "stream": "TARIFF_ARBITRAGE",
+      "consented": true,
+      "agreed_rate_gbp": null,
+      "notes": "Illustrative demo consent (Revenue-Data acceptance): customer authorises tariff arbitrage. Load-derived firm-floor stream \u2014 no agreed rate needed; consent is authorisation, not value."
+    },
+    {
+      "schema_version": "0.1.0",
+      "stream": "WHOLESALE_P415",
+      "consented": true,
+      "agreed_rate_gbp": null,
+      "notes": "Illustrative demo consent (Revenue-Data acceptance): customer authorises wholesale / P415 export. Its agreed rate lives on ExportArrangement.export_tariff_gbp_per_kwh (\u00a30.075/kWh, illustrative) \u2014 agreed tariff \u00d7 overlay export MWh is a CONTRACTED floor value; the Elexon-MID perfect-foresight delta stays separate indicative gated upside, never contracted."
+    }
+  ],
+  "physical_gates": {
+    "schema_version": "0.1.0",
+    "footprint_available": true,
+    "fire_separation_ok": true,
+    "access_ok": true,
+    "planning_or_landlord_issue": null,
+    "notes": "forklift access ok (illustrative)"
+  },
+  "counterparty": {
+    "schema_version": "0.1.0",
+    "legal_name": "Demo Cold Storage Ltd",
+    "company_number": "09999999",
+    "sector": "cold_storage",
+    "credit_status": "adequate",
+    "expected_tenure_years": 10.0,
+    "notes": null
+  },
+  "source_references": [
+    "SYNTHETIC \u2014 illustrative demo dataset, not a real site"
+  ],
+  "missing_data": [],
+  "created_at": "2026-06-24T15:28:26.520085"
+}

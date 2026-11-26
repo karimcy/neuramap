@@ -1,0 +1,79 @@
+{
+  "schema_version": "0.1.0",
+  "result_id": "res_000123_a1",
+  "request_id": "req_000123_a1",
+  "implementation_level": "baseline",
+  "bankable_status": "review_required",
+  "selected_power_kw": 500.0,
+  "selected_energy_kwh": 1000.0,
+  "duration_hours": 2.0,
+  "dispatch_schedule_ref": "data/site_000123/dispatch_req_a1.parquet",
+  "value_streams": [
+    {
+      "schema_version": "0.1.0",
+      "stream": "TARIFF_ARBITRAGE",
+      "annual_revenue_gbp": 38000.0,
+      "annual_cost_gbp": 0.0,
+      "firmness": "firm",
+      "gate_status": "met",
+      "unlock_condition": null,
+      "assumptions_used": [
+        "price_curve:central"
+      ],
+      "warnings": []
+    },
+    {
+      "schema_version": "0.1.0",
+      "stream": "DUOS_RED_BAND_AVOIDANCE",
+      "annual_revenue_gbp": 12000.0,
+      "annual_cost_gbp": 0.0,
+      "firmness": "firm",
+      "gate_status": "met",
+      "unlock_condition": null,
+      "assumptions_used": [],
+      "warnings": []
+    },
+    {
+      "schema_version": "0.1.0",
+      "stream": "CAPACITY_MARKET",
+      "annual_revenue_gbp": 9000.0,
+      "annual_cost_gbp": 0.0,
+      "firmness": "contracted",
+      "gate_status": "deliverable",
+      "unlock_condition": null,
+      "assumptions_used": [],
+      "warnings": []
+    }
+  ],
+  "constraints_binding": [
+    "mic_charge_limit",
+    "throughput_cap"
+  ],
+  "gated_upside": [
+    {
+      "schema_version": "0.1.0",
+      "stream": "WHOLESALE_P415",
+      "annual_revenue_gbp": 0.0,
+      "annual_cost_gbp": 0.0,
+      "firmness": "conditional",
+      "gate_status": "locked",
+      "unlock_condition": "RTM partner + G99/G100 export consents",
+      "assumptions_used": [],
+      "warnings": []
+    }
+  ],
+  "solver_status": "baseline",
+  "solver_metadata": {
+    "schema_version": "0.1.0",
+    "seed": 42,
+    "assumption_version": "assumptions/2026-06.3",
+    "code_version": "git:scaffold",
+    "model_version": "baseline",
+    "solve_seconds": 0.01,
+    "reproduction_env": "macos-arm64/python3.12"
+  },
+  "warnings": [
+    "baseline placeholder optimiser — not bankable"
+  ],
+  "created_at": "2026-06-17T09:00:00"
+}

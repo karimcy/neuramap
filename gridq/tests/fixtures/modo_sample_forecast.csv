@@ -1,0 +1,13 @@
+timestamp,price_gbp_per_mwh,scenario,source,forecast_version,created_at
+2026-01-01T00:00:00,-5.0,low,Modo Energy,modo-2026-q2-sample,2026-04-01T00:00:00
+2026-01-01T00:30:00,10.0,low,Modo Energy,modo-2026-q2-sample,2026-04-01T00:00:00
+2026-01-01T01:00:00,15.0,low,Modo Energy,modo-2026-q2-sample,2026-04-01T00:00:00
+2026-01-01T01:30:00,20.0,low,Modo Energy,modo-2026-q2-sample,2026-04-01T00:00:00
+2026-01-01T00:00:00,60.0,central,Modo Energy,modo-2026-q2-sample,2026-04-01T00:00:00
+2026-01-01T00:30:00,72.0,central,Modo Energy,modo-2026-q2-sample,2026-04-01T00:00:00
+2026-01-01T01:00:00,80.0,central,Modo Energy,modo-2026-q2-sample,2026-04-01T00:00:00
+2026-01-01T01:30:00,85.0,central,Modo Energy,modo-2026-q2-sample,2026-04-01T00:00:00
+2026-01-01T00:00:00,120.0,high,Modo Energy,modo-2026-q2-sample,2026-04-01T00:00:00
+2026-01-01T00:30:00,130.0,high,Modo Energy,modo-2026-q2-sample,2026-04-01T00:00:00
+2026-01-01T01:00:00,140.0,high,Modo Energy,modo-2026-q2-sample,2026-04-01T00:00:00
+2026-01-01T01:30:00,150.0,high,Modo Energy,modo-2026-q2-sample,2026-04-01T00:00:00

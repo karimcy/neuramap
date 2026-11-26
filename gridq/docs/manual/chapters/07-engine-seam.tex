@@ -1,0 +1,232 @@
+\chapter{The optimisation engine interface}
+\label{ch:engine}
+
+\modtag{Engine}{The optimisation engine interface}{Deterministic core, integration seam}
+
+This chapter is about a boundary rather than a calculation. The platform's most expensive piece of mathematics is the optimiser that decides how big a battery a site should have and how it should charge and discharge through the year. That optimiser is genuinely hard to build. Everything that comes after it -- the financial model, the three documents, the web application -- is comparatively ordinary software. If the rest of the platform could only be built once the optimiser was finished, nothing would get built until everything got built, and the two would have to be tested together from day one.
+
+The engine interface removes that dependency. It defines a thin, frozen contract: a precise description of what an optimiser is asked and what it must return, with no statement at all about how it computes the answer. Anything that honours the contract is, as far as the rest of the platform is concerned, ``the engine''. That lets the team build and test the entire pricing path against a deliberately fake optimiser -- a stand-in that returns the right \emph{shape} of answer with deliberately worthless \emph{numbers} -- and later swap in the real one without touching a single line of downstream code.
+
+\begin{plainnote}
+Think of a wall socket. An appliance does not know or care what is on the other side of the socket: a power station, a wind turbine, a diesel generator. It only relies on the shape of the plug and the voltage. The engine interface is that socket. Finance and the documents plug into it; behind it sits either a cheap mock or the real optimiser, and the appliance never notices the difference.
+\end{plainnote}
+
+\pipelinepos{receives the validated \textbf{SiteModel} (Ch.~\ref{ch:contracts}) and a versioned \textbf{assumption release} (Ch.~\ref{ch:assumptions}); hands an \textbf{OptimisationResult} to the financial model (Ch.~\ref{ch:finance})}
+
+\section{Why the seam exists}
+
+The platform is built by two people working in parallel. One owns the surrounding platform -- ingestion, schemas, assumptions, finance, the documents, the application. The other owns the optimiser proper: the value stack (Ch.~\ref{ch:valuestack}), the half-hourly dispatch solver (Ch.~\ref{ch:dispatch}), and the sizing search (Ch.~\ref{ch:sizing}). The engine interface is the single agreed line between those two bodies of work.
+
+Because that line is frozen and small, the two halves do not need to meet constantly. They agree the shape of the request and the shape of the result once, and then each works independently against it. The platform half proves the whole pricing path runs end to end -- every document renders, every test passes -- while the optimiser half is still being written, because it runs against the mock. When the real optimiser is ready, the swap is the \emph{only} integration point, and it is guarded by an automated check (Section~\ref{sec:conformance}) rather than by a careful manual review.
+
+\begin{keyidea}[One frozen line, two independent halves]
+The seam is exactly two data shapes -- a request in, a result out -- plus the registry of value-stream names that travel inside them. Freeze those, and the optimiser and everything around it can be built, tested, and shipped on separate clocks. The mock-to-real swap becomes a single, automatically guarded event rather than a long, fragile merge.
+\end{keyidea}
+
+\begin{contract}
+\textbf{Inputs} to the engine, per run:
+\begin{itemize}
+  \item a validated \textbf{SiteModel} -- the canonical site (load, connection, tariff, consents, counterparty);
+  \item a loaded \textbf{assumption release} -- the single versioned source of every number, identified by its version tag;
+  \item an optional \textbf{scenario-set identifier} -- which Low/Central/High case bundle to solve against (Ch.~\ref{ch:scenarios}).
+\end{itemize}
+\textbf{Outputs}:
+\begin{itemize}
+  \item an \textbf{OptimisationRequest} -- the assembled envelope the engine will solve (built from the three inputs above);
+  \item an \textbf{OptimisationResult} -- the chosen battery size, the per-stream value, firmness flags, gated upside, solver status, and a provenance stamp. Its exact field list is the frozen contract in Ch.~\ref{ch:contracts}.
+\end{itemize}
+The engine \emph{never} writes a quote, never reads a file, never touches finance. It is a pure function from a request to a result.
+\end{contract}
+
+\section{The interface: two operations}
+
+The contract is deliberately tiny. An engine is anything that offers two operations, in this order.
+
+\begin{enumerate}
+  \item \textbf{Build a request.} Given a SiteModel, an assumption release, and an optional scenario-set name, assemble the self-contained \emph{request envelope} the engine will then solve. The envelope bundles the site, the assumption version it is pinned to, the scenario set, the list of value streams to evaluate, and a flag naming which engine the request targets. Pinning the assumption version \emph{into} the request is what makes the run reproducible: the result can later be traced back to the exact numbers that produced it (Ch.~\ref{ch:provenance}).
+  \item \textbf{Solve.} Given that request, return a schema-valid OptimisationResult.
+\end{enumerate}
+
+Two rules give the interface its strength and are worth stating plainly.
+
+\begin{description}
+  \item[An engine must not crash on thin data.] If a site is too sparse to size a system, the engine does not raise an error. It returns a perfectly valid result whose solver status says \code{insufficient\_data} and whose battery size is simply absent. This is the platform's ``degrade honestly'' principle (Ch.~\ref{ch:overview}) expressed at the engine boundary: the pipeline always gets an answer to consume, even when the answer is ``not enough information to size anything''.
+  \item[An engine reports problems in the result, not by failing.] Warnings, binding constraints, and gate states all travel \emph{inside} the result as data. Downstream code reads them; it is never asked to catch an exception to learn that a stream could not be priced.
+\end{description}
+
+\begin{caution}[The interface is a Protocol, not a base class]
+An engine does not inherit from anything. It simply \emph{has} the two operations with the right shapes. This is structural typing: the real optimiser, written in an entirely separate package, is an engine the moment it offers \code{build\_optimisation\_request} and \code{solve} with matching signatures. There is no shared parent to import, and therefore no hidden coupling between the platform and the optimiser beyond the two data shapes. It is implemented in the codebase as a runtime-checkable \fpath{Protocol} in \fpath{engine/interface.py}.
+\end{caution}
+
+\section{The integration-only baseline engine}
+
+To build the platform before the optimiser exists, the team ships a fake engine that honours the interface and nothing more. It is called the \emph{baseline} engine, and its single job is to prove the plumbing: that a SiteModel can flow in, a result can flow out, finance can consume it, and the documents can render -- all end to end, with no real optimiser anywhere.
+
+The baseline engine is built to be \emph{useless as economics and complete as plumbing}. Every result it returns carries two indelible flags: an implementation level of \code{baseline} and a bankable status of \code{not\_bankable}. It prices nothing: every value stream comes back at zero revenue and zero cost, marked excluded or, for the gated-upside streams, conditional. Its battery ``size'' is a crude placeholder -- a tenth of the site's peak import power, held for two hours -- computed by an in-code rule of thumb that is deliberately \emph{not} drawn from the assumption library, precisely so that no one can ever mistake it for a calibrated value.
+
+\begin{caution}[Never read a baseline number as real]
+The baseline figures are integration scaffolding, not advice. The ten-percent-of-peak sizing and the two-hour duration exist only to give the pipeline a non-empty shape to carry. The contract enforces the warning at the type level: a baseline-level result may never claim to be a bankable candidate, and the conformance suite (Section~\ref{sec:conformance}) has an explicit check that a baseline result is always \code{not\_bankable}. This is the ``never spoof a real engine'' guard.
+\end{caution}
+
+What the baseline engine does honestly is degrade. If a site has no usable peak-import figure, it cannot size even a placeholder, so it returns no size at all and sets its status to \code{insufficient\_data} with a plain warning saying why. That is the same honest-degradation behaviour the real engine must show, exercised here so the downstream code that handles ``no system'' is tested long before the real optimiser arrives.
+
+\begin{table}[H]
+\centering
+\caption{What the baseline engine puts in every result, and why.}
+\label{tab:baseline}
+\small\sffamily
+\begin{tabularx}{\textwidth}{@{}l L@{}}
+\toprule
+\textbf{Field} & \textbf{Baseline value and reason} \\
+\midrule
+Implementation level & \code{baseline} -- a permanent ``this is not a real engine'' marker. \\
+Bankable status & \code{not\_bankable} -- enforced; a baseline result can never be a bankable candidate. \\
+Selected size & A tenth of peak import power, held two hours; or absent when peak import is missing. \\
+Value streams & Every requested non-gated stream at zero, marked \emph{excluded}, ``not priced yet''. \\
+Gated upside & The three gated streams at zero, marked \emph{conditional}, each with a placeholder unlock condition. \\
+Solver status & \code{baseline} when sized, \code{insufficient\_data} when peak import is missing. \\
+Provenance stamp & Model version ``baseline'', plus the assumption and code versions of the run. \\
+Warnings & Always state, in words, that this is plumbing only and not bankable. \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\section{The seam at a glance}
+
+Figure~\ref{fig:seam} is the whole boundary. The same request flows into one of two interchangeable engines -- the mock or the real optimiser -- and out comes a result whose \emph{shape} is identical either way. The conformance gate sits across the swap: it is the thing that lets the platform trust a freshly written real engine without re-testing everything downstream.
+
+\begin{figure}[H]
+\centering
+\resizebox{\textwidth}{!}{%
+\begin{tikzpicture}[node distance=9mm and 16mm]
+  % inputs
+  \node[store] (site) {\textbf{SiteModel}\\\scriptsize validated site (Ch.~\ref{ch:contracts})};
+  \node[store, below=of site] (assum) {\textbf{Assumption release}\\\scriptsize versioned numbers (Ch.~\ref{ch:assumptions})};
+
+  % build request
+  \node[proc, right=of site, yshift=-7mm] (build) {\textbf{build request}\\\scriptsize bundle + pin\\\scriptsize assumption version};
+  \node[io, right=of build] (req) {\textbf{Optimisation\\Request}\\\scriptsize self-contained envelope};
+
+  % the two interchangeable engines
+  \node[proc, right=of req, yshift=8mm, draw=nodeProcessBd] (mock)
+     {\textbf{BaselineEngine}\\\scriptsize mock: shape only,\\\scriptsize never bankable};
+  \node[ext, below=of mock] (real)
+     {\textbf{Real MILP engine}\\\scriptsize M2/M3/M4 behind the\\\scriptsize same interface};
+
+  % conformance gate
+  \node[decide, right=of mock, yshift=-7mm] (conf)
+     {\textbf{conformance}\\\scriptsize same shape?\\\scriptsize deterministic?};
+
+  % output + consumers
+  \node[io, right=of conf] (res) {\textbf{Optimisation\\Result}\\\scriptsize size + value + firmness\\\scriptsize + status + stamp};
+  \node[proc, below=of res, minimum width=42mm, text width=40mm] (fin)
+     {\textbf{Finance \& outputs}\\\scriptsize (Ch.~\ref{ch:finance}, Ch.~\ref{ch:outputs})\\\scriptsize no code change either way};
+
+  % arrows
+  \draw[flow] (site.east) to[out=0,in=180] (build.west);
+  \draw[flow] (assum.east) to[out=0,in=180] (build.west);
+  \draw[flow] (build) -- (req);
+  \draw[flow] (req.east) to[out=0,in=180] (mock.west);
+  \draw[flow] (req.east) to[out=0,in=180] (real.west);
+  \draw[flow] (mock.east) to[out=0,in=180] (conf.west);
+  \draw[flow] (real.east) to[out=0,in=180] (conf.west);
+  \draw[flow] (conf) -- (res);
+  \draw[flow] (res) -- (fin);
+
+  % grouping: the interchangeable engines sit behind one interface
+  \begin{scope}[on background layer]
+    \node[groupbox, fit=(mock)(real), inner sep=6pt,
+          label={[note,anchor=south]north:one interface, two implementations}] {};
+  \end{scope}
+\end{tikzpicture}}
+\caption{The engine seam. A request is built by pinning a SiteModel and an assumption release together, then solved by either the integration-only mock or the real MILP optimiser -- both behind one interface. The conformance gate guards the swap: it checks that the result has the same shape and is deterministic, not that the numbers match. Finance and the documents consume the result with no code change whichever engine produced it.}
+\label{fig:seam}
+\end{figure}
+
+\section{Conformance: guarding the swap}
+\label{sec:conformance}
+
+The swap from mock to real engine is the platform's single riskiest moment. A subtly wrong real engine -- one that, say, returns a result on a slightly different schema, or labels a gated speculative stream as firm contracted income -- could poison every document downstream while every test still appeared green. The \emph{conformance suite} exists to make that impossible. It is an executable checklist that any engine, mock or real, must pass before it is trusted.
+
+The single most important thing to understand about conformance is what it does \emph{not} check.
+
+\begin{keyidea}[Conformance checks the contract, never the numbers]
+The real optimiser will legitimately produce different battery sizes and different revenues than the mock -- that is the entire point of replacing the mock. So conformance never asserts that any number matches. It asserts that the result has the \emph{same schema}, uses the \emph{same stream vocabulary}, obeys the contract's invariants, and is \emph{deterministic}. Pass it, and the guarantee is: ``downstream needs no code change and stays reproducible'', not ``the answer is the same''.
+\end{keyidea}
+
+The suite runs in two layers. The first inspects a single result against the contract's invariants. The second drives a whole engine across a small set of representative sites and additionally checks determinism. Crucially, the suite depends only on the frozen contracts and the engine interface -- not on the platform or the test framework -- so the optimiser's author can run the \emph{exact same} checks against the real engine in its own package, with one line of code.
+
+\begin{table}[H]
+\centering
+\caption{What the conformance suite actually checks. None of these is a numeric equality.}
+\label{tab:conformance}
+\small\sffamily
+\begin{tabularx}{\textwidth}{@{}l L@{}}
+\toprule
+\textbf{Check} & \textbf{What it guarantees} \\
+\midrule
+Re-validates & The result survives a round trip through its own schema; no stray or mistyped fields. \\
+Schema version pin & The result is on the frozen contract version, not a drifted one. \\
+Run stamped & The result carries a non-empty engine, assumption, and code version -- it is traceable. \\
+Request echo & The result names the request it answered, so finance can correlate the two by identity. \\
+Registry membership & Every reported stream is a known name in the value-stream registry. \\
+No duplicate streams & No stream is reported twice within a list, which would double-count in finance. \\
+Gated-upside hygiene & Only the three gated streams appear in the gated list, and none is ever marked firm. \\
+Gated never in the floor & A gated stream is never firm \emph{or} contracted, so it can never enter priced revenue. \\
+Gated states its unlock & Each gated stream says, in words, what would let it be priced. \\
+Baseline not bankable & A baseline-level result is always \code{not\_bankable} (the anti-spoof guard). \\
+Sizing coherence & Power and energy travel together: both present, both zero, or both absent. \\
+Status vs.\ spec & A no-solve status (infeasible or insufficient data) carries no battery size. \\
+Determinism & Solving the same request twice gives the same result, ignoring wall-clock fields. \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+Several of these checks have ``teeth beyond the schema'' -- they catch drift the field-level validation alone would let through. The schema bars a gated stream from being \emph{firm}, but it would happily accept a gated stream labelled \emph{contracted}; conformance closes that gap, because a contracted gated stream would silently inflate the priced revenue floor. Likewise the schema only forbids a baseline result from claiming the strongest bankable label, while conformance forbids it from claiming \emph{any} bankable label. And the determinism check is something no single-result inspection could ever catch: it solves twice and compares.
+
+\begin{plainnote}[Why determinism, not equality]
+When comparing two solves of the same request, the suite ignores the fields that an honest engine is allowed to vary between runs without breaking reproducibility: the wall-clock timestamp, the measured solve time, the per-run identity tag, and the pointer to the off-contract dispatch schedule. Everything economic -- the size, the values, the firmness, the status, the versions -- must be byte-for-byte identical. That is the precise, testable meaning of ``the engine is deterministic''.
+\end{plainnote}
+
+The representative sites the suite drives an engine across are built from the schema itself, never hand-written, so they stay valid as the contract evolves. They cover three branches every engine must handle: a full validated site that should size cleanly, a partial site that should still size, and a coarse annual-only site with no peak-import figure that must trigger the insufficient-data path. An engine that raises an exception on any of these valid sites fails conformance: the suite records the exception as a failed check rather than letting it propagate, so a drifting engine shows \emph{all} its violations at once.
+
+\section{The optional hooks a real engine may expose}
+
+The frozen result deliberately carries only the headline economics: the chosen size and the per-stream value. The optimiser, however, computes far more along the way -- the full half-hourly dispatch, every sizing candidate it evaluated, the precise charge and discharge volumes. Some of that detail is useful downstream: finance needs the annual charge volume to apply levies, and the application wants to plot the sizing surface and a representative dispatch day. But none of it belongs \emph{on} the frozen result, because the mock cannot produce it and the contract must stay small.
+
+The platform resolves this with \emph{optional hooks}. A real engine may expose three extra methods; the platform reads each one \emph{defensively}, so a mock that lacks them works exactly as before, with no downstream change. The pattern is uniform: ask the engine whether it offers the hook; if it does, use what it returns; if not, leave the corresponding detail absent and carry on honestly.
+
+\begin{table}[H]
+\centering
+\caption{The three optional hooks, read defensively so a mock without them still works.}
+\label{tab:hooks}
+\small\sffamily
+\begin{tabularx}{\textwidth}{@{}l L L@{}}
+\toprule
+\textbf{Hook} & \textbf{What it returns} & \textbf{What it feeds} \\
+\midrule
+Selected dispatch energy & The chosen system's annual charge and discharge volumes (kWh). & Finance's levies-on-charge and price-to-target lines (Ch.~\ref{ch:finance}); absent on the mock, so those lines stay honestly unavailable. \\
+Full evaluated sizing grid & Every power-by-duration candidate the search evaluated, each with its return and covenant feasibility, plus the chosen optimum. & The 3D sizing surface in the application (Ch.~\ref{ch:sizing}, Ch.~\ref{ch:app}). \\
+Representative dispatch day & One real solved day of half-hourly charge, discharge, state of energy, load, and price. & The dispatch chart in the application (Ch.~\ref{ch:dispatch}, Ch.~\ref{ch:app}). \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\begin{caution}[Hooks are additive, never on the frozen seam]
+The hooks live \emph{beside} the result, not inside it. Reading them defensively is what keeps the seam frozen: adding a hook to the real engine never changes the OptimisationResult shape, never trips conformance, and never forces a code change in any consumer that does not want the extra detail. The detail that the hooks expose carries no invented numbers either -- the sizing grid copies each candidate's real evaluated figures, and the representative day is one genuine solved day chosen deterministically, never an average or a synthesised shape.
+\end{caution}
+
+\begin{rebuild}[How to rebuild the engine seam]
+\begin{enumerate}
+  \item \textbf{Define the two data shapes first.} Freeze an \emph{OptimisationRequest} (site, pinned assumption version, scenario set, requested streams, target-engine flag) and an \emph{OptimisationResult} (chosen power/energy/duration, per-stream value with firmness, gated upside, binding constraints, solver status, a version stamp, warnings). Pin both to a schema version. Ship the value-stream name registry alongside them; an unknown stream name is a validation error, not a pass-through.
+  \item \textbf{Declare the interface as a structural Protocol.} Two operations only: \emph{build a request} from (site, assumptions, optional scenario set), and \emph{solve} a request into a result. No base class. Require that solving never raises on a valid site; thin data is reported via the solver status and warnings.
+  \item \textbf{Write the integration-only mock.} Have it build a request that asks for every stream, then return a result that is \emph{shape-complete and value-empty}: a placeholder size from an in-code rule of thumb (not from the assumption library), every stream at zero, implementation level \code{baseline}, bankable status \code{not\_bankable}, and a real provenance stamp. Make it degrade honestly: no peak-import figure means no size and an \code{insufficient\_data} status.
+  \item \textbf{Write the conformance suite against the contracts only.} One layer of invariants on a single result (re-validates, schema-version pin, run stamped, request echo, registry membership, no duplicates, gated-upside hygiene, gated never in the priced floor, gated states its unlock, baseline-never-bankable, sizing coherence, status-vs-spec). One layer that drives an engine across schema-built representative sites (full, partial, annual-only) and solves twice to check determinism, ignoring only wall-clock and identity fields. Record raised exceptions as failures; never assert numbers.
+  \item \textbf{Read the optional hooks defensively.} Where the platform wants engine detail beyond the result -- annual charge/discharge energy, the full sizing grid, a representative dispatch day -- ask the engine whether it offers the hook and use it only if present. A mock without the hook must leave the detail absent with no other change.
+  \item \textbf{Test:} the mock passes conformance; a deliberately broken engine (drifted schema, a firm gated stream, a non-deterministic solve, a bankable baseline) fails the matching check; the full pipeline runs end to end on the mock; and switching to a real engine that passes conformance requires no edit to finance, outputs, or the application.
+\end{enumerate}
+\end{rebuild}
+
+\begin{keyidea}[The one thing to remember]
+The engine is reached only through a frozen request-in, result-out contract; the integration-only mock holds that contract today and is always \code{not\_bankable}; and a single, numbers-blind conformance suite lets the real optimiser drop in behind the same contract with no downstream change. The seam guarantees \emph{sameness of shape and reproducibility}, never sameness of answer.
+\end{keyidea}

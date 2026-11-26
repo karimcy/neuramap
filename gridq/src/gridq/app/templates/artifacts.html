@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% block title %}Memo &amp; proposal · {{ quote.quote_id }} - GridQ{% endblock %}
+{% block statusstrip %}{% include "_statusbar.html" %}{% endblock %}
+{% block content %}
+<h1>Underwriting pack &amp; customer proposal</h1>
+<p class="lede">The two bankable artifacts, rendered by <code>gridq.outputs</code> straight from this run
+  record and served unchanged. Every figure matches the record exactly - the interface adds nothing.</p>
+
+{% if is_demo %}
+<div class="demobanner" style="margin-bottom:1rem">
+  <span class="badge badge-demo">DEMO</span>
+  <span>Illustrative proposal on synthetic inputs - clearly not a real customer offer.</span>
+</div>
+{% endif %}
+
+<iframe class="report-frame" title="GridQ underwriting pack &amp; customer proposal"
+        srcdoc="{{ report_html }}"></iframe>
+
+<p class="muted" style="margin-top:1rem">Back to <a href="/run/{{ nav_quote_id }}">the run inspection</a>.</p>
+{% endblock %}

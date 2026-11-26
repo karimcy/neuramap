@@ -1,0 +1,42 @@
+{
+ "contract": "IC-14",
+ "contract_version": "1.0.0",
+ "tenant": {
+  "kind": "tenant_key",
+  "org_id": "SYNTHETIC-ORG-HYBRID",
+  "org_kind": "customer",
+  "site_id": "SYNTHETIC-SITE-HYBRID"
+ },
+ "site_id": "SYNTHETIC-SITE-HYBRID",
+ "series_id": "SYNTHETIC-ORG-HYBRID/SYNTHETIC-SITE-HYBRID/site_boundary.main.active_power.revenue_meter.whole",
+ "data_class": "customer_commercial",
+ "record_class": "synthetic_fixture",
+ "kind": "dq_annotation",
+ "annotation_id": "SYNTHETIC-DQ-0001",
+ "monitor_id": "SYNTHETIC-MONITOR-FLATLINE",
+ "monitor_version": "0.0.0-synthetic",
+ "detector_hash": "sha256:d21898817e29b55404056ca9fc8adc69d5437f2b9c786bf8b5bfe975f81303bd",
+ "finding": "flatline",
+ "disposition": "asserted",
+ "start": "2027-01-04T16:15:00Z",
+ "end": "2027-01-04T16:16:00Z",
+ "evidence": [
+  {
+   "kind": "raw_span",
+   "series_id": "SYNTHETIC-ORG-HYBRID/SYNTHETIC-SITE-HYBRID/site_boundary.main.active_power.revenue_meter.whole",
+   "sender_id": "SYNTHETIC-EDGE-HYBRID-01",
+   "stream_epoch": 0,
+   "first_seq": 15,
+   "last_seq": 15,
+   "first_prev_hash": "sha256:e974c29e1c4b873d87909f717afc094551ea8de45a9a73622f720cde0b245afa",
+   "last_batch_hash": "sha256:d8467a494550657f675169ece7dc0ba6302e2364bd1339e5ae38e265ce305993",
+   "start": "2027-01-04T16:15:00Z",
+   "end": "2027-01-04T16:16:00Z"
+  }
+ ],
+ "supersedes": {
+  "kind": "not_applicable",
+  "reason": "synthetic fixture: first assertion"
+ },
+ "issued_at": "2027-01-04T16:17:00Z"
+}

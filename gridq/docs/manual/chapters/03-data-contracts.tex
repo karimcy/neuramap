@@ -1,0 +1,281 @@
+\chapter{Data contracts and the SiteModel}
+\label{ch:contracts}
+
+\modtag{M1}{SiteModel and data contracts}{Deterministic core, shared contract}
+
+Every other chapter in this manual moves data from one stage to the next. This chapter defines what that data \emph{is}. A ``data contract'' is simply an agreed, strict description of a piece of information: exactly which fields it has, what type each field is, what counts as valid, and what the values mean. The whole platform is built on a small set of these contracts, and the most important of them is the \textbf{SiteModel}: the single, validated description of one commercial site that everything downstream reads.
+
+The reason to take contracts this seriously is the platform's central promise -- that the system specification, the lender's underwriting pack, and the customer proposal cannot disagree. Three documents stay consistent only because they all draw from one calculation record, and that record is only trustworthy if every shape inside it is pinned down. A loose schema lets a typo become a silent zero, or lets one module assume a field means kilowatts while another reads kilovolt-amperes. A strict schema turns those mistakes into loud, immediate validation errors instead of quiet wrong numbers in a bankable document.
+
+\begin{plainnote}
+Think of the SiteModel as the form a site has to fully fill in before the engine will price it. The form refuses unknown boxes, refuses nonsense values, and records honestly which boxes are still blank. Nothing further down the pipeline ever re-reads the messy original inputs; it reads this clean form.
+\end{plainnote}
+
+\pipelinepos{Ingestion (M0, Chapter~\ref{ch:ingestion}) produces a validated \emph{SiteModel}; this chapter defines that shape and the other record shapes the rest of the pipeline (optimisation, finance, quote, telemetry) reads and writes.}
+
+\begin{contract}[Inputs and outputs of the contract layer]
+\textbf{Consumes:} nothing it computes itself. The schema layer holds no pricing logic and no assumptions; it is pure shape and validation.\\[2pt]
+\textbf{Provides:} the definitions every other module imports -- the \emph{SiteModel} and its sub-records, the \emph{OptimisationRequest}/\emph{OptimisationResult} pair, \emph{FinancialCase}, \emph{QuoteRecord}, \emph{TelemetryEvent}, and the shared enumerations and base model. Each is a validated object that either constructs cleanly or raises a precise error.
+\end{contract}
+
+\section{One strict schema, and why}
+
+Every contract in the platform inherits from a single shared base model. That base does three jobs, and all three are guarantees rather than conveniences.
+
+\begin{enumerate}
+  \item \textbf{It forbids unknown fields.} If a value arrives under a field name the contract does not declare -- a typo, a renamed field, a stray key from an old format -- construction fails rather than silently dropping the value. A misspelled \code{annual\_consuption\_kwh} is an error, not a quietly ignored figure.
+  \item \textbf{It validates types and ranges on the way in.} Numbers that must not be negative are checked at the boundary (most energy, power and money fields are constrained to be at least zero). Enumerated fields accept only their known set of strings; an unrecognised value is rejected, never passed through.
+  \item \textbf{It carries a schema version.} Every record stamps the version of the contract it was built against. The contracts are versioned as one shared number, not a separate tag per record, so a change to any shape is a deliberate, visible event.
+\end{enumerate}
+
+\begin{keyidea}[Strict by construction]
+A contract that silently tolerates surprises cannot underpin a determinism guarantee. By forbidding unknown fields, checking ranges, and closing every enumeration, the schema layer makes ``the inputs were what we thought they were'' a property the code enforces, not a hope. A bad input fails loudly at the door instead of becoming a wrong number deep in a document.
+\end{keyidea}
+
+Two zones of the platform meet at these contracts. The deterministic core (Chapter~\ref{ch:overview}) reads and writes them as pure data. The agentic perimeter -- the AI-assisted intake and drafting -- is only ever allowed to \emph{fill in} a contract, which is then validated and confirmed by a person before any number is computed from it. The contract is the wall: prose-writing tools propose field values; the validator decides whether they are admissible.
+
+\section{The SiteModel: the canonical site}
+
+The SiteModel is the frozen input contract for the entire pricing path. Ingestion builds exactly one per site; the optimiser, the financial model and the outputs all read it and never re-open the raw installer files. It is a composite: a handful of identity fields at the top, then six required sub-records that each describe one facet of the site, plus two optional bundles added later without breaking existing sites.
+
+\begin{table}[H]
+\centering
+\caption{The sections of the SiteModel and what each one carries.}
+\label{tab:sitemodel}
+\small\sffamily
+\begin{tabularx}{\textwidth}{@{}l L@{}}
+\toprule
+\textbf{Section} & \textbf{What it holds} \\
+\midrule
+Identity & Stable site id, optional human name, postcode, country (defaults to GB), and the \textbf{data tier} (T0--T2) assigned at intake. \\
+Load data & The site's electricity demand: an annual total and/or a half-hourly meter trace, with coverage metadata (row count, start/end dates, missing intervals, peak import/export) and any validation warnings. \\
+Tariff stack & The full pricing picture: standing charge, labelled import and export rates, the three time-of-use DUoS distribution bands (red/amber/green), and the levy lines, each as a non-negative price per kWh. \\
+Connection & The grid connection's capacity limits -- MIC, MEC and ASC -- plus voltage level, distribution region, and the signed import/export headroom margins. \\
+Consents & The grid and supplier permissions: the G98/G99/G100 connection consents, the export meter point (MPAN), and the DNO and supplier application states. \\
+Physical gates & Tri-state pass/fail inputs for whether the battery can physically be installed: footprint, fire separation, access, and any planning or landlord issue. \\
+Counterparty & Who the customer is: legal name and form, sector, a coarse credit standing, and expected tenure. \\
+Supply boundary & The metering/contractual perimeter -- import MPAN, a behind-the-meter flag, the metering arrangement. Optional; defaults to all-unknown. \\
+Confidentiality & How the site's data is held: recorded NDA state and an optional personal-data override. Optional; defaults to all-unknown. \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+Figure~\ref{fig:sitemodel} shows the SiteModel as the sum of these records. The rest of this section walks the sections that carry rules worth knowing.
+
+\begin{figure}[H]
+\centering
+\resizebox{0.96\textwidth}{!}{%
+\begin{tikzpicture}[node distance=6mm and 9mm]
+  \node[store, minimum width=40mm, text width=38mm] (site)
+     {\textbf{SiteModel}\\\scriptsize one validated site\\\scriptsize (the frozen input contract)};
+
+  % left column of sub-records
+  \node[io, above left=10mm and 18mm of site, text width=27mm, minimum width=29mm] (load)
+     {\textbf{Load data}\\\scriptsize annual + half-hourly trace};
+  \node[io, left=of site, text width=27mm, minimum width=29mm] (tariff)
+     {\textbf{Tariff stack}\\\scriptsize rates, DUoS bands, levies};
+  \node[io, below left=10mm and 18mm of site, text width=27mm, minimum width=29mm] (conn)
+     {\textbf{Connection}\\\scriptsize MIC \textperiodcentered{} MEC \textperiodcentered{} ASC};
+
+  % right column of sub-records
+  \node[io, above right=10mm and 18mm of site, text width=27mm, minimum width=29mm] (consent)
+     {\textbf{Consents}\\\scriptsize G98/G99/G100, export MPAN};
+  \node[io, right=of site, text width=27mm, minimum width=29mm] (gates)
+     {\textbf{Physical gates}\\\scriptsize pass/fail install inputs};
+  \node[io, below right=10mm and 18mm of site, text width=27mm, minimum width=29mm] (party)
+     {\textbf{Counterparty}\\\scriptsize identity + coarse credit};
+
+  % optional bundles below
+  \node[io, below=14mm of site, text width=60mm, minimum width=62mm, fill=gridqMist, draw=gridqGrey] (opt)
+     {\textbf{Supply boundary} \& \textbf{Confidentiality}\\\scriptsize optional, default to all-unknown};
+
+  \draw[flow] (load) -- (site);
+  \draw[flow] (tariff) -- (site);
+  \draw[flow] (conn) -- (site);
+  \draw[flow] (consent) -- (site);
+  \draw[flow] (gates) -- (site);
+  \draw[flow] (party) -- (site);
+  \draw[flow] (opt) -- (site);
+
+  \begin{scope}[on background layer]
+    \node[groupbox, fit=(load)(tariff)(conn)(consent)(gates)(party)(site)(opt),
+          inner sep=8pt] {};
+  \end{scope}
+\end{tikzpicture}}
+\caption{The SiteModel is composed of six required sub-records plus two optional bundles. Each is itself a validated contract; the composite validates only when every part does. There is deliberately no archetype field -- the engine reasons from these records, not from a label.}
+\label{fig:sitemodel}
+\end{figure}
+
+\subsection{Load: the half-hourly demand}
+
+A site's electricity demand is the single most important input. The load section can carry an annual energy total (the coarse view) and a reference to a half-hourly meter trace (the detailed view: forty-eight readings per day, roughly 17{,}520 per year). Alongside the trace it records coverage metadata -- how many rows were read, the window they span, how many intervals are missing, and the observed peak import and export. A derived check, ``has half-hourly coverage'', is true only when the row count and both dates are present; this check is what the data tier validator leans on.
+
+\subsection{Connection: MIC, MEC and ASC}
+
+The connection record states how much power the site is contractually allowed to draw from and push to the grid. Three capacities matter:
+
+\begin{itemize}
+  \item \textbf{MIC} -- maximum import capacity, the most the site may import.
+  \item \textbf{MEC} -- maximum export capacity, the most it may export.
+  \item \textbf{ASC} -- available supply capacity, the agreed supply allowance.
+\end{itemize}
+
+These three set the ceilings the battery must dispatch within, and the headroom between a capacity and the site's peak is itself a value stream (Chapter~\ref{ch:valuestack}). Two headroom fields record that margin and are a deliberate exception to the ``no negative numbers'' rule: a negative headroom is meaningful, signalling an over-subscribed connection. In real-world contracts MIC/MEC/ASC are stated in kilovolt-amperes (apparent power); the v1 contract names and treats them as kilowatts and deliberately collapses that distinction. The glossary keeps the precise definitions (see Appendix~\ref{app:glossary}).
+
+\subsection{Tariff: rates, DUoS bands and levies}
+
+The tariff stack is the full cost-of-electricity picture, not just a single unit rate. It holds a daily standing charge, dictionaries of labelled import and export rates, the three time-banded DUoS distribution charges (the red, amber and green bands that make peak-hour electricity dearer than off-peak), and a dictionary of levy lines (the policy charges such as the Renewables Obligation that ride on every kWh). Every rate and levy is a price per kWh and must be non-negative; a negative rate is rejected at the door. Keeping the bands and levies explicit is what lets the value stack later reason about avoiding the red band rather than averaging it away.
+
+\subsection{Consents: G98, G99, G100 and the export meter}
+
+Connecting a battery to the grid needs the distribution operator's permission, and which permission depends on size and export. The consents record tracks the state -- not started, applied, approved, rejected, not required, or unknown -- of three connection consents: \textbf{G98} (the simpler notification for smaller installs), \textbf{G99} (the fuller application, the export-side consent for larger ones), and \textbf{G100} (the export-limitation scheme). It also records the export meter point (the export MPAN) and the separate states of the DNO and supplier applications. These are recorded states, never assumed: an unknown consent stays unknown.
+
+\subsection{Physical gates: can it actually be built}
+
+A battery that pencils out financially is worthless if it cannot be installed. The physical-gate record carries tri-state pass/fail inputs -- is there footprint, is fire separation acceptable, is there access, is there a planning or landlord issue -- where each may be true, false, or unknown. The schema only \emph{holds} these inputs; the thresholds and the actual gating decision live in the value and constraint stack (Chapter~\ref{ch:valuestack}). Leaving the values as a clean tri-state lets ``unknown'' propagate honestly into a data-ask rather than being coerced to a pass or a fail.
+
+\subsection{Counterparty, supply boundary and confidentiality}
+
+The counterparty record names the customer -- legal name and form, sector, a coarse credit standing, expected tenure -- but holds \emph{no} pricing. The credit-score to interest-rate and tenor mapping is deterministic finance logic and lives in the financial model (Chapter~\ref{ch:finance}); the SiteModel only carries the coarse status as an input to it. The two optional bundles -- supply boundary and confidentiality -- record the metering perimeter and the data-handling state (NDA status, personal-data treatment). They default to all-unknown so a site built before they existed still validates unchanged, which is the pattern the platform uses for every additive field.
+
+\subsection{Validation rules that actually fire}
+
+Most of the SiteModel's discipline is in the per-field type and range checks, but two whole-record rules tie the data tier to the evidence behind it:
+
+\begin{table}[H]
+\centering
+\caption{The SiteModel's record-level validation rules.}
+\label{tab:sitevalid}
+\small\sffamily
+\begin{tabularx}{\textwidth}{@{}l L@{}}
+\toprule
+\textbf{Rule} & \textbf{What it enforces} \\
+\midrule
+T2 needs coverage & A site graded T2 (full, validated half-hourly) must actually have half-hourly coverage metadata -- row count and both dates present -- or construction fails. \\
+T0 needs a total & A site graded T0 (coarse) must have an annual consumption figure somewhere (top-level or in the load record), or construction fails. \\
+No stray fields & Any unknown field, including an \code{archetype}, is rejected (the forbid-unknown rule). \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\begin{caution}[No archetype field, on purpose]
+There is deliberately no \code{archetype} or site-type field anywhere in the SiteModel. The platform never classifies a site into a template (``a cold store'', ``a bakery'') and then prices the template. The engine reasons from the site's own load, tariff and connection. Because unknown fields are forbidden, an attempt to smuggle an archetype in is a validation error, not a silent extra. This is the schema-level expression of the platform's ``runs any site from its own data'' rule.
+\end{caution}
+
+\section{The other contracts, and the two that are frozen}
+
+The SiteModel is the input; the pricing path produces and consumes six more record shapes on the way to finished documents. Table~\ref{tab:contracts} names them and the stage that owns each. Two of these are the \textbf{frozen shared contracts} -- the seams between the underwriting side and the optimisation side of the team. Changing either is a deliberate, versioned event that re-runs a conformance test, because a change ripples across both halves of the platform.
+
+\begin{table}[H]
+\centering
+\caption{The data contracts of the pipeline, who produces and consumes each, and which two are the frozen shared seams.}
+\label{tab:contracts}
+\small\sffamily
+\begin{tabularx}{\textwidth}{@{}l L l@{}}
+\toprule
+\textbf{Contract} & \textbf{Role: produced $\rightarrow$ consumed} & \textbf{Status} \\
+\midrule
+\textbf{SiteModel} & Ingestion (M0) builds it $\rightarrow$ every downstream stage reads it. & \textbf{Frozen seam} \\
+OptimisationRequest & The underwriting side wraps a SiteModel + assumptions + requested streams $\rightarrow$ the engine reads it. & Input envelope \\
+\textbf{OptimisationResult} & The engine returns it $\rightarrow$ finance and outputs read it. & \textbf{Frozen seam} \\
+FinancialCase & The financial model builds it around a result $\rightarrow$ the quote and outputs read it. & Output record \\
+QuoteRecord & Assembly binds site + result + finance into it $\rightarrow$ outputs render from it. & Output record \\
+TelemetryEvent & Every stage logs one $\rightarrow$ the benchmark and dashboards read them. & Log record \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+Figure~\ref{fig:backbone} is the data-contract backbone of the whole platform: it shows each contract sitting at the seam between two stages, so a later chapter can point at one box and say ``this is the shape I receive and the shape I hand on''.
+
+\begin{figure}[H]
+\centering
+\resizebox{\textwidth}{!}{%
+\begin{tikzpicture}[node distance=7mm and 13mm]
+  % stages along the spine (processes)
+  \node[proc] (ingest) {\textbf{Ingestion}\\\scriptsize M0};
+  \node[proc, right=of ingest] (engine) {\textbf{Optimiser}\\\scriptsize M2/M3/M4};
+  \node[proc, right=of engine] (finance) {\textbf{Financial}\\\textbf{model}\\\scriptsize M5};
+  \node[proc, right=of finance] (assembly) {\textbf{Assembly}\\\scriptsize X.2};
+  \node[proc, right=of assembly] (outputs) {\textbf{Outputs}\\\scriptsize M8};
+
+  % the contracts flowing between them (data, on the spine)
+  \node[store, below=10mm of ingest, draw=nodeStoreBd, fill=nodeStore, text width=26mm, minimum width=28mm] (site)
+     {\textbf{SiteModel}\\\scriptsize frozen seam};
+  \node[io, below=10mm of engine, text width=26mm, minimum width=28mm] (req)
+     {\textbf{Optimisation}\\\textbf{Request}\\\scriptsize envelope};
+  \node[store, below=10mm of finance, draw=nodeStoreBd, fill=nodeStore, text width=26mm, minimum width=28mm] (res)
+     {\textbf{Optimisation}\\\textbf{Result}\\\scriptsize frozen seam};
+  \node[io, below=10mm of assembly, text width=26mm, minimum width=28mm] (fin)
+     {\textbf{Financial}\\\textbf{Case}};
+  \node[store, below=10mm of outputs, text width=26mm, minimum width=28mm] (quote)
+     {\textbf{Quote}\\\textbf{Record}};
+
+  % spine flow between stages
+  \draw[flow] (ingest) -- (engine);
+  \draw[flow] (engine) -- (finance);
+  \draw[flow] (finance) -- (assembly);
+  \draw[flow] (assembly) -- (outputs);
+
+  % stage produces / consumes contract (vertical seams)
+  \draw[flow] (ingest) -- (site);
+  \draw[flow] (site.east) to[out=0,in=180] (req.west);
+  \draw[flow] (req) -- (engine);
+  \draw[flow] (engine) -- (res);
+  \draw[flow] (res.east) to[out=0,in=180] (fin.west);
+  \draw[flow] (finance) -- (fin);
+  \draw[flow] (fin) -- (assembly);
+  \draw[flow] (assembly) -- (quote);
+  \draw[flow] (quote) -- (outputs);
+
+  % telemetry record, fed by all stages
+  \node[store, below=22mm of res, fill=nodeStore, draw=nodeStoreBd, text width=34mm, minimum width=36mm] (tel)
+     {\textbf{TelemetryEvent} log\\\scriptsize every stage appends one};
+  \draw[flowback] (site.south) to[out=-90,in=180] (tel.west);
+  \draw[flowback] (quote.south) to[out=-90,in=0] (tel.east);
+\end{tikzpicture}}
+\caption{The data-contract backbone. Each stage along the top produces a record (below it) that the next stage consumes; the two cylinders marked ``frozen seam'' (SiteModel and OptimisationResult) are the shared contracts between the two halves of the team. Every stage also appends to the append-only TelemetryEvent log.}
+\label{fig:backbone}
+\end{figure}
+
+\subsection{OptimisationRequest and OptimisationResult}
+
+The \textbf{OptimisationRequest} is the envelope handed to the engine: an embedded, already-validated SiteModel, the assumption version to price against, the list of value streams requested, an optional scenario reference, and a solve mode (baseline mock, or the real production engine). It carries nothing the engine does not need; the sizing search space and the objective live inside the engine, not in the envelope.
+
+The \textbf{OptimisationResult} is what the engine returns and the second frozen seam. It carries the chosen battery as three flat numbers (power in kW, energy in kWh, duration in hours), a reference to the full half-hourly dispatch (the heavy schedule itself is dropped at the seam, only its content hash survives), the per-stream value results, the binding constraints, the gated-upside register, and the solver outcome and run metadata. It carries an \textbf{implementation level} (baseline / in progress / production) and a \textbf{bankable status}. Two rules are enforced: a baseline-level result can never be marked a bankable candidate, and the gated-upside register may only contain the three genuinely gated streams.
+
+\begin{keyidea}[Firmness, gated upside, and the priced floor]
+Each value stream carries a \emph{firmness}: firm, contracted, conditional, or excluded. The financial model's ``priced floor'' counts only firm and contracted income; conditional and gated streams are upside held out of the floor. Three streams -- wholesale/P415, the balancing mechanism, and ancillary services -- are \emph{gated upside}: they need a route-to-market partner that does not yet exist, so they live in a separate register and the contract forbids them ever being marked firm. This is how the platform keeps speculative income out of a bankable number by construction.
+\end{keyidea}
+
+\subsection{The dispatch power convention and the value accounting}
+
+Two conventions in the result deserve to be stated plainly, because later chapters rely on them.
+
+First, the \textbf{dispatch power convention}. When the optimiser's representative dispatch day is persisted for charting, each half-hour records the battery's power as \textbf{two separate non-negative series}: \code{charge\_kw}, the power the battery is drawing in, and \code{discharge\_kw}, the power it is pushing out to serve load or export. A reader of any dispatch series tells at a glance whether the battery is storing or earning by which series carries the power -- and because both fields are plain magnitudes, the contract's no-negatives rule applies to them unchanged, with no signed exception to remember. (A signed single series, positive for discharge, is a derived view a chart may compute; it is not what the contract stores.)
+
+Second, the \textbf{value accounting}. The result reports value broken out per income stream, and the rule is that the per-stream figures must reconcile: the sum of value across the streams must equal the reported total value. There is no slack line and no rounding bucket. If a stream contributes income, it appears as a stream; the total is never larger than the parts add up to. This is what lets the underwriting pack show ``income by source'' and the customer proposal show ``total saving'' from the same record and have them agree.
+
+\subsection{FinancialCase, QuoteRecord and TelemetryEvent}
+
+The \textbf{FinancialCase} is the underwriting output built around a result. It insists on distributions, not point estimates: both a P50 (central) and a P90 (cautious) annual cashflow series are mandatory and must be the same length, and the debt cover ratio (DSCR, the multiple by which cash covers loan repayments, measured on the cautious P90 case) is a first-class summary. Cashflows may be negative -- year zero is the capital outlay -- which is the second documented exception to the no-negatives rule. It also carries the recommended price and structure, the debt assumptions, and the covenant check.
+
+The \textbf{QuoteRecord} binds one run together: the site id, the embedded result and financial case, the data tier, the determinism hashes (a hash of the inputs, the assumption version, the code version), and an append-only history of lifecycle states. A handful of optional projections ride along for the web charts -- the full evaluated sizing grid and a representative dispatch day -- added without changing the quote's identity because they are excluded from the hash. One rule fires: an underwritten quote built from a coarse T0 site must carry an explicit warning, because T0 data is too thin to underwrite firmly.
+
+The \textbf{TelemetryEvent} is one entry in the append-only log every stage writes to: the data tier at intake, the human minutes spent, the installer iterations, the outcome (won/lost with a reason), and the realised-versus-underwritten percentage once measurement supplies it. Time-to-quote is derived from the gap between events. This is the dataset that lets the platform prove it is faster than manual quoting rather than assert it (Chapter~\ref{ch:telemetry}).
+
+\begin{rebuild}[How to rebuild the contract layer]
+\begin{enumerate}
+  \item \textbf{Define one base model} that forbids unknown fields and carries a single shared \code{schema\_version} string. Every contract inherits it. This single decision delivers the ``strict by construction'' guarantee.
+  \item \textbf{Close every vocabulary as an enumeration} -- data tiers, market streams, firmness, consent states, lifecycle states, and so on -- so an unknown value is a validation error, never a pass-through.
+  \item \textbf{Build the SiteModel as a composite:} identity fields, then the six required sub-records (load, tariff, connection, consents, physical gates, counterparty), then the optional bundles defaulting to all-unknown so additive fields never break old sites. Add \emph{no} archetype field.
+  \item \textbf{Apply per-field rules:} non-negative on energy/power/money, with exactly two documented exceptions (connection headroom, and cashflows in the FinancialCase). Reject negative tariff rates and levies.
+  \item \textbf{Apply record-level validators:} T2 requires half-hourly coverage metadata; T0 requires an annual total; an underwritten T0 quote requires a warning; a baseline result cannot be bankable; gated-upside may hold only the three gated streams.
+  \item \textbf{Define the seam contracts} -- OptimisationRequest in, OptimisationResult out -- and treat SiteModel and OptimisationResult as frozen: a change bumps the shared version and re-runs a conformance test across both halves of the team.
+  \item \textbf{Enforce the two conventions in tests:} dispatch power (two non-negative series, \code{charge\_kw} / \code{discharge\_kw}, never a signed single series) and value accounting (per-stream values sum exactly to the total).
+  \item \textbf{Test:} round-trip every contract to JSON and back unchanged; assert each validator rejects its bad case and accepts its good case; assert an unknown field always raises; assert the example T0 and T2 sites validate.
+\end{enumerate}
+\end{rebuild}
+
+\begin{plainnote}[Where the numbers are not]
+Notice what this layer does \emph{not} contain: no prices, no rates, no thresholds, no formulas. The schema layer is pure shape. Every actual number lives in the versioned assumption library (Chapter~\ref{ch:assumptions}); every calculation lives in the engine and the financial model. A contract describes the box a number goes in, never the number. That separation is what makes the determinism and traceability guarantees possible.
+\end{plainnote}

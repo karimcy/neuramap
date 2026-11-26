@@ -1,0 +1,13 @@
+{
+  "dataset_id": "DCUSA EDCM FCP model user guide v9 (2025-11-06)",
+  "fetched_utc": "2026-11-26T08:22:40",
+  "fetcher": "curl -L (WP-UW-07, run by hand; the document itself is not vendored)",
+  "fetcher_args": {},
+  "last_modified": "Thu, 06 Nov 2025 12:40:47 GMT",
+  "licence": "unclear: DCUSA Ltd publication, no licence stated",
+  "record_count": 0,
+  "sha256": "d41ae50c8d51531869ef7d8d1f39999afd3d79b5aa24607ec88ee2942709e65e",
+  "size_bytes": 1111399,
+  "source_url": "https://dcusa-cdn-1.s3.eu-west-2.amazonaws.com/wp-content/uploads/2025/11/06124046/EDCM-FCP_v9_20251106.pdf",
+  "used_for": "Acceptance 1 search: its illustration is a model walk-through, not a bill, and does not reproduce (data request DR-UW07-EDCM)"
+}

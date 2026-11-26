@@ -1,0 +1,85 @@
+{# Persistent honest-status strip for a run. Reads the view-model only; formats via fmt_* globals. #}
+{# Which pricing basis produced every figure on this screen, first and above the strip. A named
+   feasibility-study basis prices revenue the underwriting basis holds OUT of the priced floor into
+   P50, P90, the DSCR and both IRRs, so a screen showing those figures without saying so presents a
+   study result as an underwriting one (D46/D55). `basis` is prepared in app.py from the record via
+   `outputs.detect_study_basis`; nothing is decided here. Included by all four run screens. #}
+{# Shown once, not stored (WP-GRC-05, owner decision 2026-11-23): no data processing agreement is
+   on record for this site, so the run is held in memory only and nothing was written. #}
+{% if not_saved %}
+<div class="statusstrip" style="border-bottom:0">
+  <div class="wrap">
+    <div class="demobanner" style="width:100%">
+      <span class="badge badge-warn">NOT SAVED</span>
+      <span>
+        <strong>Not saved; expires in {{ not_saved_minutes }} minutes.</strong>
+        No data processing agreement is on record for this site, so this result is shown once and
+        nothing was stored: any uploaded file was deleted when the run ended. Note what you need now.
+      </span>
+    </div>
+  </div>
+</div>
+{% endif %}
+{% if basis and basis.present %}
+<div class="statusstrip" style="border-bottom:0">
+  <div class="wrap">
+    <div class="demobanner" style="width:100%">
+      <span class="badge badge-warn">{{ basis.short }}</span>
+      <span>
+        <strong>Feasibility basis, not an underwriting output.</strong>
+        This run was priced on a named study basis, so revenue the underwriting basis treats as
+        gated or conditional is priced into the floor and therefore into every figure on this
+        screen: the priced value, the cashflows, P50, P90, the DSCR and both IRRs. No number here
+        may be presented as an underwriting result.
+        {% if basis.note %}
+        <br><small class="muted">Recorded basis: {{ basis.note }}</small>
+        {% else %}
+        <br><small class="muted">Recorded basis id: <code>{{ basis.basis_id or 'not recorded' }}</code>.
+          The record names the basis and carries no prose statement of it, so none is shown.</small>
+        {% endif %}
+      </span>
+    </div>
+  </div>
+</div>
+{% endif %}
+<div class="statusstrip">
+  <div class="wrap">
+    {% if basis and basis.present %}
+      <span class="badge badge-warn" title="Priced on a named feasibility-study basis: not an underwriting output.">{{ basis.short }}</span>
+      <span class="sep">·</span>
+    {% else %}
+      {# The other half of the same statement. Worded as what the RECORD says rather than as
+         "underwriting basis", because a record persisted before the basis id existed carries no
+         basis field even if a study basis priced it: "no named study basis is recorded" is true of
+         both, "this is an underwriting run" would not be. #}
+      <span class="badge badge-neutral" title="No named feasibility-study basis is stamped on this record.">NO STUDY BASIS RECORDED</span>
+      <span class="sep">·</span>
+    {% endif %}
+
+    {% if is_demo %}
+      <span class="badge badge-demo" title="Real engine on a clearly-labelled illustrative dataset - not a real site, not bankable.">DEMO · ILLUSTRATIVE</span>
+      <span class="sep">·</span>
+    {% endif %}
+
+    {% if vm.quote_mode == 'underwritten' %}
+      <span class="badge badge-underwritten" title="Underwritten: figures rest on confirmed inputs and met conditions.">UNDERWRITTEN</span>
+    {% else %}
+      <span class="badge badge-indicative" title="Indicative: not yet underwritten - figures hold until the underwriting conditions and confirmed assumptions are met.">INDICATIVE</span>
+    {% endif %}
+
+    {% if vm.bankable_status == 'bankable_candidate' %}
+      <span class="badge badge-ok">BANKABLE CANDIDATE</span>
+    {% elif vm.bankable_status == 'review_required' %}
+      <span class="badge badge-indicative">REVIEW REQUIRED</span>
+    {% else %}
+      <span class="badge badge-neutral" title="The honest state on placeholder assumptions: no revenue is priced as a bankable floor yet.">NOT BANKABLE</span>
+    {% endif %}
+
+    <span class="sep">·</span>
+    <span class="badge badge-firm" title="Priced floor: firm + contracted revenue only.">FIRM {{ fmt_gbp_compact(vm.split.floor_total_gbp) }}/yr</span>
+    <span class="badge badge-gated" title="Gated upside: conditional / gated streams - never in the priced floor.">GATED +{{ fmt_gbp_compact(vm.split.upside_total_gbp) }}/yr</span>
+
+    <span class="sep">·</span>
+    <span class="muted">Data tier <code>{{ vm.data_tier }}</code></span>
+  </div>
+</div>

@@ -1,0 +1,30 @@
+{
+  "contract": "IC-4",
+  "contract_version": "1.1.0",
+  "record_class": "synthetic_fixture",
+  "evidence_type": "data_processing_agreement",
+  "title": "Synthetic executed customer data processing agreement (schema-test fixture)",
+  "issuer": {
+    "name": "SYNTHETIC-CUSTOMER (fixture; not a real company)",
+    "role": "customer",
+    "reference": "SYNTH-DPA-0001"
+  },
+  "document_hash": "sha256:a9f7869db57cbb2291feff762dc880c9e9b37db471c7ee9819626a0dbb40db62",
+  "issued_on": "2026-09-14",
+  "effective_from": "2026-09-14",
+  "expiry": {
+    "kind": "no_expiry",
+    "reason": "synthetic fixture: the agreement runs until terminated"
+  },
+  "scope": {
+    "kind": "site",
+    "site_id": "SYNTHETIC-SITE-HYBRID"
+  },
+  "verification": {
+    "kind": "verified",
+    "verifier": "SYNTHETIC-VERIFIER (fixture)",
+    "verifier_role": "neura_internal",
+    "method": "document_inspection",
+    "verified_on": "2026-09-15"
+  }
+}

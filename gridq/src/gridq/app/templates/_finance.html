@@ -1,0 +1,107 @@
+{# Finance - every figure read from the view-model / record; charts drawn client-side from the island. #}
+<div class="card" data-reveal>
+  <div class="console-head">
+    <h2>Finance</h2>
+    <span class="console-status"><span class="status-dot"></span>engine · solved</span>
+  </div>
+
+  {# data-count-exact: the count-up interpolates toward, then lands verbatim on, the
+     server-formatted string already in the element - the UI never re-rounds a figure. #}
+  <div class="grid grid-3">
+    <div class="metric"><span class="figure"{% if vm.returns.irr_pct is not none %} data-count-exact{% endif %}>{{ fmt_opt(vm.returns.irr_pct, fmt_pct) }}</span><span class="label">Project IRR (unlevered)</span></div>
+    <div class="metric">
+      <span class="figure">{% if quote.financial_case and quote.financial_case.equity_irr is not none %}<span data-count-exact>{{ fmt_pct(quote.financial_case.equity_irr) }}</span>{% else %}{{ fmt_unavailable("no confirmed debt structure") }}{% endif %}</span>
+      <span class="label">Levered (equity) IRR · P50</span>
+    </div>
+    <div class="metric"><span class="figure"{% if vm.returns.payback_years is not none %} data-count-exact{% endif %}>{{ fmt_opt(vm.returns.payback_years, fmt_years) }}</span><span class="label">Payback</span></div>
+  </div>
+
+  <div class="grid grid-3" style="margin-top:1rem">
+    <div class="metric"><span class="figure"{% if vm.dscr.min_dscr is not none %} data-count-exact{% endif %}>{{ fmt_opt(vm.dscr.min_dscr, fmt_ratio) }}</span><span class="label">Min {{ vm.dscr.basis }} DSCR</span></div>
+    <div class="metric"><span class="figure">{{ fmt_pass_fail(vm.dscr.covenant_passes) }}</span><span class="label">Covenant{% if vm.dscr.covenant is not none %} ≥ {{ fmt_ratio(vm.dscr.covenant) }}{% endif %}{% if vm.dscr.lock_up is not none %} · lock-up ≥ {{ fmt_ratio(vm.dscr.lock_up) }}: {{ fmt_pass_fail(vm.dscr.lock_up_passes) }}{% endif %}{% if vm.dscr.covenant_source == "lender_terms" %} · lender terms{% endif %}</span></div>
+    <div class="metric"><span class="figure"{% if vm.price.value_gbp_per_kwh is not none %} data-count-exact{% endif %}>{{ fmt_opt(vm.price.value_gbp_per_kwh, fmt_gbp_per_kwh) }}</span><span class="label">Price to target · {{ fmt_structure(vm.price.structure) }}</span></div>
+  </div>
+  {% if vm.dscr.lender_terms_label %}
+  <p class="muted" style="margin-top:0.8rem" data-lender-terms{% if vm.dscr.lender_terms_synthetic %} data-synthetic{% endif %}>
+    {% if vm.dscr.lender_terms_synthetic %}<strong>Synthetic lender terms, not a lender's offer:</strong>{% else %}<strong>Lender terms:</strong>{% endif %}
+    {{ vm.dscr.lender_terms_label }}
+  </p>
+  {% endif %}
+  {% if vm.dscr.covenant_passes is none and vm.dscr.covenant_not_evaluated_reason and vm.dscr.available %}
+  <p class="muted" style="margin-top:0.4rem">{{ vm.dscr.covenant_not_evaluated_reason }}</p>
+  {% endif %}
+  {% if vm.price.exceeds_counterfactual %}
+  <p class="muted" style="margin-top:0.8rem">
+    <strong>Not commercially viable as a fixed PPA:</strong> the price required to hit the
+    target return is above the site's current blended import cost
+    ({{ fmt_gbp_per_kwh(vm.price.counterfactual_import_gbp_per_kwh) }}). The figure is shown
+    for transparency, not as an offer.
+  </p>
+  {% endif %}
+
+  <div class="grid grid-2" style="margin-top:1.5rem">
+    <div>
+      <h3>P50 vs P90 annual cashflows</h3>
+      {% if finance.cashflows.available %}
+        <div class="chart-canvas" id="chart-cashflows" role="img"
+             aria-label="P50 versus P90 annual cashflows by year"></div>
+        <details>
+          <summary class="muted">Show the figures</summary>
+          <div class="tablewrap"><table class="data">
+            <thead><tr><th>Year</th><th class="num">P50</th><th class="num">P90</th></tr></thead>
+            <tbody>{% for r in finance.cashflows.rows %}<tr><td>{{ r.year }}</td><td class="num">{{ r.p50 }}</td><td class="num">{{ r.p90 }}</td></tr>{% endfor %}</tbody>
+          </table></div>
+        </details>
+      {% else %}
+        <p class="unavail">{{ fmt_unavailable("no priced cashflows - supply the inputs in the data asks to underwrite") }}</p>
+      {% endif %}
+    </div>
+    <div>
+      <h3>{{ vm.dscr.basis }} DSCR by year</h3>
+      {% if finance.dscr.available %}
+        <div class="chart-canvas" id="chart-dscr" role="img"
+             aria-label="{{ vm.dscr.basis }} debt-service-coverage ratio by year, against the covenant"></div>
+        <details>
+          <summary class="muted">Show the figures</summary>
+          <div class="tablewrap"><table class="data">
+            <thead><tr><th>Year</th><th class="num">{{ finance.dscr.basis }} DSCR</th></tr></thead>
+            <tbody>{% for r in finance.dscr.rows %}<tr><td>{{ r.year }}</td><td class="num">{{ r.value }}</td></tr>{% endfor %}</tbody>
+          </table></div>
+        </details>
+      {% else %}
+        <p class="unavail">{{ fmt_unavailable(vm.dscr.unavailable_reason or "DSCR needs a confirmed debt structure") }}</p>
+      {% endif %}
+    </div>
+  </div>
+
+  <div class="grid grid-2" style="margin-top:1.25rem">
+    <div>
+      <h3>Debt</h3>
+      {% if vm.debt.available %}
+        <dl class="kv">
+          <dt>Gearing</dt><dd>{{ fmt_opt(vm.debt.gearing_pct, fmt_pct) }}</dd>
+          <dt>Rate</dt><dd>{{ fmt_opt(vm.debt.rate_pct, fmt_pct) }}</dd>
+          <dt>Tenor</dt><dd>{{ fmt_opt(vm.debt.tenor_years, fmt_years) }}</dd>
+          {% if vm.debt.sculpting_basis %}<dt>Sculpting</dt><dd>{{ vm.debt.sculpting_basis }}</dd>{% endif %}
+          {% if vm.debt.principal_gbp is not none %}<dt>Principal</dt><dd>{{ fmt_gbp(vm.debt.principal_gbp) }}{% if vm.debt.sized_by %} · sized by {{ vm.debt.sized_by | replace("_", " ") }}{% endif %}</dd>{% endif %}
+          {% if vm.debt.lender_terms_source %}<dt>Terms source</dt><dd>{{ vm.debt.lender_terms_source | replace("_", " ") }}</dd>{% endif %}
+        </dl>
+      {% else %}
+        <p class="unavail">{{ fmt_unavailable(vm.debt.unavailable_reason or "per-site debt terms not set (B001) - DSCR/levered return stay labelled-unavailable") }}</p>
+      {% endif %}
+    </div>
+    <div>
+      <h3>Customer bill &amp; savings</h3>
+      {% if vm.bill_savings.available and vm.bill_savings.annual_savings_gbp is not none %}
+        <dl class="kv">
+          <dt>Bill before</dt><dd>{{ fmt_opt(vm.bill_savings.bill_before_gbp, fmt_gbp) }}</dd>
+          <dt>Bill after</dt><dd>{{ fmt_opt(vm.bill_savings.bill_after_gbp, fmt_gbp) }}</dd>
+          <dt>Annual savings</dt><dd>{{ fmt_opt(vm.bill_savings.annual_savings_gbp, fmt_gbp) }}</dd>
+        </dl>
+      {% else %}
+        <p class="unavail">{{ fmt_unavailable(vm.bill_savings.pending_reason) }}</p>
+        <p class="muted"><small>{{ vm.bill_savings.data_ask }}</small></p>
+      {% endif %}
+    </div>
+  </div>
+</div>

@@ -1,0 +1,106 @@
+{
+ "contract": "IC-15",
+ "contract_version": "1.0.0",
+ "template_id": "lender_reliance_letter",
+ "template_version": "0.2.0",
+ "text_sha256": "sha256:3b591207044969c05c28b2cffa0a26318087b87be9bc046e6821831ae9f03ce8",
+ "executed_copy": {
+  "kind": "evidence_ref",
+  "contract": "IC-4",
+  "contract_version": "1.2.0",
+  "evidence_hash": "sha256:7e841f4c1c80cbbcf48d56abe56b9f81f88ef03948a4354d57d9a090da68fdba"
+ },
+ "variant": "direct_host_funded",
+ "values": [
+  {
+   "field_id": "provider_legal_name",
+   "value": {
+    "kind": "text",
+    "value": "SYNTHETIC-PROVIDER (fixture; not a real company)"
+   }
+  },
+  {
+   "field_id": "lender_legal_name",
+   "value": {
+    "kind": "text",
+    "value": "SYNTHETIC-LENDER (fixture; not a real bank)"
+   }
+  },
+  {
+   "field_id": "financing_reference",
+   "value": {
+    "kind": "unknown",
+    "reason": "The financing the letter relates to (facility name and date), from the lender"
+   }
+  },
+  {
+   "field_id": "effective_date",
+   "value": {
+    "kind": "date",
+    "value": "2026-11-24"
+   }
+  },
+  {
+   "field_id": "relied_report",
+   "value": {
+    "kind": "unknown",
+    "reason": "The report relied on: title, date and content hash"
+   }
+  },
+  {
+   "field_id": "relied_connection_agreement",
+   "value": {
+    "kind": "contract_instance",
+    "contract": "IC-1",
+    "contract_version": "1.1.0",
+    "content_hash": "sha256:122618785497c4f998cbdb76b49746be63415bf56cc09c4a6187a333c3d7c6b1"
+   }
+  },
+  {
+   "field_id": "relied_curtailment_scenarios",
+   "value": {
+    "kind": "contract_instance",
+    "contract": "IC-2",
+    "contract_version": "1.1.0",
+    "content_hash": "sha256:69acdae915c6b4c0c6e6610bddea1a04b6f83b9300c6216b0935eaead2f51ddf"
+   }
+  },
+  {
+   "field_id": "relied_dispatch_envelope",
+   "value": {
+    "kind": "contract_instance",
+    "contract": "IC-3",
+    "contract_version": "1.0.0",
+    "content_hash": "sha256:72e1ad4a3d218df1877813f7c09dcf225c21cde2cee1979adb1ce670f061cfad"
+   }
+  },
+  {
+   "field_id": "permitted_purpose",
+   "value": {
+    "kind": "unknown",
+    "reason": "The purpose the lender may rely for, agreed on counsel's advice"
+   }
+  },
+  {
+   "field_id": "reliance_liability_cap",
+   "value": {
+    "kind": "unknown",
+    "reason": "The cap on liability to the lender, agreed on counsel's advice"
+   }
+  },
+  {
+   "field_id": "reliance_expiry_date",
+   "value": {
+    "kind": "unknown",
+    "reason": "The date reliance ends, agreed with the lender"
+   }
+  },
+  {
+   "field_id": "governing_law",
+   "value": {
+    "kind": "unknown",
+    "reason": "Governing law and jurisdiction: counsel advises"
+   }
+  }
+ ]
+}

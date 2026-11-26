@@ -1,0 +1,250 @@
+\chapter{Ingestion and data grading}
+\label{ch:ingestion}
+\modtag{M0}{Ingestion and data grading}{Agentic perimeter}
+
+Every quote starts with whatever the customer and their installer can actually hand over. Sometimes that is a clean year of half-hourly meter readings; more often it is an annual energy total, a postcode, and a tariff sheet. This module is the front door. Its job is to take those raw inputs and turn them into one validated, honestly graded description of the site that the rest of the platform can compute on without ever second-guessing the data again.
+
+The single rule that governs everything here is simple to state and absolute in practice: \textbf{ingestion never invents a number}. If a reading is missing, it is counted and reported, not filled in. If a whole input is absent, it becomes a written request for that data, not a guess. A site with thin data still gets a quote, but the quote is marked for what it is, and the platform tells the customer exactly which data would most improve it. This is what the manual calls \emph{honest degradation}: the platform always answers, and never pretends to know more than the data supports.
+
+\begin{plainnote}
+Think of ingestion as a careful clerk receiving a parcel. The clerk checks the contents against a packing list, notes anything damaged or missing on a slip, grades how complete the delivery is, and writes a short ``please also send'' note. The clerk never quietly slips a substitute item into the box to make the list look complete.
+\end{plainnote}
+
+\pipelinepos{Receives raw files from the customer/installer (a site description, optionally a real meter trace, optionally a price forecast). Hands a validated, graded \texttt{SiteModel} (Chapter~\ref{ch:contracts}) to the deterministic core.}
+
+\begin{contract}
+\textbf{In.} Up to three things, in any combination:
+\begin{itemize}
+  \item a \textbf{SiteModel JSON} file -- the structured description of the site (connection capacities, tariff, consents, counterparty);
+  \item a \textbf{half-hourly meter CSV} -- the site's own real metered electricity, one row per 30-minute interval;
+  \item an optional \textbf{wholesale price forecast} (CSV or JSON, e.g. a Modo export) -- used only as gated upside, never the priced floor (Chapters~\ref{ch:scenarios} and~\ref{ch:dispatch}).
+\end{itemize}
+\textbf{Out.} One validated \texttt{SiteModel} carrying: a graded data tier (T0, T1 or T2); measured load coverage folded into its \texttt{load\_data} block; a ranked list of the missing data that would most improve the quote; and a separate, structured validation report of every issue found. A confidential-data access log entry is written as a side effect of every meter read. Nothing that enters as missing leaves as a fabricated value.
+\end{contract}
+
+\section{Why a core artifact is born on the perimeter}
+
+The \texttt{SiteModel} is the central artifact of the whole platform: everything downstream reads it, and it must be trustworthy. Yet ingestion lives on the \emph{agentic perimeter}, the AI-assisted, human-confirmed outer zone, not in the deterministic core. That looks like a contradiction, so it is worth resolving up front.
+
+The reason is that the work ingestion does is exactly the messy, judgement-laden work the core is forbidden to touch. Real installer files arrive in inconsistent shapes, with odd column names, mislabelled units, gaps, and the occasional implausible reading. Cleaning that up, deciding that a column called \code{demand\_kw} means import power, asking the installer for the consent state, is perimeter work: assisted, schema-checked, and confirmed by a person.
+
+The wall between the two zones is preserved by a strict division of labour. The perimeter is allowed to \emph{shape} data into the validated schema, but it is structurally unable to \emph{author a value}. A missing reading never becomes a plausible-looking guess; it becomes a typed warning or a ranked ask. By the time the \texttt{SiteModel} crosses into the core it is a pure, validated object with no fabricated content, so the determinism guarantee of the core is never compromised by the judgement that produced its input.
+
+\begin{keyidea}
+Ingestion produces a core artifact but does perimeter work. The contradiction dissolves once you see the boundary is not ``which artifact'' but ``which action'': shaping messy input into a strict schema is allowed; inventing a number to fill a gap is not. The output crossing into the core therefore contains only validated, measured, or explicitly-requested data, never a guess.
+\end{keyidea}
+
+\section{Loading a SiteModel JSON}
+
+The structured path is the simplest. A single JSON object describing the site is read and validated against the versioned \texttt{SiteModel} schema (Chapter~\ref{ch:contracts}). Validation happens in two gates, and both must pass before the object is trusted.
+
+\textbf{Gate one is the schema.} The schema is strict: it rejects unknown fields outright (a typo in a field name is an error, not a silent no-op), checks every type, and enforces the structural tier and coverage invariants (for instance, a site graded T2 must carry half-hourly coverage metadata; a T0 site must state an annual consumption figure). A failure here is reported with the exact field path and reason, never a generic ``invalid file''.
+
+\textbf{Gate two is coherence.} A file can be schema-valid yet internally contradictory, and the schema alone cannot catch that. A second pass runs cross-field checks and records each finding as a typed issue with a stable code, a severity, and the field it concerns. The checks, and their severities, are listed in Table~\ref{tab:coherence}. An issue of severity \emph{error} causes the load to be rejected, distinctly from a schema failure, so the caller can tell ``wrong shape'' from ``shape fine, contents incoherent''. Warnings and informational findings never stop the load: they travel with the result so the pipeline can run and \emph{say} what is doubtful.
+
+\begin{table}[H]
+\centering
+\caption{The cross-field coherence checks, run after the schema passes. Errors reject the load; warnings and info travel with the result.}
+\label{tab:coherence}
+\small\sffamily
+\begin{tabularx}{\textwidth}{@{}L l L@{}}
+\toprule
+\textbf{Check} & \textbf{Severity} & \textbf{Why it matters} \\
+\midrule
+Exports but a generation consent reads ``not required'' & error & Physically incoherent: a site that exports must hold export consent. \\
+Exports but no export MPAN recorded & warning & Export-side income cannot be firmed without the export meter point. \\
+Import capacity (MIC) reads zero & warning & A connection that cannot import is implausible; confirm the figure. \\
+Negative import headroom & info & Site is over-subscribed against its import limit at peak; noted, not blocked. \\
+Graded T2 but no reference to the validated series & warning & The canonical meter trace should be pointed to before the quote is treated as firm. \\
+Graded T0 yet carries half-hourly coverage & info & It may deserve a higher tier; re-grade from the meter summary. \\
+Counterparty company number missing or malformed & warning & The credit mapping (Chapter~\ref{ch:finance}) keys off the registered entity. \\
+Counterparty credit not yet assessed & warning & No credit band means no debt rate or tenor can be set; none is assumed. \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+A well-formed UK company number is checked only for shape (eight alphanumeric characters): a deterministic format sanity check, with no external lookup. Ingestion confirms the input looks right; it does not reach out to a registry and invent a fact.
+
+\section{Folding in a real half-hourly meter trace}
+
+The half-hourly (HH) trace is the most valuable input the platform takes: the site's own metered electricity, one row every 30 minutes. A full validated year of it is what separates a banded, indicative quote from a firm, underwritten one. Ingestion treats it as a first-class input with its own load, validate, summarise, fold sequence.
+
+\subsection{Load: normalise without altering}
+
+The CSV is read and its columns are matched case-insensitively against a set of known aliases, so a column headed \code{demand\_kw}, \code{kw\_import} or \code{settlement\_datetime} is recognised and renamed to the canonical name. Exactly one thing is required besides a timestamp: either import power (\code{import\_kw}) or import energy per interval (\code{import\_kwh}). Export, a site-load column, a meter id and a quality flag are optional. Three rules hold without exception during the load:
+
+\begin{itemize}
+  \item \textbf{Timestamps must parse, for every row.} A file with unparseable timestamps is rejected with an error naming the first offending values. Timestamps are never coerced and then guessed.
+  \item \textbf{The row count is preserved exactly.} No row is added, dropped or re-timed. Blank or non-numeric load cells become null and are counted later; they are not filled.
+  \item \textbf{Energy-to-power is a labelled transform, not a fabricated value.} When only energy per interval is given, average power is derived deterministically as energy times $60$ divided by the interval length in minutes (which is simply $\times 2$ for 30-minute periods), and the series is labelled as derived from energy rather than measured as power.
+\end{itemize}
+
+\begin{caution}[Timestamps, timezones and daylight saving]
+Naive timestamps (no UTC offset) are taken as the site's local clock, labelling the start of each half hour, and are never re-timed. A uniform UTC offset is kept as a timezone-aware series, and a file that mixes offsets (the +00:00/+01:00 pattern of a UK export spanning a clock change) is converted to a single UTC axis without dropping a row; unparseable values still reject the file. Daylight saving follows from this: a timezone-aware trace is physically continuous across a clock change, so the dispatch engine (Chapter~\ref{ch:dispatch}) sees no false gap there, while a naive local trace jumps by one hour at the spring transition, which the engine treats as one conservative segment boundary rather than inventing the missing labels. Tariff banding always reads the GB local clock: timezone-aware timestamps are converted to Europe/London before banding.
+\end{caution}
+
+\subsection{Validate: count integrity, never repair it}
+
+A coverage pass then measures the trace without touching it. Over the observed window (first timestamp to last) it works out how many intervals \emph{should} be present on the declared grid, compares that with how many distinct timestamps are actually present, and reports the difference as missing intervals. It also counts duplicate timestamps (surplus rows sharing a timestamp), infers the real median spacing of the grid to detect a file that is not actually half-hourly, and computes the calendar span, an approximate month count, and a completeness percentage. The defining property: every one of these is a \emph{count}, never a correction. The formulae are gathered in Table~\ref{tab:coverage}.
+
+\begin{table}[H]
+\centering
+\caption{Coverage metrics computed from a loaded half-hourly trace. Every figure is measured; none alters the data.}
+\label{tab:coverage}
+\small\sffamily
+\begin{tabularx}{\textwidth}{@{}l L@{}}
+\toprule
+\textbf{Metric} & \textbf{How it is computed} \\
+\midrule
+Present intervals & Count of distinct, parseable timestamps. \\
+Duplicate timestamps & Total rows minus present intervals. \\
+Expected intervals & $\mathrm{round}(\text{window seconds} \div \text{step seconds}) + 1$, on the declared grid. \\
+Missing intervals & $\max(\text{expected} - \text{present},\, 0)$; counted, never back-filled. \\
+Completeness \% & $\min(\text{present} \div \text{expected} \times 100,\ 100)$. \\
+Inferred grid (minutes) & Median gap between consecutive distinct timestamps; flags a non-HH file. \\
+Coverage days / months & Window length in days; months $\approx$ days $\div\ 30.44$. \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\subsection{Summarise: load statistics plus a report}
+
+A summary step layers the load statistics on top of the coverage (maximum, minimum and mean import power; maximum export; counts of null and of negative readings) and assembles the validation report. Each integrity concern becomes a typed warning: duplicate timestamps, missing intervals, null readings, negative import or export (negative import is physically unusual for a consuming site, so it is flagged unless the caller explicitly allows it), and an inferred grid that does not match the expected one. Crucially these are \emph{warnings, not failures}: a flawed trace is described in full and the run continues.
+
+\subsection{Fold and re-grade}
+
+Finally the measured coverage is folded into the \texttt{SiteModel}'s load block and the tier is re-graded from the real data. The fold preserves any prior figure the meter summary does not itself carry (a stated annual consumption, a known peak import or export), and it re-validates the whole site through the schema rather than patching fields in place, so an inconsistent fold (for example, a trace so sparse it grades back to T0 with no annual figure anywhere) raises a validation error rather than minting a silently invalid site. The annual energy figure is deliberately left unset by the fold unless it genuinely came from the series or a stated number: it is never inferred from a partial trace.
+
+\section{Grading the data tier}
+
+The tier is the platform's honest, one-word verdict on how much the data can support. It is graded by a pure function of the meter summary, so the same data always yields the same tier. The boundaries are exact and worth stating precisely, because they decide whether a quote can be underwritten.
+
+\begin{table}[H]
+\centering
+\caption{The three data tiers and the exact rule that assigns each. T1 and T2 are distinguished by the validated-twelve-month bar.}
+\label{tab:tiers-ingestion}
+\small\sffamily
+\begin{tabularx}{\textwidth}{@{}l L L@{}}
+\toprule
+\textbf{Tier} & \textbf{Plain meaning} & \textbf{Exact rule} \\
+\midrule
+\textbf{T0} & Coarse: annual energy, tariff, postcode; no usable meter trace. & No summary at all, or fewer than two present intervals (a single stray reading is not a series). \\
+\textbf{T1} & Partial: genuine half-hourly data, but below the validated-twelve-month bar. & At least two present intervals, but the full T2 test below is not met. \\
+\textbf{T2} & Full: at least twelve validated months of half-hourly data passing the checks. & \emph{All three} of: present intervals $\ge 17\,520 - 96$ (twelve months of 48 half-hours, less a $\pm 2$-day tolerance); calendar span $\ge 363$ days; completeness $\ge 90\%$. \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+Three details earn their place. First, the period floor of \textbf{17\,520} is simply $48 \times 365$: the number of half-hours in a year. The small tolerance of $\pm 96$ periods (about two days) lets a genuine year that is a handful of intervals short, through daylight-saving or a leap year, still grade T2. Second, the \emph{calendar-span} gate is separate from the interval count on purpose: a dense file recorded every few minutes over a short window could otherwise rack up 17\,520 intervals without spanning a year, and the span gate of at least 363 days rejects that. Third, the function never \emph{upgrades} a tier on the strength of data it does not have: in particular, the absence of a real trace lands at T0 regardless of any stated annual figure.
+
+\begin{caution}[Tier boundaries are structure, not assumptions]
+The tier numbers (48 half-hours a day, 17\,520 a year, the 90\% completeness floor) are \emph{structural calendar boundaries}, not pricing assumptions, and they carry no money. They therefore live, labelled, in the ingestion code rather than in the versioned assumption library (Chapter~\ref{ch:assumptions}), the same precedent the platform uses for other labelled structural constants. Whether the completeness floor should be versioned alongside the priced assumptions is an open question for the team; until resolved it is a documented default.
+\end{caution}
+
+\begin{figure}[H]
+\centering
+\resizebox{\textwidth}{!}{%
+\begin{tikzpicture}[node distance=9mm and 15mm]
+  % inputs
+  \node[io] (sitejson) {Site JSON};
+  \node[io, below=of sitejson] (hhcsv) {Half-hourly\\meter CSV};
+  \node[io, below=of hhcsv] (fcast) {\textit{(optional)}\\price forecast};
+
+  % validate stage
+  \node[proc, right=of hhcsv] (validate) {\textbf{Load + validate}\\\scriptsize parse, normalise,\\\scriptsize count integrity};
+  \node[ext, above=of validate] (clean) {\scriptsize perimeter:\\AI-assisted clean,\\human-confirm};
+
+  % fold + summarise
+  \node[proc, right=of validate] (fold) {\textbf{Summarise + fold}\\\scriptsize coverage + load stats\\\scriptsize into load\_data};
+
+  % grade gate
+  \node[decide, right=of fold] (grade) {\textbf{Grade}\\\textbf{tier?}};
+
+  % tier outcomes
+  \node[proc, above right=4mm and 14mm of grade] (t2) {\textbf{T2}\\\scriptsize $\ge 12$ validated\\\scriptsize months};
+  \node[proc, right=of grade] (t1) {\textbf{T1}\\\scriptsize genuine HH,\\\scriptsize below 12 months};
+  \node[proc, below right=4mm and 14mm of grade] (t0) {\textbf{T0}\\\scriptsize no genuine HH};
+
+  % rank asks + sitemodel
+  \node[proc, below=14mm of fold] (rank) {\textbf{Rank data asks}\\\scriptsize what most improves\\\scriptsize the quote, in order};
+  \node[store, below=of grade] (sitemodel) {\textbf{SiteModel}\\\scriptsize validated, graded,\\\scriptsize ask-annotated};
+  \node[store, below=14mm of validate] (alog) {\textbf{Access log}\\\scriptsize who read which\\\scriptsize HH file, when};
+
+  % main flow
+  \draw[flow] (sitejson) -- (validate);
+  \draw[flow] (hhcsv) -- (validate);
+  \draw[flow] (fcast) to[out=0,in=180] (validate);
+  \draw[flow] (clean) -- (validate);
+  \draw[flow] (validate) -- (fold);
+  \draw[flow] (fold) -- (grade);
+  \draw[flow] (grade) -- (t2);
+  \draw[flow] (grade) -- (t1);
+  \draw[flow] (grade) -- (t0);
+  \draw[flow] (t1) to[out=-90,in=0] (sitemodel.east);
+  \draw[flow] (t2) to[out=-90,in=30] (sitemodel.north east);
+  \draw[flow] (t0) to[out=-90,in=-30] (sitemodel.south east);
+  \draw[flow] (fold) -- (rank);
+  \draw[flow] (rank) -- (sitemodel);
+  \draw[flow] (validate) -- (alog);
+  \draw[flowback] (alog) -- (sitemodel);
+\end{tikzpicture}}
+\caption{The ingestion flow. Raw inputs are loaded and validated (with optional AI-assisted cleaning on the perimeter), summarised and folded, then the tier is graded at a decision gate. The ranked data asks and a confidential-data access entry travel into the final, graded \texttt{SiteModel}.}
+\label{fig:ingestion-flow}
+\end{figure}
+
+\section{The ranked missing-data asks}
+
+Whatever the tier, ingestion inspects the assembled site and produces a \textbf{ranked data ask}: the prioritised list of the inputs that, if supplied, would most improve the quote. This turns a vague installer back-and-forth into a precise, ordered request. Each ask records what is missing, \emph{why it matters}, and \emph{what it blocks} downstream. The ranking is deterministic, ordered by a fixed impact priority and a stable tie-breaker, so the same site always yields the same ask order. The catalogue, in priority order, is in Table~\ref{tab:asks}.
+
+\begin{table}[H]
+\centering
+\caption{The ranked data-ask catalogue, highest impact first. The wholesale forecast ask appears only when wholesale analysis has been requested.}
+\label{tab:asks}
+\small\sffamily
+\begin{tabularx}{\textwidth}{@{}c L L@{}}
+\toprule
+\textbf{Rank} & \textbf{Ask} & \textbf{What it unlocks / blocks} \\
+\midrule
+1 & Twelve months of half-hourly meter data & Tier T2 and an underwritten (rather than indicative) quote. \\
+2 & Full tariff: standing charge, unit rates, DUoS bands, levy lines & The import-side bankable floor cannot be priced without it. \\
+3 & Connection capacities: MIC, MEC, ASC & Bounds the dispatch and prices headroom value where it binds. \\
+4 & DNO region & The DUoS band structure and whether a local-flexibility tender is open. \\
+5 & Export status: G99/G100 consent and export MPAN & Gates export-side and wholesale upside streams. \\
+6 & Supplier consent & A listed condition before an underwritten quote becomes firm. \\
+7 & Physical gates: footprint, fire separation, access & Listed pass/fail conditions on an underwritten quote. \\
+8 & Counterparty legal entity and company number & The deterministic credit-to-rate/tenor mapping (Chapter~\ref{ch:finance}). \\
+9 & Wholesale price forecast file & Only if wholesale analysis is requested; gated upside, never the floor. \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+The ordering encodes the platform's priorities: the data tier first (the single biggest fidelity lever), then the priced floor (tariff and connection), then the gates and consents, then counterparty credit, and finally the gated upside last of all. The counterparty asks are mutually exclusive by design: a site with no registered identity yields the identity ask alone, not both the identity ask and a separate credit-band ask, so the request stays clean. The same ranked list is rendered two ways: a short ordered set of strings written onto the \texttt{SiteModel} itself, and a fuller human-readable block (each ask with its reason, detail and blocked items) suitable for an installer email or the customer memo.
+
+\begin{caution}[The forecast is upside, never the floor]
+The wholesale price forecast is the only input whose ask is conditional, and it is ranked last for a reason. Wholesale and balancing income is treated as \emph{gated upside}: priced from a forecast the customer supplies, never generated, and never part of the bankable floor (Chapters~\ref{ch:scenarios} and~\ref{ch:dispatch}). A forecast that is loaded is pinned with a content hash and its source and version recorded, so a quote can cite exactly which curve it used; missing prices stay missing and are warned, and interpolation happens only when explicitly asked for, is labelled on every filled point, and never extrapolates beyond the known range.
+\end{caution}
+
+\section{The confidential-data access log}
+
+A site's half-hourly trace is confidential commercial data, so the platform treats every read of it as an auditable event. Each successful meter-file load writes an append-only entry recording the file, the action, the site and the actor responsible, the row count, whether the data is personal, and a wall-clock timestamp. The log is written \emph{by construction} as a side effect of loading, so it cannot be bypassed by a caller who forgets to record it.
+
+Two properties keep this clean. First, the log is \textbf{metadata about access, never an input to pricing}: it carries a wall-clock time and is deliberately kept out of every quote and run hash, so it can never perturb a deterministic result. Second, it is \textbf{fail-closed} when persistence is configured: if an audit destination is set but cannot be written, the read does not silently proceed unaudited. By default the sink is in-memory only, so library and test use have no side effects; pointing an environment variable at a file additionally appends each entry as one JSON line, following the platform's files-first convention.
+
+\section{Honest degradation in practice}
+
+The honest-degradation principle is not a slogan here; it is the observable behaviour of the module. A bad half-hourly file is the clearest illustration. Suppose an installer sends a meter CSV with a block of unparseable timestamps. The load rejects \emph{that file} with a precise error naming the offenders, the fold is simply not performed, and the run continues from the structured site description alone, landing at whatever tier the remaining data supports (often T0) with the twelve-months-of-half-hourly ask ranked first. The customer still gets a quote, it is marked for what it is, and the top of the data ask tells them exactly what to send to improve it. A merely flawed (but readable) trace behaves even more gently: its duplicates, gaps and odd readings become warnings that travel with the result, and the trace is still used. The platform reports the problem, skips only what it genuinely cannot use, and never stops.
+
+\begin{rebuild}
+To re-implement this module from scratch:
+\begin{enumerate}
+  \item \textbf{Define the typed vocabulary first.} An exception hierarchy with a distinct subclass per input kind (site / meter / forecast), and a validation report holding severity-tagged issues, each with a stable machine-readable code, a message, and the field it concerns. The report is advisory: it never raises by itself.
+  \item \textbf{Build the SiteModel loader as two gates.} Gate one: strict schema validation (reject unknown fields; enforce tier/coverage invariants); report failures with the exact field path. Gate two: cross-field coherence checks (Table~\ref{tab:coherence}); an error-severity finding rejects the load, distinct from a schema failure; warnings and info travel on.
+  \item \textbf{Build the half-hourly path as load, validate, summarise, fold.} On load: canonicalise columns by case-insensitive alias; require a timestamp plus one of import power or import energy; parse every timestamp strictly (raise, naming offenders, on failure); preserve the row count exactly; derive power from energy as a labelled transform ($\times\,60/\text{interval minutes}$). On validate: compute the coverage metrics of Table~\ref{tab:coverage} as counts, never corrections. On summarise: add load statistics and emit a warning per integrity concern (duplicates, gaps, nulls, negatives, irregular grid). On fold: rebuild the load block from measured coverage, preserve prior annual/peak figures the summary lacks, and re-validate the whole site through the schema rather than patching fields.
+  \item \textbf{Grade the tier as a pure function of the summary} using the exact rule in Table~\ref{tab:tiers-ingestion}: under two intervals (or no summary) is T0; T2 requires the period floor ($\ge 17\,520 - 96$) \emph{and} a span of $\ge 363$ days \emph{and} completeness $\ge 90\%$, all three; everything else genuine is T1. Never upgrade on data you do not have.
+  \item \textbf{Detect missing data, then rank it.} Inspect the assembled site for each category in Table~\ref{tab:asks}; emit a typed missing item carrying why-it-matters and what-it-blocks; sort by a fixed impact priority then a stable id tie-breaker; assign contiguous ranks. Keep the counterparty identity and credit-band asks mutually exclusive. List the wholesale forecast only when wholesale analysis is requested. Write the ranked list onto the SiteModel and offer a human-readable rendering.
+  \item \textbf{Log every confidential meter read by construction} as an append-only entry (file, actor, site, rows, timestamp), written inside the loader so it cannot be skipped; keep it out of every hash; fail-closed when a persistent sink is configured.
+\end{enumerate}
+\textbf{What to test.} Identical input gives an identical tier and an identical ask order (determinism). A loaded frame has exactly the input row count. Missing intervals are counted, never filled. An unparseable timestamp raises and names offenders. The T1/T2 boundary flips precisely at the period, span and completeness thresholds. An incoherent-but-schema-valid site is rejected distinctly from a schema-invalid one. A bad meter file is reported and skipped while the run completes. A meter read always leaves an access-log entry, and that entry never changes a quote hash.
+\end{rebuild}
+
+This validated, graded, ask-annotated \texttt{SiteModel} is the object the rest of the platform computes on. Its precise shape, and the invariants the schema enforces, are the subject of Chapter~\ref{ch:contracts}; the assumption versions that turn it into priced numbers follow in Chapter~\ref{ch:assumptions}.

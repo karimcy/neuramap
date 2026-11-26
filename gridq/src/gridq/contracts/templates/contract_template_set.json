@@ -1,0 +1,2871 @@
+{
+  "contract": "IC-15",
+  "contract_version": "1.0.0",
+  "person_only_steps": [
+    {
+      "action": "Counsel reviews the software_dispatch_msa template (first). Until then it is a draft and is never sent as an offer or presented as reviewed.",
+      "gates": [],
+      "kind": "legal_review",
+      "step_id": "legal_review_software_dispatch_msa",
+      "templates": [
+        "software_dispatch_msa"
+      ]
+    },
+    {
+      "action": "Counsel reviews the performance_wrapper template (first). Until then it is a draft and is never sent as an offer or presented as reviewed.",
+      "gates": [],
+      "kind": "legal_review",
+      "step_id": "legal_review_performance_wrapper",
+      "templates": [
+        "performance_wrapper"
+      ]
+    },
+    {
+      "action": "Counsel reviews the assessment_sow template (after the MSA and wrapper). Until then it is a draft and is never sent as an offer or presented as reviewed.",
+      "gates": [],
+      "kind": "legal_review",
+      "step_id": "legal_review_assessment_sow",
+      "templates": [
+        "assessment_sow"
+      ]
+    },
+    {
+      "action": "Counsel reviews the data_sharing_agreement template (after the MSA and wrapper). Until then it is a draft and is never sent as an offer or presented as reviewed.",
+      "gates": [],
+      "kind": "legal_review",
+      "step_id": "legal_review_data_sharing_agreement",
+      "templates": [
+        "data_sharing_agreement"
+      ]
+    },
+    {
+      "action": "Counsel reviews the flexibility_services_agreement template (after the MSA and wrapper). Until then it is a draft and is never sent as an offer or presented as reviewed.",
+      "gates": [],
+      "kind": "legal_review",
+      "step_id": "legal_review_flexibility_services_agreement",
+      "templates": [
+        "flexibility_services_agreement"
+      ]
+    },
+    {
+      "action": "Counsel reviews the site_access_installation template (after the MSA and wrapper). Until then it is a draft and is never sent as an offer or presented as reviewed.",
+      "gates": [],
+      "kind": "legal_review",
+      "step_id": "legal_review_site_access_installation",
+      "templates": [
+        "site_access_installation"
+      ]
+    },
+    {
+      "action": "Counsel reviews the lender_reliance_letter template (after the MSA and wrapper). Until then it is a draft and is never sent as an offer or presented as reviewed.",
+      "gates": [],
+      "kind": "legal_review",
+      "step_id": "legal_review_lender_reliance_letter",
+      "templates": [
+        "lender_reliance_letter"
+      ]
+    },
+    {
+      "action": "Choose and engage counsel for the template review.",
+      "gates": [],
+      "kind": "engage_counsel",
+      "step_id": "engage_counsel",
+      "templates": [
+        "assessment_sow",
+        "software_dispatch_msa",
+        "data_sharing_agreement",
+        "flexibility_services_agreement",
+        "site_access_installation",
+        "lender_reliance_letter",
+        "performance_wrapper"
+      ]
+    },
+    {
+      "action": "Choose and sign an insurer (an MGA or floor provider only after gap G8 closes), and record the FCA PERG 6 perimeter position as counsel's legal opinion.",
+      "gates": [
+        "XG-20"
+      ],
+      "kind": "risk_carrier_and_perimeter",
+      "step_id": "risk_carrier_and_perimeter",
+      "templates": [
+        "performance_wrapper"
+      ]
+    },
+    {
+      "action": "Agree prices, liability caps, service levels, step-in thresholds and termination periods with each counterparty. The list prices on record are not agreed with anyone.",
+      "gates": [],
+      "kind": "agree_commercial_terms",
+      "step_id": "agree_commercial_terms",
+      "templates": [
+        "assessment_sow",
+        "software_dispatch_msa",
+        "flexibility_services_agreement",
+        "site_access_installation",
+        "lender_reliance_letter",
+        "performance_wrapper"
+      ]
+    },
+    {
+      "action": "Sign any contract or reliance letter, and have the counterparty's signed copy registered as an evidence object it issued.",
+      "gates": [],
+      "kind": "sign",
+      "step_id": "sign",
+      "templates": [
+        "assessment_sow",
+        "software_dispatch_msa",
+        "data_sharing_agreement",
+        "flexibility_services_agreement",
+        "site_access_installation",
+        "lender_reliance_letter",
+        "performance_wrapper"
+      ]
+    },
+    {
+      "action": "The host's critical-facilities lead signs off each control write path before stage L2 or L3.",
+      "gates": [
+        "XG-11"
+      ],
+      "kind": "critical_facilities_signoff",
+      "step_id": "critical_facilities_signoff",
+      "templates": [
+        "software_dispatch_msa",
+        "site_access_installation"
+      ]
+    },
+    {
+      "action": "Hold a load-control licence or confirm an exemption before closed-loop load control.",
+      "gates": [
+        "XG-17"
+      ],
+      "kind": "load_control_licence",
+      "step_id": "load_control_licence",
+      "templates": [
+        "software_dispatch_msa"
+      ]
+    },
+    {
+      "action": "Register NEW-IC-15 and WP-GRC-09's release in the Atlas roadmap and ADR index; roadmap and ADR edits are a person's.",
+      "gates": [],
+      "kind": "register_contract",
+      "step_id": "register_contract",
+      "templates": []
+    }
+  ],
+  "references": [
+    {
+      "contract": "IC-1",
+      "contract_name": "ConnectionAgreement",
+      "kind": "contract_version_ref",
+      "ref_id": "ic1_connection_agreement",
+      "status": {
+        "git_tag": "contracts/ic1-connection-agreement/v1.1.0",
+        "kind": "frozen",
+        "minimum_version": "1.1.0"
+      },
+      "version_range": "1.x"
+    },
+    {
+      "contract": "IC-2",
+      "contract_name": "CurtailmentScenarioSet",
+      "kind": "contract_version_ref",
+      "ref_id": "ic2_curtailment_scenario_set",
+      "status": {
+        "git_tag": "contracts/ic2-curtailment-scenario-set/v1.1.0",
+        "kind": "frozen",
+        "minimum_version": "1.1.0"
+      },
+      "version_range": "1.x"
+    },
+    {
+      "contract": "IC-3",
+      "contract_name": "DispatchEnvelope",
+      "kind": "contract_version_ref",
+      "ref_id": "ic3_dispatch_envelope",
+      "status": {
+        "git_tag": "contracts/ic3-dispatch-envelope/v1.0.0",
+        "kind": "frozen",
+        "minimum_version": "1.0.0"
+      },
+      "version_range": "1.x"
+    },
+    {
+      "contract": "IC-4",
+      "contract_name": "EvidenceObject",
+      "kind": "contract_version_ref",
+      "ref_id": "ic4_evidence_object",
+      "status": {
+        "git_tag": "contracts/ic4-evidence-object/v1.2.0",
+        "kind": "frozen",
+        "minimum_version": "1.2.0"
+      },
+      "version_range": "1.x"
+    },
+    {
+      "contract": "IC-8",
+      "contract_name": "Verifier interface",
+      "kind": "contract_version_ref",
+      "ref_id": "ic8_verifier_interface",
+      "status": {
+        "freezing_work_package": "WP-LEDGER-07",
+        "gates": [
+          "D-2",
+          "XG-22"
+        ],
+        "kind": "not_yet_frozen",
+        "reason": "IC-8 is frozen by WP-LEDGER-07, agreed with the independent verifier"
+      },
+      "version_range": "1.x"
+    },
+    {
+      "contract": "IC-11",
+      "contract_name": "ThermalFlexAvailability, FlexInstruction, FlexAcknowledgement",
+      "kind": "contract_version_ref",
+      "ref_id": "ic11_thermal_flex",
+      "status": {
+        "git_tag": "contracts/ic11-thermal-flex/v1.1.0",
+        "kind": "frozen",
+        "minimum_version": "1.1.0"
+      },
+      "version_range": "1.x"
+    },
+    {
+      "contract": "IC-13",
+      "contract_name": "IdentityClaims, AuditEvent",
+      "kind": "contract_version_ref",
+      "ref_id": "ic13_identity_claims",
+      "status": {
+        "git_tag": "contracts/ic13-identity-audit/v1.0.0",
+        "kind": "frozen",
+        "minimum_version": "1.0.0"
+      },
+      "version_range": "1.x"
+    }
+  ],
+  "set_id": "contract_template_set",
+  "set_version": "0.2.0",
+  "templates": [
+    {
+      "clauses": [
+        {
+          "clause_id": "parties",
+          "title": "Parties"
+        },
+        {
+          "clause_id": "scope",
+          "title": "Scope"
+        },
+        {
+          "clause_id": "inputs_and_data",
+          "title": "Inputs and data"
+        },
+        {
+          "clause_id": "deliverables",
+          "title": "Deliverables"
+        },
+        {
+          "clause_id": "fees",
+          "title": "Fees"
+        },
+        {
+          "clause_id": "reliance_and_liability",
+          "title": "Reliance and liability"
+        },
+        {
+          "clause_id": "variant_schedule",
+          "title": "Financing variants"
+        },
+        {
+          "clause_id": "governing_law",
+          "title": "Governing law"
+        },
+        {
+          "clause_id": "execution",
+          "title": "Execution"
+        }
+      ],
+      "commercial_terms": [
+        {
+          "executed_field": "assessment_fee_agreed",
+          "price": {
+            "amount": 2000000,
+            "kind": "list_price_on_record",
+            "price_id": "assessment_fee",
+            "rendering": "list price on record, not agreed with any customer",
+            "source": "ADR-D1",
+            "unit": "gbp_pence"
+          },
+          "term_id": "assessment_fee"
+        },
+        {
+          "executed_field": "payment_terms",
+          "price": {
+            "ask": "Payment period: agree with the customer",
+            "kind": "to_be_agreed"
+          },
+          "term_id": "payment_terms"
+        },
+        {
+          "executed_field": "liability_cap",
+          "price": {
+            "ask": "Liability cap: agree with the customer on counsel's advice",
+            "kind": "to_be_agreed"
+          },
+          "term_id": "liability_cap"
+        }
+      ],
+      "control_authority": {
+        "kind": "not_applicable",
+        "reason": "carried by the MSA"
+      },
+      "executed_as": [
+        {
+          "admissible_issuers": [
+            "customer",
+            "host"
+          ],
+          "applies_when": "always: the customer's or host's signed copy",
+          "evidence_type": "assessment_statement_of_work"
+        }
+      ],
+      "form": "heads_of_terms",
+      "legal_review": {
+        "kind": "draft_needs_legal_review",
+        "reason": "written by an engineering agent; counsel has not reviewed it"
+      },
+      "references": [
+        "ic1_connection_agreement",
+        "ic2_curtailment_scenario_set",
+        "ic3_dispatch_envelope",
+        "ic4_evidence_object"
+      ],
+      "required_fields": [
+        {
+          "ask": "The Provider's registered legal name, company number and registered office: the owner confirms which entity contracts (none is on record)",
+          "asked_of": [
+            "provider"
+          ],
+          "binds": {
+            "kind": "not_applicable",
+            "reason": "not a contract-instance field"
+          },
+          "field_id": "provider_legal_name",
+          "kind": "text",
+          "unit": {
+            "kind": "not_applicable",
+            "reason": "not a quantity"
+          }
+        },
+        {
+          "ask": "The customer's registered legal name, company number and registered office",
+          "asked_of": [
+            "customer"
+          ],
+          "binds": {
+            "kind": "not_applicable",
+            "reason": "not a contract-instance field"
+          },
+          "field_id": "customer_legal_name",
+          "kind": "text",
+          "unit": {
+            "kind": "not_applicable",
+            "reason": "not a quantity"
+          }
+        },
+        {
+          "ask": "The date the agreement takes effect, agreed at signature",
+          "asked_of": [
+            "provider",
+            "customer"
+          ],
+          "binds": {
+            "kind": "not_applicable",
+            "reason": "not a contract-instance field"
+          },
+          "field_id": "effective_date",
+          "kind": "date",
+          "unit": {
+            "kind": "not_applicable",
+            "reason": "not a quantity"
+          }
+        },
+        {
+          "ask": "The site's name, address and MPAN(s), from the customer or host",
+          "asked_of": [
+            "customer",
+            "host"
+          ],
+          "binds": {
+            "kind": "not_applicable",
+            "reason": "not a contract-instance field"
+          },
+          "field_id": "site_reference",
+          "kind": "text",
+          "unit": {
+            "kind": "not_applicable",
+            "reason": "not a quantity"
+          }
+        },
+        {
+          "ask": "What the assessment covers (curtailment, sizing, flexibility, operating proposal), agreed with the customer",
+          "asked_of": [
+            "customer",
+            "provider"
+          ],
+          "binds": {
+            "kind": "not_applicable",
+            "reason": "not a contract-instance field"
+          },
+          "field_id": "assessment_scope",
+          "kind": "text",
+          "unit": {
+            "kind": "not_applicable",
+            "reason": "not a quantity"
+          }
+        },
+        {
+          "ask": "Which data the customer will supply: half-hourly meter data, connection agreement, BMS history, IT load profile",
+          "asked_of": [
+            "customer"
+          ],
+          "binds": {
+            "kind": "not_applicable",
+            "reason": "not a contract-instance field"
+          },
+          "field_id": "data_items_requested",
+          "kind": "text",
+          "unit": {
+            "kind": "not_applicable",
+            "reason": "not a quantity"
+          }
+        },
+        {
+          "ask": "The deliverables and their form, agreed with the customer",
+          "asked_of": [
+            "customer",
+            "provider"
+          ],
+          "binds": {
+            "kind": "not_applicable",
+            "reason": "not a contract-instance field"
+          },
+          "field_id": "deliverables",
+          "kind": "text",
+          "unit": {
+            "kind": "not_applicable",
+            "reason": "not a quantity"
+          }
+        },
+        {
+          "ask": "The delivery date, agreed with the customer",
+          "asked_of": [
+            "customer",
+            "provider"
+          ],
+          "binds": {
+            "kind": "not_applicable",
+            "reason": "not a contract-instance field"
+          },
+          "field_id": "delivery_date",
+          "kind": "date",
+          "unit": {
+            "kind": "not_applicable",
+            "reason": "not a quantity"
+          }
+        },
+        {
+          "ask": "The assessment fee agreed with this customer; the list price on record is not an agreement",
+          "asked_of": [
+            "customer",
+            "provider"
+          ],
+          "binds": {
+            "kind": "not_applicable",
+            "reason": "not a contract-instance field"
+          },
+          "field_id": "assessment_fee_agreed",
+          "kind": "quantity",
+          "unit": "gbp_pence"
+        },
+        {
+          "ask": "Days from invoice to payment, agreed with the customer",
+          "asked_of": [
+            "customer",
+            "provider"
+          ],
+          "binds": {
+            "kind": "not_applicable",
+            "reason": "not a contract-instance field"
+          },
+          "field_id": "payment_terms",
+          "kind": "quantity",
+          "unit": "days"
+        },
+        {
+          "ask": "The liability cap, agreed with the customer on counsel's advice",
+          "asked_of": [
+            "customer",
+            "counsel"
+          ],
+          "binds": {
+            "kind": "not_applicable",
+            "reason": "not a contract-instance field"
+          },
+          "field_id": "liability_cap",
+          "kind": "quantity",
+          "unit": "gbp_pence"
+        },
+        {
+          "ask": "Who commissions the assessment under the chosen financing variant: host, prospective owner or lessor",
+          "asked_of": [
+            "customer"
+          ],
+          "binds": {
+            "kind": "not_applicable",
+            "reason": "not a contract-instance field"
+          },
+          "field_id": "commissioning_party",
+          "kind": "text",
+          "unit": {
+            "kind": "not_applicable",
+            "reason": "not a quantity"
+          }
+        },
+        {
+          "ask": "Governing law and jurisdiction: counsel advises",
+          "asked_of": [
+            "counsel"
+          ],
+          "binds": {
+            "kind": "not_applicable",
+            "reason": "not a contract-instance field"
+          },
+          "field_id": "governing_law",
+          "kind": "text",
+          "unit": {
+            "kind": "not_applicable",
+            "reason": "not a quantity"
+          }
+        }
+      ],
+      "risk_carriers": {
+        "kind": "not_applicable",
+        "reason": "only the performance wrapper has a risk carrier"
+      },
+      "safety_hierarchy": {
+        "kind": "not_applicable",
+        "reason": "carried by the MSA"
+      },
+      "template_id": "assessment_sow",
+      "template_version": "0.2.0",
+      "text_file": "assessment_sow.md",
+      "text_sha256": "sha256:3ec1f9fa8f20b306a4ed2ed0d66bf0a58fd63477e78c87010d806f162b925936",
+      "title": "Assessment statement of work",
+      "unavailable_terms": [],
+      "variants": [
+        {
+          "changes": "the host commissions and pays",
+          "counterparty": "the host",
+          "variant": "direct_host_funded"
+        },
+        {
+          "changes": "the owner commissions; the host grants data access",
+          "counterparty": "the prospective third-party owner",
+          "variant": "ipp_third_party_owner"
+        },
+        {
+          "changes": "the lessor commissions; the host grants data access",
+          "counterparty": "the lessor",
+          "variant": "power_provision_lessor"
+        }
+      ]
+    },
+    {
+      "clauses": [
+        {
+          "clause_id": "parties",
+          "title": "Parties and definitions"
+        },
+        {
+          "clause_id": "services",
+          "title": "Services"
+        },
+        {
+          "clause_id": "responsibility_boundary",
+          "title": "Responsibility boundary"
+        },
+        {
+          "clause_id": "safety_hierarchy",
+          "title": "Safety hierarchy"
+        },
+        {
+          "clause_id": "control_authority_staging",
+          "title": "Control authority staging"
+        },
+        {
+          "clause_id": "service_levels",
+          "title": "Service levels"
+        },
+        {
+          "clause_id": "it_outage_carve_out",
+          "title": "IT-outage carve-out"
+        },
+        {
+          "clause_id": "step_in",
+          "title": "Step-in"
+        },
+        {
+          "clause_id": "liability_cap",
+          "title": "Liability cap"
+        },
+        {
+          "clause_id": "fees_and_payment",
+          "title": "Fees and payment"
+        },
+        {
+          "clause_id": "data_and_records",
+          "title": "Data, records and verification"
+        },
+        {
+          "clause_id": "insurance",
+          "title": "Insurance"
+        },
+        {
+          "clause_id": "termination",
+          "title": "Term and termination"
+        },
+        {
+          "clause_id": "variant_schedule",
+          "title": "Financing variants"
+        },
+        {
+          "clause_id": "governing_law",
+          "title": "Governing law"
+        },
+        {
+          "clause_id": "execution",
+          "title": "Execution"
+        }
+      ],
+      "commercial_terms": [
+        {
+          "executed_field": "integration_fee_agreed",
+          "price": {
+            "amount": 500000,
+            "kind": "list_price_on_record",
+            "price_id": "integration_fee",
+            "rendering": "list price on record, not agreed with any customer",
+            "source": "ADR-D1",
+            "unit": "gbp_pence"
+          },
+          "term_id": "integration_fee"
+        },
+        {
+          "executed_field": "operate_fee_agreed",
+          "price": {
+            "amount": 1000000,
+            "kind": "list_price_on_record",
+            "price_id": "operate_fee",
+            "rendering": "list price on record, not agreed with any customer",
+            "source": "ADR-D1",
+            "unit": "gbp_pence_per_megawatt_year"
+          },
+          "term_id": "operate_fee"
+        },
+        {
+          "executed_field": "liability_cap",
+          "price": {
+            "ask": "Liability cap: agree with the customer on counsel's advice",
+            "kind": "to_be_agreed"
+          },
+          "term_id": "liability_cap"
+        },
+        {
+          "executed_field": "it_outage_sublimit",
+          "price": {
+            "ask": "IT-outage sublimit, if any: agree with the customer on counsel's advice",
+            "kind": "to_be_agreed"
+          },
+          "term_id": "it_outage_sublimit"
+        },
+        {
+          "executed_field": "platform_availability_target",
+          "price": {
+            "ask": "Availability target: agree with the customer",
+            "kind": "to_be_agreed"
+          },
+          "term_id": "platform_availability"
+        },
+        {
+          "executed_field": "incident_response_time",
+          "price": {
+            "ask": "Incident response time: agree with the customer",
+            "kind": "to_be_agreed"
+          },
+          "term_id": "incident_response"
+        },
+        {
+          "executed_field": "step_in_notice_period",
+          "price": {
+            "ask": "Step-in notice: agree with the customer",
+            "kind": "to_be_agreed"
+          },
+          "term_id": "step_in_notice"
+        },
+        {
+          "executed_field": "step_in_maximum_period",
+          "price": {
+            "ask": "Longest step-in period: agree with the customer",
+            "kind": "to_be_agreed"
+          },
+          "term_id": "step_in_period"
+        },
+        {
+          "executed_field": "payment_terms",
+          "price": {
+            "ask": "Payment period: agree with the customer",
+            "kind": "to_be_agreed"
+          },
+          "term_id": "payment_terms"
+        },
+        {
+          "executed_field": "provider_insurance_cover",
+          "price": {
+            "ask": "Insurance cover: confirm with the Provider's broker and the customer",
+            "kind": "to_be_agreed"
+          },
+          "term_id": "insurance_cover"
+        },
+        {
+          "executed_field": "minimum_term",
+          "price": {
+            "ask": "Minimum term: agree with the customer",
+            "kind": "to_be_agreed"
+          },
+          "term_id": "minimum_term"
+        },
+        {
+          "executed_field": "termination_notice_period",
+          "price": {
+            "ask": "Termination notice: agree with the customer",
+            "kind": "to_be_agreed"
+          },
+          "term_id": "termination_notice"
+        }
+      ],
+      "control_authority": {
+        "kind": "control_authority_staging",
+        "source": "ADR-D2",
+        "stages": [
+          {
+            "gates": [],
+            "stage": "l0_read_only",
+            "write_path": false
+          },
+          {
+            "gates": [],
+            "stage": "l1_shadow",
+            "write_path": false
+          },
+          {
+            "gates": [
+              "XG-11",
+              "WP-EDGE-08",
+              "XG-17"
+            ],
+            "stage": "l2_bess_closed_loop",
+            "write_path": true
+          },
+          {
+            "gates": [
+              "XG-11",
+              "WP-EDGE-08",
+              "XG-17"
+            ],
+            "stage": "l3_chiller_narrow_band",
+            "write_path": true
+          },
+          {
+            "gates": [],
+            "stage": "l4_workload_advisory",
+            "write_path": false
+          }
+        ]
+      },
+      "executed_as": [
+        {
+          "admissible_issuers": [
+            "customer",
+            "host"
+          ],
+          "applies_when": "always: the customer's or host's signed copy",
+          "evidence_type": "master_services_agreement"
+        }
+      ],
+      "form": "full_text",
+      "legal_review": {
+        "kind": "draft_needs_legal_review",
+        "reason": "written by an engineering agent; counsel has not reviewed it"
+      },
+      "references": [
+        "ic1_connection_agreement",
+        "ic3_dispatch_envelope",
+        "ic4_evidence_object",
+        "ic8_verifier_interface"
+      ],
+      "required_fields": [
+        {
+          "ask": "The Provider's registered legal name, company number and registered office: the owner confirms which entity contracts (none is on record)",
+          "asked_of": [
+            "provider"
+          ],
+          "binds": {
+            "kind": "not_applicable",
+            "reason": "not a contract-instance field"
+          },
+          "field_id": "provider_legal_name",
+          "kind": "text",
+          "unit": {
+            "kind": "not_applicable",
+            "reason": "not a quantity"
+          }
+        },
+        {
+          "ask": "The customer's registered legal name, company number and registered office",
+          "asked_of": [
+            "customer"
+          ],
+          "binds": {
+            "kind": "not_applicable",
+            "reason": "not a contract-instance field"
+          },
+          "field_id": "customer_legal_name",
+          "kind": "text",
+          "unit": {
+            "kind": "not_applicable",
+            "reason": "not a quantity"
+          }
+        },
+        {
+          "ask": "The date the agreement takes effect, agreed at signature",
+          "asked_of": [
+            "provider",
+            "customer"
+          ],
+          "binds": {
+            "kind": "not_applicable",
+            "reason": "not a contract-instance field"
+          },
+          "field_id": "effective_date",
+          "kind": "date",
+          "unit": {
+            "kind": "not_applicable",
+            "reason": "not a quantity"
+          }
+        },
+        {
+          "ask": "The site's name, address and MPAN(s), from the customer or host",
+          "asked_of": [
+            "customer",
+            "host"
+          ],
+          "binds": {
+            "kind": "not_applicable",
+            "reason": "not a contract-instance field"
+          },
+          "field_id": "site_reference",
+          "kind": "text",
+          "unit": {
+            "kind": "not_applicable",
+            "reason": "not a quantity"
+          }
+        },
+        {
+          "ask": "Which services the customer orders: platform only, or platform and dispatch, and for which assets",
+          "asked_of": [
+            "customer"
+          ],
+          "binds": {
+            "kind": "not_applicable",
+            "reason": "not a contract-instance field"
+          },
+          "field_id": "services_in_scope",
+          "kind": "text",
+          "unit": {
+            "kind": "not_applicable",
+            "reason": "not a quantity"
+          }
+        },
+        {
+          "ask": "The flexible capacity under Operate, in kW, from the host's asset register",
+          "asked_of": [
+            "host",
+            "customer"
+          ],
+          "binds": {
+            "kind": "not_applicable",
+            "reason": "not a contract-instance field"
+          },
+          "field_id": "contracted_capacity_kw",
+          "kind": "quantity",
+          "unit": "kilowatts"
+        },
+        {
+          "ask": "Which route-to-market partner executes market actions for this site, under which agreement",
+          "asked_of": [
+            "customer"
+          ],
+          "binds": {
+            "kind": "not_applicable",
+            "reason": "not a contract-instance field"
+          },
+          "field_id": "route_to_market_partner",
+          "kind": "text",
+          "unit": {
+            "kind": "not_applicable",
+            "reason": "not a quantity"
+          }
+        },
+        {
+          "ask": "Which certified OEM controller or controllers execute setpoints at the site",
+          "asked_of": [
+            "host"
+          ],
+          "binds": {
+            "kind": "not_applicable",
+            "reason": "not a contract-instance field"
+          },
+          "field_id": "oem_controller",
+          "kind": "text",
+          "unit": {
+            "kind": "not_applicable",
+            "reason": "not a quantity"
+          }
+        },
+        {
+          "ask": "The control stage at signature (L0 or L1); a later stage needs its gates",
+          "asked_of": [
+            "host",
+            "provider"
+          ],
+          "binds": {
+            "kind": "not_applicable",
+            "reason": "not a contract-instance field"
+          },
+          "field_id": "initial_control_stage",
+          "kind": "text",
+          "unit": {
+            "kind": "not_applicable",
+            "reason": "not a quantity"
+          }
+        },
+        {
+          "ask": "The host's critical-facilities lead: role and 24/7 contact route",
+          "asked_of": [
+            "host"
+          ],
+          "binds": {
+            "kind": "not_applicable",
+            "reason": "not a contract-instance field"
+          },
+          "field_id": "host_critical_facilities_contact",
+          "kind": "text",
+          "unit": {
+            "kind": "not_applicable",
+            "reason": "not a quantity"
+          }
+        },
+        {
+          "ask": "Monthly platform availability target, in basis points, agreed with the customer",
+          "asked_of": [
+            "customer",
+            "provider"
+          ],
+          "binds": {
+            "kind": "not_applicable",
+            "reason": "not a contract-instance field"
+          },
+          "field_id": "platform_availability_target",
+          "kind": "quantity",
+          "unit": "basis_points"
+        },
+        {
+          "ask": "Severity-one response time, in minutes, agreed with the customer",
+          "asked_of": [
+            "customer",
+            "provider"
+          ],
+          "binds": {
+            "kind": "not_applicable",
+            "reason": "not a contract-instance field"
+          },
+          "field_id": "incident_response_time",
+          "kind": "quantity",
+          "unit": "minutes"
+        },
+        {
+          "ask": "The service-credit regime and its cap, if any, agreed with the customer",
+          "asked_of": [
+            "customer",
+            "provider"
+          ],
+          "binds": {
+            "kind": "not_applicable",
+            "reason": "not a contract-instance field"
+          },
+          "field_id": "service_credits",
+          "kind": "text",
+          "unit": {
+            "kind": "not_applicable",
+            "reason": "not a quantity"
+          }
+        },
+        {
+          "ask": "Whether IT-outage liability under clause 7.1 sits inside the cap, under a sublimit or outside it: counsel advises, the customer agrees",
+          "asked_of": [
+            "counsel",
+            "customer"
+          ],
+          "binds": {
+            "kind": "not_applicable",
+            "reason": "not a contract-instance field"
+          },
+          "field_id": "it_outage_liability_treatment",
+          "kind": "text",
+          "unit": {
+            "kind": "not_applicable",
+            "reason": "not a quantity"
+          }
+        },
+        {
+          "ask": "The IT-outage sublimit, if a sublimit is chosen (not applicable otherwise)",
+          "asked_of": [
+            "customer",
+            "counsel"
+          ],
+          "binds": {
+            "kind": "not_applicable",
+            "reason": "not a contract-instance field"
+          },
+          "field_id": "it_outage_sublimit",
+          "kind": "quantity",
+          "unit": "gbp_pence"
+        },
+        {
+          "ask": "The events that allow step-in (e.g. persistent service failure, insolvency), agreed on counsel's advice",
+          "asked_of": [
+            "customer",
+            "counsel"
+          ],
+          "binds": {
+            "kind": "not_applicable",
+            "reason": "not a contract-instance field"
+          },
+          "field_id": "step_in_triggers",
+          "kind": "text",
+          "unit": {
+            "kind": "not_applicable",
+            "reason": "not a quantity"
+          }
+        },
+        {
+          "ask": "Notice before step-in, in hours, agreed with the customer",
+          "asked_of": [
+            "customer",
+            "provider"
+          ],
+          "binds": {
+            "kind": "not_applicable",
+            "reason": "not a contract-instance field"
+          },
+          "field_id": "step_in_notice_period",
+          "kind": "quantity",
+          "unit": "hours"
+        },
+        {
+          "ask": "The longest step-in period, in days, agreed with the customer",
+          "asked_of": [
+            "customer",
+            "provider"
+          ],
+          "binds": {
+            "kind": "not_applicable",
+            "reason": "not a contract-instance field"
+          },
+          "field_id": "step_in_maximum_period",
+          "kind": "quantity",
+          "unit": "days"
+        },
+        {
+          "ask": "The liability cap, agreed with the customer on counsel's advice",
+          "asked_of": [
+            "customer",
+            "counsel"
+          ],
+          "binds": {
+            "kind": "not_applicable",
+            "reason": "not a contract-instance field"
+          },
+          "field_id": "liability_cap",
+          "kind": "quantity",
+          "unit": "gbp_pence"
+        },
+        {
+          "ask": "How the cap is set (a fixed sum, or a multiple of fees paid), agreed on counsel's advice",
+          "asked_of": [
+            "customer",
+            "counsel"
+          ],
+          "binds": {
+            "kind": "not_applicable",
+            "reason": "not a contract-instance field"
+          },
+          "field_id": "liability_cap_basis",
+          "kind": "text",
+          "unit": {
+            "kind": "not_applicable",
+            "reason": "not a quantity"
+          }
+        },
+        {
+          "ask": "The integration fee agreed with this customer; the list price on record is not an agreement",
+          "asked_of": [
+            "customer",
+            "provider"
+          ],
+          "binds": {
+            "kind": "not_applicable",
+            "reason": "not a contract-instance field"
+          },
+          "field_id": "integration_fee_agreed",
+          "kind": "quantity",
+          "unit": "gbp_pence"
+        },
+        {
+          "ask": "The Operate fee per MW per year agreed with this customer; the list price on record is not an agreement",
+          "asked_of": [
+            "customer",
+            "provider"
+          ],
+          "binds": {
+            "kind": "not_applicable",
+            "reason": "not a contract-instance field"
+          },
+          "field_id": "operate_fee_agreed",
+          "kind": "quantity",
+          "unit": "gbp_pence_per_megawatt_year"
+        },
+        {
+          "ask": "Days from invoice to payment, agreed with the customer",
+          "asked_of": [
+            "customer",
+            "provider"
+          ],
+          "binds": {
+            "kind": "not_applicable",
+            "reason": "not a contract-instance field"
+          },
+          "field_id": "payment_terms",
+          "kind": "quantity",
+          "unit": "days"
+        },
+        {
+          "ask": "Professional indemnity and public liability cover per claim, confirmed by the Provider's broker",
+          "asked_of": [
+            "provider"
+          ],
+          "binds": {
+            "kind": "not_applicable",
+            "reason": "not a contract-instance field"
+          },
+          "field_id": "provider_insurance_cover",
+          "kind": "quantity",
+          "unit": "gbp_pence"
+        },
+        {
+          "ask": "The minimum term, in months, agreed with the customer",
+          "asked_of": [
+            "customer",
+            "provider"
+          ],
+          "binds": {
+            "kind": "not_applicable",
+            "reason": "not a contract-instance field"
+          },
+          "field_id": "minimum_term",
+          "kind": "quantity",
+          "unit": "months"
+        },
+        {
+          "ask": "Notice to end after the minimum term, in days, agreed with the customer",
+          "asked_of": [
+            "customer",
+            "provider"
+          ],
+          "binds": {
+            "kind": "not_applicable",
+            "reason": "not a contract-instance field"
+          },
+          "field_id": "termination_notice_period",
+          "kind": "quantity",
+          "unit": "days"
+        },
+        {
+          "ask": "Whether and on what payment either party may end for convenience in the minimum term, agreed on counsel's advice",
+          "asked_of": [
+            "customer",
+            "counsel"
+          ],
+          "binds": {
+            "kind": "not_applicable",
+            "reason": "not a contract-instance field"
+          },
+          "field_id": "termination_for_convenience",
+          "kind": "text",
+          "unit": {
+            "kind": "not_applicable",
+            "reason": "not a quantity"
+          }
+        },
+        {
+          "ask": "Who owns the battery and leased import right under the chosen variant: the host, a third-party owner or a lessor",
+          "asked_of": [
+            "customer",
+            "host"
+          ],
+          "binds": {
+            "kind": "not_applicable",
+            "reason": "not a contract-instance field"
+          },
+          "field_id": "asset_owner",
+          "kind": "text",
+          "unit": {
+            "kind": "not_applicable",
+            "reason": "not a quantity"
+          }
+        },
+        {
+          "ask": "Governing law and jurisdiction: counsel advises",
+          "asked_of": [
+            "counsel"
+          ],
+          "binds": {
+            "kind": "not_applicable",
+            "reason": "not a contract-instance field"
+          },
+          "field_id": "governing_law",
+          "kind": "text",
+          "unit": {
+            "kind": "not_applicable",
+            "reason": "not a quantity"
+          }
+        }
+      ],
+      "risk_carriers": {
+        "kind": "not_applicable",
+        "reason": "only the performance wrapper has a risk carrier"
+      },
+      "safety_hierarchy": {
+        "kind": "safety_hierarchy",
+        "order": [
+          "life_safety",
+          "it_sla_and_thermal_limits",
+          "connection_compliance",
+          "resilience_reserve",
+          "contracted_market_delivery",
+          "merchant_revenue"
+        ],
+        "source": "spec §8 principle 1"
+      },
+      "template_id": "software_dispatch_msa",
+      "template_version": "0.2.0",
+      "text_file": "software_dispatch_msa.md",
+      "text_sha256": "sha256:2795516f119c950e25b8e220e78382d56210376229dda63d09ea8b205b841e09",
+      "title": "Software and Dispatch master services agreement",
+      "unavailable_terms": [],
+      "variants": [
+        {
+          "changes": "nothing changes",
+          "counterparty": "the customer, who is also the host",
+          "variant": "direct_host_funded"
+        },
+        {
+          "changes": "the host signs the site access agreement; step-in extends to the owner's financier",
+          "counterparty": "the third-party owner, as customer",
+          "variant": "ipp_third_party_owner"
+        },
+        {
+          "changes": "the host is the lessee; the lessor's financier has the step-in rights",
+          "counterparty": "the lessor, as customer",
+          "variant": "power_provision_lessor"
+        }
+      ]
+    },
+    {
+      "clauses": [
+        {
+          "clause_id": "parties",
+          "title": "Parties"
+        },
+        {
+          "clause_id": "heads_of_terms_source",
+          "title": "Source of the heads of terms"
+        },
+        {
+          "clause_id": "purpose_and_data",
+          "title": "Purpose and data items"
+        },
+        {
+          "clause_id": "lawful_basis",
+          "title": "Lawful basis"
+        },
+        {
+          "clause_id": "onward_sharing",
+          "title": "Onward sharing"
+        },
+        {
+          "clause_id": "security_and_access",
+          "title": "Security and access"
+        },
+        {
+          "clause_id": "review_and_termination",
+          "title": "Retention, review and termination"
+        },
+        {
+          "clause_id": "variant_schedule",
+          "title": "Financing variants"
+        },
+        {
+          "clause_id": "governing_law",
+          "title": "Governing law"
+        },
+        {
+          "clause_id": "execution",
+          "title": "Execution"
+        }
+      ],
+      "commercial_terms": [
+        {
+          "executed_field": "review_interval",
+          "price": {
+            "ask": "Review interval: agree with the counterparty",
+            "kind": "to_be_agreed"
+          },
+          "term_id": "review_interval"
+        }
+      ],
+      "control_authority": {
+        "kind": "not_applicable",
+        "reason": "carried by the MSA"
+      },
+      "executed_as": [
+        {
+          "admissible_issuers": [
+            "dno",
+            "idno",
+            "neso",
+            "elexon"
+          ],
+          "applies_when": "always: the counterparty's signed copy (WP-GRC-05 schedules A to C)",
+          "evidence_type": "data_sharing_agreement"
+        }
+      ],
+      "form": "heads_of_terms",
+      "legal_review": {
+        "kind": "draft_needs_legal_review",
+        "reason": "written by an engineering agent; counsel has not reviewed it"
+      },
+      "references": [
+        "ic4_evidence_object",
+        "ic8_verifier_interface",
+        "ic13_identity_claims"
+      ],
+      "required_fields": [
+        {
+          "ask": "The Provider's registered legal name, company number and registered office: the owner confirms which entity contracts (none is on record)",
+          "asked_of": [
+            "provider"
+          ],
+          "binds": {
+            "kind": "not_applicable",
+            "reason": "not a contract-instance field"
+          },
+          "field_id": "provider_legal_name",
+          "kind": "text",
+          "unit": {
+            "kind": "not_applicable",
+            "reason": "not a quantity"
+          }
+        },
+        {
+          "ask": "The counterparty's legal name and registered office",
+          "asked_of": [
+            "data_counterparty"
+          ],
+          "binds": {
+            "kind": "not_applicable",
+            "reason": "not a contract-instance field"
+          },
+          "field_id": "counterparty_legal_name",
+          "kind": "text",
+          "unit": {
+            "kind": "not_applicable",
+            "reason": "not a quantity"
+          }
+        },
+        {
+          "ask": "The date the agreement takes effect, agreed at signature",
+          "asked_of": [
+            "provider",
+            "customer"
+          ],
+          "binds": {
+            "kind": "not_applicable",
+            "reason": "not a contract-instance field"
+          },
+          "field_id": "effective_date",
+          "kind": "date",
+          "unit": {
+            "kind": "not_applicable",
+            "reason": "not a quantity"
+          }
+        },
+        {
+          "ask": "Which WP-GRC-05 schedule applies (A: DNO, B: NESO, C: Elexon)",
+          "asked_of": [
+            "data_counterparty",
+            "provider"
+          ],
+          "binds": {
+            "kind": "not_applicable",
+            "reason": "not a contract-instance field"
+          },
+          "field_id": "counterparty_schedule",
+          "kind": "text",
+          "unit": {
+            "kind": "not_applicable",
+            "reason": "not a quantity"
+          }
+        },
+        {
+          "ask": "The purpose of the sharing, agreed with the counterparty",
+          "asked_of": [
+            "data_counterparty",
+            "provider"
+          ],
+          "binds": {
+            "kind": "not_applicable",
+            "reason": "not a contract-instance field"
+          },
+          "field_id": "purpose",
+          "kind": "text",
+          "unit": {
+            "kind": "not_applicable",
+            "reason": "not a quantity"
+          }
+        },
+        {
+          "ask": "The data items shared, each listed, agreed with the counterparty",
+          "asked_of": [
+            "data_counterparty",
+            "provider"
+          ],
+          "binds": {
+            "kind": "not_applicable",
+            "reason": "not a contract-instance field"
+          },
+          "field_id": "data_items",
+          "kind": "text",
+          "unit": {
+            "kind": "not_applicable",
+            "reason": "not a quantity"
+          }
+        },
+        {
+          "ask": "The Provider's lawful basis, confirmed by counsel with a recorded assessment",
+          "asked_of": [
+            "counsel"
+          ],
+          "binds": {
+            "kind": "not_applicable",
+            "reason": "not a contract-instance field"
+          },
+          "field_id": "lawful_basis",
+          "kind": "text",
+          "unit": {
+            "kind": "not_applicable",
+            "reason": "not a quantity"
+          }
+        },
+        {
+          "ask": "How often the agreement is reviewed, in months, agreed with the counterparty",
+          "asked_of": [
+            "data_counterparty",
+            "provider"
+          ],
+          "binds": {
+            "kind": "not_applicable",
+            "reason": "not a contract-instance field"
+          },
+          "field_id": "review_interval",
+          "kind": "quantity",
+          "unit": "months"
+        },
+        {
+          "ask": "Governing law and jurisdiction: counsel advises",
+          "asked_of": [
+            "counsel"
+          ],
+          "binds": {
+            "kind": "not_applicable",
+            "reason": "not a contract-instance field"
+          },
+          "field_id": "governing_law",
+          "kind": "text",
+          "unit": {
+            "kind": "not_applicable",
+            "reason": "not a quantity"
+          }
+        }
+      ],
+      "risk_carriers": {
+        "kind": "not_applicable",
+        "reason": "only the performance wrapper has a risk carrier"
+      },
+      "safety_hierarchy": {
+        "kind": "not_applicable",
+        "reason": "carried by the MSA"
+      },
+      "template_id": "data_sharing_agreement",
+      "template_version": "0.1.0",
+      "text_file": "data_sharing_agreement.md",
+      "text_sha256": "sha256:341b06b41285cd5b34c96bc4fd3e999b9f699ab13925bf626d9438be6f98ac19",
+      "title": "Data-sharing agreement",
+      "unavailable_terms": [],
+      "variants": [
+        {
+          "changes": "no change: the host's site data",
+          "counterparty": "the data counterparty",
+          "variant": "direct_host_funded"
+        },
+        {
+          "changes": "the owner is a further controller and signs its own terms",
+          "counterparty": "the data counterparty",
+          "variant": "ipp_third_party_owner"
+        },
+        {
+          "changes": "the lessor is a further controller and signs its own terms",
+          "counterparty": "the data counterparty",
+          "variant": "power_provision_lessor"
+        }
+      ]
+    },
+    {
+      "clauses": [
+        {
+          "clause_id": "parties",
+          "title": "Parties"
+        },
+        {
+          "clause_id": "roles",
+          "title": "Roles"
+        },
+        {
+          "clause_id": "availability",
+          "title": "Availability"
+        },
+        {
+          "clause_id": "instructions",
+          "title": "Instructions and acknowledgements"
+        },
+        {
+          "clause_id": "safety_override",
+          "title": "Safety override"
+        },
+        {
+          "clause_id": "settlement_and_verification",
+          "title": "Settlement and verification"
+        },
+        {
+          "clause_id": "revenue_share",
+          "title": "Revenue share"
+        },
+        {
+          "clause_id": "dno_counterparty",
+          "title": "DNO counterparty"
+        },
+        {
+          "clause_id": "termination",
+          "title": "Termination"
+        },
+        {
+          "clause_id": "variant_schedule",
+          "title": "Financing variants"
+        },
+        {
+          "clause_id": "governing_law",
+          "title": "Governing law"
+        },
+        {
+          "clause_id": "execution",
+          "title": "Execution"
+        }
+      ],
+      "commercial_terms": [
+        {
+          "executed_field": "revenue_share",
+          "price": {
+            "ask": "Revenue share: agree with the counterparty",
+            "kind": "to_be_agreed"
+          },
+          "term_id": "revenue_share"
+        },
+        {
+          "executed_field": "termination_notice_period",
+          "price": {
+            "ask": "Termination notice: agree with the counterparty",
+            "kind": "to_be_agreed"
+          },
+          "term_id": "termination_notice"
+        }
+      ],
+      "control_authority": {
+        "kind": "not_applicable",
+        "reason": "carried by the MSA"
+      },
+      "executed_as": [
+        {
+          "admissible_issuers": [
+            "aggregator"
+          ],
+          "applies_when": "the counterparty is a route-to-market aggregator",
+          "evidence_type": "aggregator_agreement"
+        },
+        {
+          "admissible_issuers": [
+            "dno",
+            "idno"
+          ],
+          "applies_when": "the counterparty is a DNO or IDNO buying flexibility",
+          "evidence_type": "dno_flexibility_contract"
+        }
+      ],
+      "form": "heads_of_terms",
+      "legal_review": {
+        "kind": "draft_needs_legal_review",
+        "reason": "written by an engineering agent; counsel has not reviewed it"
+      },
+      "references": [
+        "ic3_dispatch_envelope",
+        "ic4_evidence_object",
+        "ic8_verifier_interface",
+        "ic11_thermal_flex"
+      ],
+      "required_fields": [
+        {
+          "ask": "The Provider's registered legal name, company number and registered office: the owner confirms which entity contracts (none is on record)",
+          "asked_of": [
+            "provider"
+          ],
+          "binds": {
+            "kind": "not_applicable",
+            "reason": "not a contract-instance field"
+          },
+          "field_id": "provider_legal_name",
+          "kind": "text",
+          "unit": {
+            "kind": "not_applicable",
+            "reason": "not a quantity"
+          }
+        },
+        {
+          "ask": "The flexibility counterparty's legal name and registered office",
+          "asked_of": [
+            "flexibility_counterparty"
+          ],
+          "binds": {
+            "kind": "not_applicable",
+            "reason": "not a contract-instance field"
+          },
+          "field_id": "counterparty_legal_name",
+          "kind": "text",
+          "unit": {
+            "kind": "not_applicable",
+            "reason": "not a quantity"
+          }
+        },
+        {
+          "ask": "The site's name, address and MPAN(s), from the customer or host",
+          "asked_of": [
+            "customer",
+            "host"
+          ],
+          "binds": {
+            "kind": "not_applicable",
+            "reason": "not a contract-instance field"
+          },
+          "field_id": "site_reference",
+          "kind": "text",
+          "unit": {
+            "kind": "not_applicable",
+            "reason": "not a quantity"
+          }
+        },
+        {
+          "ask": "The date the agreement takes effect, agreed at signature",
+          "asked_of": [
+            "provider",
+            "customer"
+          ],
+          "binds": {
+            "kind": "not_applicable",
+            "reason": "not a contract-instance field"
+          },
+          "field_id": "effective_date",
+          "kind": "date",
+          "unit": {
+            "kind": "not_applicable",
+            "reason": "not a quantity"
+          }
+        },
+        {
+          "ask": "Which flexibility services are in scope, agreed with the counterparty",
+          "asked_of": [
+            "flexibility_counterparty",
+            "provider"
+          ],
+          "binds": {
+            "kind": "not_applicable",
+            "reason": "not a contract-instance field"
+          },
+          "field_id": "services_offered",
+          "kind": "text",
+          "unit": {
+            "kind": "not_applicable",
+            "reason": "not a quantity"
+          }
+        },
+        {
+          "ask": "How instructions and acknowledgements are exchanged (interface, endpoint, fallback), agreed with the counterparty",
+          "asked_of": [
+            "flexibility_counterparty",
+            "provider"
+          ],
+          "binds": {
+            "kind": "not_applicable",
+            "reason": "not a contract-instance field"
+          },
+          "field_id": "instruction_channel",
+          "kind": "text",
+          "unit": {
+            "kind": "not_applicable",
+            "reason": "not a quantity"
+          }
+        },
+        {
+          "ask": "The Provider's revenue share, in basis points, agreed with the counterparty",
+          "asked_of": [
+            "flexibility_counterparty",
+            "provider"
+          ],
+          "binds": {
+            "kind": "not_applicable",
+            "reason": "not a contract-instance field"
+          },
+          "field_id": "revenue_share",
+          "kind": "quantity",
+          "unit": "basis_points"
+        },
+        {
+          "ask": "For a DNO or IDNO: its standard flexibility agreement and version (not applicable for an aggregator)",
+          "asked_of": [
+            "flexibility_counterparty"
+          ],
+          "binds": {
+            "kind": "not_applicable",
+            "reason": "not a contract-instance field"
+          },
+          "field_id": "counterparty_standard_terms",
+          "kind": "text",
+          "unit": {
+            "kind": "not_applicable",
+            "reason": "not a quantity"
+          }
+        },
+        {
+          "ask": "Notice to end, in days, agreed with the counterparty",
+          "asked_of": [
+            "flexibility_counterparty",
+            "provider"
+          ],
+          "binds": {
+            "kind": "not_applicable",
+            "reason": "not a contract-instance field"
+          },
+          "field_id": "termination_notice_period",
+          "kind": "quantity",
+          "unit": "days"
+        },
+        {
+          "ask": "Governing law and jurisdiction: counsel advises",
+          "asked_of": [
+            "counsel"
+          ],
+          "binds": {
+            "kind": "not_applicable",
+            "reason": "not a contract-instance field"
+          },
+          "field_id": "governing_law",
+          "kind": "text",
+          "unit": {
+            "kind": "not_applicable",
+            "reason": "not a quantity"
+          }
+        }
+      ],
+      "risk_carriers": {
+        "kind": "not_applicable",
+        "reason": "only the performance wrapper has a risk carrier"
+      },
+      "safety_hierarchy": {
+        "kind": "not_applicable",
+        "reason": "carried by the MSA"
+      },
+      "template_id": "flexibility_services_agreement",
+      "template_version": "0.2.0",
+      "text_file": "flexibility_services_agreement.md",
+      "text_sha256": "sha256:06d0f9a319cf7c395376dcddb1074583fde6c2e99d3722d6ef7e66e9a9b28b87",
+      "title": "Aggregator / flexibility services agreement",
+      "unavailable_terms": [],
+      "variants": [
+        {
+          "changes": "the host's assets are offered",
+          "counterparty": "the flexibility counterparty",
+          "variant": "direct_host_funded"
+        },
+        {
+          "changes": "the owner's assets are offered with its recorded consent",
+          "counterparty": "the flexibility counterparty",
+          "variant": "ipp_third_party_owner"
+        },
+        {
+          "changes": "offered with the lessor's recorded consent",
+          "counterparty": "the flexibility counterparty",
+          "variant": "power_provision_lessor"
+        }
+      ]
+    },
+    {
+      "clauses": [
+        {
+          "clause_id": "parties",
+          "title": "Parties"
+        },
+        {
+          "clause_id": "site_and_location",
+          "title": "Site and location"
+        },
+        {
+          "clause_id": "access",
+          "title": "Access"
+        },
+        {
+          "clause_id": "installation_works",
+          "title": "Installation works"
+        },
+        {
+          "clause_id": "connection_compliance",
+          "title": "Connection compliance"
+        },
+        {
+          "clause_id": "critical_facilities",
+          "title": "Critical facilities"
+        },
+        {
+          "clause_id": "equipment_ownership",
+          "title": "Equipment ownership"
+        },
+        {
+          "clause_id": "insurance",
+          "title": "Insurance"
+        },
+        {
+          "clause_id": "fees",
+          "title": "Fees"
+        },
+        {
+          "clause_id": "removal_and_make_good",
+          "title": "Removal and make-good"
+        },
+        {
+          "clause_id": "term_and_termination",
+          "title": "Term and termination"
+        },
+        {
+          "clause_id": "variant_schedule",
+          "title": "Financing variants"
+        },
+        {
+          "clause_id": "governing_law",
+          "title": "Governing law"
+        },
+        {
+          "clause_id": "execution",
+          "title": "Execution"
+        }
+      ],
+      "commercial_terms": [
+        {
+          "executed_field": "site_licence_fee",
+          "price": {
+            "ask": "Site licence fee, if any: agree with the host",
+            "kind": "to_be_agreed"
+          },
+          "term_id": "site_licence_fee"
+        },
+        {
+          "executed_field": "term",
+          "price": {
+            "ask": "Term: agree with the host",
+            "kind": "to_be_agreed"
+          },
+          "term_id": "term"
+        }
+      ],
+      "control_authority": {
+        "kind": "not_applicable",
+        "reason": "carried by the MSA"
+      },
+      "executed_as": [
+        {
+          "admissible_issuers": [
+            "host"
+          ],
+          "applies_when": "always: the host's signed copy",
+          "evidence_type": "site_access_installation_agreement"
+        }
+      ],
+      "form": "heads_of_terms",
+      "legal_review": {
+        "kind": "draft_needs_legal_review",
+        "reason": "written by an engineering agent; counsel has not reviewed it"
+      },
+      "references": [
+        "ic1_connection_agreement",
+        "ic4_evidence_object"
+      ],
+      "required_fields": [
+        {
+          "ask": "The Provider's registered legal name, company number and registered office: the owner confirms which entity contracts (none is on record)",
+          "asked_of": [
+            "provider"
+          ],
+          "binds": {
+            "kind": "not_applicable",
+            "reason": "not a contract-instance field"
+          },
+          "field_id": "provider_legal_name",
+          "kind": "text",
+          "unit": {
+            "kind": "not_applicable",
+            "reason": "not a quantity"
+          }
+        },
+        {
+          "ask": "The host's registered legal name, company number and registered office",
+          "asked_of": [
+            "host"
+          ],
+          "binds": {
+            "kind": "not_applicable",
+            "reason": "not a contract-instance field"
+          },
+          "field_id": "host_legal_name",
+          "kind": "text",
+          "unit": {
+            "kind": "not_applicable",
+            "reason": "not a quantity"
+          }
+        },
+        {
+          "ask": "The date the agreement takes effect, agreed at signature",
+          "asked_of": [
+            "provider",
+            "customer"
+          ],
+          "binds": {
+            "kind": "not_applicable",
+            "reason": "not a contract-instance field"
+          },
+          "field_id": "effective_date",
+          "kind": "date",
+          "unit": {
+            "kind": "not_applicable",
+            "reason": "not a quantity"
+          }
+        },
+        {
+          "ask": "The site's name, address and MPAN(s), from the customer or host",
+          "asked_of": [
+            "customer",
+            "host"
+          ],
+          "binds": {
+            "kind": "not_applicable",
+            "reason": "not a contract-instance field"
+          },
+          "field_id": "site_reference",
+          "kind": "text",
+          "unit": {
+            "kind": "not_applicable",
+            "reason": "not a quantity"
+          }
+        },
+        {
+          "ask": "Where on site the equipment goes, from the host's drawings",
+          "asked_of": [
+            "host"
+          ],
+          "binds": {
+            "kind": "not_applicable",
+            "reason": "not a contract-instance field"
+          },
+          "field_id": "installation_location",
+          "kind": "text",
+          "unit": {
+            "kind": "not_applicable",
+            "reason": "not a quantity"
+          }
+        },
+        {
+          "ask": "Access hours, notice, escort and induction rules, from the host",
+          "asked_of": [
+            "host"
+          ],
+          "binds": {
+            "kind": "not_applicable",
+            "reason": "not a contract-instance field"
+          },
+          "field_id": "access_arrangements",
+          "kind": "text",
+          "unit": {
+            "kind": "not_applicable",
+            "reason": "not a quantity"
+          }
+        },
+        {
+          "ask": "The installation works, from the installer's method statement",
+          "asked_of": [
+            "provider",
+            "host"
+          ],
+          "binds": {
+            "kind": "not_applicable",
+            "reason": "not a contract-instance field"
+          },
+          "field_id": "works_description",
+          "kind": "text",
+          "unit": {
+            "kind": "not_applicable",
+            "reason": "not a quantity"
+          }
+        },
+        {
+          "ask": "The works completion date, agreed with the host",
+          "asked_of": [
+            "host",
+            "provider"
+          ],
+          "binds": {
+            "kind": "not_applicable",
+            "reason": "not a contract-instance field"
+          },
+          "field_id": "works_completion_date",
+          "kind": "date",
+          "unit": {
+            "kind": "not_applicable",
+            "reason": "not a quantity"
+          }
+        },
+        {
+          "ask": "The host's critical-facilities lead: role and 24/7 contact route",
+          "asked_of": [
+            "host"
+          ],
+          "binds": {
+            "kind": "not_applicable",
+            "reason": "not a contract-instance field"
+          },
+          "field_id": "host_critical_facilities_contact",
+          "kind": "text",
+          "unit": {
+            "kind": "not_applicable",
+            "reason": "not a quantity"
+          }
+        },
+        {
+          "ask": "Who owns the installed equipment under the chosen variant",
+          "asked_of": [
+            "host",
+            "customer"
+          ],
+          "binds": {
+            "kind": "not_applicable",
+            "reason": "not a contract-instance field"
+          },
+          "field_id": "asset_owner",
+          "kind": "text",
+          "unit": {
+            "kind": "not_applicable",
+            "reason": "not a quantity"
+          }
+        },
+        {
+          "ask": "The insurance each party holds for the works and the equipment, confirmed by brokers",
+          "asked_of": [
+            "host",
+            "provider"
+          ],
+          "binds": {
+            "kind": "not_applicable",
+            "reason": "not a contract-instance field"
+          },
+          "field_id": "insurance_requirements",
+          "kind": "text",
+          "unit": {
+            "kind": "not_applicable",
+            "reason": "not a quantity"
+          }
+        },
+        {
+          "ask": "The yearly site licence fee, if any, agreed with the host",
+          "asked_of": [
+            "host",
+            "provider"
+          ],
+          "binds": {
+            "kind": "not_applicable",
+            "reason": "not a contract-instance field"
+          },
+          "field_id": "site_licence_fee",
+          "kind": "quantity",
+          "unit": "gbp_pence"
+        },
+        {
+          "ask": "What making good means at removal, agreed with the host",
+          "asked_of": [
+            "host"
+          ],
+          "binds": {
+            "kind": "not_applicable",
+            "reason": "not a contract-instance field"
+          },
+          "field_id": "make_good_obligations",
+          "kind": "text",
+          "unit": {
+            "kind": "not_applicable",
+            "reason": "not a quantity"
+          }
+        },
+        {
+          "ask": "The term, in months, agreed with the host",
+          "asked_of": [
+            "host",
+            "provider"
+          ],
+          "binds": {
+            "kind": "not_applicable",
+            "reason": "not a contract-instance field"
+          },
+          "field_id": "term",
+          "kind": "quantity",
+          "unit": "months"
+        },
+        {
+          "ask": "Governing law and jurisdiction: counsel advises",
+          "asked_of": [
+            "counsel"
+          ],
+          "binds": {
+            "kind": "not_applicable",
+            "reason": "not a contract-instance field"
+          },
+          "field_id": "governing_law",
+          "kind": "text",
+          "unit": {
+            "kind": "not_applicable",
+            "reason": "not a quantity"
+          }
+        }
+      ],
+      "risk_carriers": {
+        "kind": "not_applicable",
+        "reason": "only the performance wrapper has a risk carrier"
+      },
+      "safety_hierarchy": {
+        "kind": "not_applicable",
+        "reason": "carried by the MSA"
+      },
+      "template_id": "site_access_installation",
+      "template_version": "0.1.0",
+      "text_file": "site_access_installation.md",
+      "text_sha256": "sha256:01112a1767d14b49b754ccff72174784fcf5066a5aec2fbcd29194175159f7e9",
+      "title": "Site access and installation agreement",
+      "unavailable_terms": [],
+      "variants": [
+        {
+          "changes": "the host owns the equipment",
+          "counterparty": "the host",
+          "variant": "direct_host_funded"
+        },
+        {
+          "changes": "the owner is a party with access and quiet-enjoyment rights",
+          "counterparty": "the host and the third-party owner",
+          "variant": "ipp_third_party_owner"
+        },
+        {
+          "changes": "the lessor is a party with the same rights",
+          "counterparty": "the host and the lessor",
+          "variant": "power_provision_lessor"
+        }
+      ]
+    },
+    {
+      "clauses": [
+        {
+          "clause_id": "addressee",
+          "title": "Addressee"
+        },
+        {
+          "clause_id": "relied_materials",
+          "title": "Relied materials"
+        },
+        {
+          "clause_id": "purpose",
+          "title": "Purpose"
+        },
+        {
+          "clause_id": "no_wider_duty",
+          "title": "No wider duty"
+        },
+        {
+          "clause_id": "liability_cap",
+          "title": "Liability cap"
+        },
+        {
+          "clause_id": "lender_access",
+          "title": "Lender access"
+        },
+        {
+          "clause_id": "duration",
+          "title": "Duration"
+        },
+        {
+          "clause_id": "assignment",
+          "title": "Assignment"
+        },
+        {
+          "clause_id": "variant_schedule",
+          "title": "Financing variants"
+        },
+        {
+          "clause_id": "governing_law",
+          "title": "Governing law"
+        },
+        {
+          "clause_id": "countersignature",
+          "title": "Countersignature"
+        }
+      ],
+      "commercial_terms": [
+        {
+          "executed_field": "reliance_liability_cap",
+          "price": {
+            "ask": "Reliance liability cap: agree with the lender on counsel's advice",
+            "kind": "to_be_agreed"
+          },
+          "term_id": "reliance_liability_cap"
+        }
+      ],
+      "control_authority": {
+        "kind": "not_applicable",
+        "reason": "carried by the MSA"
+      },
+      "executed_as": [
+        {
+          "admissible_issuers": [
+            "lender"
+          ],
+          "applies_when": "always: the lender's countersigned copy",
+          "evidence_type": "lender_reliance_letter"
+        }
+      ],
+      "form": "heads_of_terms",
+      "legal_review": {
+        "kind": "draft_needs_legal_review",
+        "reason": "written by an engineering agent; counsel has not reviewed it"
+      },
+      "references": [
+        "ic1_connection_agreement",
+        "ic2_curtailment_scenario_set",
+        "ic3_dispatch_envelope",
+        "ic4_evidence_object",
+        "ic8_verifier_interface",
+        "ic13_identity_claims"
+      ],
+      "required_fields": [
+        {
+          "ask": "The Provider's registered legal name, company number and registered office: the owner confirms which entity contracts (none is on record)",
+          "asked_of": [
+            "provider"
+          ],
+          "binds": {
+            "kind": "not_applicable",
+            "reason": "not a contract-instance field"
+          },
+          "field_id": "provider_legal_name",
+          "kind": "text",
+          "unit": {
+            "kind": "not_applicable",
+            "reason": "not a quantity"
+          }
+        },
+        {
+          "ask": "The lender's legal name and registered office",
+          "asked_of": [
+            "lender"
+          ],
+          "binds": {
+            "kind": "not_applicable",
+            "reason": "not a contract-instance field"
+          },
+          "field_id": "lender_legal_name",
+          "kind": "text",
+          "unit": {
+            "kind": "not_applicable",
+            "reason": "not a quantity"
+          }
+        },
+        {
+          "ask": "The financing the letter relates to (facility name and date), from the lender",
+          "asked_of": [
+            "lender"
+          ],
+          "binds": {
+            "kind": "not_applicable",
+            "reason": "not a contract-instance field"
+          },
+          "field_id": "financing_reference",
+          "kind": "text",
+          "unit": {
+            "kind": "not_applicable",
+            "reason": "not a quantity"
+          }
+        },
+        {
+          "ask": "The date the agreement takes effect, agreed at signature",
+          "asked_of": [
+            "provider",
+            "customer"
+          ],
+          "binds": {
+            "kind": "not_applicable",
+            "reason": "not a contract-instance field"
+          },
+          "field_id": "effective_date",
+          "kind": "date",
+          "unit": {
+            "kind": "not_applicable",
+            "reason": "not a quantity"
+          }
+        },
+        {
+          "ask": "The report relied on: title, date and content hash",
+          "asked_of": [
+            "provider"
+          ],
+          "binds": {
+            "kind": "not_applicable",
+            "reason": "not a contract-instance field"
+          },
+          "field_id": "relied_report",
+          "kind": "text",
+          "unit": {
+            "kind": "not_applicable",
+            "reason": "not a quantity"
+          }
+        },
+        {
+          "ask": "The connection agreement record the report used, by content hash",
+          "asked_of": [
+            "provider"
+          ],
+          "binds": "ic1_connection_agreement",
+          "field_id": "relied_connection_agreement",
+          "kind": "contract_instance",
+          "unit": {
+            "kind": "not_applicable",
+            "reason": "not a quantity"
+          }
+        },
+        {
+          "ask": "The curtailment scenario set the report used, by content hash",
+          "asked_of": [
+            "provider"
+          ],
+          "binds": "ic2_curtailment_scenario_set",
+          "field_id": "relied_curtailment_scenarios",
+          "kind": "contract_instance",
+          "unit": {
+            "kind": "not_applicable",
+            "reason": "not a quantity"
+          }
+        },
+        {
+          "ask": "The dispatch envelope the report used, by content hash",
+          "asked_of": [
+            "provider"
+          ],
+          "binds": "ic3_dispatch_envelope",
+          "field_id": "relied_dispatch_envelope",
+          "kind": "contract_instance",
+          "unit": {
+            "kind": "not_applicable",
+            "reason": "not a quantity"
+          }
+        },
+        {
+          "ask": "The purpose the lender may rely for, agreed on counsel's advice",
+          "asked_of": [
+            "lender",
+            "counsel"
+          ],
+          "binds": {
+            "kind": "not_applicable",
+            "reason": "not a contract-instance field"
+          },
+          "field_id": "permitted_purpose",
+          "kind": "text",
+          "unit": {
+            "kind": "not_applicable",
+            "reason": "not a quantity"
+          }
+        },
+        {
+          "ask": "The cap on liability to the lender, agreed on counsel's advice",
+          "asked_of": [
+            "lender",
+            "counsel"
+          ],
+          "binds": {
+            "kind": "not_applicable",
+            "reason": "not a contract-instance field"
+          },
+          "field_id": "reliance_liability_cap",
+          "kind": "quantity",
+          "unit": "gbp_pence"
+        },
+        {
+          "ask": "The date reliance ends, agreed with the lender",
+          "asked_of": [
+            "lender",
+            "provider"
+          ],
+          "binds": {
+            "kind": "not_applicable",
+            "reason": "not a contract-instance field"
+          },
+          "field_id": "reliance_expiry_date",
+          "kind": "date",
+          "unit": {
+            "kind": "not_applicable",
+            "reason": "not a quantity"
+          }
+        },
+        {
+          "ask": "Governing law and jurisdiction: counsel advises",
+          "asked_of": [
+            "counsel"
+          ],
+          "binds": {
+            "kind": "not_applicable",
+            "reason": "not a contract-instance field"
+          },
+          "field_id": "governing_law",
+          "kind": "text",
+          "unit": {
+            "kind": "not_applicable",
+            "reason": "not a quantity"
+          }
+        }
+      ],
+      "risk_carriers": {
+        "kind": "not_applicable",
+        "reason": "only the performance wrapper has a risk carrier"
+      },
+      "safety_hierarchy": {
+        "kind": "not_applicable",
+        "reason": "carried by the MSA"
+      },
+      "template_id": "lender_reliance_letter",
+      "template_version": "0.2.0",
+      "text_file": "lender_reliance_letter.md",
+      "text_sha256": "sha256:3b591207044969c05c28b2cffa0a26318087b87be9bc046e6821831ae9f03ce8",
+      "title": "Lender reliance letter",
+      "unavailable_terms": [],
+      "variants": [
+        {
+          "changes": "the lender finances the host",
+          "counterparty": "the host's lender",
+          "variant": "direct_host_funded"
+        },
+        {
+          "changes": "the lender finances the owner",
+          "counterparty": "the owner's lender",
+          "variant": "ipp_third_party_owner"
+        },
+        {
+          "changes": "the lender finances the lessor",
+          "counterparty": "the lessor's lender",
+          "variant": "power_provision_lessor"
+        }
+      ]
+    },
+    {
+      "clauses": [
+        {
+          "clause_id": "parties",
+          "title": "Parties"
+        },
+        {
+          "clause_id": "risk_carrier",
+          "title": "Risk carrier"
+        },
+        {
+          "clause_id": "cover",
+          "title": "Cover"
+        },
+        {
+          "clause_id": "underwritten_value",
+          "title": "Underwritten value"
+        },
+        {
+          "clause_id": "fee",
+          "title": "Fee"
+        },
+        {
+          "clause_id": "payout_basis",
+          "title": "Pay-out basis"
+        },
+        {
+          "clause_id": "insurer_terms",
+          "title": "Insurer terms"
+        },
+        {
+          "clause_id": "policy_period",
+          "title": "Policy period"
+        },
+        {
+          "clause_id": "regulatory_perimeter",
+          "title": "Regulatory perimeter"
+        },
+        {
+          "clause_id": "variant_schedule",
+          "title": "Financing variants"
+        },
+        {
+          "clause_id": "governing_law",
+          "title": "Governing law"
+        },
+        {
+          "clause_id": "execution",
+          "title": "Execution"
+        }
+      ],
+      "commercial_terms": [
+        {
+          "executed_field": "wrapper_fee_agreed",
+          "price": {
+            "amount": 250,
+            "kind": "list_price_on_record",
+            "price_id": "wrapper_fee",
+            "rendering": "list price on record, not agreed with any customer",
+            "source": "ADR-D1",
+            "unit": "basis_points_of_underwritten_value"
+          },
+          "term_id": "wrapper_fee"
+        },
+        {
+          "executed_field": "underwritten_value",
+          "price": {
+            "ask": "Underwritten value: agree with the insurer",
+            "kind": "to_be_agreed"
+          },
+          "term_id": "underwritten_value"
+        },
+        {
+          "executed_field": "policy_period",
+          "price": {
+            "ask": "Policy period: agree with the insurer",
+            "kind": "to_be_agreed"
+          },
+          "term_id": "policy_period"
+        }
+      ],
+      "control_authority": {
+        "kind": "not_applicable",
+        "reason": "carried by the MSA"
+      },
+      "executed_as": [
+        {
+          "admissible_issuers": [
+            "insurer"
+          ],
+          "applies_when": "always: the insurer's signed copy",
+          "evidence_type": "performance_wrapper_agreement"
+        }
+      ],
+      "form": "heads_of_terms",
+      "legal_review": {
+        "kind": "draft_needs_legal_review",
+        "reason": "written by an engineering agent; counsel has not reviewed it"
+      },
+      "references": [
+        "ic3_dispatch_envelope",
+        "ic4_evidence_object",
+        "ic8_verifier_interface"
+      ],
+      "required_fields": [
+        {
+          "ask": "The Provider's registered legal name, company number and registered office: the owner confirms which entity contracts (none is on record)",
+          "asked_of": [
+            "provider"
+          ],
+          "binds": {
+            "kind": "not_applicable",
+            "reason": "not a contract-instance field"
+          },
+          "field_id": "provider_legal_name",
+          "kind": "text",
+          "unit": {
+            "kind": "not_applicable",
+            "reason": "not a quantity"
+          }
+        },
+        {
+          "ask": "The insurer's legal name and FCA/PRA registration, once a person signs one (XG-20)",
+          "asked_of": [
+            "risk_carrier"
+          ],
+          "binds": {
+            "kind": "not_applicable",
+            "reason": "not a contract-instance field"
+          },
+          "field_id": "risk_carrier_legal_name",
+          "kind": "text",
+          "unit": {
+            "kind": "not_applicable",
+            "reason": "not a quantity"
+          }
+        },
+        {
+          "ask": "Who is insured under the chosen variant: host, owner, lessor or their financier",
+          "asked_of": [
+            "customer",
+            "lender"
+          ],
+          "binds": {
+            "kind": "not_applicable",
+            "reason": "not a contract-instance field"
+          },
+          "field_id": "insured_party",
+          "kind": "text",
+          "unit": {
+            "kind": "not_applicable",
+            "reason": "not a quantity"
+          }
+        },
+        {
+          "ask": "The date the agreement takes effect, agreed at signature",
+          "asked_of": [
+            "provider",
+            "customer"
+          ],
+          "binds": {
+            "kind": "not_applicable",
+            "reason": "not a contract-instance field"
+          },
+          "field_id": "effective_date",
+          "kind": "date",
+          "unit": {
+            "kind": "not_applicable",
+            "reason": "not a quantity"
+          }
+        },
+        {
+          "ask": "The underwritten value, agreed with the insurer from the dispatch envelope",
+          "asked_of": [
+            "risk_carrier",
+            "provider"
+          ],
+          "binds": {
+            "kind": "not_applicable",
+            "reason": "not a contract-instance field"
+          },
+          "field_id": "underwritten_value",
+          "kind": "quantity",
+          "unit": "gbp_pence"
+        },
+        {
+          "ask": "The dispatch envelope the value is taken from, by content hash",
+          "asked_of": [
+            "provider"
+          ],
+          "binds": "ic3_dispatch_envelope",
+          "field_id": "underwritten_envelope",
+          "kind": "contract_instance",
+          "unit": {
+            "kind": "not_applicable",
+            "reason": "not a quantity"
+          }
+        },
+        {
+          "ask": "The wrapper fee agreed through the insurer partner; the list price on record is not an agreement",
+          "asked_of": [
+            "risk_carrier",
+            "customer"
+          ],
+          "binds": {
+            "kind": "not_applicable",
+            "reason": "not a contract-instance field"
+          },
+          "field_id": "wrapper_fee_agreed",
+          "kind": "quantity",
+          "unit": "basis_points_of_underwritten_value"
+        },
+        {
+          "ask": "The policy period, in months, agreed with the insurer",
+          "asked_of": [
+            "risk_carrier"
+          ],
+          "binds": {
+            "kind": "not_applicable",
+            "reason": "not a contract-instance field"
+          },
+          "field_id": "policy_period",
+          "kind": "quantity",
+          "unit": "months"
+        },
+        {
+          "ask": "The FCA PERG 6 perimeter position, from counsel's legal opinion",
+          "asked_of": [
+            "counsel"
+          ],
+          "binds": {
+            "kind": "not_applicable",
+            "reason": "not a contract-instance field"
+          },
+          "field_id": "fca_perimeter_position",
+          "kind": "text",
+          "unit": {
+            "kind": "not_applicable",
+            "reason": "not a quantity"
+          }
+        },
+        {
+          "ask": "Governing law and jurisdiction: counsel advises",
+          "asked_of": [
+            "counsel"
+          ],
+          "binds": {
+            "kind": "not_applicable",
+            "reason": "not a contract-instance field"
+          },
+          "field_id": "governing_law",
+          "kind": "text",
+          "unit": {
+            "kind": "not_applicable",
+            "reason": "not a quantity"
+          }
+        }
+      ],
+      "risk_carriers": [
+        {
+          "admission": {
+            "issuer_role": "insurer",
+            "kind": "available"
+          },
+          "carrier": "insurer"
+        },
+        {
+          "admission": {
+            "gap": "G8",
+            "kind": "unavailable",
+            "owner": "WP-GRC-13",
+            "reason": "no IC-4 issuer role for an MGA; adding one re-versions IC-2 and IC-11"
+          },
+          "carrier": "mga"
+        },
+        {
+          "admission": {
+            "gap": "G8",
+            "kind": "unavailable",
+            "owner": "WP-GRC-13",
+            "reason": "no IC-4 issuer role for a floor provider; adding one re-versions IC-2 and IC-11"
+          },
+          "carrier": "floor_provider"
+        }
+      ],
+      "safety_hierarchy": {
+        "kind": "not_applicable",
+        "reason": "carried by the MSA"
+      },
+      "template_id": "performance_wrapper",
+      "template_version": "0.2.0",
+      "text_file": "performance_wrapper.md",
+      "text_sha256": "sha256:c7c77f4d05cfd3f06ae3897fc36a288f242ed2c5ba714720bcad00578678b0b2",
+      "title": "Performance wrapper",
+      "unavailable_terms": [
+        {
+          "gates": [
+            "XG-20"
+          ],
+          "reason": "no insurer is signed; WP-GRC-13 executes the wrapper with one",
+          "term_id": "insurer_terms",
+          "until": [
+            "WP-GRC-13"
+          ]
+        },
+        {
+          "gates": [
+            "XG-22",
+            "XG-20"
+          ],
+          "reason": "pay-outs reference reconciliation fields by IC-8 method version, which is not frozen",
+          "term_id": "payout_terms",
+          "until": [
+            "WP-LEDGER-07",
+            "WP-GRC-13"
+          ]
+        }
+      ],
+      "variants": [
+        {
+          "changes": "the host is the insured party",
+          "counterparty": "the insurer",
+          "variant": "direct_host_funded"
+        },
+        {
+          "changes": "the owner or its financier is the insured party",
+          "counterparty": "the insurer",
+          "variant": "ipp_third_party_owner"
+        },
+        {
+          "changes": "the lessor or its financier is the insured party",
+          "counterparty": "the insurer",
+          "variant": "power_provision_lessor"
+        }
+      ]
+    }
+  ],
+  "work_package": "WP-GRC-09"
+}

@@ -1,0 +1,45 @@
+{
+  "contract": "IC-13",
+  "contract_version": "1.0.0",
+  "iss": "https://identity.invalid/ic13-test-fixture",
+  "sub": "SYNTHETIC-USER-0003",
+  "aud": "gridq-api-ic13-fixture",
+  "iat": 1794902400,
+  "nbf": 1794902400,
+  "exp": 1794931200,
+  "jti": "SYNTHETIC-TOKEN-lender_readonly",
+  "org": {
+    "org_id": "SYNTHETIC-ORG-LENDER-A",
+    "kind": "lender"
+  },
+  "role": "lender_readonly",
+  "scopes": [
+    {
+      "resource": "ledger",
+      "org_id": "SYNTHETIC-ORG-CUSTOMER-A",
+      "resource_id": "*",
+      "actions": [
+        "read"
+      ]
+    },
+    {
+      "resource": "pack",
+      "org_id": "SYNTHETIC-ORG-CUSTOMER-A",
+      "resource_id": "*",
+      "actions": [
+        "read"
+      ]
+    },
+    {
+      "resource": "site",
+      "org_id": "SYNTHETIC-ORG-CUSTOMER-A",
+      "resource_id": "SYNTHETIC-SITE-A1",
+      "actions": [
+        "read"
+      ]
+    }
+  ],
+  "amr": [
+    "pwd"
+  ]
+}

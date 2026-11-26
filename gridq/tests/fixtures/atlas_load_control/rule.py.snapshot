@@ -1,0 +1,559 @@
+"""Load-control segment rule (WP-GRC-16): load the versioned customer-segment rule only when the regulatory register supports it, and evaluate a site against it.
+
+``segment_rule.yaml`` is the input the site eligibility engine (WP-UW-02) reads: which customers and which assets it
+may admit for controlled dispatch, under which proposed exemption class, and which it holds until counsel's opinion
+and Neura's decision (WP-GRC-07) release the final rule. The rule states no legal position.
+
+**The loader is strict.** ``load_rule(path, as_of=<date>)`` calls ``register.require_verified(row, as_of=as_of)`` for
+every register row the rule rests on (``rests_on``) and refuses the whole rule (``RuleRefused``) when:
+
+* the rule cites a row, in a ``rows`` list or in any text, that is not listed in ``rests_on``;
+* a row is missing from the register (``UnknownRow``) or the register fails its integrity check
+  (``RegisterIntegrityError``). Marking the reliance provisional never excuses either;
+* the gate refuses a row the rule relies on as ``verified``;
+* the gate refuses a row marked ``reliance: provisional`` with a refusal other than the one the rule names in
+  ``expected_refusal``, or the row has no ``provisional_reason``. A rule is written against the register as it stood,
+  so when a row's state moves (for example from not signed off to changed) the rule stops loading until a new
+  version is released against the new state;
+* a row is stale or expired, or the register's own verification of a ``changed`` or ``unverified`` row is older than
+  ``register.MAX_VERIFICATION_AGE_DAYS``. ``RowStale`` and ``RowExpired`` cannot be named as an expected refusal:
+  re-verify the row (LC-3);
+* ``as_of`` is before the rule's ``released_on`` (LC-5);
+* the gate passes a row the rule still marks provisional (the row was signed off, so the rule must be re-released
+  relying on it as verified);
+* its ``status`` is ``final``. This loader cannot check counsel's opinion and Neura's decision, so it loads no final
+  rule; WP-GRC-07 releases the loader that does (LC-4). A final rule resting on a provisional reliance is named too;
+* any outcome of a provisional rule maps to ``eligible``; or a domestic or small-business customer has an outcome
+  that is not ``ineligible`` and not admitted, whatever the outcome is called (LC-1); or a consumer class that is
+  not refused has no portfolio condition (LC-6) (WP-UW-02 acceptance);
+* a provisional rule admits any class for controlled dispatch while it rests on a row the register records as
+  changed or unverified (LC-2);
+* any text in it overclaims (``language_problems``: "exempt", a licensing position, a characterisation of Neura's
+  activity; every string is read, LC-7) or its authored prose carries a figure (``figure_problems``);
+* it cites a fact missing from the facts brief (``facts_brief.yaml``).
+
+``as_of`` is required in the library, as in ``register.require_verified``: no clock is read. Only the command line
+defaults it to today. Because no register row is signed off today, every row is refused by the gate; the rule loads
+only because each row is marked provisional with its reason and expected refusal. From the 91st day after a row's
+verification (2026-11-17 for all three) the rule stops loading until the row is re-verified, by design.
+
+``evaluate(rule, site)`` gives the engine's answer for the load-control stream: ``ineligible`` for a refused customer
+or a site with only refused assets, otherwise ``undetermined`` with every reason. A provisional rule never yields
+``eligible``.
+
+Run: ``.venv/bin/python roadmap/governance/regulatory/load_control/rule.py [--as-of YYYY-MM-DD]``.
+"""
+from __future__ import annotations
+
+import importlib.util
+import re
+import sys
+from dataclasses import dataclass
+from datetime import date
+from pathlib import Path
+from typing import Any, Iterable, Optional
+
+import yaml
+
+HERE = Path(__file__).resolve().parent
+RULE = HERE / "segment_rule.yaml"
+REGULATORY = HERE.parent
+
+_REG_MODULE = "neura_regulatory_register"
+if _REG_MODULE in sys.modules:
+    register = sys.modules[_REG_MODULE]
+else:
+    _spec = importlib.util.spec_from_file_location(_REG_MODULE, REGULATORY / "register.py")
+    register = importlib.util.module_from_spec(_spec)
+    sys.modules[_REG_MODULE] = register
+    _spec.loader.exec_module(register)
+
+RULE_ID = "load_control_segment_rule"
+STATUSES = ("provisional", "final")
+RELIANCES = ("verified", "provisional")
+ENGINE_STATUSES = ("eligible", "ineligible", "undetermined")
+PROPOSED_CLASSES = ("A", "B", "C")
+# The refusals a provisional reliance may name. UnknownRow and RegisterIntegrityError are never acceptable. Nor are
+# RowStale and RowExpired (LC-3, research/fable_review.md): a rule that named them would load for ever against a row
+# nobody has re-read. The remedy for a stale or expired row is to re-verify it, never to release a rule against it.
+EXPECTABLE_REFUSALS = ("RowUnverified", "RowChanged", "RowNotSignedOff")
+# Refusals that say the register does not support the row's claim. A provisional rule resting on one admits nothing.
+UNSUPPORTED_REFUSALS = ("RowUnverified", "RowChanged")
+ROW_ID = re.compile(r"\bREG-\d+\b")
+# The product guard (spec §12.2 action, §7.6 A6-02) a provisional rule must keep.
+GUARDED_CONSUMER_CLASSES = ("domestic", "small_business")
+SEMVER = re.compile(r"^\d+\.\d+\.\d+$")
+
+# ---------------------------------------------------------------------------------------------------------------------
+# Language and figures in authored text. Shared with brief.py.
+# ---------------------------------------------------------------------------------------------------------------------
+
+#: (pattern, why). Applied to authored text only, never to a verbatim quote. Unlike tests/test_language.py there is no
+#: escape for a negation: "not exempt" states a legal position as much as "exempt" does.
+FORBIDDEN = (
+    (r"\bexempt(?:s|ed|ing)?\b", "says 'exempt'; say 'proposed exemption' and leave the position to counsel"),
+    (r"\b(?:needs?|requires?|required)\s+(?:a\s+|the\s+|no\s+)?(?:load[- ]control\s+)?licen[cs]e\b",
+     "states a licensing position"),
+    (r"\blicen[cs]e\s+(?:is\s+)?(?:not\s+)?(?:needed|required)\b", "states a licensing position"),
+    (r"\bno\s+licen[cs]e\b", "states a licensing position"),
+    (r"\b(?:is|are|acts?\s+as|counts?\s+as|would\s+be)\s+(?:a\s+|an\s+|the\s+)?(?:load\s+controllers?|"
+     r"flexibility\s+service\s+providers?|FSPs?)\b", "characterises an activity under the regime"),
+    (r"\bfalls?\s+(?:within|outside|under)\b", "states a legal position"),
+    (r"\bqualif(?:y|ies|ied)\s+(?:for|as)\b", "states a legal position"),
+    (r"\bcovered\s+by\b", "states a legal position"),
+    (r"\bsafe\s+harbou?r\b", "states a legal position"),
+    (r"\b(?:un)?lawful\b", "states a legal position"),
+    (r"\bcompliant\b", "states a legal position"),
+)
+_EXEMPTION = re.compile(r"\bexemptions?\b", re.I)
+_EXEMPTION_QUALIFIERS = ("proposed", "final")
+
+#: Identifiers whose digits are not figures: §12.2, REG-27, WP-GRC-07, ADR-D2, F-BESS-1, B1-09, A6-02, G99, B2.
+IDENTIFIER = re.compile(
+    r"§\s?\d+[A-Z]?(?:\.\d+)*"
+    r"|\b[A-Z]{1,3}\d-\d{1,3}\b"
+    r"|\b[A-Z][A-Za-z]*(?:-[A-Z][A-Za-z0-9]*)*-[A-Z]?\d+[a-z]?\b"
+    r"|\b[A-Z]{1,3}\d{1,3}\b"
+)
+FIGURE = re.compile(r"\d+(?:[.,]\d+)*")
+
+
+def language_problems(text: str) -> list:
+    """Overclaiming phrases in authored text: each a string naming the phrase and why."""
+    errs = []
+    for pat, why in FORBIDDEN:
+        for m in re.finditer(pat, text, re.I):
+            errs.append(f"{m.group(0)!r} {why}")
+    for m in _EXEMPTION.finditer(text):
+        before = re.findall(r"[A-Za-z]+", text[:m.start()])[-3:]
+        if not any(w.lower() in _EXEMPTION_QUALIFIERS for w in before):
+            errs.append(f"{m.group(0)!r} without 'proposed' or 'final' before it")
+    return errs
+
+
+def figure_problems(text: str, quotes: Iterable[str] = ()) -> list:
+    """Figures in authored text that no quote of the same fact carries. With no quotes, every figure is a problem."""
+    joined = " ".join(quotes)
+    stripped = IDENTIFIER.sub(" ", text)
+    return [f"figure {tok!r} is not in any quote of this fact" for tok in FIGURE.findall(stripped)
+            if tok not in joined]
+
+
+# ---------------------------------------------------------------------------------------------------------------------
+# Loading
+# ---------------------------------------------------------------------------------------------------------------------
+
+
+class RuleRefused(Exception):
+    """The segment rule may not be used: its message lists every reason."""
+
+
+@dataclass(frozen=True)
+class RowReliance:
+    row: str
+    reliance: str
+    verdict: str  # "passes" or the refusal class name
+    message: str
+
+
+@dataclass(frozen=True)
+class LoadedRule:
+    data: dict
+    as_of: date
+    reliance: tuple
+    path: Path
+
+    @property
+    def version(self) -> str:
+        return self.data["version"]
+
+    @property
+    def status(self) -> str:
+        return self.data["status"]
+
+
+#: Keys whose string values are authored prose, checked for language and figures.
+AUTHORED_KEYS = frozenset({"scope", "used_for", "provisional_reason", "meaning", "reason", "label", "condition",
+                           "note"})
+
+
+def _authored(node: Any, key: str = "") -> Iterable[tuple]:
+    if isinstance(node, dict):
+        for k, v in node.items():
+            yield from _authored(v, k)
+    elif isinstance(node, list):
+        for v in node:
+            yield from _authored(v, key)
+    elif isinstance(node, str) and key in AUTHORED_KEYS:
+        yield key, node
+
+
+def _strings(node: Any) -> Iterable[str]:
+    """Every string in the rule, keys included: no key is outside the language check (LC-7)."""
+    if isinstance(node, dict):
+        for k, v in node.items():
+            yield str(k)
+            yield from _strings(v)
+    elif isinstance(node, list):
+        for v in node:
+            yield from _strings(v)
+    elif isinstance(node, str):
+        yield node
+
+
+def _cited_rows(data: dict) -> set:
+    """Rows cited in a ``rows`` list or named in any text (LC-7): the gate must see every one."""
+    rows = set()
+    for group in ("consumer_classes", "asset_classes", "portfolio_conditions"):
+        for e in data.get(group) or []:
+            rows.update(e.get("rows") or [])
+    for text in _strings(data):
+        rows.update(ROW_ID.findall(text))
+    return rows
+
+
+def _brief_fact_ids(data: dict, path: Path) -> Optional[set]:
+    name = data.get("facts_brief")
+    if not name:
+        return None
+    p = path.parent / name
+    if not p.is_file():
+        return None
+    return {f["id"] for f in (yaml.safe_load(p.read_text(encoding="utf-8")) or {}).get("facts") or []}
+
+
+def structure_problems(data: Any, path: Path = RULE) -> list:
+    """Everything wrong with the rule file itself, before the register is consulted."""
+    if not isinstance(data, dict):
+        return ["the rule file is not a mapping"]
+    errs = []
+    if data.get("rule_id") != RULE_ID:
+        errs.append(f"rule_id must be {RULE_ID!r}")
+    if not SEMVER.match(str(data.get("version") or "")):
+        errs.append("version must be MAJOR.MINOR.PATCH")
+    status = data.get("status")
+    if status not in STATUSES:
+        errs.append(f"status must be one of {STATUSES}")
+    if status == "final":
+        # LC-4. The guards below bind a provisional rule only, and nothing here can check counsel's opinion or
+        # Neura's decision, so a rule that merely says "final" would escape them.
+        errs.append("a final rule is not loadable by this loader: it cannot check counsel's opinion and Neura's "
+                    "decision. WP-GRC-07 releases the loader that verifies both evidence objects")
+    try:
+        date.fromisoformat(str(data.get("released_on")))
+    except ValueError:
+        errs.append("released_on must be an ISO date")
+    if data.get("legal_position") != "none":
+        errs.append("legal_position must be 'none': the rule states no legal position (WP-GRC-07 holds it)")
+    for k in ("work_package", "final_rule_from", "scope", "missing_input"):
+        if not data.get(k):
+            errs.append(f"{k} is required")
+
+    rests = data.get("rests_on") or []
+    if not rests:
+        errs.append("rests_on must list the register rows the rule rests on")
+    listed = []
+    for r in rests:
+        rid = r.get("row")
+        listed.append(rid)
+        if r.get("reliance") not in RELIANCES:
+            errs.append(f"{rid}: reliance must be one of {RELIANCES}")
+        if not str(r.get("used_for") or "").strip():
+            errs.append(f"{rid}: used_for is required")
+        if r.get("reliance") == "provisional":
+            if not str(r.get("provisional_reason") or "").strip():
+                errs.append(f"{rid}: a provisional reliance needs its provisional_reason")
+            if r.get("expected_refusal") not in EXPECTABLE_REFUSALS:
+                errs.append(f"{rid}: a provisional reliance names the gate's refusal it was written against, one of "
+                            f"{EXPECTABLE_REFUSALS}")
+            if status == "final":
+                errs.append(f"{rid}: a final rule may not rest on a provisional reliance")
+        elif r.get("expected_refusal") or r.get("provisional_reason"):
+            errs.append(f"{rid}: a verified reliance carries no expected_refusal or provisional_reason")
+    if len(listed) != len(set(listed)):
+        errs.append("rests_on lists a row twice")
+    for rid in sorted(_cited_rows(data) - set(listed)):
+        errs.append(f"{rid} is cited but not listed in rests_on, so the register gate would not see it")
+
+    outcomes = data.get("outcomes") or {}
+    for name, o in outcomes.items():
+        if o.get("engine_status") not in ENGINE_STATUSES:
+            errs.append(f"outcome {name}: engine_status must be one of {ENGINE_STATUSES}")
+        if status == "provisional" and o.get("engine_status") == "eligible":
+            errs.append(f"outcome {name}: a provisional rule never yields eligible")
+        if not isinstance(o.get("admitted_for_controlled_dispatch"), bool):
+            errs.append(f"outcome {name}: admitted_for_controlled_dispatch must be true or false")
+    if (data.get("missing_input") or {}).get("engine_status") not in ("undetermined",):
+        errs.append("missing_input must be undetermined: a missing input is never a pass or a refusal")
+
+    fact_ids = _brief_fact_ids(data, path)
+    if fact_ids is None:
+        errs.append("facts_brief must name the facts brief file next to the rule")
+    for group in ("consumer_classes", "asset_classes"):
+        seen = set()
+        for e in data.get(group) or []:
+            eid = e.get("id")
+            if eid in seen:
+                errs.append(f"{group}: {eid} appears twice")
+            seen.add(eid)
+            if e.get("outcome") not in outcomes:
+                errs.append(f"{group}.{eid}: outcome {e.get('outcome')!r} is not defined in outcomes")
+            for k in ("label", "reason", "reason_code"):
+                if not str(e.get(k) or "").strip():
+                    errs.append(f"{group}.{eid}: {k} is required")
+            if e.get("outcome") in ("pass_provisional", "admit_provisional") and \
+                    e.get("proposed_class") not in PROPOSED_CLASSES:
+                errs.append(f"{group}.{eid}: outcome {e.get('outcome')} names the proposed class it rests on")
+            if fact_ids is not None:
+                for f in e.get("facts") or []:
+                    if f not in fact_ids:
+                        errs.append(f"{group}.{eid}: fact {f} is not in the facts brief")
+        if not seen:
+            errs.append(f"{group} is empty")
+    if status == "provisional":
+        by_id = {e.get("id"): e for e in data.get("consumer_classes") or []}
+        for cid in GUARDED_CONSUMER_CLASSES:
+            # LC-1: the guard is the outcome's meaning, not its name. Redefining `refuse` must not lift it.
+            o = outcomes.get((by_id.get(cid) or {}).get("outcome")) or {}
+            if o.get("engine_status") != "ineligible" or o.get("admitted_for_controlled_dispatch") is not False:
+                errs.append(f"consumer class {cid} must be refused in a provisional rule (spec §12.2 guard; "
+                            f"WP-UW-02 acceptance)")
+        # LC-6: the consumer condition is read across the contracting entity's customers (spec §7.6 A6-02).
+        conditioned = {pc.get("applies_to") for pc in data.get("portfolio_conditions") or []}
+        for e in data.get("consumer_classes") or []:
+            if (outcomes.get(e.get("outcome")) or {}).get("engine_status") != "ineligible" and \
+                    e.get("outcome") not in conditioned:
+                errs.append(f"consumer class {e.get('id')} is not refused, so a portfolio condition must apply to its "
+                            f"outcome {e.get('outcome')!r} (spec §7.6 A6-02)")
+        # LC-2: no admission while the register records a row the rule rests on as changed or unverified.
+        unsupported = sorted(r.get("row") for r in rests if r.get("expected_refusal") in UNSUPPORTED_REFUSALS)
+        if unsupported:
+            for group in ("consumer_classes", "asset_classes"):
+                for e in data.get(group) or []:
+                    if (outcomes.get(e.get("outcome")) or {}).get("admitted_for_controlled_dispatch"):
+                        errs.append(f"{group}.{e.get('id')}: a provisional rule admits nothing for controlled dispatch "
+                                    f"while it rests on a row the register records as changed or unverified "
+                                    f"({', '.join(unsupported)})")
+    for pc in data.get("portfolio_conditions") or []:
+        if pc.get("applies_to") not in outcomes:
+            errs.append(f"portfolio condition {pc.get('id')}: applies_to names no outcome")
+
+    for key, text in _authored(data):
+        errs += [f"{key}: {e}" for e in figure_problems(text)]
+    # LC-7: language is checked in every string, so an unlisted key or an identifier cannot carry a position.
+    for text in dict.fromkeys(_strings(data)):
+        errs += [f"text {text[:40]!r}: {e}" for e in language_problems(text.replace("_", " "))]
+    return errs
+
+
+def _released(data: dict) -> Optional[date]:
+    try:
+        return date.fromisoformat(str(data.get("released_on")))
+    except ValueError:
+        return None
+
+
+def gate(data: dict, as_of: date, register_path: Optional[Path] = None) -> tuple:
+    """(reliances, problems): the register gate's verdict on every row in ``rests_on`` and the problems it makes."""
+    out, errs = [], []
+    for r in data.get("rests_on") or []:
+        rid, rel = r.get("row"), r.get("reliance")
+        try:
+            register.require_verified(rid, as_of=as_of, path=register_path)
+        except (register.UnknownRow, register.RegisterIntegrityError) as e:
+            out.append(RowReliance(rid, rel, type(e).__name__, str(e)))
+            errs.append(f"{rid}: {type(e).__name__}: {e}. A missing row or a broken register is never excused by a "
+                        f"provisional reliance")
+            continue
+        except register.RegisterRefusal as e:
+            name = type(e).__name__
+            out.append(RowReliance(rid, rel, name, str(e)))
+            if rel != "provisional":
+                errs.append(f"{rid}: relied on as verified, but the register gate refuses it ({name}: {e})")
+            elif name in ("RowStale", "RowExpired"):
+                errs.append(f"{rid}: {name} ({e}). Re-verify the row against its primary source; a rule is never "
+                            f"released against a stale or expired row")
+            elif name != r.get("expected_refusal"):
+                errs.append(f"{rid}: the rule was written against {r.get('expected_refusal')}, but the gate now "
+                            f"refuses the row with {name} ({e}). Release a new rule version against the register as "
+                            f"it stands")
+            elif name in UNSUPPORTED_REFUSALS:
+                # LC-3: require_verified raises RowChanged and RowUnverified before it reads any date, so the age
+                # of the register's finding is checked here. A row with no dated evidence ages from the release.
+                dates = register._verified_dates(register.row(rid, path=register_path)) or [_released(data)]
+                if any(d is None or d > as_of or (as_of - d).days > register.MAX_VERIFICATION_AGE_DAYS
+                       for d in dates):
+                    errs.append(f"{rid}: the register's {name} finding was not verified within "
+                                f"{register.MAX_VERIFICATION_AGE_DAYS} days before {as_of}. Re-verify the row")
+            continue
+        out.append(RowReliance(rid, rel, "passes", "require_verified passes"))
+        if rel == "provisional":
+            errs.append(f"{rid}: the register gate now passes this row, but the rule still marks it provisional. "
+                        f"Release a new rule version relying on it as verified")
+    return tuple(out), errs
+
+
+def load_rule(path: Path = RULE, *, as_of: date, register_path: Optional[Path] = None) -> LoadedRule:
+    """The rule, if and only if its structure is sound and the register gate supports every row it rests on."""
+    if not isinstance(as_of, date):
+        raise TypeError(f"as_of must be a datetime.date, got {as_of!r}")
+    path = Path(path)
+    data = yaml.safe_load(path.read_text(encoding="utf-8"))
+    errs = structure_problems(data, path)
+    reliance: tuple = ()
+    if isinstance(data, dict):
+        reliance, gate_errs = gate(data, as_of, register_path)
+        errs += gate_errs
+        released = _released(data)
+        if released is not None and as_of < released:  # LC-5
+            errs.append(f"as_of {as_of} is before the rule's released_on {released}: a rule is not read back in time")
+    if errs:
+        raise RuleRefused(f"{path.name} refused as of {as_of}:\n  - " + "\n  - ".join(errs))
+    return LoadedRule(data=data, as_of=as_of, reliance=reliance, path=path)
+
+
+# ---------------------------------------------------------------------------------------------------------------------
+# Evaluation
+# ---------------------------------------------------------------------------------------------------------------------
+
+
+def _reason(code: str, text: str, rows: Iterable[str] = ()) -> dict:
+    return {"code": code, "text": " ".join(str(text).split()), "rows": list(rows)}
+
+
+def _customer(rule: LoadedRule, c: Any) -> tuple:
+    """(consumer class entry or None, reason or None) for one customer input.
+
+    Fails closed: a class the rule refuses is refused whether or not its evidence is supplied, while a class that
+    would pass needs its evidence reference, or the answer is undetermined."""
+    by_id = {e["id"]: e for e in rule.data["consumer_classes"]}
+    mi = rule.data["missing_input"]
+    if not isinstance(c, dict) or not c.get("consumer_class"):
+        return None, _reason(mi["reason_code"], mi["reason"])
+    if c["consumer_class"] not in by_id:
+        return None, _reason("LCL-INPUT-UNKNOWN", f"consumer class {c['consumer_class']!r} is not one this rule "
+                                                  f"version names; the engine does not guess it")
+    entry = by_id[c["consumer_class"]]
+    refused = rule.data["outcomes"][entry["outcome"]]["engine_status"] == "ineligible"
+    if not refused and not str(c.get("evidence_ref") or "").strip():
+        return None, _reason(mi["reason_code"], mi["reason"])
+    return entry, None
+
+
+def evaluate(rule: LoadedRule, site: dict) -> dict:
+    """The load-control stream's answer for one site.
+
+    ``site``: ``{"site_id", "customer": {"consumer_class", "evidence_ref"}, "contracting_entity_customers":
+    [{"consumer_class", "evidence_ref"}, ...] (every customer of the contracting entity, in every product), "assets":
+    [asset class id, ...]}``.
+    """
+    d = rule.data
+    outcomes = d["outcomes"]
+    result = {
+        "stream": "load_control_licence",
+        "site_id": site.get("site_id"),
+        "rule_id": d["rule_id"],
+        "rule_version": d["version"],
+        "rule_status": d["status"],
+        "as_of": rule.as_of.isoformat(),
+        "rests_on": [{"row": r.row, "reliance": r.reliance, "verdict": r.verdict} for r in rule.reliance],
+        "consumer": None,
+        "assets": [],
+        "admitted_for_controlled_dispatch": [],
+        "reasons": [],
+    }
+    if d["status"] == "provisional":
+        result["reasons"].append(_reason(
+            "LCL-PROVISIONAL", f"Rule {d['rule_id']} {d['version']} is provisional; the final rule comes from "
+                               f"{d['final_rule_from']}, and this result is re-run on it.",
+            [r["row"] for r in d["rests_on"]]))
+
+    def finish(status: str) -> dict:
+        if d["status"] == "provisional" and status == "eligible":
+            raise AssertionError("a provisional load-control rule never yields eligible")
+        result["status"] = status
+        return result
+
+    entry, why = _customer(rule, site.get("customer"))
+    if why:
+        result["reasons"].append(why)
+        return finish("undetermined")
+    result["consumer"] = {"consumer_class": entry["id"], "outcome": entry["outcome"]}
+    oc = outcomes[entry["outcome"]]
+    result["reasons"].append(_reason(entry["reason_code"], entry["reason"], entry.get("rows") or []))
+    if oc["engine_status"] == "ineligible":
+        return finish("ineligible")
+
+    # Portfolio condition: read across every customer of the contracting entity.
+    for pc in d.get("portfolio_conditions") or []:
+        if pc["applies_to"] != entry["outcome"]:
+            continue
+        others = site.get("contracting_entity_customers")
+        if others is None:
+            mi = d["missing_input"]
+            result["reasons"].append(_reason(mi["reason_code"], mi["reason"]))
+            result["reasons"].append(_reason(pc["reason_code"], pc["condition"], pc.get("rows") or []))
+            return finish("undetermined")
+        undetermined = False
+        for other in others:
+            oe, owhy = _customer(rule, other)
+            if owhy:
+                undetermined = True
+                result["reasons"].append(owhy)
+            elif outcomes[oe["outcome"]]["engine_status"] == "ineligible":
+                result["reasons"].append(_reason(pc["reason_code"], pc["condition"], pc.get("rows") or []))
+                result["reasons"].append(_reason(oe["reason_code"], oe["reason"], oe.get("rows") or []))
+                return finish("ineligible")
+        if undetermined:
+            result["reasons"].append(_reason(pc["reason_code"], pc["condition"], pc.get("rows") or []))
+            return finish("undetermined")
+
+    # Asset layer.
+    assets = list(site.get("assets") or [])
+    if not assets:
+        mi = d["missing_input"]
+        result["reasons"].append(_reason(mi["reason_code"], "No asset was named for controlled dispatch. " + mi["reason"]))
+        return finish("undetermined")
+    by_id = {e["id"]: e for e in d["asset_classes"]}
+    statuses = []
+    for a in assets:
+        e = by_id.get(a)
+        if e is None:
+            result["assets"].append({"asset_class": a, "outcome": None, "admitted": False,
+                                     "reason_code": "LCL-ASSET-UNLISTED", "rows": []})
+            result["reasons"].append(_reason("LCL-ASSET-UNLISTED", f"asset class {a!r} is not one this rule version "
+                                                                   f"names; it is held, not admitted"))
+            statuses.append("undetermined")
+            continue
+        o = outcomes[e["outcome"]]
+        result["assets"].append({"asset_class": a, "outcome": e["outcome"],
+                                 "admitted": o["admitted_for_controlled_dispatch"],
+                                 "reason_code": e["reason_code"], "rows": list(e.get("rows") or [])})
+        result["reasons"].append(_reason(e["reason_code"], e["reason"], e.get("rows") or []))
+        if o["admitted_for_controlled_dispatch"]:
+            result["admitted_for_controlled_dispatch"].append(a)
+        statuses.append(o["engine_status"])
+    if any(s == "eligible" for s, a in zip(statuses, result["assets"]) if a["admitted"]):
+        return finish("eligible")
+    if all(s == "ineligible" for s in statuses):
+        return finish("ineligible")
+    return finish("undetermined")
+
+
+def _main(argv: list) -> int:
+    as_of = date.today()
+    if "--as-of" in argv:
+        as_of = date.fromisoformat(argv[argv.index("--as-of") + 1])
+    try:
+        r = load_rule(RULE, as_of=as_of)
+    except RuleRefused as e:
+        print(f"FAIL — {e}")
+        return 1
+    rows = "; ".join(f"{x.row} {x.reliance} ({'passes' if x.verdict == 'passes' else 'refused: ' + x.verdict})"
+                     for x in r.reliance)
+    print(f"PASS — {r.data['rule_id']} {r.version} ({r.status}) loads as of {as_of}: {rows}")
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(_main(sys.argv[1:]))

@@ -1,0 +1,484 @@
+{
+  "$defs": {
+    "CellTerms": {
+      "additionalProperties": false,
+      "description": "Everything in force in one cell: the site import and export limits at the connection point,\nthe partition of each battery direction, the energy stack and the thermal terms.",
+      "properties": {
+        "charge": {
+          "$ref": "#/$defs/PowerPartition"
+        },
+        "discharge": {
+          "$ref": "#/$defs/PowerPartition"
+        },
+        "energy": {
+          "$ref": "#/$defs/EnergyStack"
+        },
+        "export_limit_kw": {
+          "minimum": 0,
+          "title": "Export Limit Kw",
+          "type": "integer"
+        },
+        "import_basis": {
+          "$ref": "#/$defs/ImportBasis"
+        },
+        "import_limit_kw": {
+          "minimum": 0,
+          "title": "Import Limit Kw",
+          "type": "integer"
+        },
+        "thermal": {
+          "discriminator": {
+            "mapping": {
+              "not_applicable": "#/$defs/NotApplicable",
+              "thermal_terms": "#/$defs/ThermalTerms"
+            },
+            "propertyName": "kind"
+          },
+          "oneOf": [
+            {
+              "$ref": "#/$defs/ThermalTerms"
+            },
+            {
+              "$ref": "#/$defs/NotApplicable"
+            }
+          ],
+          "title": "Thermal"
+        }
+      },
+      "required": [
+        "import_limit_kw",
+        "export_limit_kw",
+        "import_basis",
+        "discharge",
+        "charge",
+        "energy",
+        "thermal"
+      ],
+      "title": "CellTerms",
+      "type": "object"
+    },
+    "EnergyStack": {
+      "additionalProperties": false,
+      "description": "The usable energy, stacked bottom to top: ``resilience_floor_kwh``, energy held so\ndischarge services can be delivered (``held_up``), the merchant band, headroom held so charge\nservices can be absorbed (``held_down``), and withheld energy. The sum equals the usable\nenergy exactly. State of energy floor = resilience + held up; ceiling = usable - held down -\nwithheld (`flat_limits`).",
+      "properties": {
+        "held_down": {
+          "items": {
+            "$ref": "#/$defs/HeldEnergy"
+          },
+          "title": "Held Down",
+          "type": "array"
+        },
+        "held_up": {
+          "items": {
+            "$ref": "#/$defs/HeldEnergy"
+          },
+          "title": "Held Up",
+          "type": "array"
+        },
+        "merchant_kwh": {
+          "minimum": 0,
+          "title": "Merchant Kwh",
+          "type": "integer"
+        },
+        "resilience_floor_kwh": {
+          "minimum": 0,
+          "title": "Resilience Floor Kwh",
+          "type": "integer"
+        },
+        "withheld_kwh": {
+          "minimum": 0,
+          "title": "Withheld Kwh",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "resilience_floor_kwh",
+        "held_up",
+        "merchant_kwh",
+        "held_down",
+        "withheld_kwh"
+      ],
+      "title": "EnergyStack",
+      "type": "object"
+    },
+    "HashedTerms": {
+      "additionalProperties": false,
+      "properties": {
+        "terms": {
+          "$ref": "#/$defs/CellTerms"
+        },
+        "terms_hash": {
+          "pattern": "^sha256:[0-9a-f]{64}$",
+          "title": "Terms Hash",
+          "type": "string"
+        }
+      },
+      "required": [
+        "terms_hash",
+        "terms"
+      ],
+      "title": "HashedTerms",
+      "type": "object"
+    },
+    "HeldEnergy": {
+      "additionalProperties": false,
+      "properties": {
+        "kwh": {
+          "minimum": 1,
+          "title": "Kwh",
+          "type": "integer"
+        },
+        "service_id": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]*$",
+          "title": "Service Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "service_id",
+        "kwh"
+      ],
+      "title": "HeldEnergy",
+      "type": "object"
+    },
+    "ImportBasis": {
+      "description": "What a cell's import limit rests on. Only a ``firm`` limit is bounded by the fail-safe\nfirm limit; a non-firm or DNO-scheduled limit may exceed it while it is granted.",
+      "enum": [
+        "firm",
+        "non_firm",
+        "scheduled_dno_setpoint"
+      ],
+      "title": "ImportBasis",
+      "type": "string"
+    },
+    "MeasurementPoint": {
+      "description": "Where a temperature limit is measured. ASHRAE classes are defined at the IT inlet.",
+      "enum": [
+        "it_inlet",
+        "supply_air"
+      ],
+      "title": "MeasurementPoint",
+      "type": "string"
+    },
+    "NotApplicable": {
+      "additionalProperties": false,
+      "description": "A term that does not exist for this record (e.g. a LIFO position on a firm connection).\n\nDistinct from `Unknown`: \"not applicable\" is a statement about the agreement, \"unknown\" is a\nstatement about our knowledge of it. Both carry a reason.",
+      "properties": {
+        "kind": {
+          "const": "not_applicable",
+          "title": "Kind",
+          "type": "string"
+        },
+        "reason": {
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Reason",
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind",
+        "reason"
+      ],
+      "title": "NotApplicable",
+      "type": "object"
+    },
+    "PowerPartition": {
+      "additionalProperties": false,
+      "description": "One direction's rating, partitioned: ``resilience_kw + sum(services) + merchant_kw +\nwithheld.kw`` equals the rating exactly (checked by the envelope, which holds the rating).\nA zero service slice is absence: a slice is at least 1 kW.",
+      "properties": {
+        "merchant_kw": {
+          "minimum": 0,
+          "title": "Merchant Kw",
+          "type": "integer"
+        },
+        "resilience_kw": {
+          "minimum": 0,
+          "title": "Resilience Kw",
+          "type": "integer"
+        },
+        "services": {
+          "items": {
+            "$ref": "#/$defs/ServiceSlice"
+          },
+          "title": "Services",
+          "type": "array"
+        },
+        "withheld": {
+          "discriminator": {
+            "mapping": {
+              "not_applicable": "#/$defs/NotApplicable",
+              "withheld": "#/$defs/Withheld"
+            },
+            "propertyName": "kind"
+          },
+          "oneOf": [
+            {
+              "$ref": "#/$defs/Withheld"
+            },
+            {
+              "$ref": "#/$defs/NotApplicable"
+            }
+          ],
+          "title": "Withheld"
+        }
+      },
+      "required": [
+        "resilience_kw",
+        "services",
+        "merchant_kw",
+        "withheld"
+      ],
+      "title": "PowerPartition",
+      "type": "object"
+    },
+    "ServiceSlice": {
+      "additionalProperties": false,
+      "properties": {
+        "kw": {
+          "minimum": 1,
+          "title": "Kw",
+          "type": "integer"
+        },
+        "service_id": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]*$",
+          "title": "Service Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "service_id",
+        "kw"
+      ],
+      "title": "ServiceSlice",
+      "type": "object"
+    },
+    "TemperatureBand": {
+      "additionalProperties": false,
+      "properties": {
+        "max_tenths_c": {
+          "maximum": 1000,
+          "minimum": -500,
+          "title": "Max Tenths C",
+          "type": "integer"
+        },
+        "min_tenths_c": {
+          "maximum": 1000,
+          "minimum": -500,
+          "title": "Min Tenths C",
+          "type": "integer"
+        },
+        "point": {
+          "$ref": "#/$defs/MeasurementPoint"
+        }
+      },
+      "required": [
+        "point",
+        "min_tenths_c",
+        "max_tenths_c"
+      ],
+      "title": "TemperatureBand",
+      "type": "object"
+    },
+    "ThermalCommitment": {
+      "additionalProperties": false,
+      "description": "A committed cooling turn-down: ``reduction_kw`` held for ``duration_min`` from any start in\nthe cell, for a declared service.",
+      "properties": {
+        "duration_min": {
+          "maximum": 1440,
+          "minimum": 1,
+          "title": "Duration Min",
+          "type": "integer"
+        },
+        "reduction_kw": {
+          "minimum": 1,
+          "title": "Reduction Kw",
+          "type": "integer"
+        },
+        "service_id": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]*$",
+          "title": "Service Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "service_id",
+        "reduction_kw",
+        "duration_min"
+      ],
+      "title": "ThermalCommitment",
+      "type": "object"
+    },
+    "ThermalTerms": {
+      "additionalProperties": false,
+      "description": "A cell's operating band (inside the envelope's binding band, at its point) and its thermal\ncommitments. No commitment is an empty tuple, never a zero.",
+      "properties": {
+        "band": {
+          "$ref": "#/$defs/TemperatureBand"
+        },
+        "commitments": {
+          "items": {
+            "$ref": "#/$defs/ThermalCommitment"
+          },
+          "title": "Commitments",
+          "type": "array"
+        },
+        "kind": {
+          "const": "thermal_terms",
+          "title": "Kind",
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind",
+        "band",
+        "commitments"
+      ],
+      "title": "ThermalTerms",
+      "type": "object"
+    },
+    "TimelineStep": {
+      "additionalProperties": false,
+      "description": "From half-hour ``index`` (0 is ``valid_from``) to the next step, ``terms_hash`` holds.",
+      "properties": {
+        "index": {
+          "minimum": 0,
+          "title": "Index",
+          "type": "integer"
+        },
+        "terms_hash": {
+          "pattern": "^sha256:[0-9a-f]{64}$",
+          "title": "Terms Hash",
+          "type": "string"
+        }
+      },
+      "required": [
+        "index",
+        "terms_hash"
+      ],
+      "title": "TimelineStep",
+      "type": "object"
+    },
+    "Withheld": {
+      "additionalProperties": false,
+      "description": "Power not offered to anyone in this cell (a derating or an outage), with its reason.",
+      "properties": {
+        "kind": {
+          "const": "withheld",
+          "title": "Kind",
+          "type": "string"
+        },
+        "kw": {
+          "minimum": 1,
+          "title": "Kw",
+          "type": "integer"
+        },
+        "reason": {
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Reason",
+          "type": "string"
+        },
+        "reason_code": {
+          "$ref": "#/$defs/WithheldReason"
+        }
+      },
+      "required": [
+        "kind",
+        "kw",
+        "reason_code",
+        "reason"
+      ],
+      "title": "Withheld",
+      "type": "object"
+    },
+    "WithheldReason": {
+      "description": "Why part of the asset is not offered at all in a cell (whole-asset availability).",
+      "enum": [
+        "maintenance",
+        "plant_fault",
+        "host_restriction",
+        "network_restriction",
+        "warranty_limit",
+        "commissioning"
+      ],
+      "title": "WithheldReason",
+      "type": "string"
+    }
+  },
+  "additionalProperties": false,
+  "description": "IC-3 v1.0.0: an envelope compiled onto UTC half-hours (`resolve`). Step-encoded: a step\nstarts wherever the terms change. Terms are keyed by their own content hash, so the timeline\ndoes not depend on how the template named them. Read it with no clock logic\n(`timeline_terms_at`); trust it by ``content_hash() == envelope.resolved_hash``.",
+  "properties": {
+    "contract": {
+      "const": "IC-3",
+      "default": "IC-3",
+      "title": "Contract",
+      "type": "string"
+    },
+    "contract_version": {
+      "const": "1.0.0",
+      "default": "1.0.0",
+      "title": "Contract Version",
+      "type": "string"
+    },
+    "kind": {
+      "const": "resolved_timeline",
+      "title": "Kind",
+      "type": "string"
+    },
+    "n_periods": {
+      "minimum": 1,
+      "title": "N Periods",
+      "type": "integer"
+    },
+    "resolution_min": {
+      "const": 30,
+      "title": "Resolution Min",
+      "type": "integer"
+    },
+    "site_id": {
+      "minLength": 1,
+      "pattern": "\\S",
+      "title": "Site Id",
+      "type": "string"
+    },
+    "steps": {
+      "items": {
+        "$ref": "#/$defs/TimelineStep"
+      },
+      "minItems": 1,
+      "title": "Steps",
+      "type": "array"
+    },
+    "terms": {
+      "items": {
+        "$ref": "#/$defs/HashedTerms"
+      },
+      "minItems": 1,
+      "title": "Terms",
+      "type": "array"
+    },
+    "valid_from": {
+      "format": "date-time",
+      "title": "Valid From",
+      "type": "string"
+    },
+    "valid_until": {
+      "format": "date-time",
+      "title": "Valid Until",
+      "type": "string"
+    }
+  },
+  "required": [
+    "kind",
+    "site_id",
+    "valid_from",
+    "valid_until",
+    "resolution_min",
+    "n_periods",
+    "terms",
+    "steps"
+  ],
+  "title": "ResolvedTimeline",
+  "type": "object"
+}

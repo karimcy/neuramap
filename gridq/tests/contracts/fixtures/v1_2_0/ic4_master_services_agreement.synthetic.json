@@ -1,0 +1,27 @@
+{
+ "contract": "IC-4",
+ "contract_version": "1.2.0",
+ "record_class": "synthetic_fixture",
+ "evidence_type": "master_services_agreement",
+ "title": "Synthetic signed Software and Dispatch MSA (schema-test fixture)",
+ "issuer": {
+  "name": "SYNTHETIC-CUSTOMER (fixture; not a real company)",
+  "role": "customer",
+  "reference": "SYNTH-MSA-0001"
+ },
+ "document_hash": "sha256:b99c0deade8ff3e46e99838b3b8bd670f1b4138660e57a19831a267c0b238b65",
+ "issued_on": "2026-11-24",
+ "effective_from": "2026-11-24",
+ "expiry": {
+  "kind": "no_expiry",
+  "reason": "synthetic fixture: no term is agreed"
+ },
+ "scope": {
+  "kind": "site",
+  "site_id": "SYNTHETIC-SITE-HYBRID"
+ },
+ "verification": {
+  "kind": "unverified",
+  "reason": "synthetic fixture: not checked against any signed copy"
+ }
+}

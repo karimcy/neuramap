@@ -1,0 +1,26 @@
+#!/usr/bin/env bash
+# WP-GRC-05 pre-commit hook: refuse a commit that adds customer data the manifest does not list.
+#
+# Shipped, NOT installed. To install it in a clone:
+#   ln -s ../../scripts/hooks/pre-commit-dpa-scan .git/hooks/pre-commit
+#
+# It runs the customer-data scan (paths only, never contents) and fails the commit when the scan
+# reports a manifest finding: an unlisted file under a customer-data root, a changed or copied
+# listed file, or an undeclared half-hourly-shaped CSV. The quarantined datasets already in git
+# do not block a commit on their own (criterion 3 stays "not met" until the owner decides);
+# only drift does.
+set -euo pipefail
+root="$(git rev-parse --show-toplevel)"
+cd "$root"
+PYTHON="${PYTHON:-python}"
+out="$(PYTHONPATH="$root/src${PYTHONPATH:+:$PYTHONPATH}" "$PYTHON" -m gridq.governance.dpa_scan --json)" || status=$?
+status="${status:-0}"
+if [ "$status" -ge 2 ]; then
+  echo "pre-commit-dpa-scan: the scan could not run (exit $status)" >&2
+  exit "$status"
+fi
+findings="$(printf '%s' "$out" | "$PYTHON" -c 'import json,sys; print(len(json.load(sys.stdin)["findings"]))')"
+if [ "$findings" != "0" ]; then
+  echo "pre-commit-dpa-scan: customer-data manifest findings; run python -m gridq.governance.dpa_scan" >&2
+  exit 1
+fi

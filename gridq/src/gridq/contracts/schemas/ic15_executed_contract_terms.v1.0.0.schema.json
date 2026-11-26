@@ -1,0 +1,329 @@
+{
+  "$defs": {
+    "ContractInstanceValue": {
+      "additionalProperties": false,
+      "description": "An instance of another contract, by its content hash.",
+      "properties": {
+        "content_hash": {
+          "pattern": "^sha256:[0-9a-f]{64}$",
+          "title": "Content Hash",
+          "type": "string"
+        },
+        "contract": {
+          "pattern": "^IC-[1-9][0-9]*$",
+          "title": "Contract",
+          "type": "string"
+        },
+        "contract_version": {
+          "pattern": "^1\\.(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)$",
+          "title": "Contract Version",
+          "type": "string"
+        },
+        "kind": {
+          "const": "contract_instance",
+          "title": "Kind",
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind",
+        "contract",
+        "contract_version",
+        "content_hash"
+      ],
+      "title": "ContractInstanceValue",
+      "type": "object"
+    },
+    "DateValue": {
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "const": "date",
+          "title": "Kind",
+          "type": "string"
+        },
+        "value": {
+          "format": "date",
+          "title": "Value",
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind",
+        "value"
+      ],
+      "title": "DateValue",
+      "type": "object"
+    },
+    "EvidenceRef": {
+      "additionalProperties": false,
+      "description": "A reference to an IC-4 instance by its content hash (what IC-1 and others embed).",
+      "properties": {
+        "contract": {
+          "const": "IC-4",
+          "title": "Contract",
+          "type": "string"
+        },
+        "contract_version": {
+          "pattern": "^1\\.(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)$",
+          "title": "Contract Version",
+          "type": "string"
+        },
+        "evidence_hash": {
+          "pattern": "^sha256:[0-9a-f]{64}$",
+          "title": "Evidence Hash",
+          "type": "string"
+        },
+        "kind": {
+          "const": "evidence_ref",
+          "title": "Kind",
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind",
+        "contract",
+        "contract_version",
+        "evidence_hash"
+      ],
+      "title": "EvidenceRef",
+      "type": "object"
+    },
+    "FieldEntry": {
+      "additionalProperties": false,
+      "properties": {
+        "field_id": {
+          "maxLength": 64,
+          "pattern": "^[a-z][a-z0-9_]*$",
+          "title": "Field Id",
+          "type": "string"
+        },
+        "value": {
+          "discriminator": {
+            "mapping": {
+              "contract_instance": "#/$defs/ContractInstanceValue",
+              "date": "#/$defs/DateValue",
+              "not_applicable": "#/$defs/NotApplicable",
+              "quantity": "#/$defs/QuantityValue",
+              "text": "#/$defs/TextValue",
+              "unknown": "#/$defs/Unknown"
+            },
+            "propertyName": "kind"
+          },
+          "oneOf": [
+            {
+              "$ref": "#/$defs/TextValue"
+            },
+            {
+              "$ref": "#/$defs/DateValue"
+            },
+            {
+              "$ref": "#/$defs/QuantityValue"
+            },
+            {
+              "$ref": "#/$defs/ContractInstanceValue"
+            },
+            {
+              "$ref": "#/$defs/Unknown"
+            },
+            {
+              "$ref": "#/$defs/NotApplicable"
+            }
+          ],
+          "title": "Value"
+        }
+      },
+      "required": [
+        "field_id",
+        "value"
+      ],
+      "title": "FieldEntry",
+      "type": "object"
+    },
+    "FinancingVariant": {
+      "description": "ADR-D1 option (d): vendor first, with IPP and power provision as third-party-capital\nwrappers. Each template carries one schedule section covering all three.",
+      "enum": [
+        "direct_host_funded",
+        "ipp_third_party_owner",
+        "power_provision_lessor"
+      ],
+      "title": "FinancingVariant",
+      "type": "string"
+    },
+    "NotApplicable": {
+      "additionalProperties": false,
+      "description": "A term that does not exist for this record (e.g. a LIFO position on a firm connection).\n\nDistinct from `Unknown`: \"not applicable\" is a statement about the agreement, \"unknown\" is a\nstatement about our knowledge of it. Both carry a reason.",
+      "properties": {
+        "kind": {
+          "const": "not_applicable",
+          "title": "Kind",
+          "type": "string"
+        },
+        "reason": {
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Reason",
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind",
+        "reason"
+      ],
+      "title": "NotApplicable",
+      "type": "object"
+    },
+    "QuantityUnit": {
+      "description": "Integer units only: money in pence, rates in basis points, no floats.",
+      "enum": [
+        "gbp_pence",
+        "gbp_pence_per_megawatt_year",
+        "basis_points",
+        "basis_points_of_underwritten_value",
+        "kilowatts",
+        "minutes",
+        "hours",
+        "days",
+        "months"
+      ],
+      "title": "QuantityUnit",
+      "type": "string"
+    },
+    "QuantityValue": {
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "const": "quantity",
+          "title": "Kind",
+          "type": "string"
+        },
+        "unit": {
+          "$ref": "#/$defs/QuantityUnit"
+        },
+        "value": {
+          "minimum": 0,
+          "title": "Value",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "kind",
+        "unit",
+        "value"
+      ],
+      "title": "QuantityValue",
+      "type": "object"
+    },
+    "TemplateId": {
+      "description": "The seven templates, in the order WP-GRC-09 lists them.",
+      "enum": [
+        "assessment_sow",
+        "software_dispatch_msa",
+        "data_sharing_agreement",
+        "flexibility_services_agreement",
+        "site_access_installation",
+        "lender_reliance_letter",
+        "performance_wrapper"
+      ],
+      "title": "TemplateId",
+      "type": "string"
+    },
+    "TextValue": {
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "const": "text",
+          "title": "Kind",
+          "type": "string"
+        },
+        "value": {
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Value",
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind",
+        "value"
+      ],
+      "title": "TextValue",
+      "type": "object"
+    },
+    "Unknown": {
+      "additionalProperties": false,
+      "description": "A value that exists but is not known. Always explicit, always with a reason; never ``None``.\n\nSerialised as ``{\"kind\": \"unknown\", \"reason\": \"...\"}``. ``kind`` is required (no default) so\na hand-written payload that omits it is refused rather than guessed at.",
+      "properties": {
+        "kind": {
+          "const": "unknown",
+          "title": "Kind",
+          "type": "string"
+        },
+        "reason": {
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Reason",
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind",
+        "reason"
+      ],
+      "title": "Unknown",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "description": "The terms of one executed contract: which template text it was made from, the IC-4 object\nof the signed copy, the financing variant, and a value for every required field. A field not\nyet known is `Unknown` with its ask; a field that does not apply is `NotApplicable`.",
+  "properties": {
+    "contract": {
+      "const": "IC-15",
+      "default": "IC-15",
+      "title": "Contract",
+      "type": "string"
+    },
+    "contract_version": {
+      "const": "1.0.0",
+      "default": "1.0.0",
+      "title": "Contract Version",
+      "type": "string"
+    },
+    "executed_copy": {
+      "$ref": "#/$defs/EvidenceRef"
+    },
+    "template_id": {
+      "$ref": "#/$defs/TemplateId"
+    },
+    "template_version": {
+      "pattern": "^(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)$",
+      "title": "Template Version",
+      "type": "string"
+    },
+    "text_sha256": {
+      "pattern": "^sha256:[0-9a-f]{64}$",
+      "title": "Text Sha256",
+      "type": "string"
+    },
+    "values": {
+      "items": {
+        "$ref": "#/$defs/FieldEntry"
+      },
+      "title": "Values",
+      "type": "array"
+    },
+    "variant": {
+      "$ref": "#/$defs/FinancingVariant"
+    }
+  },
+  "required": [
+    "template_id",
+    "template_version",
+    "text_sha256",
+    "executed_copy",
+    "variant",
+    "values"
+  ],
+  "title": "ExecutedContractTerms",
+  "type": "object"
+}

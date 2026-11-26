@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+{% block title %}Equipment catalogue - GridQ{% endblock %}
+{% block crumbs %}<a href="/">Dashboard</a> <span class="sep">/</span> <span class="here">Equipment</span>{% endblock %}
+{% block content %}
+
+{% if added %}
+<div class="demobanner" role="status" style="margin-bottom:1rem">
+  <span class="badge badge-neutral">Added</span>
+  <span>Your equipment is now in the catalogue below, and available in the quote wizard's Equipment step.</span>
+</div>
+{% endif %}
+
+<div class="card-head" style="margin-bottom:1rem">
+  <h1 style="margin:0">Equipment catalogue</h1>
+  <a class="btn secondary" href="/equipment/upload">Upload spec sheet</a>
+</div>
+
+<div class="card">
+  <div class="eq-tabs" role="tablist">
+    <button class="eq-tab is-active" data-eq="solar" role="tab">Solar panels ({{ eq.counts.solar }})</button>
+    <button class="eq-tab" data-eq="batteries" role="tab">Batteries ({{ eq.counts.batteries }})</button>
+    <button class="eq-tab" data-eq="inverters" role="tab">Inverters ({{ eq.counts.inverters }})</button>
+  </div>
+
+  <div class="eq-panel is-active" data-panel="solar">
+    <div class="tablewrap"><table class="data">
+      <thead><tr><th>Manufacturer</th><th>Model</th><th class="num">Power (W)</th><th class="num">Efficiency</th><th class="num">Price/Wp</th></tr></thead>
+      <tbody>
+        {% for p in eq.solar %}
+        <tr><td>{{ p.maker }}</td><td>{{ p.model }}{% if p.source == 'user' %} <span class="badge badge-neutral">Yours</span>{% if p.datasheet %} <a class="muted" href="/equipment/datasheet/{{ p.datasheet }}">datasheet</a>{% endif %}{% endif %}</td><td class="num">{{ p.power_w }}</td><td class="num">{{ "%.2f"|format(p.eff_pct) }}%</td><td class="num">£{{ "%.2f"|format(p.price) }}</td></tr>
+        {% endfor %}
+      </tbody>
+    </table></div>
+  </div>
+
+  <div class="eq-panel" data-panel="batteries">
+    <div class="tablewrap"><table class="data">
+      <thead><tr><th>Manufacturer</th><th>Model</th><th class="num">Energy (kWh)</th><th>Chemistry</th><th class="num">Price/kWh</th></tr></thead>
+      <tbody>
+        {% for b in eq.batteries %}
+        <tr><td>{{ b.maker }}</td><td>{{ b.model }}{% if b.source == 'user' %} <span class="badge badge-neutral">Yours</span>{% if b.datasheet %} <a class="muted" href="/equipment/datasheet/{{ b.datasheet }}">datasheet</a>{% endif %}{% endif %}</td><td class="num">{{ "%.2f"|format(b.energy_kwh) }}</td><td>{{ b.chemistry }}</td><td class="num">£{{ "%.2f"|format(b.price) }}</td></tr>
+        {% endfor %}
+      </tbody>
+    </table></div>
+  </div>
+
+  <div class="eq-panel" data-panel="inverters">
+    <div class="tablewrap"><table class="data">
+      <thead><tr><th>Manufacturer</th><th>Model</th><th class="num">Power (kW)</th><th>Type</th><th class="num">Price/W</th></tr></thead>
+      <tbody>
+        {% for i in eq.inverters %}
+        <tr><td>{{ i.maker }}</td><td>{{ i.model }}{% if i.source == 'user' %} <span class="badge badge-neutral">Yours</span>{% if i.datasheet %} <a class="muted" href="/equipment/datasheet/{{ i.datasheet }}">datasheet</a>{% endif %}{% endif %}</td><td class="num">{{ "%.1f"|format(i.power_kw) }}</td><td>{% if i.hybrid %}Hybrid{% else %}String{% endif %}</td><td class="num">£{{ "%.2f"|format(i.price) }}</td></tr>
+        {% endfor %}
+      </tbody>
+    </table></div>
+  </div>
+</div>
+
+<p class="fallback-note">Prices are indicative list ballparks for the picker, not quotes. Upload a
+  manufacturer datasheet to extend this catalogue with your own equipment.</p>
+
+<script>
+  (function () {
+    var tabs = document.querySelectorAll(".eq-tab");
+    var panels = document.querySelectorAll(".eq-panel");
+    tabs.forEach(function (t) {
+      t.addEventListener("click", function () {
+        var key = t.getAttribute("data-eq");
+        tabs.forEach(function (x) { x.classList.toggle("is-active", x === t); });
+        panels.forEach(function (p) { p.classList.toggle("is-active", p.getAttribute("data-panel") === key); });
+      });
+    });
+  })();
+</script>
+
+{% endblock %}

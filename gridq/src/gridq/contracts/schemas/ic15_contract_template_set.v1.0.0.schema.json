@@ -1,0 +1,1116 @@
+{
+  "$defs": {
+    "Answerer": {
+      "description": "Who answers a field's ask. Parties are roles; no party is named.",
+      "enum": [
+        "provider",
+        "customer",
+        "host",
+        "lender",
+        "risk_carrier",
+        "flexibility_counterparty",
+        "data_counterparty",
+        "counsel"
+      ],
+      "title": "Answerer",
+      "type": "string"
+    },
+    "CarrierAvailable": {
+      "additionalProperties": false,
+      "properties": {
+        "issuer_role": {
+          "maxLength": 64,
+          "pattern": "^[a-z][a-z0-9_]*$",
+          "title": "Issuer Role",
+          "type": "string"
+        },
+        "kind": {
+          "const": "available",
+          "title": "Kind",
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind",
+        "issuer_role"
+      ],
+      "title": "CarrierAvailable",
+      "type": "object"
+    },
+    "CarrierUnavailable": {
+      "additionalProperties": false,
+      "description": "No IC-4 issuer role exists for this carrier yet. Adding one re-versions IC-2 and IC-11.",
+      "properties": {
+        "gap": {
+          "pattern": "^G[1-9][0-9]*$",
+          "title": "Gap",
+          "type": "string"
+        },
+        "kind": {
+          "const": "unavailable",
+          "title": "Kind",
+          "type": "string"
+        },
+        "owner": {
+          "pattern": "^WP-[A-Z]+-[0-9]{2}$",
+          "title": "Owner",
+          "type": "string"
+        },
+        "reason": {
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Reason",
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind",
+        "gap",
+        "owner",
+        "reason"
+      ],
+      "title": "CarrierUnavailable",
+      "type": "object"
+    },
+    "Clause": {
+      "additionalProperties": false,
+      "description": "A named clause. Its id is the ``[clause:<id>]`` anchor in the template text.",
+      "properties": {
+        "clause_id": {
+          "maxLength": 64,
+          "pattern": "^[a-z][a-z0-9_]*$",
+          "title": "Clause Id",
+          "type": "string"
+        },
+        "title": {
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Title",
+          "type": "string"
+        }
+      },
+      "required": [
+        "clause_id",
+        "title"
+      ],
+      "title": "Clause",
+      "type": "object"
+    },
+    "CommercialTerm": {
+      "additionalProperties": false,
+      "description": "A price, cap, service level, threshold or period. The executed figure is always a\nrequired quantity field with its own ask, whatever the list price says.",
+      "properties": {
+        "executed_field": {
+          "maxLength": 64,
+          "pattern": "^[a-z][a-z0-9_]*$",
+          "title": "Executed Field",
+          "type": "string"
+        },
+        "price": {
+          "discriminator": {
+            "mapping": {
+              "list_price_on_record": "#/$defs/ListPriceOnRecord",
+              "to_be_agreed": "#/$defs/ToBeAgreed"
+            },
+            "propertyName": "kind"
+          },
+          "oneOf": [
+            {
+              "$ref": "#/$defs/ListPriceOnRecord"
+            },
+            {
+              "$ref": "#/$defs/ToBeAgreed"
+            }
+          ],
+          "title": "Price"
+        },
+        "term_id": {
+          "maxLength": 64,
+          "pattern": "^[a-z][a-z0-9_]*$",
+          "title": "Term Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "term_id",
+        "executed_field",
+        "price"
+      ],
+      "title": "CommercialTerm",
+      "type": "object"
+    },
+    "ContractVersionRef": {
+      "additionalProperties": false,
+      "description": "A template's reference to another contract by id and major-1 version range. The text\ncites it as ``[[ref:<ref_id>]]``, never by prose.",
+      "properties": {
+        "contract": {
+          "pattern": "^IC-[1-9][0-9]*$",
+          "title": "Contract",
+          "type": "string"
+        },
+        "contract_name": {
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Contract Name",
+          "type": "string"
+        },
+        "kind": {
+          "const": "contract_version_ref",
+          "title": "Kind",
+          "type": "string"
+        },
+        "ref_id": {
+          "maxLength": 64,
+          "pattern": "^[a-z][a-z0-9_]*$",
+          "title": "Ref Id",
+          "type": "string"
+        },
+        "status": {
+          "discriminator": {
+            "mapping": {
+              "frozen": "#/$defs/Frozen",
+              "not_yet_frozen": "#/$defs/NotYetFrozen"
+            },
+            "propertyName": "kind"
+          },
+          "oneOf": [
+            {
+              "$ref": "#/$defs/Frozen"
+            },
+            {
+              "$ref": "#/$defs/NotYetFrozen"
+            }
+          ],
+          "title": "Status"
+        },
+        "version_range": {
+          "const": "1.x",
+          "title": "Version Range",
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind",
+        "ref_id",
+        "contract",
+        "contract_name",
+        "version_range",
+        "status"
+      ],
+      "title": "ContractVersionRef",
+      "type": "object"
+    },
+    "ControlAuthorityStaging": {
+      "additionalProperties": false,
+      "description": "ADR-D2 staging: L0 read-only, L1 shadow, L2 BESS closed loop, L3 chiller narrow band, L4\nworkload advisory. Only L2 and L3 write, and each waits on `CLOSED_LOOP_GATES`.",
+      "properties": {
+        "kind": {
+          "const": "control_authority_staging",
+          "title": "Kind",
+          "type": "string"
+        },
+        "source": {
+          "const": "ADR-D2",
+          "title": "Source",
+          "type": "string"
+        },
+        "stages": {
+          "items": {
+            "$ref": "#/$defs/ControlStageTerm"
+          },
+          "title": "Stages",
+          "type": "array"
+        }
+      },
+      "required": [
+        "kind",
+        "source",
+        "stages"
+      ],
+      "title": "ControlAuthorityStaging",
+      "type": "object"
+    },
+    "ControlStage": {
+      "description": "ADR-D2 control-authority stages, L0 to L4.",
+      "enum": [
+        "l0_read_only",
+        "l1_shadow",
+        "l2_bess_closed_loop",
+        "l3_chiller_narrow_band",
+        "l4_workload_advisory"
+      ],
+      "title": "ControlStage",
+      "type": "string"
+    },
+    "ControlStageTerm": {
+      "additionalProperties": false,
+      "properties": {
+        "gates": {
+          "items": {
+            "pattern": "^(XG-[1-9][0-9]*|D-[1-9][0-9]*|WP-[A-Z]+-[0-9]{2})$",
+            "type": "string"
+          },
+          "title": "Gates",
+          "type": "array"
+        },
+        "stage": {
+          "$ref": "#/$defs/ControlStage"
+        },
+        "write_path": {
+          "title": "Write Path",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "stage",
+        "write_path",
+        "gates"
+      ],
+      "title": "ControlStageTerm",
+      "type": "object"
+    },
+    "CounselReviewed": {
+      "additionalProperties": false,
+      "description": "Counsel reviewed exactly the text whose SHA-256 is given. ``opinion`` is an IC-4\nreference to counsel's third-party ``legal_opinion``; `check_counsel_review` resolves it.",
+      "properties": {
+        "kind": {
+          "const": "counsel_reviewed",
+          "title": "Kind",
+          "type": "string"
+        },
+        "opinion": {
+          "$ref": "#/$defs/EvidenceRef"
+        },
+        "reviewed_text_sha256": {
+          "pattern": "^sha256:[0-9a-f]{64}$",
+          "title": "Reviewed Text Sha256",
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind",
+        "reviewed_text_sha256",
+        "opinion"
+      ],
+      "title": "CounselReviewed",
+      "type": "object"
+    },
+    "DraftNeedsLegalReview": {
+      "additionalProperties": false,
+      "description": "The template has not been reviewed by counsel. It must not be sent as an offer.",
+      "properties": {
+        "kind": {
+          "const": "draft_needs_legal_review",
+          "title": "Kind",
+          "type": "string"
+        },
+        "reason": {
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Reason",
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind",
+        "reason"
+      ],
+      "title": "DraftNeedsLegalReview",
+      "type": "object"
+    },
+    "EvidenceRef": {
+      "additionalProperties": false,
+      "description": "A reference to an IC-4 instance by its content hash (what IC-1 and others embed).",
+      "properties": {
+        "contract": {
+          "const": "IC-4",
+          "title": "Contract",
+          "type": "string"
+        },
+        "contract_version": {
+          "pattern": "^1\\.(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)$",
+          "title": "Contract Version",
+          "type": "string"
+        },
+        "evidence_hash": {
+          "pattern": "^sha256:[0-9a-f]{64}$",
+          "title": "Evidence Hash",
+          "type": "string"
+        },
+        "kind": {
+          "const": "evidence_ref",
+          "title": "Kind",
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind",
+        "contract",
+        "contract_version",
+        "evidence_hash"
+      ],
+      "title": "EvidenceRef",
+      "type": "object"
+    },
+    "ExecutedAs": {
+      "additionalProperties": false,
+      "description": "How an executed copy is registered: an IC-4 evidence type, and the issuer roles admitted\nfor it. Both are IC-4 enum values held as strings and checked against the live enums.",
+      "properties": {
+        "admissible_issuers": {
+          "items": {
+            "maxLength": 64,
+            "pattern": "^[a-z][a-z0-9_]*$",
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Admissible Issuers",
+          "type": "array"
+        },
+        "applies_when": {
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Applies When",
+          "type": "string"
+        },
+        "evidence_type": {
+          "maxLength": 64,
+          "pattern": "^[a-z][a-z0-9_]*$",
+          "title": "Evidence Type",
+          "type": "string"
+        }
+      },
+      "required": [
+        "evidence_type",
+        "admissible_issuers",
+        "applies_when"
+      ],
+      "title": "ExecutedAs",
+      "type": "object"
+    },
+    "FieldKind": {
+      "description": "What a required field holds once known.",
+      "enum": [
+        "text",
+        "date",
+        "quantity",
+        "contract_instance"
+      ],
+      "title": "FieldKind",
+      "type": "string"
+    },
+    "FinancingVariant": {
+      "description": "ADR-D1 option (d): vendor first, with IPP and power provision as third-party-capital\nwrappers. Each template carries one schedule section covering all three.",
+      "enum": [
+        "direct_host_funded",
+        "ipp_third_party_owner",
+        "power_provision_lessor"
+      ],
+      "title": "FinancingVariant",
+      "type": "string"
+    },
+    "Frozen": {
+      "additionalProperties": false,
+      "description": "The referenced contract is frozen and tagged. Any 1.x at or above the minimum serves.",
+      "properties": {
+        "git_tag": {
+          "pattern": "^contracts/ic[1-9][0-9]*-[a-z0-9-]+/v1\\.[0-9]+\\.[0-9]+$",
+          "title": "Git Tag",
+          "type": "string"
+        },
+        "kind": {
+          "const": "frozen",
+          "title": "Kind",
+          "type": "string"
+        },
+        "minimum_version": {
+          "pattern": "^1\\.(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)$",
+          "title": "Minimum Version",
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind",
+        "minimum_version",
+        "git_tag"
+      ],
+      "title": "Frozen",
+      "type": "object"
+    },
+    "ListPriceId": {
+      "description": "The four prices on record (ADR-D1). No other figure may be a list price.",
+      "enum": [
+        "assessment_fee",
+        "integration_fee",
+        "operate_fee",
+        "wrapper_fee"
+      ],
+      "title": "ListPriceId",
+      "type": "string"
+    },
+    "ListPriceOnRecord": {
+      "additionalProperties": false,
+      "description": "One of the four ADR-D1 list prices. Never a price agreed with anyone.",
+      "properties": {
+        "amount": {
+          "minimum": 0,
+          "title": "Amount",
+          "type": "integer"
+        },
+        "kind": {
+          "const": "list_price_on_record",
+          "title": "Kind",
+          "type": "string"
+        },
+        "price_id": {
+          "$ref": "#/$defs/ListPriceId"
+        },
+        "rendering": {
+          "const": "list price on record, not agreed with any customer",
+          "title": "Rendering",
+          "type": "string"
+        },
+        "source": {
+          "const": "ADR-D1",
+          "title": "Source",
+          "type": "string"
+        },
+        "unit": {
+          "$ref": "#/$defs/QuantityUnit"
+        }
+      },
+      "required": [
+        "kind",
+        "price_id",
+        "amount",
+        "unit",
+        "source",
+        "rendering"
+      ],
+      "title": "ListPriceOnRecord",
+      "type": "object"
+    },
+    "NotApplicable": {
+      "additionalProperties": false,
+      "description": "A term that does not exist for this record (e.g. a LIFO position on a firm connection).\n\nDistinct from `Unknown`: \"not applicable\" is a statement about the agreement, \"unknown\" is a\nstatement about our knowledge of it. Both carry a reason.",
+      "properties": {
+        "kind": {
+          "const": "not_applicable",
+          "title": "Kind",
+          "type": "string"
+        },
+        "reason": {
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Reason",
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind",
+        "reason"
+      ],
+      "title": "NotApplicable",
+      "type": "object"
+    },
+    "NotYetFrozen": {
+      "additionalProperties": false,
+      "description": "The referenced contract does not exist yet. The reference names the package that freezes\nit; until then the template text says \"unavailable until\" that package.",
+      "properties": {
+        "freezing_work_package": {
+          "pattern": "^WP-[A-Z]+-[0-9]{2}$",
+          "title": "Freezing Work Package",
+          "type": "string"
+        },
+        "gates": {
+          "items": {
+            "pattern": "^(XG-[1-9][0-9]*|D-[1-9][0-9]*|WP-[A-Z]+-[0-9]{2})$",
+            "type": "string"
+          },
+          "title": "Gates",
+          "type": "array"
+        },
+        "kind": {
+          "const": "not_yet_frozen",
+          "title": "Kind",
+          "type": "string"
+        },
+        "reason": {
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Reason",
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind",
+        "freezing_work_package",
+        "gates",
+        "reason"
+      ],
+      "title": "NotYetFrozen",
+      "type": "object"
+    },
+    "PersonOnlyKind": {
+      "description": "Steps only a person may take. No agent takes them.",
+      "enum": [
+        "legal_review",
+        "engage_counsel",
+        "risk_carrier_and_perimeter",
+        "agree_commercial_terms",
+        "sign",
+        "critical_facilities_signoff",
+        "load_control_licence",
+        "register_contract"
+      ],
+      "title": "PersonOnlyKind",
+      "type": "string"
+    },
+    "PersonOnlyStep": {
+      "additionalProperties": false,
+      "description": "A step only a person may take, with the templates and gates it concerns.",
+      "properties": {
+        "action": {
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Action",
+          "type": "string"
+        },
+        "gates": {
+          "items": {
+            "pattern": "^(XG-[1-9][0-9]*|D-[1-9][0-9]*|WP-[A-Z]+-[0-9]{2})$",
+            "type": "string"
+          },
+          "title": "Gates",
+          "type": "array"
+        },
+        "kind": {
+          "$ref": "#/$defs/PersonOnlyKind"
+        },
+        "step_id": {
+          "maxLength": 64,
+          "pattern": "^[a-z][a-z0-9_]*$",
+          "title": "Step Id",
+          "type": "string"
+        },
+        "templates": {
+          "items": {
+            "$ref": "#/$defs/TemplateId"
+          },
+          "title": "Templates",
+          "type": "array"
+        }
+      },
+      "required": [
+        "step_id",
+        "kind",
+        "action",
+        "templates",
+        "gates"
+      ],
+      "title": "PersonOnlyStep",
+      "type": "object"
+    },
+    "QuantityUnit": {
+      "description": "Integer units only: money in pence, rates in basis points, no floats.",
+      "enum": [
+        "gbp_pence",
+        "gbp_pence_per_megawatt_year",
+        "basis_points",
+        "basis_points_of_underwritten_value",
+        "kilowatts",
+        "minutes",
+        "hours",
+        "days",
+        "months"
+      ],
+      "title": "QuantityUnit",
+      "type": "string"
+    },
+    "RequiredField": {
+      "additionalProperties": false,
+      "description": "A field an executed contract must state, with the ask that fills it.",
+      "properties": {
+        "ask": {
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Ask",
+          "type": "string"
+        },
+        "asked_of": {
+          "items": {
+            "$ref": "#/$defs/Answerer"
+          },
+          "minItems": 1,
+          "title": "Asked Of",
+          "type": "array"
+        },
+        "binds": {
+          "anyOf": [
+            {
+              "maxLength": 64,
+              "pattern": "^[a-z][a-z0-9_]*$",
+              "type": "string"
+            },
+            {
+              "$ref": "#/$defs/NotApplicable"
+            }
+          ],
+          "title": "Binds"
+        },
+        "field_id": {
+          "maxLength": 64,
+          "pattern": "^[a-z][a-z0-9_]*$",
+          "title": "Field Id",
+          "type": "string"
+        },
+        "kind": {
+          "$ref": "#/$defs/FieldKind"
+        },
+        "unit": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/QuantityUnit"
+            },
+            {
+              "$ref": "#/$defs/NotApplicable"
+            }
+          ],
+          "title": "Unit"
+        }
+      },
+      "required": [
+        "field_id",
+        "kind",
+        "unit",
+        "binds",
+        "ask",
+        "asked_of"
+      ],
+      "title": "RequiredField",
+      "type": "object"
+    },
+    "RiskCarrier": {
+      "description": "Who may carry the performance wrapper's risk (ADR-D1, XG-20).",
+      "enum": [
+        "insurer",
+        "mga",
+        "floor_provider"
+      ],
+      "title": "RiskCarrier",
+      "type": "string"
+    },
+    "RiskCarrierOption": {
+      "additionalProperties": false,
+      "properties": {
+        "admission": {
+          "discriminator": {
+            "mapping": {
+              "available": "#/$defs/CarrierAvailable",
+              "unavailable": "#/$defs/CarrierUnavailable"
+            },
+            "propertyName": "kind"
+          },
+          "oneOf": [
+            {
+              "$ref": "#/$defs/CarrierAvailable"
+            },
+            {
+              "$ref": "#/$defs/CarrierUnavailable"
+            }
+          ],
+          "title": "Admission"
+        },
+        "carrier": {
+          "$ref": "#/$defs/RiskCarrier"
+        }
+      },
+      "required": [
+        "carrier",
+        "admission"
+      ],
+      "title": "RiskCarrierOption",
+      "type": "object"
+    },
+    "SafetyHierarchy": {
+      "additionalProperties": false,
+      "description": "The spec §8 safety hierarchy as an ordered list, highest first.",
+      "properties": {
+        "kind": {
+          "const": "safety_hierarchy",
+          "title": "Kind",
+          "type": "string"
+        },
+        "order": {
+          "items": {
+            "$ref": "#/$defs/SafetyTier"
+          },
+          "title": "Order",
+          "type": "array"
+        },
+        "source": {
+          "const": "spec §8 principle 1",
+          "title": "Source",
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind",
+        "source",
+        "order"
+      ],
+      "title": "SafetyHierarchy",
+      "type": "object"
+    },
+    "SafetyTier": {
+      "description": "The spec §8 safety hierarchy tiers. Their order is fixed in `SAFETY_HIERARCHY`.",
+      "enum": [
+        "life_safety",
+        "it_sla_and_thermal_limits",
+        "connection_compliance",
+        "resilience_reserve",
+        "contracted_market_delivery",
+        "merchant_revenue"
+      ],
+      "title": "SafetyTier",
+      "type": "string"
+    },
+    "TemplateEntry": {
+      "additionalProperties": false,
+      "description": "One template: its text by hash, its review state, how an executed copy is registered, its\nrequired fields, clauses, references, commercial terms and variant schedule.",
+      "properties": {
+        "clauses": {
+          "items": {
+            "$ref": "#/$defs/Clause"
+          },
+          "minItems": 1,
+          "title": "Clauses",
+          "type": "array"
+        },
+        "commercial_terms": {
+          "items": {
+            "$ref": "#/$defs/CommercialTerm"
+          },
+          "title": "Commercial Terms",
+          "type": "array"
+        },
+        "control_authority": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ControlAuthorityStaging"
+            },
+            {
+              "$ref": "#/$defs/NotApplicable"
+            }
+          ],
+          "title": "Control Authority"
+        },
+        "executed_as": {
+          "items": {
+            "$ref": "#/$defs/ExecutedAs"
+          },
+          "minItems": 1,
+          "title": "Executed As",
+          "type": "array"
+        },
+        "form": {
+          "enum": [
+            "full_text",
+            "heads_of_terms"
+          ],
+          "title": "Form",
+          "type": "string"
+        },
+        "legal_review": {
+          "discriminator": {
+            "mapping": {
+              "counsel_reviewed": "#/$defs/CounselReviewed",
+              "draft_needs_legal_review": "#/$defs/DraftNeedsLegalReview"
+            },
+            "propertyName": "kind"
+          },
+          "oneOf": [
+            {
+              "$ref": "#/$defs/DraftNeedsLegalReview"
+            },
+            {
+              "$ref": "#/$defs/CounselReviewed"
+            }
+          ],
+          "title": "Legal Review"
+        },
+        "references": {
+          "items": {
+            "maxLength": 64,
+            "pattern": "^[a-z][a-z0-9_]*$",
+            "type": "string"
+          },
+          "title": "References",
+          "type": "array"
+        },
+        "required_fields": {
+          "items": {
+            "$ref": "#/$defs/RequiredField"
+          },
+          "minItems": 1,
+          "title": "Required Fields",
+          "type": "array"
+        },
+        "risk_carriers": {
+          "anyOf": [
+            {
+              "items": {
+                "$ref": "#/$defs/RiskCarrierOption"
+              },
+              "type": "array"
+            },
+            {
+              "$ref": "#/$defs/NotApplicable"
+            }
+          ],
+          "title": "Risk Carriers"
+        },
+        "safety_hierarchy": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/SafetyHierarchy"
+            },
+            {
+              "$ref": "#/$defs/NotApplicable"
+            }
+          ],
+          "title": "Safety Hierarchy"
+        },
+        "template_id": {
+          "$ref": "#/$defs/TemplateId"
+        },
+        "template_version": {
+          "pattern": "^(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)$",
+          "title": "Template Version",
+          "type": "string"
+        },
+        "text_file": {
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Text File",
+          "type": "string"
+        },
+        "text_sha256": {
+          "pattern": "^sha256:[0-9a-f]{64}$",
+          "title": "Text Sha256",
+          "type": "string"
+        },
+        "title": {
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Title",
+          "type": "string"
+        },
+        "unavailable_terms": {
+          "items": {
+            "$ref": "#/$defs/UnavailableTerm"
+          },
+          "title": "Unavailable Terms",
+          "type": "array"
+        },
+        "variants": {
+          "items": {
+            "$ref": "#/$defs/VariantSchedule"
+          },
+          "title": "Variants",
+          "type": "array"
+        }
+      },
+      "required": [
+        "template_id",
+        "template_version",
+        "title",
+        "form",
+        "text_file",
+        "text_sha256",
+        "legal_review",
+        "executed_as",
+        "required_fields",
+        "clauses",
+        "references",
+        "commercial_terms",
+        "unavailable_terms",
+        "variants",
+        "safety_hierarchy",
+        "control_authority",
+        "risk_carriers"
+      ],
+      "title": "TemplateEntry",
+      "type": "object"
+    },
+    "TemplateId": {
+      "description": "The seven templates, in the order WP-GRC-09 lists them.",
+      "enum": [
+        "assessment_sow",
+        "software_dispatch_msa",
+        "data_sharing_agreement",
+        "flexibility_services_agreement",
+        "site_access_installation",
+        "lender_reliance_letter",
+        "performance_wrapper"
+      ],
+      "title": "TemplateId",
+      "type": "string"
+    },
+    "ToBeAgreed": {
+      "additionalProperties": false,
+      "description": "A term with no figure on record: the ask says who agrees it.",
+      "properties": {
+        "ask": {
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Ask",
+          "type": "string"
+        },
+        "kind": {
+          "const": "to_be_agreed",
+          "title": "Kind",
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind",
+        "ask"
+      ],
+      "title": "ToBeAgreed",
+      "type": "object"
+    },
+    "UnavailableTerm": {
+      "additionalProperties": false,
+      "description": "A term no template may state until the named packages deliver it.",
+      "properties": {
+        "gates": {
+          "items": {
+            "pattern": "^(XG-[1-9][0-9]*|D-[1-9][0-9]*|WP-[A-Z]+-[0-9]{2})$",
+            "type": "string"
+          },
+          "title": "Gates",
+          "type": "array"
+        },
+        "reason": {
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Reason",
+          "type": "string"
+        },
+        "term_id": {
+          "maxLength": 64,
+          "pattern": "^[a-z][a-z0-9_]*$",
+          "title": "Term Id",
+          "type": "string"
+        },
+        "until": {
+          "items": {
+            "pattern": "^WP-[A-Z]+-[0-9]{2}$",
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Until",
+          "type": "array"
+        }
+      },
+      "required": [
+        "term_id",
+        "until",
+        "gates",
+        "reason"
+      ],
+      "title": "UnavailableTerm",
+      "type": "object"
+    },
+    "VariantSchedule": {
+      "additionalProperties": false,
+      "description": "What one ADR-D1 financing variant changes in a template.",
+      "properties": {
+        "changes": {
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Changes",
+          "type": "string"
+        },
+        "counterparty": {
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Counterparty",
+          "type": "string"
+        },
+        "variant": {
+          "$ref": "#/$defs/FinancingVariant"
+        }
+      },
+      "required": [
+        "variant",
+        "counterparty",
+        "changes"
+      ],
+      "title": "VariantSchedule",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "description": "The released ``contract_template_set`` (WP-GRC-09): the seven templates, the contracts\nthey reference by version, and the steps only a person may take.",
+  "properties": {
+    "contract": {
+      "const": "IC-15",
+      "default": "IC-15",
+      "title": "Contract",
+      "type": "string"
+    },
+    "contract_version": {
+      "const": "1.0.0",
+      "default": "1.0.0",
+      "title": "Contract Version",
+      "type": "string"
+    },
+    "person_only_steps": {
+      "items": {
+        "$ref": "#/$defs/PersonOnlyStep"
+      },
+      "title": "Person Only Steps",
+      "type": "array"
+    },
+    "references": {
+      "items": {
+        "$ref": "#/$defs/ContractVersionRef"
+      },
+      "title": "References",
+      "type": "array"
+    },
+    "set_id": {
+      "const": "contract_template_set",
+      "title": "Set Id",
+      "type": "string"
+    },
+    "set_version": {
+      "pattern": "^(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)$",
+      "title": "Set Version",
+      "type": "string"
+    },
+    "templates": {
+      "items": {
+        "$ref": "#/$defs/TemplateEntry"
+      },
+      "title": "Templates",
+      "type": "array"
+    },
+    "work_package": {
+      "const": "WP-GRC-09",
+      "title": "Work Package",
+      "type": "string"
+    }
+  },
+  "required": [
+    "set_id",
+    "set_version",
+    "work_package",
+    "templates",
+    "references",
+    "person_only_steps"
+  ],
+  "title": "ContractTemplateSet",
+  "type": "object"
+}

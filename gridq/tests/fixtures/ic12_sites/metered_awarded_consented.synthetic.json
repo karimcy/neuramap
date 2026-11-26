@@ -1,0 +1,172 @@
+{
+  "site_id": "SYNTHETIC-ic12-metered-awarded",
+  "site_name": "SYNTHETIC metered site with an attested award and stream consents (not a real site)",
+  "postcode": "ZZ1 1AA",
+  "data_tier": "T2_VALIDATED_12_MONTH_HALF_HOURLY",
+  "load_data": {
+    "annual_kwh": 1250000.0,
+    "half_hourly_file_ref": "examples/demo_site/hh_2025.csv",
+    "half_hourly_rows": 17520,
+    "start_date": "2025-01-01",
+    "end_date": "2025-12-31",
+    "missing_intervals": 0,
+    "max_import_kw": 410.5,
+    "half_hourly_basis": "metered",
+    "validation_warnings": ["SYNTHETIC: 2 zero-import half-hours on 2025-03-30 (clock change)"]
+  },
+  "annual_consumption_kwh": 1250000.0,
+  "tariff_stack": {
+    "supplier": "SYNTHETIC Energy Supply Co",
+    "tariff_name": "SYNTHETIC two-rate business tariff",
+    "standing_charge_per_day_gbp": 3.21,
+    "import_rates": {"day": 0.2431, "night": 0.1187},
+    "duos_red_rate": 0.0941,
+    "duos_amber_rate": 0.0123,
+    "duos_green_rate": 0.0011,
+    "levies": {"cclevy": 0.00775, "ro": 0.0219},
+    "windowed_levies": {
+      "cm_peak": {
+        "rate_gbp_per_kwh": 0.0312,
+        "months": [11, 12, 1, 2],
+        "weekday_windows": [{"start": "16:00", "end": "19:00"}],
+        "weekend_windows": [],
+        "excluded_dates": ["2025-12-25", "2025-12-26"],
+        "basis": "SYNTHETIC windowed levy for the IC-12 identity set",
+        "source": "SYNTHETIC test fixture",
+        "confidence": "low"
+      }
+    },
+    "capacity_charge_gbp_per_kva_day": 0.0412,
+    "source": "SYNTHETIC test fixture",
+    "confidence": "medium",
+    "basis": {
+      "schema_version": "0.1.0",
+      "vat": "excluded",
+      "vat_attestation": "stated_by_record",
+      "levies": "itemised",
+      "network_charges": "itemised",
+      "vat_rate_fraction": null
+    },
+    "provenance": {
+      "schema_version": "0.1.0",
+      "commodity": "assumed",
+      "network": "assumed",
+      "levies": "assumed"
+    }
+  },
+  "connection": {
+    "mic_kw": 500.0,
+    "mec_kw": 0.0,
+    "asc_kw": 500.0,
+    "voltage_level": "HV",
+    "dno_region": "SSEN_SEPD",
+    "import_headroom_kw": 89.5,
+    "export_headroom_kw": 0.0
+  },
+  "consents": {
+    "g98": "not_started",
+    "g99": "not_started",
+    "g100": "unknown",
+    "dno_application_state": "not_started",
+    "supplier_consent_state": "unknown",
+    "notes": "SYNTHETIC: no application made"
+  },
+  "physical_gates": {
+    "footprint_available": true,
+    "fire_separation_ok": null,
+    "access_ok": true,
+    "planning_or_landlord_issue": false
+  },
+  "counterparty": {
+    "legal_name": "SYNTHETIC Operator A Ltd (not a real company)",
+    "company_number": "00000001",
+    "legal_entity_type": "limited_company",
+    "sector": "SYNTHETIC sector",
+    "credit_status": "unknown",
+    "expected_tenure_years": 15.0
+  },
+  "supply_boundary": {
+    "import_mpan": "1900000000001",
+    "behind_the_meter": true,
+    "metering_point": "SYNTHETIC main HV intake",
+    "notes": "SYNTHETIC single-intake boundary"
+  },
+  "confidentiality": {"nda_status": "signed", "nda_reference": "SYNTHETIC-NDA-0001"},
+  "provisioning_requirements": [
+    {
+      "requirement_id": "SYNTHETIC-pr-1",
+      "windows": [{"days_of_week": [0, 1, 2, 3, 4], "start_time": "08:00", "end_time": "18:00"}],
+      "additional_load_kw": 60.0,
+      "tenor_years": 5.0,
+      "counterparty": "SYNTHETIC tenant",
+      "reference": "SYNTHETIC-PR-0001"
+    }
+  ],
+  "export_arrangement": {"route": "none", "notes": "SYNTHETIC: import-only site"},
+  "stream_consents": [
+    {
+      "stream": "BALANCING_MECHANISM",
+      "consented": true,
+      "agreed_rate_gbp": 13980.0,
+      "agreed_rate_unit": "gbp_per_mw_year",
+      "notes": "SYNTHETIC: the library's 2 h node less a 20 pct cut"
+    },
+    {
+      "stream": "CAPACITY_MARKET",
+      "consented": true,
+      "agreed_rate_gbp": 4.77,
+      "agreed_rate_unit": "gbp_per_kw_year"
+    },
+    {"stream": "DFS", "consented": false}
+  ],
+  "local_flex_awards": [
+    {
+      "commitment_id": "SYNTHETIC-award-1",
+      "stream": "LOCAL_FLEX_PICLO",
+      "committed_power_kw": 200.0,
+      "held_energy_kwh": null,
+      "windows": [
+        {
+          "label": "SYNTHETIC winter evening",
+          "months": [12, 1, 2],
+          "days_of_week": [0, 1, 2, 3, 4],
+          "start_time": "17:00",
+          "end_time": "19:00"
+        }
+      ],
+      "tenor_years": 1.0,
+      "counterparty": "SYNTHETIC DNO (not a real counterparty)",
+      "reference": "SYNTHETIC-AWARD-0001",
+      "confirmed_by": "SYNTHETIC test fixture",
+      "basis": "SYNTHETIC test input; no real award exists"
+    }
+  ],
+  "derived_assumptions": [
+    {
+      "kind": "derived_input",
+      "key": "connection.mic_kw",
+      "missing_input": "SYNTHETIC: the agreed import capacity",
+      "value": 500.0,
+      "unit": "kW",
+      "basis": "SYNTHETIC: read off a fictitious supply agreement",
+      "sources": ["SYNTHETIC source A"],
+      "derivation_method": "site_analogue",
+      "derived_by": "tests.fixtures.ic12_sites",
+      "derived_on_release": "gb_v1_12",
+      "confidence_ceiling": "low",
+      "confirmation_ask": "SYNTHETIC: confirm the agreed import capacity"
+    },
+    {
+      "kind": "pending_permission",
+      "key": "stream_consents.WHOLESALE_P415",
+      "missing_input": "SYNTHETIC: consent to trade P415",
+      "basis": "SYNTHETIC: not asked",
+      "derivation_method": "not_derivable",
+      "derived_by": "tests.fixtures.ic12_sites",
+      "confidence_ceiling": "low",
+      "confirmation_ask": "SYNTHETIC: ask whether the customer consents to P415 trading"
+    }
+  ],
+  "source_references": ["SYNTHETIC reference 1", "SYNTHETIC reference 2"],
+  "missing_data": ["SYNTHETIC: fire separation survey"]
+}

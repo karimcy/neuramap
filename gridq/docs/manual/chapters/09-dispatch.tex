@@ -1,0 +1,304 @@
+\chapter{The half-hourly dispatch optimiser}
+\label{ch:dispatch}
+
+\modtag{M3}{Half-hourly dispatch optimiser}{Deterministic core}
+
+This is the calculation at the very centre of the platform. Everything before it prepares the ground -- a validated site, a versioned set of numbers, a list of income streams to consider -- and everything after it merely arranges the answer into documents. The dispatch optimiser is the part that actually decides what the battery \emph{does}: in each half hour of the year, does it charge, does it discharge, or does it sit still, and by how much? The sum of those decisions is the value the battery earns, and the value is the whole reason the project exists.
+
+The decision is not obvious, because the battery is fighting on several fronts at once. Electricity is cheaper at some times of day than others, so the battery wants to fill up when power is cheap and empty out when it is dear. But charging draws power through the same grid connection the site already uses, and that connection has a hard ceiling; pushing past it is not allowed. The battery loses a little energy on every round trip, so a charge-and-discharge cycle only pays if the price gap more than covers the loss. The manufacturer's warranty caps how hard the battery may be cycled in a year. And the battery can only hold so much, and can never hold less than nothing. The optimiser must respect every one of these limits simultaneously and still find the single best pattern of charging and discharging.
+
+\begin{plainnote}
+Picture a tank of water with a pump that can fill it or drain it, a meter that charges you a different price each half hour for water you move, and a set of rules: the pipe is only so wide, a little water leaks out on every fill-drain cycle, and the pump's warranty allows only so many full cycles a year. Your job is to decide, for every half hour of the year, how much to pump in or out so that you save the most money on your water bill without breaking any rule. That is exactly the problem the dispatch optimiser solves -- only with electricity, and with the bill computed from the site's own tariff.
+\end{plainnote}
+
+\pipelinepos{receives the validated \textbf{SiteModel} (Ch.~\ref{ch:contracts}), a versioned \textbf{assumption release} (Ch.~\ref{ch:assumptions}), and the per-stream \textbf{gates and constraints} from the value stack (Ch.~\ref{ch:valuestack}); is called once per candidate size by the \textbf{sizing search} (Ch.~\ref{ch:sizing}); hands a \textbf{half-hourly schedule, per-stream value, and annual energy volumes} back through the engine seam (Ch.~\ref{ch:engine}) to finance (Ch.~\ref{ch:finance}).}
+
+\section{What a mixed-integer linear program is}
+
+The tool the optimiser uses is a \emph{mixed-integer linear program}, or MILP. The name unpacks into three plain ideas.
+
+\begin{description}
+  \item[Linear.] Every relationship in the model is a straight-line one: a quantity added to another quantity, or a quantity multiplied by a fixed number. The energy bought is the power drawn multiplied by the half-hour length; the bill is each half-hour's price multiplied by the energy moved, all summed up. There are no curves, no quantities multiplied by other unknown quantities. Linear models are valuable precisely because a solver can find their exact best answer reliably and fast.
+  \item[Program.] An old word for ``optimisation problem'': a thing to be maximised or minimised, subject to a list of limits.
+  \item[Mixed-integer.] Some of the decisions may be forced to whole numbers (on or off, one unit or two) rather than any fraction. Pure continuous dispatch -- how many kilowatts to charge -- needs no whole-number decisions, but the framework allows them, which is why the engine is described as a MILP and uses an integer-capable solver. In this engine the live decisions are continuous; the integer capability is held in reserve.
+\end{description}
+
+So a MILP is: \emph{choose values for a set of decision variables, some possibly whole numbers, to make a linear measure of value as large as possible, while never violating a list of linear limits.} The optimiser states the battery problem in exactly that form and hands it to a solver, which returns the provably best dispatch.
+
+\begin{keyidea}[Maximise value, subject to physics]
+The dispatch problem is one sentence: choose how much to charge and discharge in every half hour so the site's electricity bill falls as far as possible, subject to the grid connection, the battery's size, its round-trip losses, and its warranty cycle limit. The MILP is just a precise, solvable way of writing that sentence down. Because the maths is linear and the solver is deterministic, the same site and the same assumptions always yield the same schedule.
+\end{keyidea}
+
+\begin{contract}
+\textbf{Inputs} to one dispatch solve:
+\begin{itemize}
+  \item a \textbf{fixed system spec} -- the battery's power (kW), energy (kWh), and duration (hours). The optimiser is \emph{told} the size; it does not choose it (that is the sizing search, Ch.~\ref{ch:sizing}).
+  \item the \textbf{SiteModel} -- above all the half-hourly metered import series, the connection limits (MIC and ASC), and the tariff stack (time-of-use energy rates and DUoS band rates);
+  \item the \textbf{assumption release} -- the round-trip efficiency and the warranty cycle table (no private constants live in the code);
+  \item the \textbf{constraint descriptors} the value stack attaches to the requested streams (Ch.~\ref{ch:valuestack}) -- labels naming which limits apply, with no numbers baked in.
+\end{itemize}
+\textbf{Outputs}:
+\begin{itemize}
+  \item a \textbf{half-hourly schedule} -- charge, discharge, and state of energy for every metered half hour, plus the price signal optimised against;
+  \item \textbf{value by stream} -- the annual revenue attributed to each income stream, with its firmness flag and gate state;
+  \item \textbf{annual energy volumes} -- the year's total charge and discharge in kWh, and the equivalent full cycles, handed to finance;
+  \item a \textbf{solver status} and a list of which constraints actually bound.
+\end{itemize}
+The solver \emph{never raises} on a valid site: thin data is reported through the status and warnings, never by crashing.
+\end{contract}
+
+\section{The decision variables: what the optimiser chooses}
+
+For each half hour $t$ across the metered horizon, the optimiser controls three quantities. Let $\Delta t$ be the length of a half hour in hours (so $\Delta t = 0.5$ for half-hourly data; the engine derives it from the meter's interval rather than assuming it).
+
+\begin{table}[H]
+\centering
+\caption{The three decision variables, defined for every half hour of the horizon.}
+\label{tab:vars}
+\small\sffamily
+\begin{tabularx}{\textwidth}{@{}l l L@{}}
+\toprule
+\textbf{Variable} & \textbf{Unit} & \textbf{Meaning} \\
+\midrule
+charge$_t$ & kW & The power drawn from the grid into the battery during half hour $t$. \\
+discharge$_t$ & kW & The power delivered from the battery to the site's load during half hour $t$. \\
+soe$_t$ & kWh & The state of energy: how much usable energy sits in the battery at the end of half hour $t$. \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+These are powers (kW) on the AC side -- the side the grid meter sees -- not energies. The energy moved in a half hour is the power multiplied by $\Delta t$. Charge and discharge are kept as two separate non-negative variables rather than one signed quantity, which lets the model treat their limits and their efficiency loss cleanly and keeps the schedule free of any half hour that pretends to charge and discharge at once.
+
+\section{The constraints: the limits the schedule must respect}
+
+The constraints are what separate a real dispatch from a fantasy one. Each is a linear rule that must hold in every half hour (or, for the cycle cap, across the whole horizon).
+
+\subsection{State-of-energy dynamics and round-trip losses}
+
+The battery's stored energy is a running total. Whatever was in the battery at the end of the previous half hour, plus what charging added, minus what discharging removed, is what remains now:
+\[
+\text{soe}_t \;=\; \text{soe}_{t-1} \;+\; \text{charge}_t \cdot \text{RTE} \cdot \Delta t \;-\; \text{discharge}_t \cdot \Delta t .
+\]
+Here \textbf{RTE} is the round-trip efficiency, a number between 0 and 1 read from the assumption library (\code{\seqsplit{round\_trip\_efficiency.ac\_round\_trip}}). It captures the energy lost on a full charge-and-discharge cycle: charging adds only the RTE fraction of the grid energy to the store, while discharging removes energy at face value. The arithmetic consequence is exact and important: over the year, \emph{total grid charge equals total discharge divided by RTE}. That is the single round-trip number finance later uses to gross up volumes, so the convention is shared rather than reinvented.
+
+The store is also made \emph{cyclic}: the energy at the end of the horizon must equal the energy at the start (soe$_0$ = soe$_T$). This stops the optimiser from cheating by draining a battery it never paid to fill, or by ending the year fuller than it began.
+
+\begin{caution}[Gaps in the metered series are walls]
+The running-total rule above holds only between half hours that are genuinely adjacent in time. Where the metered series has a discontinuity -- missing intervals, a duplicated stamp, or an irregular step -- the series is split into contiguous \emph{segments}, and each segment gets its own cyclic wrap (the energy at the end of a segment must equal the energy at its start). The state of energy is \textbf{never chained across a gap}: without this, the optimiser would charge cheaply just before a hole in the data and discharge dearly just after it, manufacturing value from intervals that were never metered. On a gapless series the segmented model reduces exactly to the single cyclic constraint above, so complete data is never penalised. The solver also warns when it segments, so a gappy input is visible in the run record.
+\end{caution}
+
+\subsection{The connection limit: charging counts against MIC and ASC}
+
+This is the constraint that most often catches people out, and the one the platform is strictest about. A site has a contracted import capacity: the lower of its \emph{maximum import capacity} (MIC) and its \emph{available supply capacity} (ASC), both in kW. The site's own load already draws on that capacity. The battery, when charging, draws on it too -- and the two together must never exceed the ceiling:
+\[
+\text{charge}_t \;\le\; \min(\text{MIC},\,\text{ASC}) \;-\; \text{site\_load}_t .
+\]
+In words: the battery may only charge into the \emph{headroom} left after the site's own demand. On a half hour when the site is already near its connection limit, that headroom is small or zero, and the battery simply cannot charge then, however attractive the price. This is a hard physical and contractual limit, never a soft penalty.
+
+\begin{caution}[Charging must never exceed the import connection]
+The single most important invariant in this module is that battery charging plus site load never breaches $\min(\text{MIC}, \text{ASC})$ in any half hour. Breaching it would model a connection that does not exist and could blow a fuse or breach the connection agreement in reality. The constraint is built directly into the charge variable's upper bound, so the solver cannot violate it even by a rounding error, and the binding-constraint report flags every half hour where this headroom was the active limit.
+\end{caution}
+
+\subsection{Behind-the-meter discharge and the power rating}
+
+On the priced floor the battery serves the site, not the grid: it may discharge only up to the site's own load in that half hour, never exporting surplus back over the meter.
+\[
+\text{discharge}_t \;\le\; \text{site\_load}_t .
+\]
+Export and wholesale arbitrage are deliberately excluded here; they are \emph{gated upside} (Ch.~\ref{ch:valuestack}), priced only once a route-to-market partner and export consents exist. Both charge and discharge are additionally capped by the battery's rated power, and the state of energy is capped at the battery's energy capacity and floored at zero:
+\[
+0 \le \text{charge}_t \le \text{power}, \qquad
+0 \le \text{discharge}_t \le \text{power}, \qquad
+0 \le \text{soe}_t \le \text{energy}.
+\]
+
+\subsection{The warranty throughput cap}
+
+A battery's warranty limits how many full charge-discharge cycles it may perform per year, and that limit depends on its duration (a longer-duration battery is cycled more gently per unit of throughput). The assumption library holds a per-duration table (\code{\seqsplit{warranty\_cycle\_limits.max\_cycles\_per\_year\_by\_duration\_h}}); the engine looks up the cycle allowance for the battery's duration, conservatively using the largest tabulated duration not exceeding the actual one. The annual cycle allowance is converted into a kWh throughput budget for the metered horizon, and the total discharge over the horizon is held at or below it:
+\[
+\sum_t \text{discharge}_t \cdot \Delta t \;\le\; \text{throughput cap}_\text{horizon}.
+\]
+This is a \emph{hard} cap: over-cycling is simply not available to the optimiser, so the schedule it returns can never imply a warranty breach.
+
+\begin{caution}[Throughput must stay within the warranty for the duration]
+Annual discharge volume divided by the battery's energy capacity gives its equivalent full cycles. That figure must stay within the warranty allowance for the battery's duration -- never the allowance for a different duration. The per-duration lookup floors conservatively (it never reads off a higher-duration, more generous row by accident), and if the duration is below the smallest tabulated point the engine uses that point's value and warns rather than extrapolating.
+\end{caution}
+
+\subsection{Parasitic load and degradation as a marginal cost}
+
+Two further effects belong in a complete dispatch model, and the manual is precise about how this version treats them.
+
+\emph{Parasitic load} -- the small standing power a battery system draws to run its own electronics, cooling, and controls -- is a genuine drain that a fully calibrated model would subtract from the battery's net output. \emph{Degradation as a marginal cost} is the idea of putting a price on each unit of throughput inside the objective: every cycle wears the cells a little, so a perfectly tuned optimiser would only cycle when the price gap beats both the round-trip loss \emph{and} the marginal cost of the wear it causes. In this version of the engine, the degradation cost is carried by the hard warranty throughput cap rather than by a per-cycle price inside the objective, and parasitic load is omitted, because no calibrated lifetime-throughput or pound-per-cycle figure exists yet in the assumption library. The omission is deliberate and honest: the engine never invents a degradation price to make the maths look complete. When a calibrated figure lands, it enters the objective as a marginal cost term, with no change to the rest of the model.
+
+\section{The objective: the site's own bill reduction}
+
+The thing being maximised is the reduction in the site's electricity bill. For each half hour, the net energy the battery removes from the grid bill is discharge minus charge (discharging saves the site from buying; charging adds to what it buys). Multiply by that half hour's price and by $\Delta t$, and sum across the year:
+\[
+\text{maximise} \quad \sum_t \text{price}_t \cdot (\text{discharge}_t - \text{charge}_t) \cdot \Delta t .
+\]
+Two points make this honest. First, the round-trip loss is paid for automatically: because charging is bought at the price it faces (the $-\text{charge}_t$ term) and only the RTE fraction reaches the store, a cycle only improves the objective when the discharge price beats the charge price by more than the loss. Second, \textbf{price}$_t$ is built entirely from the \emph{site's own tariff}: its time-of-use energy rate plus its DUoS rate, never an external or invented number.
+
+A negligible tie-break term is subtracted from the objective -- a tiny multiple of total throughput, orders of magnitude below any real price. It is not an economic cost; it exists only to make the optimum unique, so that when two schedules earn identical value the solver prefers the one that cycles the battery less. Without it, two equally-valuable schedules could be returned arbitrarily, breaking determinism.
+
+\subsection{The tariff calendar: putting a price on every half hour}
+
+The site's tariff records prices by \emph{band label} -- a day rate and a night rate, or red, amber, and green DUoS rates -- not by clock time. The optimiser needs a price for every specific half hour, so a small \emph{tariff calendar} maps each half hour of the week onto its band. It is the one piece of GB-specific \emph{content} this module adds, and it is a time-window table, never a price: every pound per kWh still comes from the site's own tariff. The calendar follows the common post-TCR pattern, labelling each half hour by its period-start clock time.
+
+\begin{table}[H]
+\centering
+\caption{The indicative GB DUoS time-window calendar. A documented default a future assumption version can override; it places the site's own band rates in time, it does not set them.}
+\label{tab:calendar}
+\small\sffamily
+\begin{tabularx}{\textwidth}{@{}l l L@{}}
+\toprule
+\textbf{Band} & \textbf{When} & \textbf{Role} \\
+\midrule
+Red & Weekdays 16:00--19:00 & The distribution peak; the most expensive window, the one discharge targets. \\
+Amber & Weekdays 07:00--16:00 and 19:00--23:00 & The daytime and evening shoulders. \\
+Green & Overnight 23:00--07:00 and all weekend & The cheapest window; the charging period. \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+The calendar recognises three labelling schemes: red/amber/green, day/night, and peak/off-peak. Labels it does not recognise, or a tariff that is a single flat rate, are \emph{not guessed}: the energy-arbitrage price degrades to ``no time-mapped spread'' with a warning, and that stream contributes zero rather than an invented number. DUoS red-band avoidance can still accrue even on a flat energy tariff.
+
+\section{One solve, end to end}
+
+Figure~\ref{fig:dispatch} traces a single dispatch solve from inputs to outputs. The sizing search (Ch.~\ref{ch:sizing}) drives this whole loop once for each candidate battery size it is testing.
+
+\begin{figure}[H]
+\centering
+\resizebox{\textwidth}{!}{%
+\begin{tikzpicture}[node distance=8mm and 15mm]
+  % inputs (left column)
+  \node[io] (load) {\textbf{Half-hourly load}\\\scriptsize metered import series\\\scriptsize + MIC / ASC limits};
+  \node[io, below=of load] (tariff) {\textbf{Tariff stack}\\\scriptsize time-of-use energy\\\scriptsize + DUoS band rates};
+  \node[io, below=of tariff] (spec) {\textbf{Battery spec}\\\scriptsize power, energy, duration\\\scriptsize (told, not chosen)};
+  \node[store, below=of spec] (assum) {\textbf{Assumptions}\\\scriptsize RTE + warranty\\\scriptsize cycle table};
+
+  % calendar
+  \node[proc, right=of tariff, yshift=7mm] (cal) {\textbf{Tariff calendar}\\\scriptsize map each half hour\\\scriptsize to its band $\rightarrow$ price$_t$};
+
+  % build MILP
+  \node[procwide, right=of cal, yshift=-7mm] (build)
+     {\textbf{Build MILP}\\\scriptsize variables: charge, discharge, soe\\\scriptsize constraints: connection, SoE + RTE,\\\scriptsize power, throughput cap\\\scriptsize objective: max bill reduction};
+
+  % solve
+  \node[decide, right=of build] (solve) {\textbf{Solve}\\\scriptsize HiGHS, fixed seed,\\\scriptsize single thread};
+
+  % schedule
+  \node[store, below=of solve, yshift=-2mm] (sched)
+     {\textbf{Half-hourly schedule}\\\scriptsize charge / discharge / soe\\\scriptsize every half hour};
+
+  % outputs
+  \node[proc, left=of sched, minimum width=40mm, text width=38mm] (value)
+     {\textbf{Value by stream}\\\scriptsize partition the objective:\\\scriptsize arbitrage, DUoS, CM, flex};
+  \node[io, below=of value, minimum width=40mm, text width=38mm] (energy)
+     {\textbf{Annual energy}\\\scriptsize charge / discharge kWh\\\scriptsize + full-cycle count $\rightarrow$ finance};
+
+  % arrows in
+  \draw[flow] (load.east) to[out=0,in=180] (build.west);
+  \draw[flow] (tariff.east) to[out=0,in=180] (cal.west);
+  \draw[flow] (cal.east) to[out=0,in=180] (build.west);
+  \draw[flow] (spec.east) to[out=0,in=180] (build.west);
+  \draw[flow] (assum.east) to[out=0,in=180] (build.west);
+  \draw[flow] (build) -- (solve);
+  \draw[flow] (solve) -- (sched);
+  \draw[flow] (sched) -- (value);
+  \draw[flow] (value) -- (energy);
+
+  % grouping the priced floor inputs
+  \begin{scope}[on background layer]
+    \node[groupbox, fit=(load)(tariff)(spec)(assum), inner sep=6pt,
+          label={[note,anchor=south]north:one fixed candidate size}] {};
+  \end{scope}
+\end{tikzpicture}}
+\caption{One dispatch solve. The site's half-hourly load and connection limits, the tariff stack (priced in time by the calendar), the fixed battery spec, and the assumptions feed the construction of the MILP. The solver returns the half-hourly schedule, which is then valued by stream and reduced to the annual energy volumes finance consumes. The sizing search runs this loop once per candidate size.}
+\label{fig:dispatch}
+\end{figure}
+
+\section{Valuing the schedule into value-by-stream}
+
+A solved schedule is just numbers until it is attributed to the income streams a lender recognises. The dispatch engine computes the pounds itself, from the solved schedule and the site's tariff; the value stack (Ch.~\ref{ch:valuestack}) is consulted \emph{only} for each stream's gate -- its firmness, whether it is open, and what would unlock it. The attribution partitions the objective with no double-counting.
+
+\begin{table}[H]
+\centering
+\caption{How the objective is partitioned into value by stream, with no MWh counted twice.}
+\label{tab:streams}
+\small\sffamily
+\begin{tabularx}{\textwidth}{@{}l L@{}}
+\toprule
+\textbf{Stream} & \textbf{Value attributed} \\
+\midrule
+Tariff arbitrage & The energy-band part of the bill reduction, net of round-trip losses. A priced floor stream. \\
+DUoS red-band avoidance & The DUoS part of the bill reduction, dominated by discharging across the red windows. A priced floor stream. \\
+MIC/ASC headroom & \pounds0 by design: its value is already realised through the connection-bounded arbitrage; pricing it separately would double-count the same energy. \\
+PPA / bill savings & \pounds0 aggregate: the import-side floor is itemised across arbitrage and DUoS; the PPA rate is set by finance, not here. \\
+Capacity Market & Conditional upside: the clearing price times the duration-de-rated capability, held out of the priced floor until deliverability is verified. \\
+Local flexibility & Conditional upside: a utilisation rate times the energy delivered in any awarded tender window. \\
+Wholesale / BM / ancillary & Gated upside, \pounds0 until a route-to-market partner and export consents exist. \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\begin{caution}[Value by stream must sum to the total]
+The split above is a partition, not a set of overlapping estimates. Arbitrage and DUoS avoidance together account for the whole priced bill reduction; the headroom and PPA lines are deliberately zero so that the same saved energy is never counted under two headings. Every pound is an assumption-library or tariff number multiplied by a dispatched quantity. A placeholder or needs-review assumption flows through as a loud ``not bankable'' warning attached to its stream, never as a silent figure -- which is why, on the \code{gb\_v0\_1} placeholder library, every result is honestly marked not bankable.
+\end{caution}
+
+\section{Annual energy accounting for finance}
+
+Finance needs two annual volumes the dispatch engine alone can produce: the total \textbf{charge} kWh (which carries levies and already includes round-trip losses) and the total \textbf{discharge} kWh (the delivered energy used in pricing to a target return). The schedule sums charge and discharge over the metered horizon and scales them to a full year.
+
+The scaling matters because a metered horizon may be partial. Missing half hours are excluded rather than back-filled -- a load shape is never invented -- so the engine multiplies the horizon totals by an \emph{annual factor} equal to 8760 hours divided by the hours actually covered. From the annual discharge it also derives the equivalent full cycles (annual discharge divided by energy capacity), which is what the warranty check is expressed in. These volumes travel beside the result, not inside the frozen contract; finance reads them through a dedicated hook (Ch.~\ref{ch:engine}, Ch.~\ref{ch:finance}). On thin data, where no schedule solved, both volumes are reported as unavailable rather than zero, so finance stays honestly silent rather than pretending the battery moved no energy.
+
+\section{A representative day}
+
+Alongside the annual totals, the engine can project one real day of the schedule for the application's dispatch chart. It picks the highest-total-discharge full day in the horizon (the earliest such day on a tie), because that is the most legible illustration of the strategy, and copies its half-hourly values verbatim. It is not an average and invents no shape: every point is a genuine solved half hour of one real day. Figure~\ref{fig:day} sketches the pattern such a day typically shows.
+
+\begin{figure}[H]
+\centering
+\resizebox{\textwidth}{!}{%
+\begin{tikzpicture}[node distance=6mm and 10mm]
+  \node[io] (night) {\textbf{Overnight (green)}\\\scriptsize charge into headroom,\\\scriptsize soe climbs};
+  \node[proc, right=of night] (day) {\textbf{Daytime (amber)}\\\scriptsize mostly idle,\\\scriptsize soe held};
+  \node[decide, right=of day] (peak) {\textbf{16:00--19:00 (red)}\\\scriptsize discharge to load,\\\scriptsize soe falls};
+  \node[io, right=of peak] (eve) {\textbf{Late evening}\\\scriptsize settle to cyclic\\\scriptsize start level};
+  \draw[flow] (night) -- (day);
+  \draw[flow] (day) -- (peak);
+  \draw[flow] (peak) -- (eve);
+\end{tikzpicture}}
+\caption{A representative day of dispatch. The state of energy rises overnight as the battery charges in the cheap green window (within the connection headroom left by the site's load), is held through the day, and falls during the red peak as the battery discharges against the site's load to avoid the most expensive energy and DUoS. The day closes near where it began, honouring the cyclic state-of-energy rule.}
+\label{fig:day}
+\end{figure}
+
+\section{The real engine and the placeholder seam}
+
+The platform separates \emph{what the optimiser is asked} from \emph{how it answers}, at a fine-grained inner seam: a dispatch solver is anything that takes one fixed system spec plus the site and assumptions and returns a valued, accounted dispatch. Two implementations sit behind that seam.
+
+\begin{description}
+  \item[The real MILP solver] is everything described in this chapter: it builds and solves the half-hourly program on an industrial solver (HiGHS, via the linopy modelling layer) and returns genuine site-derived value and genuine annual volumes. It is the default for real runs.
+  \item[The placeholder solver] is integration-only scaffolding. It honours the same contract -- it returns the right \emph{shape} of result -- but runs no dispatch: it prices nothing, every stream comes back at zero, and the annual volumes are reported as unavailable, never invented. It exists so the surrounding pipeline could be built and tested before the real solver was written, exactly as the engine seam (Ch.~\ref{ch:engine}) describes at the outer boundary.
+\end{description}
+
+The real solver drops in behind the same contract with no downstream change. Both stay honest about being non-bankable until the assumptions behind them are calibrated and confirmed.
+
+\begin{plainnote}[Determinism on the solver]
+A linear program could in principle return any of several equally-good schedules, which would break the platform's reproducibility promise. The engine pins this down: the solver runs single-threaded with a fixed random seed and deterministic presolve, the tie-break term makes the optimum unique, and every extracted number is rounded to a fixed precision. The same site, assumptions, and seed therefore produce a byte-for-byte identical schedule every time.
+\end{plainnote}
+
+\begin{rebuild}[How to rebuild the dispatch optimiser]
+\begin{enumerate}
+  \item \textbf{Take one fixed spec as input.} The solver is told the battery's power, energy, and duration; it does not size. Read the half-hourly metered import series and timestamps, the connection limits (MIC, ASC), the tariff stack, the round-trip efficiency, and the warranty cycle table. Never invent a load shape: a missing half-hourly series means \code{insufficient\_data}, no schedule, and no volumes.
+  \item \textbf{Build the price signal.} Map each half hour to its tariff band with a time-window calendar (red/amber/green, day/night, or peak/off-peak by period-start clock time), then place the site's own band rates in time. Unrecognised labels or a single flat rate degrade arbitrage to zero with a warning -- never an invented window or price.
+  \item \textbf{Define the variables.} For every half hour: charge (kW $\ge 0$, capped at power and at connection headroom), discharge (kW $\ge 0$, capped at power and at site load), and state of energy (kWh, between 0 and energy capacity).
+  \item \textbf{Add the constraints.} (a) State-of-energy balance with round-trip efficiency, made cyclic. (b) Charge plus site load never exceeds $\min(\text{MIC}, \text{ASC})$. (c) Discharge never exceeds site load (no export on the floor). (d) Total discharge over the horizon within the warranty throughput budget for the battery's duration (conservative per-duration lookup).
+  \item \textbf{Set the objective.} Maximise $\sum_t \text{price}_t (\text{discharge}_t - \text{charge}_t)\,\Delta t$, so round-trip losses are paid at the price faced. Subtract a negligible throughput regulariser to make the optimum unique.
+  \item \textbf{Solve deterministically.} Single thread, fixed seed, deterministic presolve, a method that yields a clean vertex solution; round every extracted quantity. Report a non-optimal termination as \code{infeasible} with no schedule.
+  \item \textbf{Value and account.} Partition the objective into per-stream value (arbitrage and DUoS as the priced floor; headroom and PPA at zero to avoid double-counting; Capacity Market and local flex as conditional upside; wholesale and friends as gated upside, zero). Sum charge and discharge over the horizon, scale to a year by $8760 \div \text{covered hours}$, and derive equivalent full cycles.
+  \item \textbf{Test the invariants:} charge plus load never exceeds the connection in any half hour; equivalent full cycles stay within the warranty for the duration; value by stream sums to the total bill reduction with nothing double-counted; total charge equals total discharge divided by RTE; the same inputs and seed give an identical schedule; and a site with no half-hourly series degrades to no spec without raising.
+\end{enumerate}
+\end{rebuild}
+
+\begin{keyidea}[The one thing to remember]
+The dispatch optimiser writes the battery problem as a mixed-integer linear program -- charge, discharge, and state of energy in every half hour -- and maximises the site's bill reduction subject to hard physics: charging never breaches the grid connection, round-trip losses are paid at the price faced, the warranty cycle cap is never exceeded, and the state of energy stays within bounds and returns to where it started. The solver is pinned to be deterministic; the resulting schedule is valued into a non-overlapping set of streams and reduced to the annual volumes finance underwrites.
+\end{keyidea}

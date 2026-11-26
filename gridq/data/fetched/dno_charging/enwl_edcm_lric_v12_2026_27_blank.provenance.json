@@ -1,0 +1,13 @@
+{
+  "dataset_id": "ENWL EDCM LRIC model v12 2026/27, published blank",
+  "fetched_utc": "2026-11-26T08:24:40",
+  "fetcher": "curl -L (WP-UW-07, run by hand; the document itself is not vendored)",
+  "fetcher_args": {},
+  "last_modified": "Mon, 03 Feb 2025 11:06:43 GMT",
+  "licence": "unclear: no licence is stated on the publisher's page or in the document",
+  "record_count": 0,
+  "sha256": "b59d5df4fcf38b87c47586afad622b2f45684ccf45ccd1f53436d983d27fd4b4",
+  "size_bytes": 6718123,
+  "source_url": "https://www.enwl.co.uk/globalassets/about-us/regulatory-information/documents/current-charging-information/26-27/edcm-lric_v12_20241025-blank.xlsx",
+  "used_for": "Acceptance 1 search: published blank 'to ensure customer data is kept confidential', so it carries no worked example (data request DR-UW07-EDCM)"
+}

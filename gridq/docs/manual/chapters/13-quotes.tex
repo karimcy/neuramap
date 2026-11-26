@@ -1,0 +1,223 @@
+\chapter{The quote lifecycle and run assembly}
+\label{ch:quotes}
+
+\modtag{X.2}{Quote lifecycle and assembly}{Deterministic core, traceability anchor}
+
+Everything before this chapter computes a piece of the answer. The site model holds the validated site, the engine chooses a battery size and a half-hourly dispatch, the financial model turns that dispatch into cashflows and a debt-cover figure. This chapter is where those pieces are bound together into a single object and frozen: the \emph{quote record}. It is the artifact the whole pipeline converges on. The three documents the platform exists to produce -- the system specification, the underwriting pack, and the customer proposal -- are all rendered from one quote record, which is precisely why they cannot disagree.
+
+A quote record is two things at once. It is an \textbf{immutable, traceable snapshot}: it carries a hash of the inputs that produced it and the versions of every assumption and every piece of code involved, so any number in it can be traced back to its origin. And it is a \textbf{lifecycle object}: the same deal is represented by a chain of these snapshots as it matures from a rough draft to an operating asset, and each step forward preserves the one before it rather than overwriting it.
+
+\begin{plainnote}
+Think of a quote record as a sealed envelope. Inside is the full calculation for one battery at one site, together with a label that says exactly which prices, rules, and software produced it. You never edit what is inside an envelope. If the world changes, you seal a fresh envelope and keep the old one. The platform calls sealing an envelope ``repricing'', and it is the only honest way to change a quote.
+\end{plainnote}
+
+\pipelinepos{receives a validated \code{SiteModel} (Ch.~\ref{ch:contracts}), runs it through the engine (Ch.~\ref{ch:engine}--\ref{ch:sizing}) and the financial model (Ch.~\ref{ch:finance}); hands a stamped \code{QuoteRecord} and a \code{TelemetryEvent} (Ch.~\ref{ch:telemetry}) to the outputs renderer (Ch.~\ref{ch:outputs}) and the CLI (Ch.~\ref{ch:cli}).}
+
+\begin{contract}
+\textbf{Inputs} (domain objects only -- no files, no clock-dependent state):
+\begin{itemize}
+  \item a validated, graded \code{SiteModel} (carries its data tier and its ranked list of missing-data asks);
+  \item a versioned assumption library (every price, rate, and threshold, with a version string);
+  \item an optimisation engine satisfying the standard interface (defaults to the integration-only baseline engine);
+  \item optional run context: a scenario set, a forecast reference, an expiry date, a starting lifecycle state, and measured telemetry (contributor, human minutes, installer iterations).
+\end{itemize}
+\textbf{Outputs:}
+\begin{itemize}
+  \item one \code{QuoteRecord} -- immutable, hashed, version-stamped, carrying the optimisation result, the financial case (or \code{None} if it could not be priced), the additive output extras, the lifecycle state and history, and honest warnings;
+  \item one \code{TelemetryEvent} describing how the quote was produced;
+  \item a bundled run result tying the quote, its telemetry, and the underlying detail together for the caller.
+\end{itemize}
+\end{contract}
+
+\section{One orchestrating run that degrades honestly}
+
+A single function drives one quote from end to end. It takes a site and an assumption library (plus the optional run context above) and returns one bundled result. It exists so that the whole pricing path can be exercised with domain objects alone, with no file reading and no presentation logic: those live in the CLI (Ch.~\ref{ch:cli}). Keeping the orchestrator file-free is what makes the pricing path testable and deterministic.
+
+The run chains four stages in a fixed order:
+
+\begin{enumerate}
+  \item \textbf{Engine.} Build an optimisation request from the site, the assumptions, and the chosen scenario set, then solve it. The result is the chosen battery size, its half-hourly dispatch, and the value attributed to each income stream. The engine is injected through the standard interface, so the real dispatch and sizing optimiser slots in behind it unchanged; by default an integration-only baseline engine holds the seam.
+  \item \textbf{Finance.} Run the financial model over the site and the optimisation result to produce the financial case: P50/P90 cashflows (a normal year and a conservative bad year), the debt-cover ratio (DSCR, how comfortably cash covers loan repayments; see Appendix~\ref{app:glossary}), the cost lines, and the price that hits the target return.
+  \item \textbf{Assemble.} Bind the site, the optimisation result, and the financial case into one \code{QuoteRecord} and stamp it with provenance (Ch.~\ref{ch:provenance}).
+  \item \textbf{Telemetry.} Emit one \code{TelemetryEvent} recording how the quote was produced (Ch.~\ref{ch:telemetry}).
+\end{enumerate}
+
+The defining property of this run is that it \emph{always answers}. The platform never refuses to produce a quote just because the data is thin. The honest-degradation branch sits at the finance stage: if the financial model has no positive sizing to price, it raises an ``insufficient inputs'' error. The orchestrator catches that error, sets the financial case to \code{None}, marks the quote \emph{not bankable}, and appends an honest warning that names the missing inputs and points to the ranked data asks. The quote is still assembled and still stamped. It simply carries no priced case and says so plainly, rather than inventing a system to fill the gap.
+
+\begin{keyidea}[Always answer, never pretend]
+A run that cannot be priced still produces a complete, stamped quote record -- marked not bankable, carrying the financial case as absent, and listing the data that would most improve it. ``Degrade honestly'' is not a fallback bolted on at the edges; it is a branch inside the one orchestrating run, so a quote is never simply a failure.
+\end{keyidea}
+
+\subsection{The additive output extras}
+
+Beyond the core binding (site, result, finance), the orchestrator gathers three optional extras for the documents downstream. These are \emph{additive}: they enrich the outputs but never feed the quote's identity hash, so a quote with them and a quote without them that share the same priced inputs share the same identity.
+
+\begin{itemize}
+  \item \textbf{The evaluated sizing grid} -- every power-by-duration candidate the sizing search evaluated plus the chosen optimum, for the three-dimensional sizing surface in the proposal.
+  \item \textbf{A representative dispatch day} -- one day of half-hourly charge and discharge, for the dispatch chart.
+  \item \textbf{The Low / Central / High sensitivities} -- the DSCR and return under each scenario.
+\end{itemize}
+
+The first two are read from the engine through optional hooks: a production engine exposes them, the baseline engine does not, and an engine without a hook simply leaves the extra absent with no downstream effect. The sensitivities are computed only when there is a priced base case, because a sensitivity is nothing more than the financial model re-run under a scenario. There is no new financial maths in this layer: each Low/Central/High row re-runs the same deterministic model against the same debt and the same dispatch, recording that scenario's minimum DSCR and its levered (equity) return, and carrying the scenario's months of delay to the commercial operations date so consenting-timeline shifts are reported, not silently applied. The central row reproduces the base case by construction. A figure a scenario cannot support (for example a DSCR when there is no debt) is left absent, never guessed.
+
+\begin{caution}[Dispatch energy and debt are never invented]
+Two inputs the financial model would like are never conjured from the library. The annual charge/discharge volumes that switch on levies-on-charge and the price-to-target line are read from the engine through an optional hook (or supplied explicitly); the placeholder engine has neither, so those lines stay honestly unavailable. Debt terms (rate, tenor, covenant) are likewise only ever supplied explicitly by a deliberate, labelled caller such as the opt-in demo, because the placeholder library carries no debt structure. The default omits both, which keeps the honest real-mode path unchanged.
+\end{caution}
+
+\begin{figure}[H]
+\centering
+\resizebox{\textwidth}{!}{%
+\begin{tikzpicture}[node distance=9mm and 16mm]
+  \node[term] (start) {Run\\one quote};
+  \node[io, right=of start] (site) {\textbf{SiteModel}\\\scriptsize validated, graded,\\\scriptsize ranked data asks};
+  \node[proc, right=of site] (engine) {\textbf{Engine}\\\scriptsize build request,\\\scriptsize solve};
+  \node[io, right=of engine] (optres) {\textbf{Optimisation\\result}\\\scriptsize size + dispatch\\\scriptsize + stream value};
+
+  \node[decide, below=14mm of engine] (canprice) {Can finance\\price it?};
+  \node[proc, left=of canprice, text width=30mm] (finance) {\textbf{Finance}\\\scriptsize P50/P90, DSCR,\\\scriptsize price-to-target};
+  \node[proc, right=of canprice, text width=32mm] (degrade) {\textbf{Degrade honestly}\\\scriptsize case = none,\\\scriptsize not bankable,\\\scriptsize warning names\\\scriptsize missing inputs};
+
+  \node[proc, below=14mm of canprice, minimum width=44mm, text width=42mm] (assemble)
+     {\textbf{Assemble + stamp}\\\scriptsize bind site + result + case;\\\scriptsize provenance: input hash,\\\scriptsize versions, derive quote\_id};
+  \node[store, below=of assemble] (quote) {\textbf{QuoteRecord}\\\scriptsize immutable, hashed,\\\scriptsize version-stamped};
+  \node[io, left=of quote, text width=30mm] (telem) {\textbf{TelemetryEvent}\\\scriptsize tier, asks count,\\\scriptsize human minutes};
+
+  \draw[flow] (start) -- (site);
+  \draw[flow] (site) -- (engine);
+  \draw[flow] (engine) -- (optres);
+  \draw[flow] (optres) to[out=-90,in=0] (canprice.east);
+  \draw[flow] (canprice) -- node[flowlabel]{yes} (finance);
+  \draw[flow] (canprice) -- node[flowlabel]{no} (degrade);
+  \draw[flow] (finance) to[out=-90,in=180] (assemble.west);
+  \draw[flow] (degrade) to[out=-90,in=0] (assemble.east);
+  \draw[flow] (assemble) -- (quote);
+  \draw[flow] (quote) -- node[flowlabel]{emit} (telem);
+
+  \begin{scope}[on background layer]
+    \node[groupbox, fit=(site)(engine)(optres)(canprice)(finance)(degrade)(assemble)(quote),
+          inner sep=8pt, label={[note,rotate=90,anchor=south]west:DETERMINISTIC CORE}] {};
+  \end{scope}
+\end{tikzpicture}}
+\caption{The one orchestrating run. Engine then finance then assemble then telemetry, with the honest-degradation branch at the finance gate: when finance cannot price the run, the quote is still produced -- marked not bankable, with the financial case absent and a warning naming the missing inputs.}
+\label{fig:quote-run}
+\end{figure}
+
+\section{What the quote record binds}
+
+The assembly step is the join point of the pipeline. It is deliberately free of pricing or optimisation logic and of heavy data libraries: it only reflects what the run produced and stamps it. It builds a canonical, timestamp-free description of the run, asks the provenance layer (Ch.~\ref{ch:provenance}) to hash it and stamp the versions, derives the quote's identity from that, and writes the record.
+
+Table~\ref{tab:quoterecord} lists what one record binds. The grouping matters: the first block is \emph{identity and traceability}, the second is the \emph{computed answer}, the third is the \emph{additive extras for the documents}, and the last is \emph{lifecycle and honesty}.
+
+\begin{table}[H]
+\centering
+\caption{The fields a quote record binds, grouped by role.}
+\label{tab:quoterecord}
+\small\sffamily
+\begin{tabularx}{\textwidth}{@{}l L L@{}}
+\toprule
+\textbf{Field} & \textbf{What it is} & \textbf{Why it is here} \\
+\midrule
+\multicolumn{3}{@{}l}{\textit{Identity and traceability}}\\
+quote id & Deterministic id derived from the run context. & Identical priced inputs give an identical id. \\
+input hash & Hash of the canonical, timestamp-free run input. & Pins the exact site, result, case, assumption version, and forecast content. \\
+assumption version & The version string of the library used. & A quote is valid only against this version. \\
+code / schema version & The software and contract versions. & Lets any answer be reproduced or attributed. \\
+output hash & Hash of the record's own content. & Detects any later tampering with the saved record (Ch.~\ref{ch:provenance}). \\
+created\_at & Timestamp. & Metadata only; deliberately excluded from every hash. \\
+\midrule
+\multicolumn{3}{@{}l}{\textit{The computed answer}}\\
+site id & Which site this is for. & The link back to the validated input. \\
+data tier & T0--T2, copied from the site. & Grades how much the answer can be trusted. \\
+optimisation result & The chosen size, dispatch, and stream value. & The engine's frozen output. \\
+financial case & Cashflows, DSCR, costs, price-to-target. & The finance output; \code{None} on a degraded run. \\
+\midrule
+\multicolumn{3}{@{}l}{\textit{Additive extras for the documents}}\\
+sizing grid & Every evaluated size plus the optimum. & The three-dimensional sizing surface; absent if the engine has no hook. \\
+dispatch profile & A representative half-hourly day. & The dispatch chart; absent if unavailable. \\
+sensitivities & Low/Central/High DSCR and return rows. & The Output-2 sensitivity table; empty if not priced. \\
+\midrule
+\multicolumn{3}{@{}l}{\textit{Lifecycle and honesty}}\\
+quote mode & The current lifecycle state. & Where the deal is on its path. \\
+status history & The ordered prior states. & The trajectory, append-only. \\
+expiry date & Optional validity date. & When the snapshot lapses. \\
+warnings & Aggregated honest notes. & Gate, consent, credit, missing-data, and not-bankable asks. \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\subsection{Identity is content, not the clock}
+
+The quote's identity is computed from \emph{what the run says}, never from \emph{when it ran}. The canonical run input is built by serialising the site, the optimisation result, and the financial case to plain JSON (enumerations become their values, dates become ISO strings), then adding the assumption version and the forecast's content hash. Two things are deliberately left out. The top-level \code{created\_at} timestamp is excluded everywhere, because a timestamp is metadata and must never feed a computed identity; otherwise the same run on two different days would get two different ids. And the forecast is pinned by its content hash alone, never by the whole forecast reference object, whose ``verified'' flag and warnings change over time and would make the pin non-reproducible.
+
+That canonical input is handed to the provenance layer, which returns the input hash, the stamped versions, and a deterministic run id. The quote id is that run id with a \code{quote\_} prefix. The consequence is the determinism guarantee made flesh: identical inputs, the same assumption version, and the same code produce an identical quote id, every time, on every machine.
+
+\begin{keyidea}[The hash is over the run, not the record]
+Assembly hashes the \emph{run inputs} (site, result, case, versions, forecast content), not the saved record. That is why the additive extras -- the sizing grid, the dispatch profile, the sensitivities -- can be attached without changing the input hash or the quote id. They are downstream conveniences, not part of what makes the answer what it is. Adding them is backward-compatible: an older quote saved without them validates unchanged.
+\end{keyidea}
+
+\subsection{Honest warnings, gathered from every layer}
+
+The record's warnings are aggregated and de-duplicated from the whole run, preserving order. They collect the optimisation result's own warnings, the financial case's warnings (when there is one), a note when the site still has ranked data asks outstanding, any caller-supplied notes (for example an HH or forecast file that could not be used), and -- whenever the result is anything other than a bankable candidate -- the standard not-bankable disclaimer. That disclaimer states plainly that the quote is indicative only, uses placeholder assumptions and/or has no established debt case, and must not be presented to capital as bankable. On the current placeholder assumption set every quote carries it, which is the intended safety property: a placeholder must never masquerade as a bankable number.
+
+\section{The lifecycle: matured by snapshots, never edits}
+
+A quote is a long-lived object, not a one-off printout. The same deal advances through a fixed, strictly sequential chain of states as it matures:
+
+\begin{center}\sffamily\small
+draft $\;\rightarrow\;$ indicative $\;\rightarrow\;$ underwritten $\;\rightarrow\;$ contracted $\;\rightarrow\;$ operating
+\end{center}
+
+Each state means roughly: \emph{draft}, a first pass; \emph{indicative}, shareable with the customer; \emph{underwritten}, fit for a lender's review; \emph{contracted}, the deal is signed; \emph{operating}, the asset is live. From any live state a quote may also \emph{lapse}, which is terminal. The chain only moves forward one step at a time: there is no skipping ahead and no reversing in this version.
+
+The rule that makes the lifecycle trustworthy is that \textbf{advancing never mutates}. Each transition produces a \emph{new} validated record. The outgoing state is appended to the status history and the mode is advanced to the new state; prior history entries are never touched. By convention the history holds only \emph{prior} states, and the current state lives in the mode field and is not duplicated in the history. So the full trajectory of a quote is always reconstructable from its history plus its current mode, and no earlier snapshot is ever changed under it.
+
+A transition is rejected if it is not one of the legal moves from the current state. Each live state permits exactly its single forward step plus a lapse; a terminal state permits nothing. An illegal request (a skip or a reverse) raises an invalid-transition error that names what was allowed. Crucially, a transition rebuilds the record through full schema re-validation rather than a shallow copy, so the schema's invariants re-fire on every step. The most important of these guards an underwritten quote built from a coarse T0 site: it is only allowed if the record carries an explicit validation warning, because T0 data (annual energy, tariff, and postcode only) is too thin to underwrite firmly. A shallow copy would silently skip that check; re-validation does not.
+
+\begin{figure}[H]
+\centering
+\resizebox{\textwidth}{!}{%
+\begin{tikzpicture}[node distance=7mm and 13mm]
+  \node[term] (draft) {draft};
+  \node[term, right=of draft] (indic) {indicative};
+  \node[term, right=of indic] (under) {underwritten};
+  \node[term, right=of under] (contr) {contracted};
+  \node[term, right=of contr] (oper) {operating};
+  \node[term, below=11mm of indic, fill=nodeDecision, draw=nodeDecisionBd] (lapsed) {lapsed\\\scriptsize terminal};
+
+  \draw[flow] (draft) -- (indic);
+  \draw[flow] (indic) -- (under);
+  \draw[flow] (under) -- (contr);
+  \draw[flow] (contr) -- (oper);
+
+  \draw[flowback] (draft.south) to[out=-90,in=160] (lapsed.west);
+  \draw[flowback] (indic.south) -- (lapsed.north);
+  \draw[flowback] (under.south) to[out=-90,in=20] (lapsed.east);
+  \draw[flowback] (contr.south) to[out=-90,in=10] (lapsed.east);
+  \draw[flowback] (oper.south) to[out=-90,in=0] (lapsed.east);
+\end{tikzpicture}}
+\caption{The quote lifecycle. The forward chain advances one strict step at a time (solid); from any live state the quote may lapse (dashed), which is terminal. Each forward step produces a new immutable snapshot and appends the outgoing state to the history.}
+\label{fig:quote-lifecycle}
+\end{figure}
+
+\subsection{Valid only against the version that produced it}
+
+A quote record pins the assumption version and the code version that produced it, and those versions do not float. The quote is valid \emph{only} against them. If a material assumption changes beyond tolerance -- a tariff updates, a cost line moves, a covenant tightens -- the correct response is to \textbf{reprice}: run the orchestrator again to produce a fresh snapshot, stamped with the new version, and keep the old one in the trail. The wrong response is to reach into an existing record and edit a number, because that would break the chain from the figure back to the inputs and versions that justify it. Reprice, never silently edit.
+
+\begin{caution}[A material change triggers a reprice, not an edit]
+Because identity is a pure function of the inputs and versions, a repriced quote that genuinely differs gets a new quote id automatically, and one that does not differ resolves to the same id. There is no supported path that changes a bound number in place. If you find yourself wanting to ``just tweak'' a figure on an issued quote, that is the signal to reprice.
+\end{caution}
+
+\section{Where this sits in the manual}
+
+This chapter is the centre of traceability, and it leans on two siblings. The provenance layer (Ch.~\ref{ch:provenance}) owns the hashing and version stamping that assembly calls; this chapter only decides \emph{what} is hashed (the canonical run input) and \emph{how} the result is bound. The telemetry chapter (Ch.~\ref{ch:telemetry}) owns the event emitted per run; this chapter only triggers it. The financial case it binds comes from Ch.~\ref{ch:finance}, the additive extras feed the documents in Ch.~\ref{ch:outputs}, and the whole orchestrating run is what the command-line tool calls in Ch.~\ref{ch:cli}.
+
+\begin{rebuild}[How to rebuild the quote layer]
+\begin{enumerate}
+  \item \textbf{Define the record shape.} A model that forbids unknown fields, carrying: \code{quote\_id}, \code{quote\_mode}; \code{site\_id}, \code{data\_tier}; \code{input\_hash}, \code{assumption\_version}, \code{code\_version} (all optional, populated at assembly); the optimisation result and the financial case (the case optional); the additive \code{sizing\_grid}, \code{dispatch\_profile}, and a list of scenario sensitivities (all defaulting to absent/empty); an optional \code{expiry\_date}; a \code{status\_history} list and a \code{warnings} list (both defaulting to empty); and a \code{created\_at} timestamp. Add one validator: an underwritten quote from a T0 site must carry at least one warning.
+  \item \textbf{Write the canonical run input.} A function returning a dict: the site and the optimisation result each serialised to JSON with \code{created\_at} excluded; the financial case serialised to JSON or \code{None}; the assumption version; and the forecast's content hash or \code{None}. No timestamps, no whole forecast object.
+  \item \textbf{Write assembly.} Build a run context over that canonical input (passing the assumption and schema versions), copy its input hash and versions onto the record, set \code{quote\_id} to the run id with a \code{quote\_} prefix, and aggregate de-duplicated warnings from the result, the case, the site's outstanding asks, any caller notes, and the not-bankable disclaimer whenever the result is not a bankable candidate. Default the lifecycle state to draft.
+  \item \textbf{Write the orchestrator.} Take domain objects only. Build the request and solve via the injected engine (default the baseline). Read the optional dispatch-energy, sizing-grid, and dispatch-profile hooks if present. Run the financial model; on an insufficient-inputs error, set the case to \code{None}, mark not bankable, and append a warning naming the missing inputs. Compute sensitivities only when a case exists. Assemble, emit telemetry, and return the bundle.
+  \item \textbf{Write the lifecycle.} A forward map (draft to indicative to underwritten to contracted to operating) plus a lapse from every live state and nothing from the terminal lapsed state. A transition appends the outgoing state to the history, advances the mode, and re-validates the whole record (not a shallow copy) so the T0 guard re-fires; reject any move not in the legal set.
+  \item \textbf{What to test.} Identical inputs give an identical quote id; changing only \code{created\_at} does not change the id; a missing financial case yields a not-bankable quote with the data-asks warning; the additive extras do not change the input hash; legal transitions produce a new snapshot and preserve prior history; illegal skips/reverses are rejected; and an underwritten T0 quote without a warning is rejected.
+\end{enumerate}
+\end{rebuild}

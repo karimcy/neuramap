@@ -1,0 +1,1364 @@
+{
+  "record_count": 192,
+  "records": [
+    {
+      "Auction Name": "2016-17 (TR) Transitional Capacity Auction",
+      "Capacity Awarded": 802.71,
+      "Delivery Year": "2016/2017",
+      "Forecast Cost (£)": 22074525.0,
+      "_id": 1
+    },
+    {
+      "Auction Name": "2017-18 (TR) Transitional Capacity Auction",
+      "Capacity Awarded": 312.171,
+      "Delivery Year": "2017/2018",
+      "Forecast Cost (£)": 14047695.0,
+      "_id": 2
+    },
+    {
+      "Auction Name": "2017-18 (T-1) One Year Ahead Capacity Auction",
+      "Capacity Awarded": 54433.634,
+      "Delivery Year": "2017/2018",
+      "Forecast Cost (£)": 378313756.3,
+      "_id": 3
+    },
+    {
+      "Auction Name": "2018-19 (T-1) One Year Ahead Capacity Auction",
+      "Capacity Awarded": 5798.214,
+      "Delivery Year": "2018/2019",
+      "Forecast Cost (£)": 34789284.0,
+      "_id": 4
+    },
+    {
+      "Auction Name": "2019-20 (T-1) One Year Ahead Capacity Auction",
+      "Capacity Awarded": 3626.196,
+      "Delivery Year": "2019/2020",
+      "Forecast Cost (£)": 2792170.92,
+      "_id": 5
+    },
+    {
+      "Auction Name": "2020-21 (T-1) One Year Ahead Capacity Auction",
+      "Capacity Awarded": 1024.409,
+      "Delivery Year": "2020/2021",
+      "Forecast Cost (£)": 1024409.0,
+      "_id": 6
+    },
+    {
+      "Auction Name": "2021-22 (T-1) One Year Ahead Capacity Auction",
+      "Capacity Awarded": 2252.116,
+      "Delivery Year": "2021/2022",
+      "Forecast Cost (£)": 101345220.0,
+      "_id": 7
+    },
+    {
+      "Auction Name": "2022-23 (T-1) One Year Ahead Capacity Auction",
+      "Capacity Awarded": 4996.224,
+      "Delivery Year": "2022/2023",
+      "Forecast Cost (£)": 374716800.0,
+      "_id": 8
+    },
+    {
+      "Auction Name": "2023-24 (T-1) One Year Ahead Capacity Auction",
+      "Capacity Awarded": 5782.777,
+      "Delivery Year": "2023/2024",
+      "Forecast Cost (£)": 346966620.0,
+      "_id": 9
+    },
+    {
+      "Auction Name": "2024-25 (T-1) One Year Ahead Capacity Auction",
+      "Capacity Awarded": 7639.609,
+      "Delivery Year": "2024/2025",
+      "Forecast Cost (£)": 273421606.11,
+      "_id": 10
+    },
+    {
+      "Auction Name": "2025-26 (T-1) One Year Ahead Capacity Auction",
+      "Capacity Awarded": 7936.289,
+      "Delivery Year": "2025/2026",
+      "Forecast Cost (£)": 158725780.0,
+      "_id": 11
+    },
+    {
+      "Auction Name": "2026-27 (T-1) One Year Ahead Capacity Auction",
+      "Capacity Awarded": 7192.317,
+      "Delivery Year": "2026/2027",
+      "Forecast Cost (£)": 35961585.0,
+      "_id": 12
+    },
+    {
+      "Auction Name": "2018-19 (T-4) Four Year Ahead Capacity Auction",
+      "Capacity Awarded": 49258.938,
+      "Delivery Year": "2018/2019",
+      "Forecast Cost (£)": 955623397.2,
+      "_id": 13
+    },
+    {
+      "Auction Name": "2018-19 (T-4) Four Year Ahead Capacity Auction",
+      "Capacity Awarded": 5524.317,
+      "Delivery Year": "2019/2020",
+      "Forecast Cost (£)": 107171749.8,
+      "_id": 14
+    },
+    {
+      "Auction Name": "2018-19 (T-4) Four Year Ahead Capacity Auction",
+      "Capacity Awarded": 5524.317,
+      "Delivery Year": "2020/2021",
+      "Forecast Cost (£)": 107171749.8,
+      "_id": 15
+    },
+    {
+      "Auction Name": "2018-19 (T-4) Four Year Ahead Capacity Auction",
+      "Capacity Awarded": 2423.296,
+      "Delivery Year": "2021/2022",
+      "Forecast Cost (£)": 47011942.4,
+      "_id": 16
+    },
+    {
+      "Auction Name": "2018-19 (T-4) Four Year Ahead Capacity Auction",
+      "Capacity Awarded": 2423.296,
+      "Delivery Year": "2022/2023",
+      "Forecast Cost (£)": 47011942.4,
+      "_id": 17
+    },
+    {
+      "Auction Name": "2018-19 (T-4) Four Year Ahead Capacity Auction",
+      "Capacity Awarded": 2423.296,
+      "Delivery Year": "2023/2024",
+      "Forecast Cost (£)": 47011942.4,
+      "_id": 18
+    },
+    {
+      "Auction Name": "2018-19 (T-4) Four Year Ahead Capacity Auction",
+      "Capacity Awarded": 2423.296,
+      "Delivery Year": "2024/2025",
+      "Forecast Cost (£)": 47011942.4,
+      "_id": 19
+    },
+    {
+      "Auction Name": "2018-19 (T-4) Four Year Ahead Capacity Auction",
+      "Capacity Awarded": 2423.296,
+      "Delivery Year": "2025/2026",
+      "Forecast Cost (£)": 47011942.4,
+      "_id": 20
+    },
+    {
+      "Auction Name": "2018-19 (T-4) Four Year Ahead Capacity Auction",
+      "Capacity Awarded": 2423.296,
+      "Delivery Year": "2026/2027",
+      "Forecast Cost (£)": 47011942.4,
+      "_id": 21
+    },
+    {
+      "Auction Name": "2018-19 (T-4) Four Year Ahead Capacity Auction",
+      "Capacity Awarded": 2423.296,
+      "Delivery Year": "2027/2028",
+      "Forecast Cost (£)": 47011942.4,
+      "_id": 22
+    },
+    {
+      "Auction Name": "2018-19 (T-4) Four Year Ahead Capacity Auction",
+      "Capacity Awarded": 2423.296,
+      "Delivery Year": "2028/2029",
+      "Forecast Cost (£)": 47011942.4,
+      "_id": 23
+    },
+    {
+      "Auction Name": "2018-19 (T-4) Four Year Ahead Capacity Auction",
+      "Capacity Awarded": 2423.296,
+      "Delivery Year": "2029/2030",
+      "Forecast Cost (£)": 47011942.4,
+      "_id": 24
+    },
+    {
+      "Auction Name": "2018-19 (T-4) Four Year Ahead Capacity Auction",
+      "Capacity Awarded": 2423.296,
+      "Delivery Year": "2030/2031",
+      "Forecast Cost (£)": 47011942.4,
+      "_id": 25
+    },
+    {
+      "Auction Name": "2018-19 (T-4) Four Year Ahead Capacity Auction",
+      "Capacity Awarded": 2423.296,
+      "Delivery Year": "2031/2032",
+      "Forecast Cost (£)": 47011942.4,
+      "_id": 26
+    },
+    {
+      "Auction Name": "2018-19 (T-4) Four Year Ahead Capacity Auction",
+      "Capacity Awarded": 2391.004,
+      "Delivery Year": "2032/2033",
+      "Forecast Cost (£)": 46385477.6,
+      "_id": 27
+    },
+    {
+      "Auction Name": "2019-20 (T-4) Four Year Ahead Capacity Auction",
+      "Capacity Awarded": 46353.569,
+      "Delivery Year": "2019/2020",
+      "Forecast Cost (£)": 834364242.0,
+      "_id": 28
+    },
+    {
+      "Auction Name": "2019-20 (T-4) Four Year Ahead Capacity Auction",
+      "Capacity Awarded": 982.52,
+      "Delivery Year": "2020/2021",
+      "Forecast Cost (£)": 17685360.0,
+      "_id": 29
+    },
+    {
+      "Auction Name": "2019-20 (T-4) Four Year Ahead Capacity Auction",
+      "Capacity Awarded": 982.52,
+      "Delivery Year": "2021/2022",
+      "Forecast Cost (£)": 17685360.0,
+      "_id": 30
+    },
+    {
+      "Auction Name": "2019-20 (T-4) Four Year Ahead Capacity Auction",
+      "Capacity Awarded": 982.52,
+      "Delivery Year": "2022/2023",
+      "Forecast Cost (£)": 17685360.0,
+      "_id": 31
+    },
+    {
+      "Auction Name": "2019-20 (T-4) Four Year Ahead Capacity Auction",
+      "Capacity Awarded": 982.52,
+      "Delivery Year": "2023/2024",
+      "Forecast Cost (£)": 17685360.0,
+      "_id": 32
+    },
+    {
+      "Auction Name": "2019-20 (T-4) Four Year Ahead Capacity Auction",
+      "Capacity Awarded": 982.52,
+      "Delivery Year": "2024/2025",
+      "Forecast Cost (£)": 17685360.0,
+      "_id": 33
+    },
+    {
+      "Auction Name": "2019-20 (T-4) Four Year Ahead Capacity Auction",
+      "Capacity Awarded": 982.52,
+      "Delivery Year": "2025/2026",
+      "Forecast Cost (£)": 17685360.0,
+      "_id": 34
+    },
+    {
+      "Auction Name": "2019-20 (T-4) Four Year Ahead Capacity Auction",
+      "Capacity Awarded": 982.52,
+      "Delivery Year": "2026/2027",
+      "Forecast Cost (£)": 17685360.0,
+      "_id": 35
+    },
+    {
+      "Auction Name": "2019-20 (T-4) Four Year Ahead Capacity Auction",
+      "Capacity Awarded": 982.52,
+      "Delivery Year": "2027/2028",
+      "Forecast Cost (£)": 17685360.0,
+      "_id": 36
+    },
+    {
+      "Auction Name": "2019-20 (T-4) Four Year Ahead Capacity Auction",
+      "Capacity Awarded": 982.52,
+      "Delivery Year": "2028/2029",
+      "Forecast Cost (£)": 17685360.0,
+      "_id": 37
+    },
+    {
+      "Auction Name": "2019-20 (T-4) Four Year Ahead Capacity Auction",
+      "Capacity Awarded": 982.52,
+      "Delivery Year": "2029/2030",
+      "Forecast Cost (£)": 17685360.0,
+      "_id": 38
+    },
+    {
+      "Auction Name": "2019-20 (T-4) Four Year Ahead Capacity Auction",
+      "Capacity Awarded": 982.52,
+      "Delivery Year": "2030/2031",
+      "Forecast Cost (£)": 17685360.0,
+      "_id": 39
+    },
+    {
+      "Auction Name": "2019-20 (T-4) Four Year Ahead Capacity Auction",
+      "Capacity Awarded": 982.52,
+      "Delivery Year": "2031/2032",
+      "Forecast Cost (£)": 17685360.0,
+      "_id": 40
+    },
+    {
+      "Auction Name": "2019-20 (T-4) Four Year Ahead Capacity Auction",
+      "Capacity Awarded": 982.52,
+      "Delivery Year": "2032/2033",
+      "Forecast Cost (£)": 17685360.0,
+      "_id": 41
+    },
+    {
+      "Auction Name": "2019-20 (T-4) Four Year Ahead Capacity Auction",
+      "Capacity Awarded": 969.6,
+      "Delivery Year": "2033/2034",
+      "Forecast Cost (£)": 17452800.0,
+      "_id": 42
+    },
+    {
+      "Auction Name": "2020-21 (T-4) Four Year Ahead Capacity Auction",
+      "Capacity Awarded": 52425.302,
+      "Delivery Year": "2020/2021",
+      "Forecast Cost (£)": 1179569295.0,
+      "_id": 43
+    },
+    {
+      "Auction Name": "2020-21 (T-4) Four Year Ahead Capacity Auction",
+      "Capacity Awarded": 2648.756,
+      "Delivery Year": "2021/2022",
+      "Forecast Cost (£)": 59597010.0,
+      "_id": 44
+    },
+    {
+      "Auction Name": "2020-21 (T-4) Four Year Ahead Capacity Auction",
+      "Capacity Awarded": 2648.756,
+      "Delivery Year": "2022/2023",
+      "Forecast Cost (£)": 59597010.0,
+      "_id": 45
+    },
+    {
+      "Auction Name": "2020-21 (T-4) Four Year Ahead Capacity Auction",
+      "Capacity Awarded": 2648.756,
+      "Delivery Year": "2023/2024",
+      "Forecast Cost (£)": 59597010.0,
+      "_id": 46
+    },
+    {
+      "Auction Name": "2020-21 (T-4) Four Year Ahead Capacity Auction",
+      "Capacity Awarded": 2648.756,
+      "Delivery Year": "2024/2025",
+      "Forecast Cost (£)": 59597010.0,
+      "_id": 47
+    },
+    {
+      "Auction Name": "2020-21 (T-4) Four Year Ahead Capacity Auction",
+      "Capacity Awarded": 2648.756,
+      "Delivery Year": "2025/2026",
+      "Forecast Cost (£)": 59597010.0,
+      "_id": 48
+    },
+    {
+      "Auction Name": "2020-21 (T-4) Four Year Ahead Capacity Auction",
+      "Capacity Awarded": 2648.756,
+      "Delivery Year": "2026/2027",
+      "Forecast Cost (£)": 59597010.0,
+      "_id": 49
+    },
+    {
+      "Auction Name": "2020-21 (T-4) Four Year Ahead Capacity Auction",
+      "Capacity Awarded": 2648.756,
+      "Delivery Year": "2027/2028",
+      "Forecast Cost (£)": 59597010.0,
+      "_id": 50
+    },
+    {
+      "Auction Name": "2020-21 (T-4) Four Year Ahead Capacity Auction",
+      "Capacity Awarded": 2648.756,
+      "Delivery Year": "2028/2029",
+      "Forecast Cost (£)": 59597010.0,
+      "_id": 51
+    },
+    {
+      "Auction Name": "2020-21 (T-4) Four Year Ahead Capacity Auction",
+      "Capacity Awarded": 2648.756,
+      "Delivery Year": "2029/2030",
+      "Forecast Cost (£)": 59597010.0,
+      "_id": 52
+    },
+    {
+      "Auction Name": "2020-21 (T-4) Four Year Ahead Capacity Auction",
+      "Capacity Awarded": 2648.756,
+      "Delivery Year": "2030/2031",
+      "Forecast Cost (£)": 59597010.0,
+      "_id": 53
+    },
+    {
+      "Auction Name": "2020-21 (T-4) Four Year Ahead Capacity Auction",
+      "Capacity Awarded": 2648.756,
+      "Delivery Year": "2031/2032",
+      "Forecast Cost (£)": 59597010.0,
+      "_id": 54
+    },
+    {
+      "Auction Name": "2020-21 (T-4) Four Year Ahead Capacity Auction",
+      "Capacity Awarded": 2615.359,
+      "Delivery Year": "2032/2033",
+      "Forecast Cost (£)": 58845577.5,
+      "_id": 55
+    },
+    {
+      "Auction Name": "2020-21 (T-4) Four Year Ahead Capacity Auction",
+      "Capacity Awarded": 2615.359,
+      "Delivery Year": "2033/2034",
+      "Forecast Cost (£)": 58845577.5,
+      "_id": 56
+    },
+    {
+      "Auction Name": "2020-21 (T-4) Four Year Ahead Capacity Auction",
+      "Capacity Awarded": 2615.359,
+      "Delivery Year": "2034/2035",
+      "Forecast Cost (£)": 58845577.5,
+      "_id": 57
+    },
+    {
+      "Auction Name": "2021-22 (T-4) Four Year Ahead Capacity Auction",
+      "Capacity Awarded": 50415.403,
+      "Delivery Year": "2021/2022",
+      "Forecast Cost (£)": 423489385.2,
+      "_id": 58
+    },
+    {
+      "Auction Name": "2021-22 (T-4) Four Year Ahead Capacity Auction",
+      "Capacity Awarded": 657.945,
+      "Delivery Year": "2022/2023",
+      "Forecast Cost (£)": 5526738.0,
+      "_id": 59
+    },
+    {
+      "Auction Name": "2021-22 (T-4) Four Year Ahead Capacity Auction",
+      "Capacity Awarded": 657.945,
+      "Delivery Year": "2023/2024",
+      "Forecast Cost (£)": 5526738.0,
+      "_id": 60
+    },
+    {
+      "Auction Name": "2021-22 (T-4) Four Year Ahead Capacity Auction",
+      "Capacity Awarded": 650.361,
+      "Delivery Year": "2024/2025",
+      "Forecast Cost (£)": 5463032.4,
+      "_id": 61
+    },
+    {
+      "Auction Name": "2021-22 (T-4) Four Year Ahead Capacity Auction",
+      "Capacity Awarded": 649.632,
+      "Delivery Year": "2025/2026",
+      "Forecast Cost (£)": 5456908.8,
+      "_id": 62
+    },
+    {
+      "Auction Name": "2021-22 (T-4) Four Year Ahead Capacity Auction",
+      "Capacity Awarded": 649.632,
+      "Delivery Year": "2026/2027",
+      "Forecast Cost (£)": 5456908.8,
+      "_id": 63
+    },
+    {
+      "Auction Name": "2021-22 (T-4) Four Year Ahead Capacity Auction",
+      "Capacity Awarded": 649.632,
+      "Delivery Year": "2027/2028",
+      "Forecast Cost (£)": 5456908.8,
+      "_id": 64
+    },
+    {
+      "Auction Name": "2021-22 (T-4) Four Year Ahead Capacity Auction",
+      "Capacity Awarded": 649.632,
+      "Delivery Year": "2028/2029",
+      "Forecast Cost (£)": 5456908.8,
+      "_id": 65
+    },
+    {
+      "Auction Name": "2021-22 (T-4) Four Year Ahead Capacity Auction",
+      "Capacity Awarded": 649.632,
+      "Delivery Year": "2029/2030",
+      "Forecast Cost (£)": 5456908.8,
+      "_id": 66
+    },
+    {
+      "Auction Name": "2021-22 (T-4) Four Year Ahead Capacity Auction",
+      "Capacity Awarded": 649.632,
+      "Delivery Year": "2030/2031",
+      "Forecast Cost (£)": 5456908.8,
+      "_id": 67
+    },
+    {
+      "Auction Name": "2021-22 (T-4) Four Year Ahead Capacity Auction",
+      "Capacity Awarded": 649.632,
+      "Delivery Year": "2031/2032",
+      "Forecast Cost (£)": 5456908.8,
+      "_id": 68
+    },
+    {
+      "Auction Name": "2021-22 (T-4) Four Year Ahead Capacity Auction",
+      "Capacity Awarded": 649.632,
+      "Delivery Year": "2032/2033",
+      "Forecast Cost (£)": 5456908.8,
+      "_id": 69
+    },
+    {
+      "Auction Name": "2021-22 (T-4) Four Year Ahead Capacity Auction",
+      "Capacity Awarded": 648.022,
+      "Delivery Year": "2033/2034",
+      "Forecast Cost (£)": 5443384.8,
+      "_id": 70
+    },
+    {
+      "Auction Name": "2021-22 (T-4) Four Year Ahead Capacity Auction",
+      "Capacity Awarded": 648.022,
+      "Delivery Year": "2034/2035",
+      "Forecast Cost (£)": 5443384.8,
+      "_id": 71
+    },
+    {
+      "Auction Name": "2021-22 (T-4) Four Year Ahead Capacity Auction",
+      "Capacity Awarded": 639.633,
+      "Delivery Year": "2035/2036",
+      "Forecast Cost (£)": 5372917.2,
+      "_id": 72
+    },
+    {
+      "Auction Name": "2022-23 (T-3) Three Year Ahead Capacity Auction",
+      "Capacity Awarded": 45058.832,
+      "Delivery Year": "2022/2023",
+      "Forecast Cost (£)": 290178878.08,
+      "_id": 73
+    },
+    {
+      "Auction Name": "2022-23 (T-3) Three Year Ahead Capacity Auction",
+      "Capacity Awarded": 214.984,
+      "Delivery Year": "2023/2024",
+      "Forecast Cost (£)": 1384496.96,
+      "_id": 74
+    },
+    {
+      "Auction Name": "2022-23 (T-3) Three Year Ahead Capacity Auction",
+      "Capacity Awarded": 214.984,
+      "Delivery Year": "2024/2025",
+      "Forecast Cost (£)": 1384496.96,
+      "_id": 75
+    },
+    {
+      "Auction Name": "2022-23 (T-3) Three Year Ahead Capacity Auction",
+      "Capacity Awarded": 212.083,
+      "Delivery Year": "2025/2026",
+      "Forecast Cost (£)": 1365814.52,
+      "_id": 76
+    },
+    {
+      "Auction Name": "2022-23 (T-3) Three Year Ahead Capacity Auction",
+      "Capacity Awarded": 212.083,
+      "Delivery Year": "2026/2027",
+      "Forecast Cost (£)": 1365814.52,
+      "_id": 77
+    },
+    {
+      "Auction Name": "2022-23 (T-3) Three Year Ahead Capacity Auction",
+      "Capacity Awarded": 212.083,
+      "Delivery Year": "2027/2028",
+      "Forecast Cost (£)": 1365814.52,
+      "_id": 78
+    },
+    {
+      "Auction Name": "2022-23 (T-3) Three Year Ahead Capacity Auction",
+      "Capacity Awarded": 212.083,
+      "Delivery Year": "2028/2029",
+      "Forecast Cost (£)": 1365814.52,
+      "_id": 79
+    },
+    {
+      "Auction Name": "2022-23 (T-3) Three Year Ahead Capacity Auction",
+      "Capacity Awarded": 212.083,
+      "Delivery Year": "2029/2030",
+      "Forecast Cost (£)": 1365814.52,
+      "_id": 80
+    },
+    {
+      "Auction Name": "2022-23 (T-3) Three Year Ahead Capacity Auction",
+      "Capacity Awarded": 212.083,
+      "Delivery Year": "2030/2031",
+      "Forecast Cost (£)": 1365814.52,
+      "_id": 81
+    },
+    {
+      "Auction Name": "2022-23 (T-3) Three Year Ahead Capacity Auction",
+      "Capacity Awarded": 212.083,
+      "Delivery Year": "2031/2032",
+      "Forecast Cost (£)": 1365814.52,
+      "_id": 82
+    },
+    {
+      "Auction Name": "2022-23 (T-3) Three Year Ahead Capacity Auction",
+      "Capacity Awarded": 212.083,
+      "Delivery Year": "2032/2033",
+      "Forecast Cost (£)": 1365814.52,
+      "_id": 83
+    },
+    {
+      "Auction Name": "2022-23 (T-3) Three Year Ahead Capacity Auction",
+      "Capacity Awarded": 212.083,
+      "Delivery Year": "2033/2034",
+      "Forecast Cost (£)": 1365814.52,
+      "_id": 84
+    },
+    {
+      "Auction Name": "2022-23 (T-3) Three Year Ahead Capacity Auction",
+      "Capacity Awarded": 208.114,
+      "Delivery Year": "2034/2035",
+      "Forecast Cost (£)": 1340254.16,
+      "_id": 85
+    },
+    {
+      "Auction Name": "2022-23 (T-3) Three Year Ahead Capacity Auction",
+      "Capacity Awarded": 208.114,
+      "Delivery Year": "2035/2036",
+      "Forecast Cost (£)": 1340254.16,
+      "_id": 86
+    },
+    {
+      "Auction Name": "2022-23 (T-3) Three Year Ahead Capacity Auction",
+      "Capacity Awarded": 208.114,
+      "Delivery Year": "2036/2037",
+      "Forecast Cost (£)": 1340254.16,
+      "_id": 87
+    },
+    {
+      "Auction Name": "2023-24 (T-4) Four Year Ahead Capacity Auction",
+      "Capacity Awarded": 43748.988,
+      "Delivery Year": "2023/2024",
+      "Forecast Cost (£)": 698671338.36,
+      "_id": 88
+    },
+    {
+      "Auction Name": "2023-24 (T-4) Four Year Ahead Capacity Auction",
+      "Capacity Awarded": 1626.577,
+      "Delivery Year": "2024/2025",
+      "Forecast Cost (£)": 25976434.69,
+      "_id": 89
+    },
+    {
+      "Auction Name": "2023-24 (T-4) Four Year Ahead Capacity Auction",
+      "Capacity Awarded": 1626.577,
+      "Delivery Year": "2025/2026",
+      "Forecast Cost (£)": 25976434.69,
+      "_id": 90
+    },
+    {
+      "Auction Name": "2023-24 (T-4) Four Year Ahead Capacity Auction",
+      "Capacity Awarded": 1623.728,
+      "Delivery Year": "2026/2027",
+      "Forecast Cost (£)": 25930936.16,
+      "_id": 91
+    },
+    {
+      "Auction Name": "2023-24 (T-4) Four Year Ahead Capacity Auction",
+      "Capacity Awarded": 1623.728,
+      "Delivery Year": "2027/2028",
+      "Forecast Cost (£)": 25930936.16,
+      "_id": 92
+    },
+    {
+      "Auction Name": "2023-24 (T-4) Four Year Ahead Capacity Auction",
+      "Capacity Awarded": 1614.718,
+      "Delivery Year": "2028/2029",
+      "Forecast Cost (£)": 25787046.46,
+      "_id": 93
+    },
+    {
+      "Auction Name": "2023-24 (T-4) Four Year Ahead Capacity Auction",
+      "Capacity Awarded": 1614.718,
+      "Delivery Year": "2029/2030",
+      "Forecast Cost (£)": 25787046.46,
+      "_id": 94
+    },
+    {
+      "Auction Name": "2023-24 (T-4) Four Year Ahead Capacity Auction",
+      "Capacity Awarded": 1614.718,
+      "Delivery Year": "2030/2031",
+      "Forecast Cost (£)": 25787046.46,
+      "_id": 95
+    },
+    {
+      "Auction Name": "2023-24 (T-4) Four Year Ahead Capacity Auction",
+      "Capacity Awarded": 1614.718,
+      "Delivery Year": "2031/2032",
+      "Forecast Cost (£)": 25787046.46,
+      "_id": 96
+    },
+    {
+      "Auction Name": "2023-24 (T-4) Four Year Ahead Capacity Auction",
+      "Capacity Awarded": 1614.718,
+      "Delivery Year": "2032/2033",
+      "Forecast Cost (£)": 25787046.46,
+      "_id": 97
+    },
+    {
+      "Auction Name": "2023-24 (T-4) Four Year Ahead Capacity Auction",
+      "Capacity Awarded": 1614.718,
+      "Delivery Year": "2033/2034",
+      "Forecast Cost (£)": 25787046.46,
+      "_id": 98
+    },
+    {
+      "Auction Name": "2023-24 (T-4) Four Year Ahead Capacity Auction",
+      "Capacity Awarded": 1614.718,
+      "Delivery Year": "2034/2035",
+      "Forecast Cost (£)": 25787046.46,
+      "_id": 99
+    },
+    {
+      "Auction Name": "2023-24 (T-4) Four Year Ahead Capacity Auction",
+      "Capacity Awarded": 1614.718,
+      "Delivery Year": "2035/2036",
+      "Forecast Cost (£)": 25787046.46,
+      "_id": 100
+    },
+    {
+      "Auction Name": "2023-24 (T-4) Four Year Ahead Capacity Auction",
+      "Capacity Awarded": 1614.718,
+      "Delivery Year": "2036/2037",
+      "Forecast Cost (£)": 25787046.46,
+      "_id": 101
+    },
+    {
+      "Auction Name": "2023-24 (T-4) Four Year Ahead Capacity Auction",
+      "Capacity Awarded": 1614.718,
+      "Delivery Year": "2037/2038",
+      "Forecast Cost (£)": 25787046.46,
+      "_id": 102
+    },
+    {
+      "Auction Name": "2024-25 (T-4) Four Year Ahead Capacity Auction",
+      "Capacity Awarded": 40819.895,
+      "Delivery Year": "2024/2025",
+      "Forecast Cost (£)": 734758110.0,
+      "_id": 103
+    },
+    {
+      "Auction Name": "2024-25 (T-4) Four Year Ahead Capacity Auction",
+      "Capacity Awarded": 1602.062,
+      "Delivery Year": "2025/2026",
+      "Forecast Cost (£)": 28837116.0,
+      "_id": 104
+    },
+    {
+      "Auction Name": "2024-25 (T-4) Four Year Ahead Capacity Auction",
+      "Capacity Awarded": 1602.062,
+      "Delivery Year": "2026/2027",
+      "Forecast Cost (£)": 28837116.0,
+      "_id": 105
+    },
+    {
+      "Auction Name": "2024-25 (T-4) Four Year Ahead Capacity Auction",
+      "Capacity Awarded": 1602.062,
+      "Delivery Year": "2027/2028",
+      "Forecast Cost (£)": 28837116.0,
+      "_id": 106
+    },
+    {
+      "Auction Name": "2024-25 (T-4) Four Year Ahead Capacity Auction",
+      "Capacity Awarded": 1602.062,
+      "Delivery Year": "2028/2029",
+      "Forecast Cost (£)": 28837116.0,
+      "_id": 107
+    },
+    {
+      "Auction Name": "2024-25 (T-4) Four Year Ahead Capacity Auction",
+      "Capacity Awarded": 1602.062,
+      "Delivery Year": "2029/2030",
+      "Forecast Cost (£)": 28837116.0,
+      "_id": 108
+    },
+    {
+      "Auction Name": "2024-25 (T-4) Four Year Ahead Capacity Auction",
+      "Capacity Awarded": 1602.062,
+      "Delivery Year": "2030/2031",
+      "Forecast Cost (£)": 28837116.0,
+      "_id": 109
+    },
+    {
+      "Auction Name": "2024-25 (T-4) Four Year Ahead Capacity Auction",
+      "Capacity Awarded": 1602.062,
+      "Delivery Year": "2031/2032",
+      "Forecast Cost (£)": 28837116.0,
+      "_id": 110
+    },
+    {
+      "Auction Name": "2024-25 (T-4) Four Year Ahead Capacity Auction",
+      "Capacity Awarded": 1602.062,
+      "Delivery Year": "2032/2033",
+      "Forecast Cost (£)": 28837116.0,
+      "_id": 111
+    },
+    {
+      "Auction Name": "2024-25 (T-4) Four Year Ahead Capacity Auction",
+      "Capacity Awarded": 1602.062,
+      "Delivery Year": "2033/2034",
+      "Forecast Cost (£)": 28837116.0,
+      "_id": 112
+    },
+    {
+      "Auction Name": "2024-25 (T-4) Four Year Ahead Capacity Auction",
+      "Capacity Awarded": 1602.062,
+      "Delivery Year": "2034/2035",
+      "Forecast Cost (£)": 28837116.0,
+      "_id": 113
+    },
+    {
+      "Auction Name": "2024-25 (T-4) Four Year Ahead Capacity Auction",
+      "Capacity Awarded": 1599.069,
+      "Delivery Year": "2035/2036",
+      "Forecast Cost (£)": 28783242.0,
+      "_id": 114
+    },
+    {
+      "Auction Name": "2024-25 (T-4) Four Year Ahead Capacity Auction",
+      "Capacity Awarded": 1596.076,
+      "Delivery Year": "2036/2037",
+      "Forecast Cost (£)": 28729368.0,
+      "_id": 115
+    },
+    {
+      "Auction Name": "2024-25 (T-4) Four Year Ahead Capacity Auction",
+      "Capacity Awarded": 1596.076,
+      "Delivery Year": "2037/2038",
+      "Forecast Cost (£)": 28729368.0,
+      "_id": 116
+    },
+    {
+      "Auction Name": "2024-25 (T-4) Four Year Ahead Capacity Auction",
+      "Capacity Awarded": 1596.076,
+      "Delivery Year": "2038/2039",
+      "Forecast Cost (£)": 28729368.0,
+      "_id": 117
+    },
+    {
+      "Auction Name": "2025-26 (T-4) Four Year Ahead Capacity Auction",
+      "Capacity Awarded": 42364.314,
+      "Delivery Year": "2025/2026",
+      "Forecast Cost (£)": 1295924365.26,
+      "_id": 118
+    },
+    {
+      "Auction Name": "2025-26 (T-4) Four Year Ahead Capacity Auction",
+      "Capacity Awarded": 1989.359,
+      "Delivery Year": "2026/2027",
+      "Forecast Cost (£)": 60854491.81,
+      "_id": 119
+    },
+    {
+      "Auction Name": "2025-26 (T-4) Four Year Ahead Capacity Auction",
+      "Capacity Awarded": 1989.359,
+      "Delivery Year": "2027/2028",
+      "Forecast Cost (£)": 60854491.81,
+      "_id": 120
+    },
+    {
+      "Auction Name": "2025-26 (T-4) Four Year Ahead Capacity Auction",
+      "Capacity Awarded": 1969.494,
+      "Delivery Year": "2028/2029",
+      "Forecast Cost (£)": 60246821.46,
+      "_id": 121
+    },
+    {
+      "Auction Name": "2025-26 (T-4) Four Year Ahead Capacity Auction",
+      "Capacity Awarded": 1969.494,
+      "Delivery Year": "2029/2030",
+      "Forecast Cost (£)": 60246821.46,
+      "_id": 122
+    },
+    {
+      "Auction Name": "2025-26 (T-4) Four Year Ahead Capacity Auction",
+      "Capacity Awarded": 1964.673,
+      "Delivery Year": "2030/2031",
+      "Forecast Cost (£)": 60099347.07,
+      "_id": 123
+    },
+    {
+      "Auction Name": "2025-26 (T-4) Four Year Ahead Capacity Auction",
+      "Capacity Awarded": 1964.673,
+      "Delivery Year": "2031/2032",
+      "Forecast Cost (£)": 60099347.07,
+      "_id": 124
+    },
+    {
+      "Auction Name": "2025-26 (T-4) Four Year Ahead Capacity Auction",
+      "Capacity Awarded": 1964.673,
+      "Delivery Year": "2032/2033",
+      "Forecast Cost (£)": 60099347.07,
+      "_id": 125
+    },
+    {
+      "Auction Name": "2025-26 (T-4) Four Year Ahead Capacity Auction",
+      "Capacity Awarded": 1962.182,
+      "Delivery Year": "2033/2034",
+      "Forecast Cost (£)": 60023147.38,
+      "_id": 126
+    },
+    {
+      "Auction Name": "2025-26 (T-4) Four Year Ahead Capacity Auction",
+      "Capacity Awarded": 1962.182,
+      "Delivery Year": "2034/2035",
+      "Forecast Cost (£)": 60023147.38,
+      "_id": 127
+    },
+    {
+      "Auction Name": "2025-26 (T-4) Four Year Ahead Capacity Auction",
+      "Capacity Awarded": 1958.954,
+      "Delivery Year": "2035/2036",
+      "Forecast Cost (£)": 59924402.86,
+      "_id": 128
+    },
+    {
+      "Auction Name": "2025-26 (T-4) Four Year Ahead Capacity Auction",
+      "Capacity Awarded": 1958.954,
+      "Delivery Year": "2036/2037",
+      "Forecast Cost (£)": 59924402.86,
+      "_id": 129
+    },
+    {
+      "Auction Name": "2025-26 (T-4) Four Year Ahead Capacity Auction",
+      "Capacity Awarded": 1958.045,
+      "Delivery Year": "2037/2038",
+      "Forecast Cost (£)": 59896596.55,
+      "_id": 130
+    },
+    {
+      "Auction Name": "2025-26 (T-4) Four Year Ahead Capacity Auction",
+      "Capacity Awarded": 1958.045,
+      "Delivery Year": "2038/2039",
+      "Forecast Cost (£)": 59896596.55,
+      "_id": 131
+    },
+    {
+      "Auction Name": "2025-26 (T-4) Four Year Ahead Capacity Auction",
+      "Capacity Awarded": 1958.045,
+      "Delivery Year": "2039/2040",
+      "Forecast Cost (£)": 59896596.55,
+      "_id": 132
+    },
+    {
+      "Auction Name": "2026-27 (T-4) Four Year Ahead Capacity Auction",
+      "Capacity Awarded": 43000.955,
+      "Delivery Year": "2026/2027",
+      "Forecast Cost (£)": 2709060165.0,
+      "_id": 133
+    },
+    {
+      "Auction Name": "2026-27 (T-4) Four Year Ahead Capacity Auction",
+      "Capacity Awarded": 3444.623,
+      "Delivery Year": "2027/2028",
+      "Forecast Cost (£)": 217011249.0,
+      "_id": 134
+    },
+    {
+      "Auction Name": "2026-27 (T-4) Four Year Ahead Capacity Auction",
+      "Capacity Awarded": 3444.623,
+      "Delivery Year": "2028/2029",
+      "Forecast Cost (£)": 217011249.0,
+      "_id": 135
+    },
+    {
+      "Auction Name": "2026-27 (T-4) Four Year Ahead Capacity Auction",
+      "Capacity Awarded": 3436.825,
+      "Delivery Year": "2029/2030",
+      "Forecast Cost (£)": 216519975.0,
+      "_id": 136
+    },
+    {
+      "Auction Name": "2026-27 (T-4) Four Year Ahead Capacity Auction",
+      "Capacity Awarded": 3436.825,
+      "Delivery Year": "2030/2031",
+      "Forecast Cost (£)": 216519975.0,
+      "_id": 137
+    },
+    {
+      "Auction Name": "2026-27 (T-4) Four Year Ahead Capacity Auction",
+      "Capacity Awarded": 3436.825,
+      "Delivery Year": "2031/2032",
+      "Forecast Cost (£)": 216519975.0,
+      "_id": 138
+    },
+    {
+      "Auction Name": "2026-27 (T-4) Four Year Ahead Capacity Auction",
+      "Capacity Awarded": 3423.234,
+      "Delivery Year": "2032/2033",
+      "Forecast Cost (£)": 215663742.0,
+      "_id": 139
+    },
+    {
+      "Auction Name": "2026-27 (T-4) Four Year Ahead Capacity Auction",
+      "Capacity Awarded": 3414.966,
+      "Delivery Year": "2033/2034",
+      "Forecast Cost (£)": 215142858.0,
+      "_id": 140
+    },
+    {
+      "Auction Name": "2026-27 (T-4) Four Year Ahead Capacity Auction",
+      "Capacity Awarded": 3414.966,
+      "Delivery Year": "2034/2035",
+      "Forecast Cost (£)": 215142858.0,
+      "_id": 141
+    },
+    {
+      "Auction Name": "2026-27 (T-4) Four Year Ahead Capacity Auction",
+      "Capacity Awarded": 3414.966,
+      "Delivery Year": "2035/2036",
+      "Forecast Cost (£)": 215142858.0,
+      "_id": 142
+    },
+    {
+      "Auction Name": "2026-27 (T-4) Four Year Ahead Capacity Auction",
+      "Capacity Awarded": 3414.966,
+      "Delivery Year": "2036/2037",
+      "Forecast Cost (£)": 215142858.0,
+      "_id": 143
+    },
+    {
+      "Auction Name": "2026-27 (T-4) Four Year Ahead Capacity Auction",
+      "Capacity Awarded": 3414.966,
+      "Delivery Year": "2037/2038",
+      "Forecast Cost (£)": 215142858.0,
+      "_id": 144
+    },
+    {
+      "Auction Name": "2026-27 (T-4) Four Year Ahead Capacity Auction",
+      "Capacity Awarded": 3412.623,
+      "Delivery Year": "2038/2039",
+      "Forecast Cost (£)": 214995249.0,
+      "_id": 145
+    },
+    {
+      "Auction Name": "2026-27 (T-4) Four Year Ahead Capacity Auction",
+      "Capacity Awarded": 3412.623,
+      "Delivery Year": "2039/2040",
+      "Forecast Cost (£)": 214995249.0,
+      "_id": 146
+    },
+    {
+      "Auction Name": "2026-27 (T-4) Four Year Ahead Capacity Auction",
+      "Capacity Awarded": 3412.623,
+      "Delivery Year": "2040/2041",
+      "Forecast Cost (£)": 214995249.0,
+      "_id": 147
+    },
+    {
+      "Auction Name": "2027-28 (T-4) Four Year Ahead Capacity Auction",
+      "Capacity Awarded": 42830.829,
+      "Delivery Year": "2027/2028",
+      "Forecast Cost (£)": 2784003885.0,
+      "_id": 148
+    },
+    {
+      "Auction Name": "2027-28 (T-4) Four Year Ahead Capacity Auction",
+      "Capacity Awarded": 1824.272,
+      "Delivery Year": "2028/2029",
+      "Forecast Cost (£)": 118577680.0,
+      "_id": 149
+    },
+    {
+      "Auction Name": "2027-28 (T-4) Four Year Ahead Capacity Auction",
+      "Capacity Awarded": 1824.272,
+      "Delivery Year": "2029/2030",
+      "Forecast Cost (£)": 118577680.0,
+      "_id": 150
+    },
+    {
+      "Auction Name": "2027-28 (T-4) Four Year Ahead Capacity Auction",
+      "Capacity Awarded": 1824.272,
+      "Delivery Year": "2030/2031",
+      "Forecast Cost (£)": 118577680.0,
+      "_id": 151
+    },
+    {
+      "Auction Name": "2027-28 (T-4) Four Year Ahead Capacity Auction",
+      "Capacity Awarded": 1824.272,
+      "Delivery Year": "2031/2032",
+      "Forecast Cost (£)": 118577680.0,
+      "_id": 152
+    },
+    {
+      "Auction Name": "2027-28 (T-4) Four Year Ahead Capacity Auction",
+      "Capacity Awarded": 1824.272,
+      "Delivery Year": "2032/2033",
+      "Forecast Cost (£)": 118577680.0,
+      "_id": 153
+    },
+    {
+      "Auction Name": "2027-28 (T-4) Four Year Ahead Capacity Auction",
+      "Capacity Awarded": 1821.982,
+      "Delivery Year": "2033/2034",
+      "Forecast Cost (£)": 118428830.0,
+      "_id": 154
+    },
+    {
+      "Auction Name": "2027-28 (T-4) Four Year Ahead Capacity Auction",
+      "Capacity Awarded": 1821.982,
+      "Delivery Year": "2034/2035",
+      "Forecast Cost (£)": 118428830.0,
+      "_id": 155
+    },
+    {
+      "Auction Name": "2027-28 (T-4) Four Year Ahead Capacity Auction",
+      "Capacity Awarded": 1821.982,
+      "Delivery Year": "2035/2036",
+      "Forecast Cost (£)": 118428830.0,
+      "_id": 156
+    },
+    {
+      "Auction Name": "2027-28 (T-4) Four Year Ahead Capacity Auction",
+      "Capacity Awarded": 1821.982,
+      "Delivery Year": "2036/2037",
+      "Forecast Cost (£)": 118428830.0,
+      "_id": 157
+    },
+    {
+      "Auction Name": "2027-28 (T-4) Four Year Ahead Capacity Auction",
+      "Capacity Awarded": 1821.982,
+      "Delivery Year": "2037/2038",
+      "Forecast Cost (£)": 118428830.0,
+      "_id": 158
+    },
+    {
+      "Auction Name": "2027-28 (T-4) Four Year Ahead Capacity Auction",
+      "Capacity Awarded": 1821.982,
+      "Delivery Year": "2038/2039",
+      "Forecast Cost (£)": 118428830.0,
+      "_id": 159
+    },
+    {
+      "Auction Name": "2027-28 (T-4) Four Year Ahead Capacity Auction",
+      "Capacity Awarded": 1821.982,
+      "Delivery Year": "2039/2040",
+      "Forecast Cost (£)": 118428830.0,
+      "_id": 160
+    },
+    {
+      "Auction Name": "2027-28 (T-4) Four Year Ahead Capacity Auction",
+      "Capacity Awarded": 1821.982,
+      "Delivery Year": "2040/2041",
+      "Forecast Cost (£)": 118428830.0,
+      "_id": 161
+    },
+    {
+      "Auction Name": "2027-28 (T-4) Four Year Ahead Capacity Auction",
+      "Capacity Awarded": 1821.982,
+      "Delivery Year": "2041/2042",
+      "Forecast Cost (£)": 118428830.0,
+      "_id": 162
+    },
+    {
+      "Auction Name": "2028-29 (T-4) Four Year Ahead Capacity Auction",
+      "Capacity Awarded": 43055.073,
+      "Delivery Year": "2028/2029",
+      "Forecast Cost (£)": 2583304380.0,
+      "_id": 163
+    },
+    {
+      "Auction Name": "2028-29 (T-4) Four Year Ahead Capacity Auction",
+      "Capacity Awarded": 3533.134,
+      "Delivery Year": "2029/2030",
+      "Forecast Cost (£)": 211988040.0,
+      "_id": 164
+    },
+    {
+      "Auction Name": "2028-29 (T-4) Four Year Ahead Capacity Auction",
+      "Capacity Awarded": 3533.134,
+      "Delivery Year": "2030/2031",
+      "Forecast Cost (£)": 211988040.0,
+      "_id": 165
+    },
+    {
+      "Auction Name": "2028-29 (T-4) Four Year Ahead Capacity Auction",
+      "Capacity Awarded": 3525.805,
+      "Delivery Year": "2031/2032",
+      "Forecast Cost (£)": 211548300.0,
+      "_id": 166
+    },
+    {
+      "Auction Name": "2028-29 (T-4) Four Year Ahead Capacity Auction",
+      "Capacity Awarded": 3525.805,
+      "Delivery Year": "2032/2033",
+      "Forecast Cost (£)": 211548300.0,
+      "_id": 167
+    },
+    {
+      "Auction Name": "2028-29 (T-4) Four Year Ahead Capacity Auction",
+      "Capacity Awarded": 3525.805,
+      "Delivery Year": "2033/2034",
+      "Forecast Cost (£)": 211548300.0,
+      "_id": 168
+    },
+    {
+      "Auction Name": "2028-29 (T-4) Four Year Ahead Capacity Auction",
+      "Capacity Awarded": 3522.579,
+      "Delivery Year": "2034/2035",
+      "Forecast Cost (£)": 211354740.0,
+      "_id": 169
+    },
+    {
+      "Auction Name": "2028-29 (T-4) Four Year Ahead Capacity Auction",
+      "Capacity Awarded": 3458.737,
+      "Delivery Year": "2035/2036",
+      "Forecast Cost (£)": 207524220.0,
+      "_id": 170
+    },
+    {
+      "Auction Name": "2028-29 (T-4) Four Year Ahead Capacity Auction",
+      "Capacity Awarded": 3458.737,
+      "Delivery Year": "2036/2037",
+      "Forecast Cost (£)": 207524220.0,
+      "_id": 171
+    },
+    {
+      "Auction Name": "2028-29 (T-4) Four Year Ahead Capacity Auction",
+      "Capacity Awarded": 3458.737,
+      "Delivery Year": "2037/2038",
+      "Forecast Cost (£)": 207524220.0,
+      "_id": 172
+    },
+    {
+      "Auction Name": "2028-29 (T-4) Four Year Ahead Capacity Auction",
+      "Capacity Awarded": 3457.482,
+      "Delivery Year": "2038/2039",
+      "Forecast Cost (£)": 207448920.0,
+      "_id": 173
+    },
+    {
+      "Auction Name": "2028-29 (T-4) Four Year Ahead Capacity Auction",
+      "Capacity Awarded": 3457.482,
+      "Delivery Year": "2039/2040",
+      "Forecast Cost (£)": 207448920.0,
+      "_id": 174
+    },
+    {
+      "Auction Name": "2028-29 (T-4) Four Year Ahead Capacity Auction",
+      "Capacity Awarded": 3457.482,
+      "Delivery Year": "2040/2041",
+      "Forecast Cost (£)": 207448920.0,
+      "_id": 175
+    },
+    {
+      "Auction Name": "2028-29 (T-4) Four Year Ahead Capacity Auction",
+      "Capacity Awarded": 3457.482,
+      "Delivery Year": "2041/2042",
+      "Forecast Cost (£)": 207448920.0,
+      "_id": 176
+    },
+    {
+      "Auction Name": "2028-29 (T-4) Four Year Ahead Capacity Auction",
+      "Capacity Awarded": 3457.482,
+      "Delivery Year": "2042/2043",
+      "Forecast Cost (£)": 207448920.0,
+      "_id": 177
+    },
+    {
+      "Auction Name": "2029-30 (T-4) Four Year Ahead Capacity Auction",
+      "Capacity Awarded": 40108.608,
+      "Delivery Year": "2029/2030",
+      "Forecast Cost (£)": 1086943276.8,
+      "_id": 178
+    },
+    {
+      "Auction Name": "2029-30 (T-4) Four Year Ahead Capacity Auction",
+      "Capacity Awarded": 2862.126,
+      "Delivery Year": "2030/2031",
+      "Forecast Cost (£)": 77563614.6,
+      "_id": 179
+    },
+    {
+      "Auction Name": "2029-30 (T-4) Four Year Ahead Capacity Auction",
+      "Capacity Awarded": 2862.126,
+      "Delivery Year": "2031/2032",
+      "Forecast Cost (£)": 77563614.6,
+      "_id": 180
+    },
+    {
+      "Auction Name": "2029-30 (T-4) Four Year Ahead Capacity Auction",
+      "Capacity Awarded": 1189.525,
+      "Delivery Year": "2032/2033",
+      "Forecast Cost (£)": 32236127.5,
+      "_id": 181
+    },
+    {
+      "Auction Name": "2029-30 (T-4) Four Year Ahead Capacity Auction",
+      "Capacity Awarded": 1189.525,
+      "Delivery Year": "2033/2034",
+      "Forecast Cost (£)": 32236127.5,
+      "_id": 182
+    },
+    {
+      "Auction Name": "2029-30 (T-4) Four Year Ahead Capacity Auction",
+      "Capacity Awarded": 1189.525,
+      "Delivery Year": "2034/2035",
+      "Forecast Cost (£)": 32236127.5,
+      "_id": 183
+    },
+    {
+      "Auction Name": "2029-30 (T-4) Four Year Ahead Capacity Auction",
+      "Capacity Awarded": 1189.525,
+      "Delivery Year": "2035/2036",
+      "Forecast Cost (£)": 32236127.5,
+      "_id": 184
+    },
+    {
+      "Auction Name": "2029-30 (T-4) Four Year Ahead Capacity Auction",
+      "Capacity Awarded": 1189.525,
+      "Delivery Year": "2036/2037",
+      "Forecast Cost (£)": 32236127.5,
+      "_id": 185
+    },
+    {
+      "Auction Name": "2029-30 (T-4) Four Year Ahead Capacity Auction",
+      "Capacity Awarded": 1189.525,
+      "Delivery Year": "2037/2038",
+      "Forecast Cost (£)": 32236127.5,
+      "_id": 186
+    },
+    {
+      "Auction Name": "2029-30 (T-4) Four Year Ahead Capacity Auction",
+      "Capacity Awarded": 1188.525,
+      "Delivery Year": "2038/2039",
+      "Forecast Cost (£)": 32209027.5,
+      "_id": 187
+    },
+    {
+      "Auction Name": "2029-30 (T-4) Four Year Ahead Capacity Auction",
+      "Capacity Awarded": 1188.525,
+      "Delivery Year": "2039/2040",
+      "Forecast Cost (£)": 32209027.5,
+      "_id": 188
+    },
+    {
+      "Auction Name": "2029-30 (T-4) Four Year Ahead Capacity Auction",
+      "Capacity Awarded": 1188.525,
+      "Delivery Year": "2040/2041",
+      "Forecast Cost (£)": 32209027.5,
+      "_id": 189
+    },
+    {
+      "Auction Name": "2029-30 (T-4) Four Year Ahead Capacity Auction",
+      "Capacity Awarded": 1166.965,
+      "Delivery Year": "2041/2042",
+      "Forecast Cost (£)": 31624751.5,
+      "_id": 190
+    },
+    {
+      "Auction Name": "2029-30 (T-4) Four Year Ahead Capacity Auction",
+      "Capacity Awarded": 1166.965,
+      "Delivery Year": "2042/2043",
+      "Forecast Cost (£)": 31624751.5,
+      "_id": 191
+    },
+    {
+      "Auction Name": "2029-30 (T-4) Four Year Ahead Capacity Auction",
+      "Capacity Awarded": 1166.965,
+      "Delivery Year": "2043/2044",
+      "Forecast Cost (£)": 31624751.5,
+      "_id": 192
+    }
+  ],
+  "resource": "cm-clearing",
+  "resource_id": "b1b58919-eaa4-40ea-80df-3d3e526f8223",
+  "source_url": "https://api.neso.energy/api/3/action/datastore_search?resource_id=b1b58919-eaa4-40ea-80df-3d3e526f8223&limit=2000",
+  "summary": {
+    "latest_t1": {
+      "auction_name": "2026-27 (T-1) One Year Ahead Capacity Auction",
+      "clearing_price_gbp_per_kw_yr": 5.0,
+      "delivery_year_start": 2026
+    },
+    "latest_t4": {
+      "auction_name": "2029-30 (T-4) Four Year Ahead Capacity Auction",
+      "clearing_price_gbp_per_kw_yr": 27.1,
+      "delivery_year_start": 2029
+    }
+  }
+}

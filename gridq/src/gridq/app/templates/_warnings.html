@@ -1,0 +1,9 @@
+{# Run warnings - surfaced, never hidden. Record values only. #}
+{% if vm.warnings %}
+<div class="panel warnings">
+  <h3>Warnings &amp; disclosures</h3>
+  <ul>
+    {% for w in vm.warnings %}<li>{{ w }}</li>{% endfor %}
+  </ul>
+</div>
+{% endif %}

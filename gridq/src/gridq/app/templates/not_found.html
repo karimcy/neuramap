@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% block title %}Run not found - GridQ{% endblock %}
+{% block content %}
+<div class="state">
+  <div class="state__icon" aria-hidden="true">
+    <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+         stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="11" cy="11" r="7"></circle><line x1="21" y1="21" x2="16.5" y2="16.5"></line>
+    </svg>
+  </div>
+  <h1>That run isn&rsquo;t here</h1>
+  <p>No run is stored for <code>{{ quote_id }}</code>. It may have been deleted, or never created on
+    this instance.</p>
+  <div class="state__actions">
+    <a class="btn" href="/new-quote">Start a quote</a>
+    <a class="btn secondary" href="/">Back to dashboard</a>
+  </div>
+</div>
+{% endblock %}
