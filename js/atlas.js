@@ -12,18 +12,22 @@
   const C = {
     unit: '#5ec8f2', unitEdge: '#0b0f14', ring: '#5ec8f2',
     lineQuiet: '#7d8a9c', lineLo: '#ffe08a', lineHi: '#ff8a3d', etys: '#3a4656', ic: '#d9e1ec',
+    // DNO_STATE_v1 states on the NESO licence areas, and one outline colour per DNO for its GSP service areas
+    state: { live: '#4fd1a5', stale: '#ffb454', not_published: '#5f6d80', unavailable: '#5f6d80', key_required: '#5f6d80' },
+    dno: { UKPN: '#7aa2ff', SPEN: '#c792ea', NPg: '#f78c6c', ENWL: '#89ddff', NGED: '#c3e88d', SSEN: '#ffcb6b' },
   };
+  const DNO_ORDER = ['UKPN', 'SPEN', 'NPg', 'ENWL', 'NGED', 'SSEN'];
 
   // ── matrix row: GB only; every other market shows the gap with its reason
-  ROWS.push([RK, 'GB constraints — Neura Atlas snapshot (open data: Elexon, NESO, OSM, REPD)', 'GB constraints — Atlas']);
+  ROWS.push([RK, 'GB constraints — Neura Atlas snapshot (Elexon, NESO, OSM, REPD and the six DNOs)', 'GB constraints — Atlas']);
   for (const cc of Object.keys(MATRIX)) {
     MATRIX[cc][RK] = cc === 'GB' ? { url: BASE + 'GB.json', ids: [] } : { gap: 'Neura Atlas covers GB only' };
   }
 
   const st = {
     manifest: null, snap: null, stamp: null, geo: {}, visible: false,
-    sub: { turndown: true, boundaries: true, interconnectors: true },
-    groups: { turndown: L.layerGroup(), boundaries: L.layerGroup(), interconnectors: L.layerGroup() },
+    sub: { turndown: true, boundaries: true, interconnectors: true, dno: true, dnoAreas: true },
+    groups: { dno: L.layerGroup(), dnoAreas: L.layerGroup(), turndown: L.layerGroup(), boundaries: L.layerGroup(), interconnectors: L.layerGroup() },
     attribution: null,
   };
 
@@ -46,7 +50,13 @@
     const s = m.snapshots.find(x => x.stamp === stamp) || m.snapshots[0];
     st.snap = await getJSON(BASE + s.file);
     st.stamp = s.stamp;
-    for (const [k, v] of Object.entries(m.geometry)) if (!st.geo[k]) st.geo[k] = await getJSON(BASE + v.file);
+    // the DNO GSP service-area files are the largest; they load when that layer is first shown
+    for (const [k, v] of Object.entries(m.geometry)) if (!st.geo[k] && !k.startsWith('dno_gsp_')) st.geo[k] = await getJSON(BASE + v.file);
+  }
+  async function loadDnoAreas() {
+    const m = await loadManifest();
+    await Promise.all(Object.entries(m.geometry).filter(([k]) => k.startsWith('dno_gsp_') && !st.geo[k])
+      .map(async ([k, v]) => { st.geo[k] = await getJSON(BASE + v.file); }));
   }
 
   // ── turn-down by drawn wind BM unit
@@ -194,6 +204,111 @@
     }
   }
 
+  // ── distribution: each DNO's own measure, in its own definition, on the NESO licence areas (DNO_NATIVE_v1)
+  const ownerLine = blk => blk && blk.basis === 'owner_authorised_2026-11-26'
+    ? `<div class="pp-src">Owner-authorised for NeuraMap (2026-11-26) · ${(blk.attribution || []).map(esc).join(' · ')}<br>` +
+      `<span class="pp-dim">licence as recorded: ${Object.values(blk.licence || {}).map(esc).join('; ')}</span></div>` : '';
+  const stateWord = s => ({ live: 'live', stale: 'stale', not_published: 'not published', unavailable: 'unavailable', key_required: 'key required' }[s] || s);
+  const tbl = (head, rows) => `<table class="cor-tbl"><thead><tr>${head.map((h, i) => `<th${i ? ' class="r"' : ''}>${h}</th>`).join('')}</tr></thead>` +
+    `<tbody>${rows.map(r => `<tr>${r.map((c, i) => `<td${i ? ' class="r"' : ''}>${c}</td>`).join('')}</tr>`).join('')}</tbody></table>`;
+  const named = (v, note) => (v == null ? `<span class="pp-dim" title="${esc(note || '')}">name withheld</span>` : esc(v));
+
+  function ukpnTables(d) {
+    const rt = d.ukpn.realtime, ev = d.ukpn.events_by_scheme;
+    let s = `<div class="pp-meta"><b>${esc(rt.label)}</b> (${esc(when(rt.retrieved.latest_data_ts))}): ${esc(rt.measure)}. Highest utilisation first.</div>`;
+    s += tbl(['constraint', 'A now', 'trim A', 'release A', 'util %'], rt.rows.slice(0, 8).map(r =>
+      [`${named(r.description, r.description_note)}<br><span class="pp-dim">${esc(r.constraint_id)}</span>`, n0(r.present_amps), n0(r.trim_amps), n0(r.release_limit_amps), n1(r.utilisation_pct)]));
+    s += `<div class="pp-meta"><b>${esc(ev.label)}</b>: ${esc(ev.measure)} · ${esc(mlabel('DNO_NATIVE_AGG_v1'))}</div>`;
+    s += tbl(['scheme · driver', 'events', 'access red. MWh', 'est. lost MWh'], ev.rows.slice(0, 10).map(r =>
+      [`${named(r.scheme, r.scheme_note)} · ${esc(r.driver)}`, n0(r.events), n1(r.access_reduction_mwh), n1(r.est_energy_lost_mwh)]));
+    return s + ownerLine(rt);
+  }
+  function spenTables(d) {
+    const sp = d.spen;
+    const months = [...new Set(sp.rows.map(r => r.month))].sort().slice(-6);
+    let s = `<div class="pp-meta"><b>${esc(sp.label)}</b> (${esc(sp.summed)}) · ${esc(mlabel('DNO_NATIVE_AGG_v1'))}</div>`;
+    s += tbl(['month · scheme', 'sites', 'SPEN generation lost MWh', 'blank'], sp.rows.filter(r => months.includes(r.month)).reverse().map(r =>
+      [`${esc(r.month)} · ${esc(r.scheme)}`, n0(r.sites), n1(r.generation_lost_mwh), n0(r.blank_values)]));
+    s += `<div class="pp-meta pp-dim">${esc(sp.caveat)}. Data ${esc(sp.period.first_day || '—')} → ${esc(sp.period.last_day || '—')}; latest six months shown.</div>`;
+    return s + ownerLine(sp);
+  }
+  function npgTables(d) {
+    const np = d.npg;
+    let s = `<div class="pp-meta"><b>${esc(np.label)}</b> (${esc(np.summed)}) · ${esc(mlabel('DNO_NATIVE_AGG_v1'))}</div>`;
+    s += tbl(['reason', 'events', 'energy reduction MWh', 'last end'], np.rows.map(r =>
+      [esc(r.reason), n0(r.events), n1(r.energy_reduction_mwh), esc((r.last_end || '').slice(0, 10))]));
+    return s + ownerLine(np);
+  }
+  function dnoPopup(p) {
+    const d = st.snap.distribution, x = d.dnos.find(z => z.dno === p.dno) || {};
+    let s = `<div class="pp-head"><span class="pp-name">${esc(p.area)}</span><span class="pp-kv">${esc(p.dno)} · licence area</span></div>`;
+    s += `<div class="pp-kind">${esc(p.dno_full)} · curtailment data <b style="color:${C.state[x.state] || C.lineQuiet}">${esc(stateWord(x.state))}</b></div>`;
+    s += `<div class="pp-meta">Measure, in ${esc(p.dno)}'s own definition: <b>${esc(x.measure || 'none published')}</b>` +
+      (x.detail ? `<br><span class="pp-dim">${esc(x.detail)}</span>` : '') + (x.note ? `<br><span class="pp-dim">${esc(x.note)}</span>` : '') +
+      `<br><span class="pp-dim">${esc(mlabel('DNO_STATE_v1'))}</span></div>`;
+    if (p.dno === 'UKPN') s += ukpnTables(d);
+    else if (p.dno === 'SPEN') s += spenTables(d);
+    else if (p.dno === 'NPg') s += npgTables(d);
+    s += `<div class="pp-meta pp-dim">${esc(d.note)}</div>`;
+    return s + foot('atlas_dno', ['DNO_NATIVE_v1', 'DNO_STATE_v1', 'GEO_BUILD_v1']);
+  }
+  function drawDno() {
+    const g = st.groups.dno; g.clearLayers();
+    const d = st.snap.distribution;
+    if (!d || !st.geo.dno_licence_neso) return;
+    const byDno = Object.fromEntries(d.dnos.map(x => [x.dno, x]));
+    for (const f of st.geo.dno_licence_neso.features) {
+      const p = f.properties, x = byDno[p.dno] || {};
+      const col = C.state[x.state] || C.lineQuiet;
+      const layer = L.geoJSON(f, { style: () => ({ color: col, weight: 1, opacity: 0.7, fillColor: col,
+        fillOpacity: x.state === 'live' ? 0.14 : x.state === 'stale' ? 0.1 : 0.04, dashArray: x.state === 'not_published' ? '3 5' : null }) });
+      layer.bindTooltip(`${esc(p.area)} · ${esc(p.dno)} curtailment data: ${esc(stateWord(x.state))}`, { sticky: true, opacity: 1 });
+      layer.bindPopup(() => dnoPopup(p), { maxWidth: 400, maxHeight: 440 });
+      g.addLayer(layer);
+    }
+  }
+
+  // ── the DNOs' GSP service areas, outlined as each DNO publishes them (simplified for display)
+  function areaPopup(p, fc) {
+    let s = `<div class="pp-head"><span class="pp-name">${named(p.name, p.name_note)}</span><span class="pp-kv">${esc(p.dno)} · ${esc(p.level_term)} area</span></div>`;
+    s += `<div class="pp-kind">${p.id ? `${esc(p.dno)} id <b>${esc(p.id)}</b>` : `${esc(p.dno)} publishes no id for this level`}</div>`;
+    s += `<div class="pp-meta">${esc(fc.publisher_basis)}. An area is where the DNO draws its connections; it is not a network boundary and does not say which substation supplies a site.</div>`;
+    s += `<div class="pp-meta pp-dim">${esc(fc.display.note)} (tolerance ${fc.display.tolerance_deg}°).</div>`;
+    s += ownerLine(fc);
+    const d = st.snap.distribution, x = d && d.dnos.find(z => z.dno === p.dno);
+    if (x && st.sub.dno) {                      // the DNO's own measure, as on its licence area (one click shows both)
+      s += `<div class="pp-meta">${esc(p.dno)} curtailment data <b style="color:${C.state[x.state] || C.lineQuiet}">${esc(stateWord(x.state))}</b>: ${esc(x.measure || 'none published')}` +
+        (x.note ? `<br><span class="pp-dim">${esc(x.note)}</span>` : '') + `</div>`;
+      if (p.dno === 'UKPN') s += ukpnTables(d);
+      else if (p.dno === 'SPEN') s += spenTables(d);
+      else if (p.dno === 'NPg') s += npgTables(d);
+    }
+    return s + foot('atlas_dno_areas', ['GEO_POLLED_v1', 'DNO_NATIVE_v1', 'DNO_STATE_v1']);
+  }
+  async function drawDnoAreas() {
+    const g = st.groups.dnoAreas; g.clearLayers();
+    if (!st.snap.distribution || !st.sub.dnoAreas) return;
+    try { await loadDnoAreas(); } catch (err) { console.warn('DNO areas unavailable', err); return; }
+    for (const dno of DNO_ORDER) {
+      const fc = st.geo['dno_gsp_' + dno.toLowerCase()];
+      if (!fc) continue;
+      const layer = L.geoJSON(fc, { style: () => ({ color: C.dno[dno], weight: 0.8, opacity: 0.75, fillOpacity: 0.02 }),
+        onEachFeature: (f, l) => {
+          const p = f.properties;
+          l.bindTooltip(`${p.name ? esc(p.name) : 'name withheld'} · ${esc(dno)} ${esc(p.level_term)} area`, { sticky: true, opacity: 1 });
+          l.bindPopup(() => areaPopup(p, fc), { maxWidth: 400, maxHeight: 440 });
+        } });
+      g.addLayer(layer);
+    }
+    sinkPolygons();
+  }
+  // the polygons share the lines' renderer: keep them under the lines (GSP areas over licence areas), so a click on
+  // a line still reaches the line
+  function sinkPolygons() {
+    st.groups.dnoAreas.eachLayer(l => { if (map.hasLayer(l) && l.bringToBack) l.bringToBack(); });
+    st.groups.dno.eachLayer(l => { if (map.hasLayer(l) && l.bringToBack) l.bringToBack(); });
+  }
+
   // ── the panel (a card under the coverage matrix)
   function card() {
     let el = document.getElementById('atlasCard');
@@ -229,6 +344,17 @@
       listOnly.map(g => `<div><b>${esc(g.group)}</b>: ${n0(g.n_forecast_binding)} of ${n0(g.n_sps_held)} SPs forecast binding · <span class="pp-dim">${esc(g.render_reason || '')}</span></div>`).join('') + `</details>`;
     h += tog('interconnectors', 'Interconnector outturn (NESO)');
     h += `<p class="note">${esc(s.interconnectors.label)}.</p>`;
+    const d = s.distribution;
+    if (d) {
+      h += tog('dno', 'DNO curtailment and ANM data, each DNO in its own measure');
+      h += `<p class="note">` + DNO_ORDER.map(k => d.dnos.find(x => x.dno === k)).filter(Boolean).map(x =>
+        `<span style="color:${C.state[x.state] || C.lineQuiet}">■</span> <b>${esc(x.dno)}</b> ${esc(stateWord(x.state))}${x.measure ? `: ${esc(x.measure)}` : ''}`).join('<br>') +
+        `<br><span class="pp-dim">${esc(d.note)} ${esc(mlabel('DNO_STATE_v1'))}. Click a licence area for that DNO's own figures.</span></p>`;
+      h += tog('dnoAreas', 'DNO GSP service areas (as each DNO publishes them)');
+      h += `<p class="note">` + DNO_ORDER.map(k => `<span style="color:${C.dno[k]}">▢</span> ${esc(k)}`).join(' · ') +
+        `<br><span class="pp-dim">GSP level only, simplified for display. ${d.areas.withheld_names ? `${n0(d.areas.withheld_names)} area names are withheld by the export's name check. ` : ''}` +
+        `Owner-authorised for NeuraMap (2026-11-26); each DNO's licence and attribution are in the popups and in data/atlas.</span></p>`;
+    }
     if (idx) {
       h += `<details class="note"><summary>Curtailment index — ${esc(idx.name)}</summary><div class="pp-dim">${esc(s.index.label)}. ${esc(idx.basis)}.</div>` +
         lastOk.map(p => `<div>${esc(p.period)}: <b class="num">${n0(p.values.net_turndown_mwh)} MWh</b> net turn-down` +
@@ -239,7 +365,11 @@
     h += `<p class="note pp-dim">${m.attribution.map(esc).join(' · ')} · <a href="https://github.com/karimcy/neuramap/blob/main/docs/ATLAS_BRIDGE.md" target="_blank" rel="noopener">about these layers</a> (docs/ATLAS_BRIDGE.md; licence notices are also inside each data/atlas file)</p>`;
     el.innerHTML = h;
     el.querySelector('#atlasSnap').onchange = async e => { await loadSnapshot(e.target.value); redraw(); };
-    el.querySelectorAll('[data-atlas-sub]').forEach(i => { i.onchange = e => { st.sub[i.dataset.atlasSub] = e.target.checked; applyVisibility(); }; });
+    el.querySelectorAll('[data-atlas-sub]').forEach(i => { i.onchange = async e => {
+      st.sub[i.dataset.atlasSub] = e.target.checked;
+      if (i.dataset.atlasSub === 'dnoAreas' && e.target.checked) await drawDnoAreas();
+      applyVisibility(); sinkPolygons();
+    }; });
   }
 
   function applyVisibility() {
@@ -252,7 +382,10 @@
     if (st.visible && attr && st.attribution !== attr) { map.attributionControl.addAttribution(attr); st.attribution = attr; }
     if (!st.visible && st.attribution) { map.attributionControl.removeAttribution(st.attribution); st.attribution = null; }
   }
-  function redraw() { drawBoundaries(); drawInterconnectors(); drawTurndown(); applyVisibility(); renderCard(); }
+  function redraw() {
+    drawDno(); drawBoundaries(); drawInterconnectors(); drawTurndown(); applyVisibility(); renderCard();
+    drawDnoAreas().then(() => { applyVisibility(); sinkPolygons(); });
+  }
 
   async function toggle(on) {
     st.visible = on;

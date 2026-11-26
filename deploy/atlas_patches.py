@@ -14,7 +14,7 @@ import sys
 
 INDEX = [
     ('<script src="js/app.js?v=26"></script>\n',
-     '<script src="js/app.js?v=26"></script>\n<script src="js/atlas.js?v=1"></script>\n'),
+     '<script src="js/app.js?v=26"></script>\n<script src="js/atlas.js?v=2"></script>\n'),
 ]
 
 
