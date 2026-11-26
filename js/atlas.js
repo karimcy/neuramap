@@ -333,6 +333,7 @@
     const idx = s.index.series[0];
     const lastOk = idx ? idx.points.filter(p => p.values).slice(-3) : [];
     let h = `<div class="card-title">GB constraints — Neura Atlas <span class="card-hint">snapshot</span></div>`;
+    h += `<p class="note"><a href="build-map.html" target="_blank" rel="noopener">Neura UK build map: roadmap progress, work package by work package →</a></p>`;
     h += `<div class="inline-ctl"><span class="lbl">Snapshot</span><select id="atlasSnap" class="pipe-stage" aria-label="Atlas snapshot">${opt}</select></div>`;
     h += tog('turndown', 'Wind turn-down by BM unit (SO-flagged)');
     h += `<p class="note"><b>${n0(cs.drawn_units)}</b> drawn units: <b class="num">${n1(cs.drawn_mwh)} MWh</b> · not drawn (no approved location): <b class="num">${n1(cs.not_drawn_mwh)} MWh</b> · GB wind total <b class="num">${n1(cs.gb_wind_total_mwh)} MWh</b>. ` +
