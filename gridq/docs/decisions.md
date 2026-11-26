@@ -4,6 +4,192 @@ Decision log. Newest first. Each entry: **date · decision · reason · alternat
 
 ---
 
+### D162 — Slurm adapter reconciliation: a node basis, nested rungs per half-hour, one ramp per class, a computed cap, a policy-fact refusal
+
+- **Date:** 2026-11-26
+- **Author:** Fable 5.2, under the owner's delegation of design decisions (WP-SITE-08). Executed for Olly.
+  It is not the owner's own words. Two executor choices are marked below.
+- **Decision.** A Fable 5.2 chair reconciled D160 and D161 where they conflicted.
+  Everything else in those rulings stands.
+  - (C1) **kW is counted on nodes.** A node counts for class C in half-hour h only if every RUNNING job
+    on it is in C and counted in h. kW is floored once per (class, h, hold).
+  - (C2) **Curves and rungs.** `K_c,h(d)` sums the nodes whose jobs all have `p_j ≤ t_h` and
+    `e_j ≥ t_h + 30 min + d`, with `e_j` clamped to a future MAINT reservation.
+    - Each distinct cleaned curve is a rung envelope, `<class_id>.r<kW, 6 digits>.<8+ hex of its points>`.
+    - Half-hour h offers every rung whose step vector is at or below its own at every hold.
+    - A class with two or more rungs has the exclusion group `xg.<class_id>`.
+  - (C3) **When a job becomes preemptible.** `p_j` is `preemptable_time`, else `start_time` plus the
+    QOS `preempt.exempt_time`, else plus the policy's cluster exempt time. An unknown `p_j` withholds the
+    job's nodes.
+  - (C4) **One ramp per class.** It is the maximum over every job of the class admitted in the validity.
+    Holds the ramp cannot finish inside are dropped before rung identity.
+  - (C5) **The cap.** It is the policy cap if stated and lower, else the largest summed first-point kW
+    over the half-hours.
+  - (C6) **Merit order.** The policy's class list, then other classes by id. Within a class, rungs go in
+    descending step vector, then by id.
+  - (C7) **A new code, `POLICY_FACT_MISSING`.** A class-level miss skips the class. A declaration-level
+    miss (horizon, floor) refuses. If every class is skipped, the refusal carries the first code present
+    in this order: `POLICY_FACT_MISSING`, `POWER_BASIS_MISSING`, `UNMAPPABLE_WORKLOAD`,
+    `NO_FLEXIBLE_WORKLOAD`.
+  - (C8) **Ids and labels.** A Slurm name is encoded injectively: every code point outside `[A-Za-z0-9-]`
+    becomes `:` plus 6 hex digits. The class id is `[SYNTHETIC-]slurm.<partition>.<qos>.<outcome>`. The
+    operator label is the QOS name verbatim, so the IC-9 synthetic-label rule binds QOS names.
+  - (C9) **Residuals and node exclusions.**
+    - A suspend class uses the suspended residual; requeue and cancel use the idle one.
+    - A mixed node is withheld and ledgered.
+    - A node in a MAINT reservation active at capture is excluded.
+    - Multi-node jobs count node by node.
+    - "Offered at start" semantics are an IC-9 1.1 candidate.
+    - The basis stays `DeclaredBasis`.
+    - A half-hour with no rung is an `Unavailable` override, never `Unknown`.
+  - **Executor choices (not Fable rulings).**
+    - The no-rung override's reason code is `workload_protected`, with the reason "no eligible
+      workload".
+    - The blackout circularity is resolved this way: a half-hour is `maintenance` if no class has
+      positive kW there and a MAINT reservation touches a contributing node. Since every half-hour then
+      carries an override, `valid_until = valid_from + horizon`.
+- **Reason.**
+  - Rulings S3 and S4 counted kW per job and per class differently, and both left half-hours undefined.
+    The chair fixed one basis so that every number is reproducible from the state and the ledger.
+  - Nested rungs let a consumer call across a decay step without the adapter inventing a curve.
+- **Alternatives considered.**
+  - Per-job kW, rejected because jobs share nodes.
+  - One curve per class at capture, rejected because it ignores job ends.
+  - A recurring template, rejected because a snapshot evidences no pattern.
+  - Clamping the horizon, rejected because it would hide a policy error.
+- **Consequences.** `gridq.datacentre.orchestrators.slurm` implements C1 to C9, and
+  `tests/test_orchestrator_adapters.py` checks them by hand in `test_reference_kw_ramp_and_maintenance_clamp`.
+
+### D161 — Time and response for the Slurm adapter: notice from the policy, ramp from grace, a dated horizon
+
+- **Date:** 2026-11-26
+- **Author:** Fable 5.2, under the owner's delegation of design decisions (WP-SITE-08). Executed for Olly.
+  It is not the owner's own words.
+- **Decision.**
+  - **Notice.** `min_notice_s` is the policy's and is required.
+  - **Ramp.** For requeue and cancel, `ramp_s` is the largest grace time (QOS `limits.grace_time` or
+    partition `grace_time`) plus the policy's `stop_settle_s`. For suspend it is `stop_settle_s` alone.
+    Partition `suspend_time` and `timeouts` are never used.
+  - **Job end.** `e_j` is `end_time`, else `start_time + time_limit`. An infinite limit is unbounded.
+    Nothing derivable is `AMBIGUOUS_STATE`. MAINT reservations clamp `e_j` and produce `maintenance`
+    overrides.
+  - **Validity.** It starts at capture rounded up to the half-hour and runs for the policy
+    `horizon_min`. The horizon must be a multiple of 30 from 30 to 1,440; any other value is invalid
+    and never clamped.
+  - **Template and supersedes.** The template is a single `Unknown` cell. Every half-hour is a dated
+    override. `supersedes` comes from the policy.
+- **Reason.**
+  - Slurm states grace and job ends but not the operator's notice or power settling, so those come
+    from the policy.
+  - A snapshot is evidence for a dated window only.
+- **Alternatives considered.**
+  - `suspend_time` as the ramp, rejected because it is power-saving, not preemption.
+  - A fixed notice.
+  - A recurring weekly template.
+- **Consequences.** `SlurmPolicy.horizon_min`, `SlurmClassTerms.min_notice_s` and `stop_settle_s`; the
+  ramp test and the grace-time mutant.
+
+### D160 — Slurm workload classes and kW: (partition, QOS, outcome), measured node power less a stated residual
+
+- **Date:** 2026-11-26
+- **Author:** Fable 5.2, under the owner's delegation of design decisions (WP-SITE-08). Executed for Olly.
+  It is not the owner's own words.
+- **Decision.**
+  - **Classes.** A class is (partition, QOS, outcome).
+  - **Effective mode.**
+    - Under `preempt/qos`, the mode is the QOS `preempt.mode`, and the QOS must appear in another QOS's
+      `preempt.list`.
+    - Under `preempt/partition_prio`, it is the partition `preempt_mode`.
+    - An empty mode or `CLUSTER_GLOBAL` takes the policy's cluster mode.
+    - `GANG`, `WITHIN` and `PRIORITY` are modifiers. `OFF` and `DISABLED` protect the work. Two actions
+      in one mode are `UNMAPPABLE_WORKLOAD`.
+  - **Mapping to IC-9.**
+    - SUSPEND is deferred and returns later.
+    - REQUEUE of a requeueable job is deferred and returns later.
+    - Other REQUEUE, and CANCEL, are dropped, with no return only if the policy says so, else `Unknown`.
+  - **Running jobs.** Only `job_state == ["RUNNING"]` counts.
+  - **Measured power.** `current_watts` must be set, positive and collected within the policy's
+    `max_power_sample_age_s`. Otherwise the node is withheld. Power is never estimated from GPU counts.
+  - **Shed and kW.** Shed is `current_watts` minus the partition's stated residual. The idle residual
+    may instead come from the policy's opt-in measured idle twin. kW is `floor(Σ shed W / 1000)`.
+  - **Curve.** Holds are the policy's, Pareto-cleaned. There is no cross-class exclusion. The retained
+    floor is required.
+- **Reason.**
+  - QOS and partition preemption are Slurm's documented mechanisms (https://slurm.schedmd.com/preempt.html),
+    and they decide what happens to the work, which fixes the IC-9 workload action.
+  - Measured node power is the only kW Slurm states.
+- **Alternatives considered.**
+  - Per-job classes.
+  - TRES-based power estimates, which would be invented data.
+  - A default residual, which would be an invented number.
+- **Consequences.** `SlurmPolicy` and `SlurmClassTerms`, and the refusal tests for unmappable modes,
+  unmeasured or stale power and zero offers.
+
+### D159 — The adapter pattern: a sealed declare, refusals as values, a derivation ledger, labelled state documents
+
+- **Date:** 2026-11-26
+- **Author:** Fable 5.2, under the owner's delegation of design decisions (WP-SITE-08). Executed for Olly.
+  It is not the owner's own words.
+- **Decision.**
+  - **Package and registry.** The code lives in `gridq.datacentre.orchestrators`, a WS-SITE plug-in
+    package that touches no CORE path. It holds a local `Registry` keyed by API id, and adapters
+    register under the package owner, never `CORE_OWNER`.
+  - **A sealed declare.** `SealedAdapter.declare` cannot be overridden. It checks the API, version,
+    labels, site and operator, then calls the subclass's `_map`, seals the ledger, fills
+    `resolved_hash` with the contract's own function, and validates with the frozen IC-9 model.
+  - **Outcomes.** It returns `Declared | Refused`, never raising for an unmappable state.
+    `RefusalCode` is closed. A class that cannot be mapped is skipped with its reason. Zero surviving
+    classes is a `Refused`.
+  - **The ledger.** Every number comes from a `LedgerBuilder` with its rule, exact value, rounding
+    direction and the JSON pointers it read. A bare number is `UNTRACED_VALUE`.
+  - **State documents.** A `StateDocument` holds the raw API bodies, a `recorded` or `synthetic` label,
+    the API doc URL and `captured_at`, which is also `issued_at`, since adapters read no clock.
+  - **Record class.** Synthetic plus synthetic gives `synthetic_fixture`. A recording plus an operator
+    policy gives `registered`. Anything else is `LABEL_MISMATCH`.
+  - **Fixtures.** Every committed fixture is synthetic, and a test asserts it. The registered branch is
+    tested only with in-test documents.
+- **Reason.**
+  - With these rules an adapter can only hand back what the frozen contract accepted, with every number
+    traced.
+  - A refusal is data a consumer can act on.
+- **Alternatives considered.**
+  - A plain ABC with an overridable declare.
+  - Exceptions for refusals.
+  - Provenance inside the declaration, which IC-9 is frozen against.
+  - Registering in a CORE registry.
+- **Consequences.**
+  - The modules `adapter`, `ledger`, `outcome`, `policy`, `registry`, `state` and `builtin`.
+  - The sealed, untraced, contract-rejected and registry tests.
+  - An AST test that bans network, subprocess, clock and `open` calls.
+
+### D158 — The reference orchestrator is Slurm, read from slurmrestd v0.0.46 responses
+
+- **Date:** 2026-11-26
+- **Author:** Fable 5.2, under the owner's delegation of design decisions (WP-SITE-08). Executed for Olly.
+  It is not the owner's own words.
+- **Decision.** The reference adapter reads Slurm through the bodies of five slurmrestd GETs:
+  - `/slurm/v0.0.46/jobs/`;
+  - `/slurm/v0.0.46/nodes/`;
+  - `/slurm/v0.0.46/partitions/`;
+  - `/slurm/v0.0.46/reservations/`;
+  - `/slurmdb/v0.0.46/qos/`.
+
+  The shape is the one Slurm 26.11 documents for data parser v0.0.46
+  (https://slurm.schedmd.com/archive/slurm-26.11.0/rest_api.html).
+- **Reason.**
+  - Slurm is a public, versioned API that states node power (`energy.current_watts`), preemption classes
+    and job windows.
+  - It is the scheduler most GPU campuses run under a Conductor-type orchestrator.
+- **Alternatives considered.**
+  - Kubernetes: it has no power field and preemption always deletes. It is the best second adapter.
+  - Ray: it has no preemption classes.
+  - Run:ai and Base Command: their APIs are proprietary.
+  - Kueue alone: it handles admission only.
+- **Consequences.**
+  - `gridq.datacentre.orchestrators.slurm`.
+  - Synthetic fixtures in `tests/fixtures/orchestrators/`.
+  - A Kubernetes adapter is left open.
+
 ### D157 — The SL 2 review is computed, with a claim ceiling, a second witness and a sealed slot for the purchased text
 
 - **Date:** 2026-11-26

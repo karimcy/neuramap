@@ -1,0 +1,220 @@
+{
+ "classes": [
+  {
+   "call_limits": {
+    "kind": "call_limits",
+    "max_cumulative": {
+     "kind": "duration_budget",
+     "max_minutes": 600,
+     "window_days": 7
+    },
+    "max_events": {
+     "kind": "event_budget",
+     "max_events": 4,
+     "window_days": 7
+    },
+    "min_rest": {
+     "kind": "minimum_rest",
+     "minutes": 120
+    }
+   },
+   "dropped_energy_return": {
+    "kind": "not_applicable",
+    "reason": "synthetic: work that returns"
+   },
+   "hold_mechanism": "SYNTHETIC: a MAINT reservation on the freed nodes for the hold",
+   "hold_points_min": [
+    30,
+    60,
+    120,
+    240
+   ],
+   "kind": "slurm_class_terms",
+   "min_notice_s": 300,
+   "outcome": "requeue",
+   "partition": "gpu",
+   "price": {
+    "availability_pence_per_mw_per_hour": 100,
+    "kind": "policy_price",
+    "per_event_pence": {
+     "kind": "not_applicable",
+     "reason": "synthetic: no per-event fee"
+    },
+    "stated_on": {
+     "kind": "not_applicable",
+     "reason": "synthetic: a synthetic placeholder has no date"
+    },
+    "utilisation_pence_per_mwh": 1000
+   },
+   "qos": "SYNTHETIC-batch",
+   "rebound": {
+    "kind": "policy_rebound",
+    "max_rebound_kw": 50,
+    "recovery_permille": 1000
+   },
+   "return_window_min": 720,
+   "sla_evidence": {
+    "contract": "IC-4",
+    "contract_version": "1.1.0",
+    "evidence_hash": "sha256:7f10d039a009282ecc8fefc663c90d1c84616f1749467b1116ce70062c4396b8",
+    "kind": "evidence_ref"
+   },
+   "stop_settle_s": 60
+  },
+  {
+   "call_limits": {
+    "kind": "call_limits",
+    "max_cumulative": {
+     "kind": "duration_budget",
+     "max_minutes": 600,
+     "window_days": 7
+    },
+    "max_events": {
+     "kind": "event_budget",
+     "max_events": 4,
+     "window_days": 7
+    },
+    "min_rest": {
+     "kind": "minimum_rest",
+     "minutes": 120
+    }
+   },
+   "dropped_energy_return": "no_return",
+   "hold_mechanism": "SYNTHETIC: a MAINT reservation on the freed nodes for the hold",
+   "hold_points_min": [
+    30,
+    60,
+    120,
+    240
+   ],
+   "kind": "slurm_class_terms",
+   "min_notice_s": 300,
+   "outcome": "cancel",
+   "partition": "gpu",
+   "price": {
+    "availability_pence_per_mw_per_hour": 100,
+    "kind": "policy_price",
+    "per_event_pence": {
+     "kind": "not_applicable",
+     "reason": "synthetic: no per-event fee"
+    },
+    "stated_on": {
+     "kind": "not_applicable",
+     "reason": "synthetic: a synthetic placeholder has no date"
+    },
+    "utilisation_pence_per_mwh": 1000
+   },
+   "qos": "SYNTHETIC-scavenger",
+   "rebound": {
+    "kind": "not_applicable",
+    "reason": "synthetic: no return"
+   },
+   "return_window_min": {
+    "kind": "not_applicable",
+    "reason": "synthetic: dropped work does not return"
+   },
+   "sla_evidence": {
+    "contract": "IC-4",
+    "contract_version": "1.1.0",
+    "evidence_hash": "sha256:c31e971ae01449a1936609df41e1a52fec45b3c1b7c9474eb63140d63d1aed44",
+    "kind": "evidence_ref"
+   },
+   "stop_settle_s": 60
+  },
+  {
+   "call_limits": {
+    "kind": "call_limits",
+    "max_cumulative": {
+     "kind": "duration_budget",
+     "max_minutes": 600,
+     "window_days": 7
+    },
+    "max_events": {
+     "kind": "event_budget",
+     "max_events": 4,
+     "window_days": 7
+    },
+    "min_rest": {
+     "kind": "minimum_rest",
+     "minutes": 120
+    }
+   },
+   "dropped_energy_return": {
+    "kind": "not_applicable",
+    "reason": "synthetic: work that returns"
+   },
+   "hold_mechanism": "SYNTHETIC: a MAINT reservation on the freed nodes for the hold",
+   "hold_points_min": [
+    30,
+    60,
+    120
+   ],
+   "kind": "slurm_class_terms",
+   "min_notice_s": 300,
+   "outcome": "suspend",
+   "partition": "gpu",
+   "price": {
+    "availability_pence_per_mw_per_hour": 100,
+    "kind": "policy_price",
+    "per_event_pence": {
+     "kind": "not_applicable",
+     "reason": "synthetic: no per-event fee"
+    },
+    "stated_on": {
+     "kind": "not_applicable",
+     "reason": "synthetic: a synthetic placeholder has no date"
+    },
+    "utilisation_pence_per_mwh": 1000
+   },
+   "qos": "SYNTHETIC-inference",
+   "rebound": {
+    "kind": "policy_rebound",
+    "max_rebound_kw": 50,
+    "recovery_permille": 1000
+   },
+   "return_window_min": 720,
+   "sla_evidence": {
+    "contract": "IC-4",
+    "contract_version": "1.1.0",
+    "evidence_hash": "sha256:a447d8ff025c20c9a9c0ed711919ad05df6e3d7977cb464e95a3cb5f9414cb1b",
+    "kind": "evidence_ref"
+   },
+   "stop_settle_s": 60
+  }
+ ],
+ "cluster_exempt_time_s": 0,
+ "cluster_preempt_mode": [
+  "REQUEUE"
+ ],
+ "horizon_min": 360,
+ "kind": "slurm_adapter_policy",
+ "label": "synthetic",
+ "max_concurrent_turn_down_kw": {
+  "kind": "not_applicable",
+  "reason": "synthetic: no own cap"
+ },
+ "max_power_sample_age_s": 120,
+ "merit_order": {
+  "kind": "not_applicable",
+  "reason": "synthetic: by class id"
+ },
+ "operator_id": "SYNTHETIC-OPERATOR-SLURM",
+ "policy_note": "SYNTHETIC adapter policy for the WP-SITE-08 tests",
+ "preempt_type": "preempt/qos",
+ "residual_basis": "stated",
+ "residuals": [
+  {
+   "idle_w": 1500,
+   "kind": "partition_residual",
+   "partition": "gpu",
+   "suspended_w": 2500
+  }
+ ],
+ "retained_it_floor_kw": 10,
+ "site_id": "SYNTHETIC-DC-SLURM-CAMPUS",
+ "supersedes": {
+  "kind": "not_applicable",
+  "reason": "synthetic: first declaration"
+ },
+ "supporting_evidence": []
+}

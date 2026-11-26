@@ -47,8 +47,8 @@ RELEASE_JSON: Final = (
 
 #: The pinned hash of `DESIGN`. A change to the design is a new version, never a re-pin. (Pinned
 #: once more at integration, before any consumer bound to it: the branch's sha256:76ccb848...
-#: carried the placeholder "D-NEW-EDGE02-3" in one invariant statement, now D156; nothing else
-#: in the design differs.)
+#: carried the branch placeholder for decision EDGE02-3 in one invariant statement, now D156;
+#: nothing else in the design differs.)
 DESIGN_HASH: Final = "sha256:9737bb5425ecf05df93c48bdee89ecb2cf541eeb12019a9302ebd8c5c7ddfb50"
 
 

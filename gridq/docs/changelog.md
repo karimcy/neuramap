@@ -3,16 +3,67 @@
 All meaningful changes to this project. Newest first. Dates are ISO (YYYY-MM-DD).
 (Canonical location; the former top-level `CHANGELOG.md` now points here.)
 
+## 2026-11-26 — Integration: WP-SITE-08 merged into `roadmap/p1-foundations`
+
+- **D-numbers.** WP-SITE-08's five placeholders took D158 to D162 (SITE08-1 to -5 in order), in the
+  `gridq.datacentre.orchestrators` docstrings, decisions, changelog and handoff entry. No hashed
+  artefact or fixture cites them.
+- **Conflicts** only at the tops of `docs/decisions.md`, `docs/changelog.md` and the handoff log (the
+  branch's 18:49 entry placed in time order).
+- **Tidy.** The WP-EDGE-02 integration notes quoted that branch's placeholder literally; they now
+  name it as "the branch placeholder for decision EDGE02-3", so a search for unresolved
+  placeholders again finds only the two deliberate IC-9 lines (pinned to the IC-9 tag).
+- **Kept green.** The DPA read waiver is still 12 (the Slurm fixtures are synthetic and labelled so);
+  no contract or IC-15 reference changes.
+
+## 2026-11-26 — WP-SITE-08: workload orchestrator adapter pattern, Slurm reference adapter (`gridq.datacentre.orchestrators`)
+
+- **The pattern (D159).**
+  - Interface: `OrchestratorAdapter`, implemented by every `SealedAdapter`, whose `declare(state,
+    policy)` cannot be overridden.
+  - Outcome: `Declared` (an IC-9 1.0.0 declaration validated by the frozen model, a field-level
+    `DerivationLedger`, the classes skipped and the resources withheld with reasons, and a
+    `derivation_hash` binding state, policy, ledger and declaration) or `Refused` (closed
+    `RefusalCode`s, each with a JSON pointer and a detail; never an envelope).
+  - Registry: `orchestrator_adapters`, keyed by API id, owned by the package (never CORE). Importing the
+    package registers nothing.
+  - Inputs: a labelled `StateDocument` (raw API bodies, `recorded` or `synthetic`, API doc URL,
+    `captured_at`) and an operator `AdapterPolicy`. Nothing is defaulted, fetched or written.
+- **The reference adapter, Slurm (D158, D160, D161, D162).**
+  - It reads five slurmrestd `v0.0.46` response bodies (jobs, nodes, partitions, reservations,
+    slurmdb QOS) in the shape documented at https://slurm.schedmd.com/archive/slurm-26.11.0/rest_api.html.
+  - Classes are (partition, QOS, outcome) from the effective preempt mode: suspend and
+    requeueable-requeue are deferred, the rest dropped.
+  - kW is measured node power less the operator's stated residual, counted on nodes wholly in one class.
+  - Each half-hour of the horizon offers nested rung envelopes as dated overrides. MAINT reservations
+    clamp job ends and black out half-hours.
+  - The ramp is the grace time plus the policy's settle time.
+- **Fixtures.** `tests/fixtures/orchestrators/` holds a synthetic reference state and policy, built by
+  `tests/_orchestrator_support.py` and labelled:
+  - `SYNTHETIC` notes;
+  - `SYNTHETIC-` QOS, site and operator;
+  - placeholder prices and evidence hashes.
+  Nothing is recorded from a cluster.
+- **Tests.** `tests/test_orchestrator_adapters.py`, 48 tests:
+  - IC-9 conformance (frozen-model round trip, committed 1.0.0 schema, `resolve`/`timeline_matches`);
+  - a hand-checked reference;
+  - 400 seeded random clusters and 300 damaged payloads;
+  - refusal tests for every code;
+  - the registered branch with in-test documents only;
+  - sealed and registry tests and an AST no-I/O test;
+  - ten mutants plus a control.
+- **Untouched.** IC-9 and every archived schema, every golden, and the DPA waiver (12).
+
 ## 2026-11-26 — Integration: WP-EDGE-02 merged into `roadmap/p1-foundations`
 
 - **D-numbers.** WP-EDGE-02's four placeholders took D154 to D157 (EDGE02-1 to -4 in order), in the
   package docstrings, decisions, changelog and handoff entry.
 - **`DESIGN_HASH` re-pinned once, before any consumer bound to it.** One invariant statement
-  (`bms_mode_is_what_it_says`) quoted "D-NEW-EDGE02-3" into the released design, so the renumbering
+  (`bms_mode_is_what_it_says`) quoted the branch placeholder for decision EDGE02-3 into the released design, so the renumbering
   changed the release's bytes. `python -m gridq.edge_design --write` re-rendered the release JSON
   and `docs/design/edge_zone_conduit_design.v1.0.0.md`; `DESIGN_HASH` moved from
   sha256:76ccb848… to sha256:9737bb54…. Checked: the new JSON equals the branch's with
-  `D-NEW-EDGE02-3` → `D156` and nothing else, and the document differs only there and in the hash
+  that placeholder → `D156` and nothing else, and the document differs only there and in the hash
   line. The design stays v1.0.0 because nothing outside this merge had bound to the old hash; the
   re-pin is recorded in a comment above `DESIGN_HASH`. `--check` returns 0.
 - **Conflicts** only at the tops of `docs/decisions.md`, `docs/changelog.md` and the handoff log (the

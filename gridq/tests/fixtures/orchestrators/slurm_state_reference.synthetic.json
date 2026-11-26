@@ -1,0 +1,1039 @@
+{
+ "capture_note": "SYNTHETIC slurmrestd v0.0.46 bodies (not recorded from any cluster): the WP-SITE-08 reference state, written to exercise requeue, cancel and suspend classes, a MAINT clamp, a shared node and an unmeasured node",
+ "captured_at": "2027-03-01T09:10:00Z",
+ "kind": "orchestrator_state",
+ "label": "synthetic",
+ "payload": {
+  "/slurm/v0.0.46/jobs/": {
+   "errors": [],
+   "jobs": [
+    {
+     "account": "SYNTHETIC-account",
+     "end_time": {
+      "infinite": false,
+      "number": 1803909600,
+      "set": true
+     },
+     "gres_detail": [],
+     "job_id": 101,
+     "job_state": [
+      "RUNNING"
+     ],
+     "name": "SYNTHETIC-job-101",
+     "nodes": "gpu[001-002]",
+     "partition": "gpu",
+     "preemptable_time": {
+      "infinite": false,
+      "number": 1803885000,
+      "set": true
+     },
+     "qos": "SYNTHETIC-batch",
+     "requeue": true,
+     "start_time": {
+      "infinite": false,
+      "number": 1803885000,
+      "set": true
+     },
+     "time_limit": {
+      "infinite": false,
+      "number": 0,
+      "set": false
+     },
+     "tres_alloc_str": "cpu=64,mem=512000M,node=1,billing=64,gres/gpu=4",
+     "user_name": "SYNTHETIC-user"
+    },
+    {
+     "account": "SYNTHETIC-account",
+     "end_time": {
+      "infinite": false,
+      "number": 1803897600,
+      "set": true
+     },
+     "gres_detail": [],
+     "job_id": 102,
+     "job_state": [
+      "RUNNING"
+     ],
+     "name": "SYNTHETIC-job-102",
+     "nodes": "gpu003",
+     "partition": "gpu",
+     "preemptable_time": {
+      "infinite": false,
+      "number": 1803888600,
+      "set": true
+     },
+     "qos": "SYNTHETIC-batch",
+     "requeue": true,
+     "start_time": {
+      "infinite": false,
+      "number": 1803888600,
+      "set": true
+     },
+     "time_limit": {
+      "infinite": false,
+      "number": 0,
+      "set": false
+     },
+     "tres_alloc_str": "cpu=64,mem=512000M,node=1,billing=64,gres/gpu=4",
+     "user_name": "SYNTHETIC-user"
+    },
+    {
+     "account": "SYNTHETIC-account",
+     "end_time": {
+      "infinite": false,
+      "number": 1803906600,
+      "set": true
+     },
+     "gres_detail": [],
+     "job_id": 103,
+     "job_state": [
+      "RUNNING"
+     ],
+     "name": "SYNTHETIC-job-103",
+     "nodes": "gpu004",
+     "partition": "gpu",
+     "preemptable_time": {
+      "infinite": false,
+      "number": 1803888600,
+      "set": true
+     },
+     "qos": "SYNTHETIC-scavenger",
+     "requeue": false,
+     "start_time": {
+      "infinite": false,
+      "number": 1803888600,
+      "set": true
+     },
+     "time_limit": {
+      "infinite": false,
+      "number": 0,
+      "set": false
+     },
+     "tres_alloc_str": "cpu=64,mem=512000M,node=1,billing=64,gres/gpu=4",
+     "user_name": "SYNTHETIC-user"
+    },
+    {
+     "account": "SYNTHETIC-account",
+     "end_time": {
+      "infinite": false,
+      "number": 0,
+      "set": false
+     },
+     "gres_detail": [],
+     "job_id": 104,
+     "job_state": [
+      "RUNNING"
+     ],
+     "name": "SYNTHETIC-job-104",
+     "nodes": "gpu005",
+     "partition": "gpu",
+     "preemptable_time": {
+      "infinite": false,
+      "number": 0,
+      "set": false
+     },
+     "qos": "SYNTHETIC-scavenger",
+     "requeue": false,
+     "start_time": {
+      "infinite": false,
+      "number": 1803888600,
+      "set": true
+     },
+     "time_limit": {
+      "infinite": false,
+      "number": 300,
+      "set": true
+     },
+     "tres_alloc_str": "cpu=64,mem=512000M,node=1,billing=64,gres/gpu=4",
+     "user_name": "SYNTHETIC-user"
+    },
+    {
+     "account": "SYNTHETIC-account",
+     "end_time": {
+      "infinite": false,
+      "number": 0,
+      "set": false
+     },
+     "gres_detail": [],
+     "job_id": 105,
+     "job_state": [
+      "RUNNING"
+     ],
+     "name": "SYNTHETIC-job-105",
+     "nodes": "gpu006",
+     "partition": "gpu",
+     "preemptable_time": {
+      "infinite": false,
+      "number": 0,
+      "set": false
+     },
+     "qos": "SYNTHETIC-inference",
+     "requeue": true,
+     "start_time": {
+      "infinite": false,
+      "number": 1803891600,
+      "set": true
+     },
+     "time_limit": {
+      "infinite": true,
+      "number": 0,
+      "set": true
+     },
+     "tres_alloc_str": "cpu=64,mem=512000M,node=1,billing=64,gres/gpu=4",
+     "user_name": "SYNTHETIC-user"
+    },
+    {
+     "account": "SYNTHETIC-account",
+     "end_time": {
+      "infinite": false,
+      "number": 1803903000,
+      "set": true
+     },
+     "gres_detail": [],
+     "job_id": 106,
+     "job_state": [
+      "RUNNING"
+     ],
+     "name": "SYNTHETIC-job-106",
+     "nodes": "gpu007",
+     "partition": "gpu",
+     "preemptable_time": {
+      "infinite": false,
+      "number": 1803888600,
+      "set": true
+     },
+     "qos": "SYNTHETIC-batch",
+     "requeue": true,
+     "start_time": {
+      "infinite": false,
+      "number": 1803888600,
+      "set": true
+     },
+     "time_limit": {
+      "infinite": false,
+      "number": 0,
+      "set": false
+     },
+     "tres_alloc_str": "cpu=64,mem=512000M,node=1,billing=64,gres/gpu=4",
+     "user_name": "SYNTHETIC-user"
+    },
+    {
+     "account": "SYNTHETIC-account",
+     "end_time": {
+      "infinite": false,
+      "number": 1803903000,
+      "set": true
+     },
+     "gres_detail": [],
+     "job_id": 107,
+     "job_state": [
+      "RUNNING"
+     ],
+     "name": "SYNTHETIC-job-107",
+     "nodes": "gpu007",
+     "partition": "gpu",
+     "preemptable_time": {
+      "infinite": false,
+      "number": 1803888600,
+      "set": true
+     },
+     "qos": "SYNTHETIC-scavenger",
+     "requeue": true,
+     "start_time": {
+      "infinite": false,
+      "number": 1803888600,
+      "set": true
+     },
+     "time_limit": {
+      "infinite": false,
+      "number": 0,
+      "set": false
+     },
+     "tres_alloc_str": "cpu=64,mem=512000M,node=1,billing=64,gres/gpu=4",
+     "user_name": "SYNTHETIC-user"
+    },
+    {
+     "account": "SYNTHETIC-account",
+     "end_time": {
+      "infinite": false,
+      "number": 1803903000,
+      "set": true
+     },
+     "gres_detail": [],
+     "job_id": 108,
+     "job_state": [
+      "RUNNING"
+     ],
+     "name": "SYNTHETIC-job-108",
+     "nodes": "gpu008",
+     "partition": "gpu",
+     "preemptable_time": {
+      "infinite": false,
+      "number": 1803888600,
+      "set": true
+     },
+     "qos": "SYNTHETIC-batch",
+     "requeue": true,
+     "start_time": {
+      "infinite": false,
+      "number": 1803888600,
+      "set": true
+     },
+     "time_limit": {
+      "infinite": false,
+      "number": 0,
+      "set": false
+     },
+     "tres_alloc_str": "cpu=64,mem=512000M,node=1,billing=64,gres/gpu=4",
+     "user_name": "SYNTHETIC-user"
+    },
+    {
+     "account": "SYNTHETIC-account",
+     "end_time": {
+      "infinite": false,
+      "number": 1803903000,
+      "set": true
+     },
+     "gres_detail": [],
+     "job_id": 109,
+     "job_state": [
+      "RUNNING"
+     ],
+     "name": "SYNTHETIC-job-109",
+     "nodes": "gpu010",
+     "partition": "gpu",
+     "preemptable_time": {
+      "infinite": false,
+      "number": 0,
+      "set": false
+     },
+     "qos": "SYNTHETIC-high",
+     "requeue": true,
+     "start_time": {
+      "infinite": false,
+      "number": 1803888600,
+      "set": true
+     },
+     "time_limit": {
+      "infinite": false,
+      "number": 0,
+      "set": false
+     },
+     "tres_alloc_str": "cpu=64,mem=512000M,node=1,billing=64,gres/gpu=4",
+     "user_name": "SYNTHETIC-user"
+    },
+    {
+     "account": "SYNTHETIC-account",
+     "end_time": {
+      "infinite": false,
+      "number": 0,
+      "set": false
+     },
+     "gres_detail": [],
+     "job_id": 110,
+     "job_state": [
+      "PENDING"
+     ],
+     "name": "SYNTHETIC-job-110",
+     "nodes": "",
+     "partition": "gpu",
+     "preemptable_time": {
+      "infinite": false,
+      "number": 0,
+      "set": false
+     },
+     "qos": "SYNTHETIC-batch",
+     "requeue": true,
+     "start_time": {
+      "infinite": false,
+      "number": 0,
+      "set": false
+     },
+     "time_limit": {
+      "infinite": false,
+      "number": 0,
+      "set": false
+     },
+     "tres_alloc_str": "cpu=64,mem=512000M,node=1,billing=64,gres/gpu=4",
+     "user_name": "SYNTHETIC-user"
+    },
+    {
+     "account": "SYNTHETIC-account",
+     "end_time": {
+      "infinite": false,
+      "number": 1803888600,
+      "set": true
+     },
+     "gres_detail": [],
+     "job_id": 111,
+     "job_state": [
+      "COMPLETED"
+     ],
+     "name": "SYNTHETIC-job-111",
+     "nodes": "gpu003",
+     "partition": "gpu",
+     "preemptable_time": {
+      "infinite": false,
+      "number": 0,
+      "set": false
+     },
+     "qos": "SYNTHETIC-batch",
+     "requeue": true,
+     "start_time": {
+      "infinite": false,
+      "number": 1803881400,
+      "set": true
+     },
+     "time_limit": {
+      "infinite": false,
+      "number": 0,
+      "set": false
+     },
+     "tres_alloc_str": "cpu=64,mem=512000M,node=1,billing=64,gres/gpu=4",
+     "user_name": "SYNTHETIC-user"
+    }
+   ],
+   "last_backfill": {
+    "infinite": false,
+    "number": 1803892200,
+    "set": true
+   },
+   "last_update": {
+    "infinite": false,
+    "number": 1803892200,
+    "set": true
+   },
+   "meta": {
+    "client": {
+     "group": "SYNTHETIC",
+     "source": "[synthetic]:0",
+     "user": "SYNTHETIC-reader"
+    },
+    "command": [
+     "job",
+     "list"
+    ],
+    "plugin": {
+     "accounting_storage": "accounting_storage/slurmdbd",
+     "data_parser": "data_parser/v0.0.46",
+     "name": "Slurm OpenAPI slurmctld",
+     "type": "openapi/slurmctld"
+    },
+    "slurm": {
+     "cluster": "SYNTHETIC-cluster",
+     "release": "26.11.0",
+     "version": {
+      "major": "26",
+      "micro": "0",
+      "minor": "11"
+     }
+    }
+   },
+   "warnings": []
+  },
+  "/slurm/v0.0.46/nodes/": {
+   "errors": [],
+   "last_update": {
+    "infinite": false,
+    "number": 1803892200,
+    "set": true
+   },
+   "meta": {
+    "client": {
+     "group": "SYNTHETIC",
+     "source": "[synthetic]:0",
+     "user": "SYNTHETIC-reader"
+    },
+    "command": [
+     "node",
+     "list"
+    ],
+    "plugin": {
+     "accounting_storage": "accounting_storage/slurmdbd",
+     "data_parser": "data_parser/v0.0.46",
+     "name": "Slurm OpenAPI slurmctld",
+     "type": "openapi/slurmctld"
+    },
+    "slurm": {
+     "cluster": "SYNTHETIC-cluster",
+     "release": "26.11.0",
+     "version": {
+      "major": "26",
+      "micro": "0",
+      "minor": "11"
+     }
+    }
+   },
+   "nodes": [
+    {
+     "alloc_cpus": 64,
+     "cpus": 64,
+     "energy": {
+      "average_watts": 6400,
+      "base_consumed_energy": 0,
+      "consumed_energy": 0,
+      "current_watts": {
+       "infinite": false,
+       "number": 6400,
+       "set": true
+      },
+      "last_collected": 1803892180,
+      "previous_consumed_energy": 0
+     },
+     "gres": "gpu:SYNTHETIC-gpu:4",
+     "gres_used": "gpu:SYNTHETIC-gpu:4",
+     "name": "gpu001",
+     "partitions": [
+      "gpu"
+     ],
+     "state": [
+      "ALLOCATED"
+     ],
+     "tres": "cpu=64,mem=512000M,billing=64,gres/gpu=4",
+     "tres_used": "cpu=64,mem=512000M,billing=64,gres/gpu=4"
+    },
+    {
+     "alloc_cpus": 64,
+     "cpus": 64,
+     "energy": {
+      "average_watts": 6300,
+      "base_consumed_energy": 0,
+      "consumed_energy": 0,
+      "current_watts": {
+       "infinite": false,
+       "number": 6300,
+       "set": true
+      },
+      "last_collected": 1803892180,
+      "previous_consumed_energy": 0
+     },
+     "gres": "gpu:SYNTHETIC-gpu:4",
+     "gres_used": "gpu:SYNTHETIC-gpu:4",
+     "name": "gpu002",
+     "partitions": [
+      "gpu"
+     ],
+     "state": [
+      "ALLOCATED"
+     ],
+     "tres": "cpu=64,mem=512000M,billing=64,gres/gpu=4",
+     "tres_used": "cpu=64,mem=512000M,billing=64,gres/gpu=4"
+    },
+    {
+     "alloc_cpus": 64,
+     "cpus": 64,
+     "energy": {
+      "average_watts": 6200,
+      "base_consumed_energy": 0,
+      "consumed_energy": 0,
+      "current_watts": {
+       "infinite": false,
+       "number": 6200,
+       "set": true
+      },
+      "last_collected": 1803892180,
+      "previous_consumed_energy": 0
+     },
+     "gres": "gpu:SYNTHETIC-gpu:4",
+     "gres_used": "gpu:SYNTHETIC-gpu:4",
+     "name": "gpu003",
+     "partitions": [
+      "gpu"
+     ],
+     "state": [
+      "ALLOCATED"
+     ],
+     "tres": "cpu=64,mem=512000M,billing=64,gres/gpu=4",
+     "tres_used": "cpu=64,mem=512000M,billing=64,gres/gpu=4"
+    },
+    {
+     "alloc_cpus": 64,
+     "cpus": 64,
+     "energy": {
+      "average_watts": 5800,
+      "base_consumed_energy": 0,
+      "consumed_energy": 0,
+      "current_watts": {
+       "infinite": false,
+       "number": 5800,
+       "set": true
+      },
+      "last_collected": 1803892180,
+      "previous_consumed_energy": 0
+     },
+     "gres": "gpu:SYNTHETIC-gpu:4",
+     "gres_used": "gpu:SYNTHETIC-gpu:4",
+     "name": "gpu004",
+     "partitions": [
+      "gpu"
+     ],
+     "state": [
+      "ALLOCATED"
+     ],
+     "tres": "cpu=64,mem=512000M,billing=64,gres/gpu=4",
+     "tres_used": "cpu=64,mem=512000M,billing=64,gres/gpu=4"
+    },
+    {
+     "alloc_cpus": 64,
+     "cpus": 64,
+     "energy": {
+      "average_watts": 5900,
+      "base_consumed_energy": 0,
+      "consumed_energy": 0,
+      "current_watts": {
+       "infinite": false,
+       "number": 5900,
+       "set": true
+      },
+      "last_collected": 1803892180,
+      "previous_consumed_energy": 0
+     },
+     "gres": "gpu:SYNTHETIC-gpu:4",
+     "gres_used": "gpu:SYNTHETIC-gpu:4",
+     "name": "gpu005",
+     "partitions": [
+      "gpu"
+     ],
+     "state": [
+      "ALLOCATED"
+     ],
+     "tres": "cpu=64,mem=512000M,billing=64,gres/gpu=4",
+     "tres_used": "cpu=64,mem=512000M,billing=64,gres/gpu=4"
+    },
+    {
+     "alloc_cpus": 64,
+     "cpus": 64,
+     "energy": {
+      "average_watts": 6100,
+      "base_consumed_energy": 0,
+      "consumed_energy": 0,
+      "current_watts": {
+       "infinite": false,
+       "number": 6100,
+       "set": true
+      },
+      "last_collected": 1803892180,
+      "previous_consumed_energy": 0
+     },
+     "gres": "gpu:SYNTHETIC-gpu:4",
+     "gres_used": "gpu:SYNTHETIC-gpu:4",
+     "name": "gpu006",
+     "partitions": [
+      "gpu"
+     ],
+     "state": [
+      "ALLOCATED"
+     ],
+     "tres": "cpu=64,mem=512000M,billing=64,gres/gpu=4",
+     "tres_used": "cpu=64,mem=512000M,billing=64,gres/gpu=4"
+    },
+    {
+     "alloc_cpus": 64,
+     "cpus": 64,
+     "energy": {
+      "average_watts": 6000,
+      "base_consumed_energy": 0,
+      "consumed_energy": 0,
+      "current_watts": {
+       "infinite": false,
+       "number": 6000,
+       "set": true
+      },
+      "last_collected": 1803892180,
+      "previous_consumed_energy": 0
+     },
+     "gres": "gpu:SYNTHETIC-gpu:4",
+     "gres_used": "gpu:SYNTHETIC-gpu:4",
+     "name": "gpu007",
+     "partitions": [
+      "gpu"
+     ],
+     "state": [
+      "ALLOCATED"
+     ],
+     "tres": "cpu=64,mem=512000M,billing=64,gres/gpu=4",
+     "tres_used": "cpu=64,mem=512000M,billing=64,gres/gpu=4"
+    },
+    {
+     "alloc_cpus": 64,
+     "cpus": 64,
+     "energy": {
+      "average_watts": 0,
+      "base_consumed_energy": 0,
+      "consumed_energy": 0,
+      "current_watts": {
+       "infinite": false,
+       "number": 0,
+       "set": false
+      },
+      "last_collected": 1803892180,
+      "previous_consumed_energy": 0
+     },
+     "gres": "gpu:SYNTHETIC-gpu:4",
+     "gres_used": "gpu:SYNTHETIC-gpu:4",
+     "name": "gpu008",
+     "partitions": [
+      "gpu"
+     ],
+     "state": [
+      "ALLOCATED"
+     ],
+     "tres": "cpu=64,mem=512000M,billing=64,gres/gpu=4",
+     "tres_used": "cpu=64,mem=512000M,billing=64,gres/gpu=4"
+    },
+    {
+     "alloc_cpus": 0,
+     "cpus": 64,
+     "energy": {
+      "average_watts": 1400,
+      "base_consumed_energy": 0,
+      "consumed_energy": 0,
+      "current_watts": {
+       "infinite": false,
+       "number": 1400,
+       "set": true
+      },
+      "last_collected": 1803892180,
+      "previous_consumed_energy": 0
+     },
+     "gres": "gpu:SYNTHETIC-gpu:4",
+     "gres_used": "",
+     "name": "gpu009",
+     "partitions": [
+      "gpu"
+     ],
+     "state": [
+      "IDLE"
+     ],
+     "tres": "cpu=64,mem=512000M,billing=64,gres/gpu=4",
+     "tres_used": ""
+    },
+    {
+     "alloc_cpus": 64,
+     "cpus": 64,
+     "energy": {
+      "average_watts": 6500,
+      "base_consumed_energy": 0,
+      "consumed_energy": 0,
+      "current_watts": {
+       "infinite": false,
+       "number": 6500,
+       "set": true
+      },
+      "last_collected": 1803892180,
+      "previous_consumed_energy": 0
+     },
+     "gres": "gpu:SYNTHETIC-gpu:4",
+     "gres_used": "gpu:SYNTHETIC-gpu:4",
+     "name": "gpu010",
+     "partitions": [
+      "gpu"
+     ],
+     "state": [
+      "ALLOCATED"
+     ],
+     "tres": "cpu=64,mem=512000M,billing=64,gres/gpu=4",
+     "tres_used": "cpu=64,mem=512000M,billing=64,gres/gpu=4"
+    }
+   ],
+   "warnings": []
+  },
+  "/slurm/v0.0.46/partitions/": {
+   "errors": [],
+   "last_update": {
+    "infinite": false,
+    "number": 1803892200,
+    "set": true
+   },
+   "meta": {
+    "client": {
+     "group": "SYNTHETIC",
+     "source": "[synthetic]:0",
+     "user": "SYNTHETIC-reader"
+    },
+    "command": [
+     "partition",
+     "list"
+    ],
+    "plugin": {
+     "accounting_storage": "accounting_storage/slurmdbd",
+     "data_parser": "data_parser/v0.0.46",
+     "name": "Slurm OpenAPI slurmctld",
+     "type": "openapi/slurmctld"
+    },
+    "slurm": {
+     "cluster": "SYNTHETIC-cluster",
+     "release": "26.11.0",
+     "version": {
+      "major": "26",
+      "micro": "0",
+      "minor": "11"
+     }
+    }
+   },
+   "partitions": [
+    {
+     "grace_time": 0,
+     "name": "gpu",
+     "nodes": {
+      "allowed_allocation": "",
+      "configured": "gpu001,gpu002,gpu003,gpu004,gpu005,gpu006,gpu007,gpu008,gpu009,gpu010",
+      "total": 10
+     },
+     "preempt_mode": [
+      "CLUSTER_GLOBAL"
+     ],
+     "priority": {
+      "job_factor": 1,
+      "tier": 1
+     },
+     "qos": {
+      "allowed": "",
+      "assigned": "",
+      "deny": ""
+     },
+     "suspend_time": {
+      "infinite": false,
+      "number": 0,
+      "set": false
+     },
+     "timeouts": {
+      "resume": {
+       "infinite": false,
+       "number": 0,
+       "set": false
+      },
+      "suspend": {
+       "infinite": false,
+       "number": 0,
+       "set": false
+      }
+     }
+    }
+   ],
+   "warnings": []
+  },
+  "/slurm/v0.0.46/reservations/": {
+   "errors": [],
+   "last_update": {
+    "infinite": false,
+    "number": 1803892200,
+    "set": true
+   },
+   "meta": {
+    "client": {
+     "group": "SYNTHETIC",
+     "source": "[synthetic]:0",
+     "user": "SYNTHETIC-reader"
+    },
+    "command": [
+     "reservation",
+     "list"
+    ],
+    "plugin": {
+     "accounting_storage": "accounting_storage/slurmdbd",
+     "data_parser": "data_parser/v0.0.46",
+     "name": "Slurm OpenAPI slurmctld",
+     "type": "openapi/slurmctld"
+    },
+    "slurm": {
+     "cluster": "SYNTHETIC-cluster",
+     "release": "26.11.0",
+     "version": {
+      "major": "26",
+      "micro": "0",
+      "minor": "11"
+     }
+    }
+   },
+   "reservations": [
+    {
+     "end_time": {
+      "infinite": false,
+      "number": 1803909600,
+      "set": true
+     },
+     "flags": [
+      "MAINT",
+      "SPEC_NODES"
+     ],
+     "name": "SYNTHETIC-maint-gpu001-002",
+     "node_list": "gpu[001-002]",
+     "partition": "gpu",
+     "start_time": {
+      "infinite": false,
+      "number": 1803902400,
+      "set": true
+     }
+    }
+   ],
+   "warnings": []
+  },
+  "/slurmdb/v0.0.46/qos/": {
+   "errors": [],
+   "meta": {
+    "client": {
+     "group": "SYNTHETIC",
+     "source": "[synthetic]:0",
+     "user": "SYNTHETIC-reader"
+    },
+    "command": [
+     "qos",
+     "list"
+    ],
+    "plugin": {
+     "accounting_storage": "accounting_storage/slurmdbd",
+     "data_parser": "data_parser/v0.0.46",
+     "name": "Slurm OpenAPI slurmdbd",
+     "type": "openapi/slurmdbd"
+    },
+    "slurm": {
+     "cluster": "SYNTHETIC-cluster",
+     "release": "26.11.0",
+     "version": {
+      "major": "26",
+      "micro": "0",
+      "minor": "11"
+     }
+    }
+   },
+   "qos": [
+    {
+     "description": "SYNTHETIC QOS",
+     "flags": [],
+     "limits": {
+      "factor": {
+       "infinite": false,
+       "number": 0,
+       "set": false
+      },
+      "grace_time": 0
+     },
+     "name": "SYNTHETIC-high",
+     "preempt": {
+      "exempt_time": {
+       "infinite": false,
+       "number": 0,
+       "set": false
+      },
+      "list": [
+       "SYNTHETIC-batch",
+       "SYNTHETIC-inference",
+       "SYNTHETIC-scavenger"
+      ],
+      "mode": [
+       "CLUSTER_GLOBAL"
+      ]
+     },
+     "priority": {
+      "infinite": false,
+      "number": 1,
+      "set": true
+     }
+    },
+    {
+     "description": "SYNTHETIC QOS",
+     "flags": [],
+     "limits": {
+      "factor": {
+       "infinite": false,
+       "number": 0,
+       "set": false
+      },
+      "grace_time": 120
+     },
+     "name": "SYNTHETIC-batch",
+     "preempt": {
+      "exempt_time": {
+       "infinite": false,
+       "number": 0,
+       "set": false
+      },
+      "list": [],
+      "mode": [
+       "REQUEUE"
+      ]
+     },
+     "priority": {
+      "infinite": false,
+      "number": 1,
+      "set": true
+     }
+    },
+    {
+     "description": "SYNTHETIC QOS",
+     "flags": [],
+     "limits": {
+      "factor": {
+       "infinite": false,
+       "number": 0,
+       "set": false
+      },
+      "grace_time": 60
+     },
+     "name": "SYNTHETIC-scavenger",
+     "preempt": {
+      "exempt_time": {
+       "infinite": false,
+       "number": 0,
+       "set": false
+      },
+      "list": [],
+      "mode": [
+       "CANCEL"
+      ]
+     },
+     "priority": {
+      "infinite": false,
+      "number": 1,
+      "set": true
+     }
+    },
+    {
+     "description": "SYNTHETIC QOS",
+     "flags": [],
+     "limits": {
+      "factor": {
+       "infinite": false,
+       "number": 0,
+       "set": false
+      },
+      "grace_time": 0
+     },
+     "name": "SYNTHETIC-inference",
+     "preempt": {
+      "exempt_time": {
+       "infinite": false,
+       "number": 1800,
+       "set": true
+      },
+      "list": [],
+      "mode": [
+       "SUSPEND",
+       "GANG"
+      ]
+     },
+     "priority": {
+      "infinite": false,
+      "number": 1,
+      "set": true
+     }
+    }
+   ],
+   "warnings": []
+  }
+ },
+ "source": {
+  "api_id": "slurmrestd",
+  "api_version": "v0.0.46",
+  "doc_url": "https://slurm.schedmd.com/archive/slurm-26.11.0/rest_api.html",
+  "kind": "api_source",
+  "resource_paths": [
+   "/slurm/v0.0.46/jobs/",
+   "/slurm/v0.0.46/nodes/",
+   "/slurm/v0.0.46/partitions/",
+   "/slurm/v0.0.46/reservations/",
+   "/slurmdb/v0.0.46/qos/"
+  ]
+ }
+}

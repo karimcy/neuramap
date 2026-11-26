@@ -1224,6 +1224,13 @@ Append-only. One entry per work session, newest at the bottom. Append via `gridq
 - **Remaining tasks:** person-only: purchase IEC 62443-3-3 (and 3-2) so a person can check the review against the full text; host/DNO/BESS OEM/meter operator/RTM partner data asks (12 DESIGN_ASKS); ThermaFlex interface awaits AWAIT-19. Parent: update atlas roadmap/build map. D154..D157 to be numbered at integration. Open: ANM path below L2 (WP-EDGE-05), meter protocol assumption, band-offer message schema.
 - **Warnings for next person:** Review uses public SR identifiers/titles only (sources cited by URL+sha256); never present it as certified. No site network facts invented: site instance stays Unknown until asks answered. Release JSON is hash-pinned (DESIGN_HASH); regenerate with python -m gridq.edge_design --write if the design changes.
 
+### 2026-11-26 18:49 — Olly
+- **Summary:** WP-SITE-08 (B8-02): workload orchestrator adapter pattern in gridq.datacentre.orchestrators (sealed SealedAdapter.declare -> Declared|Refused, closed RefusalCode, field-level DerivationLedger, labelled StateDocument, package-owned registry) and the Slurm reference adapter reading slurmrestd v0.0.46 response bodies into IC-9 1.0.0 declarations validated by the frozen model. Decisions D158 to D162 (Fable 5.2).
+- **Files changed:** src/gridq/datacentre/orchestrators/{__init__,adapter,builtin,hostlist,ledger,outcome,policy,registry,slurm,state}.py, tests/test_orchestrator_adapters.py, tests/_orchestrator_support.py, tests/fixtures/orchestrators/slurm_{state,policy}_reference.synthetic.json, docs/decisions.md, docs/changelog.md
+- **Tests run:** tests/test_orchestrator_adapters.py 48 passed (incl. 10 mutants + control); fast tier 5677 passed, 115 skipped; python -m gridq.contracts --check ok; ruff check/format --check clean on changed paths; mypy clean (233 files)
+- **Remaining tasks:** Map D158..D162 to D-numbers at integration; Kubernetes as a second adapter; IC-9 1.1 candidate: 'offered at start' semantics; Atlas roadmap and Build Map not updated from this worktree
+- **Warnings for next person:** All fixtures synthetic; never commit a 'recorded' state document (a test asserts the fixture folder holds only the two synthetic files). Slurm enum readings (GANG/WITHIN/PRIORITY as modifiers, QOS DISABLED as OFF) and MAINT-only reservations are executor readings of the docs, not confirmed against the OpenAPI enum list. No IC-9 or archived schema edited, no golden re-pinned, DPA waiver still 12.
+
 ### 2026-11-26 19:15 — Olly
 - **Summary:** Integration: WP-UW-02 (roadmap/wp-uw02-eligibility, c9eec54, site eligibility engine) merged into roadmap/p1-foundations. Placeholders UW02-1..10 took D133-D142 (comments, docstrings and the fixture PIN note only; the rule-table hash and the pinned Atlas snapshots do not move). Conflicts only at the doc append points.
 - **Files changed:** src/gridq/underwriting/{eligibility,eligibility_bridge,eligibility_model,eligibility_rules,__init__}.py, tests/{_eligibility_support,test_site_eligibility_engine}.py, tests/fixtures/atlas_load_control/*, docs/{decisions,changelog}.md.
@@ -1246,10 +1253,17 @@ Append-only. One entry per work session, newest at the bottom. Append via `gridq
 - **Warnings for next person:** A new IC-14 version trips the OPS-11 tripwire on purpose: revisit the two waiting terms then.
 
 ### 2026-11-26 21:35 — Olly
-- **Summary:** Integration: WP-EDGE-02 (roadmap/wp-edge02-zones, 40444ef, IEC 62443-3-3 SL 2 zone and conduit design) merged into roadmap/p1-foundations. Placeholders EDGE02-1..4 took D154-D157. One invariant statement carried D-NEW-EDGE02-3 into the hashed release, so the release JSON and design document were re-rendered (--write) and DESIGN_HASH re-pinned once at integration (76ccb848... -> 9737bb54...; only that D-id differs; recorded above DESIGN_HASH). Doc-top conflicts only.
+- **Summary:** Integration: WP-EDGE-02 (roadmap/wp-edge02-zones, 40444ef, IEC 62443-3-3 SL 2 zone and conduit design) merged into roadmap/p1-foundations. Placeholders EDGE02-1..4 took D154-D157. One invariant statement carried the branch placeholder for EDGE02-3 into the hashed release, so the release JSON and design document were re-rendered (--write) and DESIGN_HASH re-pinned once at integration (76ccb848... -> 9737bb54...; only that D-id differs; recorded above DESIGN_HASH). Doc-top conflicts only.
 - **Files changed:** src/gridq/edge_design/*, tests/edge_design/*, docs/design/edge_zone_conduit_design.v1.0.0.md, docs/{decisions,changelog}.md.
 - **Tests run:** fast tier 6697 passed, 115 skipped, 0 failed; tests/edge_design and tests/governance passed; python -m gridq.edge_design --check exit 0; python -m gridq.contracts --check exit 0; ruff check clean; ruff format --check src tests clean; mypy 247 files clean.
 - **Remaining tasks:** person-only items from WP-EDGE-02 stand (purchase IEC 62443-3-3/3-2 for a person's check). Next: merge wp-site08-orch, wp-therm03-plant, wp-site04-adequacy, wp-size02-library, wp-uw05-tiers.
 - **Warnings for next person:** DESIGN_HASH is now bound; any further change to the design is v1.1.0, never a re-pin.
+
+### 2026-11-26 21:55 — Olly
+- **Summary:** Integration: WP-SITE-08 (roadmap/wp-site08-orch, a43e4cf, workload orchestrator adapter pattern with the Slurm reference adapter, src/gridq/datacentre/orchestrators/) merged into roadmap/p1-foundations. Placeholders SITE08-1..5 took D158-D162. Doc-top conflicts only. The EDGE-02 integration notes no longer quote that branch's placeholder literally.
+- **Files changed:** src/gridq/datacentre/orchestrators/*, tests/test_orchestrator_adapters.py, tests/_orchestrator_support.py, tests/fixtures/orchestrators/*.synthetic.json, src/gridq/edge_design/release.py (comment), docs/{decisions,changelog}.md.
+- **Tests run:** fast tier 6745 passed, 115 skipped, 0 failed; tests/test_orchestrator_adapters.py, tests/governance and tests/edge_design 482 passed; python -m gridq.contracts --check exit 0; ruff check clean; ruff format --check src tests clean; mypy 257 files clean.
+- **Remaining tasks:** Next: merge wp-therm03-plant (with the tier timings), wp-site04-adequacy, wp-size02-library, wp-uw05-tiers.
+- **Warnings for next person:** None new.
 
 <!-- HANDOFF_ENTRIES:END -->
