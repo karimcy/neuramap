@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% block title %}Telemetry · {{ quote.quote_id }} - GridQ{% endblock %}
+{% block statusstrip %}{% include "_statusbar.html" %}{% endblock %}
+{% block content %}
+<h1>Run telemetry</h1>
+<p class="lede">GridQ measures itself from the first quote: data tier, effort, and outcome are logged on
+  every run, not retrofitted.</p>
+
+<div class="card">
+  {% if telemetry %}
+  <dl class="kv">
+    <dt>Event</dt><dd><code>{{ telemetry.event_type }}</code></dd>
+    <dt>Quote</dt><dd><code>{{ telemetry.quote_id }}</code></dd>
+    <dt>Data tier</dt><dd>{{ telemetry.data_tier.value if telemetry.data_tier else ' - ' }}</dd>
+    <dt>Missing-data count</dt><dd>{{ telemetry.missing_data_count if telemetry.missing_data_count is not none else ' - ' }}</dd>
+    <dt>Human minutes</dt><dd>{{ telemetry.human_minutes if telemetry.human_minutes is not none else ' - ' }}</dd>
+    <dt>Installer iterations</dt><dd>{{ telemetry.installer_iterations if telemetry.installer_iterations is not none else ' - ' }}</dd>
+    <dt>Contributor</dt><dd>{{ telemetry.contributor or ' - ' }}</dd>
+    {% if telemetry.notes %}<dt>Notes</dt><dd>{{ telemetry.notes }}</dd>{% endif %}
+  </dl>
+  {% else %}
+  <p class="unavail">{{ fmt_unavailable("no telemetry event was persisted for this run") }}</p>
+  {% endif %}
+</div>
+
+{% include "_provenance.html" %}
+{% endblock %}

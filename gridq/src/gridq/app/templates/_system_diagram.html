@@ -1,0 +1,77 @@
+{# Single-line system diagram: grid, site load, inverter/PCS, battery, optional solar, and the
+   cables between them. Labels are the sized values from the run record (formatted server-side);
+   the layout is fixed geometry. Solar is shown as an optional node because this engine sizes the
+   battery, not the PV array. #}
+{% if vm.spec.selected_power_kw is not none %}
+<div class="card">
+  <h2>System diagram</h2>
+  <p class="muted">How the sized system connects: the battery and its inverter sit behind the meter,
+    between the site load and the grid connection. Solar can feed the same inverter bus.</p>
+  <div class="sysdiagram">
+    <svg viewBox="0 0 780 300" role="img" aria-label="Single-line diagram of the sized battery system">
+      <!-- cables -->
+      <g class="cables">
+        <line x1="170" y1="110" x2="230" y2="110"></line>
+        <line x1="400" y1="110" x2="460" y2="110"></line>
+        <line x1="630" y1="110" x2="690" y2="110"></line>
+        <line x1="545" y1="150" x2="545" y2="225"></line>
+      </g>
+
+      <!-- Grid connection -->
+      <g class="node node-grid">
+        <rect x="30" y="70" width="140" height="80" rx="12"></rect>
+        <text class="ic" x="100" y="104">&#9889;</text>
+        <text class="nm" x="100" y="124">Grid connection</text>
+        <text class="vl" x="100" y="142">{{ fmt_opt(site.connection.mic_kw, fmt_kw) if site else 'MIC' }} import</text>
+      </g>
+
+      <!-- Site load / meter -->
+      <g class="node node-site">
+        <rect x="260" y="70" width="140" height="80" rx="12"></rect>
+        <g transform="translate(330,96)">
+          <rect x="-8" y="-8" width="16" height="16" rx="1.5" fill="none" stroke="#171d1b" stroke-width="1.5"></rect>
+          <rect x="-4.5" y="-4.5" width="3" height="3" fill="#171d1b"></rect>
+          <rect x="1.5" y="-4.5" width="3" height="3" fill="#171d1b"></rect>
+          <rect x="-1.5" y="2" width="3" height="6" fill="#171d1b"></rect>
+        </g>
+        <text class="nm" x="330" y="124">Site load</text>
+        <text class="vl" x="330" y="142">{{ fmt_opt(site.load_data.max_import_kw, fmt_kw) if site else ' - ' }} peak</text>
+      </g>
+
+      <!-- Inverter / PCS -->
+      <g class="node node-inv">
+        <rect x="475" y="70" width="140" height="80" rx="12"></rect>
+        <text class="ic" x="545" y="104">&#8651;</text>
+        <text class="nm" x="545" y="124">Inverter / PCS</text>
+        <text class="vl" x="545" y="142">{{ fmt_opt(vm.spec.selected_power_kw, fmt_kw) }}</text>
+      </g>
+
+      <!-- Battery -->
+      <g class="node node-batt">
+        <rect x="690" y="70" width="90" height="80" rx="12"></rect>
+        <g transform="translate(735,96)">
+          <rect x="-9" y="-6" width="15" height="12" rx="2" fill="none" stroke="var(--ok)" stroke-width="1.6"></rect>
+          <rect x="6" y="-2.5" width="2.5" height="5" fill="var(--ok)"></rect>
+          <rect x="-7" y="-4" width="8" height="8" rx="1" fill="var(--ok)"></rect>
+        </g>
+        <text class="nm" x="735" y="124">Battery</text>
+        <text class="vl" x="735" y="142">{{ fmt_opt(vm.spec.selected_energy_kwh, fmt_kwh) }}</text>
+      </g>
+
+      <!-- Solar PV (optional) -->
+      <g class="node node-solar">
+        <rect x="475" y="225" width="140" height="62" rx="12"></rect>
+        <text class="ic" x="545" y="252">&#9728;</text>
+        <text class="nm" x="545" y="270">Solar PV (optional)</text>
+      </g>
+    </svg>
+  </div>
+  <div class="surface-legend">
+    <span><span class="sw" style="background:#3b82f6"></span>Grid</span>
+    <span><span class="sw" style="background:var(--ink)"></span>Site load</span>
+    <span><span class="sw" style="background:var(--accent)"></span>Inverter / PCS</span>
+    <span><span class="sw" style="background:var(--firm)"></span>Battery ({{ fmt_opt(vm.spec.selected_power_kw, fmt_kw) }} / {{ fmt_opt(vm.spec.duration_hours, fmt_hours) }})</span>
+    <span><span class="sw" style="background:#f59e0b"></span>Solar (not sized in this run)</span>
+  </div>
+</div>
+{% endif %}

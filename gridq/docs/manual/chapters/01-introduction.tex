@@ -1,0 +1,59 @@
+\chapter{Introduction}
+\label{ch:intro}
+
+This manual describes a software platform that designs and prices commercial battery storage projects. It is written so that a reader who has never seen the source code can understand exactly what the platform does, why each step exists, and how every step is carried out in enough detail to rebuild the platform from scratch.
+
+\section{What the platform does, in one paragraph}
+
+A commercial site (a factory, a supermarket, a logistics depot) pays for electricity. A battery installed at that site can lower the bill and earn money from the electricity system. The hard questions are: \emph{how big should the battery be?}, \emph{how much money will it make?}, and \emph{is that income reliable enough for a bank to lend against?} This platform answers all three from a single input: the site's own electricity meter data. It produces three documents that are guaranteed to agree with one another because they are all generated from the same underlying calculation: a \textbf{system specification} (the recommended battery size), an \textbf{underwriting pack} (the financial case a lender reads), and a \textbf{customer proposal} (the plain-language pitch the site owner reads).
+
+\begin{keyidea}[The single promise of the platform]
+Same inputs, same assumptions, same software version $\Rightarrow$ same numbers, every time, traceable back to their source. No figure a lender relies on is ever invented or altered by artificial intelligence. This property, called \emph{determinism}, is the spine of the whole design and is explained in Chapter~\ref{ch:overview}.
+\end{keyidea}
+
+\section{Who this manual is for}
+
+The manual assumes you understand basic energy ideas: that electricity is measured in kilowatt-hours, that prices change through the day, that a business pays both for the energy it uses and for the size of its grid connection. It does \emph{not} assume you know the specialist vocabulary of the British electricity market or of project finance. Specialist terms are explained the first time they appear and collected in the glossary (Appendix~\ref{app:glossary}).
+
+Three kinds of reader are catered for:
+
+\begin{itemize}
+  \item \textbf{A commercial or product reader} who wants to understand what the platform produces and why it can be trusted. The opening section of each chapter is written for you.
+  \item \textbf{An engineer rebuilding the platform.} Each chapter ends with a \emph{rebuild} box: a precise recipe for re-creating that part of the system, including the data shapes, the order of operations, and the rules that must hold. Following every rebuild box in order reconstructs the entire pipeline.
+  \item \textbf{An operator running the platform day to day.} Chapter~\ref{ch:cli} (the command-line tool) and Chapter~\ref{ch:app} (the web application) describe the two ways to drive a real run.
+\end{itemize}
+
+\section{How this manual is organised}
+
+The platform is a \emph{pipeline}: data enters at one end, passes through a fixed sequence of stages, and three documents come out of the other end. The manual follows that sequence. Chapter~\ref{ch:overview} gives the whole picture at once, with a master diagram. Every chapter after it covers one module of the pipeline, in the order the data flows through it. The reference appendices collect the glossary and the full table of assumptions.
+
+\section{How to read the diagrams and boxes}
+
+Every module chapter contains a flow diagram drawn with one consistent visual language. Coloured boxes throughout the text flag the four kinds of information a reader most often needs to find quickly.
+
+\begin{table}[H]
+\centering
+\caption{The visual conventions used throughout this manual.}
+\label{tab:conventions}
+\small\sffamily
+\begin{tabularx}{\textwidth}{@{}l L@{}}
+\toprule
+\textbf{Shape or box} & \textbf{Meaning} \\
+\midrule
+Rectangle (blue edge) & A processing step: code that transforms data. \\
+Trapezium (orange edge) & A piece of data flowing in or out (a file, a record, a series of numbers). \\
+Cylinder (green edge) & A stored artifact written to disk (a saved record or document). \\
+Diamond (amber edge) & A decision or a pass/fail gate. \\
+Dashed rectangle (violet edge) & An external system or an AI-assisted step at the ``perimeter''. \\
+\addlinespace
+\textcolor{gridqOrange}{$\blacksquare$}~\textbf{Key idea} & The one thing to remember from a section. \\
+\textcolor{gridqBlue}{$\blacksquare$}~\textbf{How to rebuild this} & A recipe precise enough to re-implement the step. \\
+\textcolor{gridqGreen}{$\blacksquare$}~\textbf{Inputs and outputs} & The exact data a step consumes and produces. \\
+\textcolor{gridqViolet}{$\blacksquare$}~\textbf{Watch out} & A non-obvious rule that is easy to get wrong. \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\begin{plainnote}[A note on file references]
+Where it helps an engineer, the manual names the file or folder in the codebase that implements a step, written like \fpath{src/gridq/ingestion/}. You do not need the code open to follow the manual; the references are signposts, not prerequisites.
+\end{plainnote}

@@ -1,0 +1,28 @@
+{# Feature visual: the 3D sizing surface (power × duration × return) - topographic wireframe with the
+   chosen optimum marked. Decorative; strokes only (no defs/ids) so it is safe to render more than once. #}
+<div class="lp-viz">
+  <div class="lp-viz__cap"><b>Sizing surface</b><span class="lp-viz__tag">Power × Duration × Return</span></div>
+  <svg class="lp-mesh" viewBox="0 0 460 300" role="img" aria-label="A 3D sizing surface with the optimum point highlighted">
+    <g fill="none" stroke-width="1.5" stroke-linecap="round">
+      <path d="M30 258 C140 224 230 200 300 212 C360 222 410 244 430 250"/>
+      <path d="M30 244 C140 208 230 182 300 196 C360 208 410 230 430 238"/>
+      <path d="M30 229 C140 190 230 162 300 178 C360 192 410 216 430 224"/>
+      <path d="M30 213 C140 170 230 138 300 158 C360 174 410 200 430 210"/>
+      <path d="M30 196 C140 148 230 110 300 136 C360 156 410 186 430 196"/>
+      <path d="M30 178 C140 124 230  80 300 112 C360 138 410 170 430 182"/>
+      <path class="ridge lp-draw" d="M30 159 C140 100 230 54 300 90 C360 120 410 156 430 170"/>
+    </g>
+    {# faint vertical mesh connectors #}
+    <g fill="none" stroke="rgba(255,255,255,0.10)" stroke-width="1">
+      <line x1="110" y1="232" x2="110" y2="128"/>
+      <line x1="190" y1="210" x2="190" y2="92"/>
+      <line x1="300" y1="212" x2="300" y2="90"/>
+      <line x1="380" y1="232" x2="380" y2="146"/>
+    </g>
+    {# the chosen optimum #}
+    <g class="opt-wrap"><circle class="opt" cx="300" cy="90" r="6"/><circle cx="300" cy="90" r="11" fill="none" stroke="var(--accent)" stroke-opacity="0.5" stroke-width="1.5"/></g>
+    <text x="300" y="74" fill="var(--accent-strong)" font-size="11" font-weight="700" text-anchor="middle">optimum</text>
+    <text x="30" y="284" fill="rgba(255,255,255,0.45)" font-size="10">Power →</text>
+    <text x="402" y="284" fill="rgba(255,255,255,0.45)" font-size="10">Duration →</text>
+  </svg>
+</div>

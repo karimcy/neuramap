@@ -1,0 +1,19 @@
+# Hand-kept links from each assumption release to its docs/changelog.md section (exact heading text,
+# without the "## ") and to any ADR in knowledge_base/adr_index.json. The section must name the release.
+# Add a line here in the same commit that cuts a new assumptions/gb_v*.yaml.
+releases:
+  gb_v0_1: {changelog: "2026-11-26 — WP-GRC-14: knowledge_base index; changelog entries backfilled for five assumption releases"}
+  gb_v1_0: {changelog: "2026-06-24"}
+  gb_v1_1: {changelog: "2026-06-28"}
+  gb_v1_2: {changelog: "2026-07-02"}
+  gb_v1_3: {changelog: "2026-07-03"}
+  gb_v1_4: {changelog: "2026-07-08"}
+  gb_v1_5: {changelog: "2026-07-17"}
+  gb_v1_6: {changelog: "2026-07-20"}
+  gb_v1_7: {changelog: "2026-11-26 — WP-GRC-14: knowledge_base index; changelog entries backfilled for five assumption releases"}
+  gb_v1_8: {changelog: "2026-11-26 — WP-GRC-14: knowledge_base index; changelog entries backfilled for five assumption releases"}
+  gb_v1_9: {changelog: "2026-11-26 — WP-GRC-14: knowledge_base index; changelog entries backfilled for five assumption releases"}
+  gb_v1_10: {changelog: "2026-11-26 — WP-GRC-14: knowledge_base index; changelog entries backfilled for five assumption releases"}
+  gb_v1_11: {changelog: "2026-08-17 — gb_v1_11: the two unsourced flat costs are refuted, the capex that cancels them is corrected, and the private-wire DUoS absence finally reaches the branch that reads it"}
+  # gb_v1_12 is the D57 all-streams study release; ADR-D3 scopes D57 to the Grundon/Harwell study.
+  gb_v1_12: {changelog: "2026-08-18 — D55: every revenue stream gets a sourced price and a dispatchable HH shape, on a named all-streams study basis", adrs: [ADR-D3]}

@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% block title %}Demo - GridQ{% endblock %}
+{% block content %}
+<h1>Demo run</h1>
+<p class="lede">Walk the full end-to-end flow on a clearly-labelled illustrative dataset: a populated 3D
+  sizing surface, the firm-vs-gated value split, P50/P90 finance and a customer proposal.</p>
+
+<div class="demobanner" style="margin:1.25rem 0">
+  <span class="badge badge-demo">ILLUSTRATIVE</span>
+  <span>This runs the <strong>real engine</strong> on a <strong>synthetic</strong> 12-month load with
+    <strong>illustrative (not underwritten) debt terms</strong>, so the surface and finance populate.
+    The maths is real and deterministic; the inputs are labelled synthetic. It is <strong>not a real
+    site and not bankable</strong>, and its numbers are never presented as a real quote.</span>
+</div>
+
+<div class="card">
+  <h2>Demo site - illustrative C&amp;I cold store</h2>
+  <p class="muted">A ~500&nbsp;kW-connection commercial site with a synthetic but realistic
+    half-hourly load. Pressing run executes ingestion → dispatch → sizing → finance → the three
+    artifacts, exactly like a real run.</p>
+  <form method="post" action="/run/demo">
+    <button class="btn big" type="submit">Run the demo end-to-end &rarr;</button>
+  </form>
+</div>
+
+<p class="muted" style="margin-top:1.5rem">Prefer your own site? <a href="/real">Enter real site data &rarr;</a></p>
+{% endblock %}

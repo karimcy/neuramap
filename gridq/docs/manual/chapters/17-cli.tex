@@ -1,0 +1,243 @@
+\chapter{The command-line interface and end-to-end run}
+\label{ch:cli}
+\modtag{Run}{CLI and end-to-end run}{Operational}
+
+This is the capstone chapter. Every earlier chapter has explained one box of the master diagram in Chapter~\ref{ch:overview}; this one drives a real site through all of them, in order, from a single command. It is the guided tour of one run: what an operator types, what each stage does to the data as it passes through, what files land on disk at the end, and how the platform behaves when the data is too thin to underwrite.
+
+The command-line tool is the thinnest possible operator-facing skin over the pipeline. It does almost no thinking of its own. Its job is to read files from disk, hand domain objects to the orchestrator, take domain objects back, write them out, and present a readable summary. All of the judgement -- grading, optimising, pricing, stamping, drafting -- happens inside the modules this manual has already described. The CLI is where they are wired together into one call.
+
+\begin{plainnote}
+If the rest of the manual is an anatomy of the platform, this chapter is a single heartbeat. One operator, one site file, one command, and the three documents come out the other end a few seconds later. Read it last: it will only make full sense once you have met each stage it passes through.
+\end{plainnote}
+
+\pipelinepos{This stage sits across the whole pipeline. It consumes the operator's raw input files (a site JSON, optionally a meter CSV and a price forecast) and the assumption version, drives ingestion (Chapter~\ref{ch:ingestion}) through outputs (Chapter~\ref{ch:outputs}), and emits the persisted run folder.}
+
+\begin{contract}[Inputs and outputs]
+\textbf{Inputs to the \code{run} command}
+\begin{itemize}
+  \item A \textbf{SiteModel JSON} file (required positional argument): the structured site -- tariff, connection capacities, consents, physical gates, counterparty (Chapter~\ref{ch:contracts}).
+  \item Optionally a \textbf{half-hourly meter CSV} (\code{-{}-hh}): the site's real metered load series, which is folded in and triggers a re-grade of the data tier.
+  \item Optionally a \textbf{wholesale price forecast} file (\code{-{}-forecast}, CSV or JSON) plus its source and version labels: pinned as gated-upside provenance only, never priced into the floor.
+  \item An \textbf{assumption library version} (\code{-{}-assumptions}, default \code{gb\_v0\_1}): the versioned number library to price against (Chapter~\ref{ch:assumptions}).
+  \item Optional run metadata: a \code{-{}-contributor} name for the telemetry event, a \code{-{}-wholesale} flag declaring that wholesale upside is wanted, an \code{-{}-out} directory, and a \code{-{}-json} switch.
+\end{itemize}
+\textbf{Outputs} -- a per-run folder containing five files:
+\begin{itemize}
+  \item \fpath{quote.json} -- the stamped, immutable QuoteRecord (the single source of truth).
+  \item \fpath{telemetry.json} -- one TelemetryEvent describing how the run was produced.
+  \item \fpath{memo.md} -- the underwriting pack (capital-facing).
+  \item \fpath{proposal.md} -- the customer proposal (plain language).
+  \item \fpath{report.html} -- a self-contained web report combining both.
+\end{itemize}
+\textbf{Plus} a readable terminal summary (or the raw QuoteRecord JSON under \code{-{}-json}). \textbf{Exit codes:} \code{0} on success; \code{2} on a fatal input error (a site that will not load, or an unknown assumption version).
+\end{contract}
+
+\section{The shape of the tool}
+
+The tool exposes a small set of sub-commands. Two are trivial and exist for orientation: \code{version} prints the package version, and \code{info} lists every module and the responsibility it owns (the same map as Table~\ref{tab:map} in Chapter~\ref{ch:overview}). The two that matter are \code{run}, which takes a site end to end, and \code{render}, which regenerates the three documents from a quote that was saved earlier. The rest of this chapter is about those two.
+
+One design choice is worth stating up front, because it explains why the command file is so thin. The heavy, numerically-loaded code -- the optimiser, the financial model, the data-frame loaders -- is imported only inside \code{run} itself, not at the top of the file. This keeps \code{version} and \code{info} instant: an operator can ask the tool what it is without waiting for a solver stack to load. The principle is general: the CLI pays for a capability only at the moment it uses it.
+
+\begin{keyidea}[The CLI computes nothing; it wires modules together]
+Every figure in every artifact is produced inside the deterministic core and rendered by the outputs module. The command-line tool reads files, calls one orchestration function, writes files, and prints a summary. It contains no arithmetic and no business rules. That is deliberate: the command an operator types is auditable precisely because it delegates rather than decides.
+\end{keyidea}
+
+\section{The run command, stage by stage}
+
+The \code{run} command is a single straight-line sequence. Each step corresponds to a chapter of this manual, and the data object handed from one step to the next is exactly the contract that chapter describes. Walking the sequence is therefore walking the whole pipeline once, concretely.
+
+\subsection{Step 1: load and validate the site}
+
+The operator names a SiteModel JSON file. The tool loads and validates it against the strict schema of Chapter~\ref{ch:contracts}: unknown fields are rejected, required fields must be present, and types must match. If the file cannot be parsed or fails validation, the tool stops immediately with a clear message and exit code \code{2}. Nothing downstream runs against a site that does not satisfy its own contract. This is the first place the platform refuses to guess: a malformed site is an error, not something to be repaired silently.
+
+\subsection{Step 2: fold in a real meter file and re-grade}
+
+If the operator supplied a half-hourly meter CSV with \code{-{}-hh}, the tool now reads it. The read is attributed to the site for the access log described in Chapter~\ref{ch:ingestion}: a real third-party meter trace is confidential data, and the act of opening it is recorded against the site. The loader counts missing intervals (it never back-fills them), flags negative readings, and summarises the series.
+
+The summary then feeds the assembly step that re-grades the site's \textbf{data tier} (T0--T2, Chapter~\ref{ch:ingestion}). A site that arrived carrying only annual totals (tier T0) can be promoted to T2 by a validated twelve-month series; the meter reference on the site is pointed at the supplied file so that the dispatch optimiser (Chapter~\ref{ch:dispatch}) can later read the actual load. Crucially, this fold can fail safely: if the meter file would make the site invalid (for example, it contradicts a declared figure), the tool does not abort. It records a note that the file was not folded, keeps the originally supplied site, and carries on. Honest degradation begins here.
+
+\begin{caution}[A meter file can be rejected without failing the run]
+Folding in a half-hourly file is allowed to fail. If the assembled site would violate its own schema, the tool catches that, writes a warning naming the reason, and proceeds on the site as originally supplied. The operator still gets a quote; it is simply graded on the data that validated. A rejected meter file never silently corrupts the site, and never stops the run.
+\end{caution}
+
+\subsection{Step 3: assemble the site and rank the data asks}
+
+With or without a folded meter file, the tool now produces the final SiteModel it will price. This is also where the platform builds its \emph{ranked list of data asks}: the prioritised set of things the operator could supply to most improve the quote, ordered by impact (Chapter~\ref{ch:ingestion}). A thin T0 site will carry a long list headed by ``twelve months of half-hourly meter data''; a fully-evidenced T2 site may carry none. If the operator passed \code{-{}-wholesale} but no forecast file, that absence is itself added to the asks: the platform records that wholesale upside was wanted but cannot be evidenced yet. The asks live on the site and travel all the way to the terminal summary and the documents.
+
+\subsection{Step 4: pin the forecast as gated-upside provenance}
+
+If a wholesale price forecast was supplied, the tool loads it and pins it as a \emph{forecast reference}: a record of the forecast's source, version, and a content hash, so a quote can cite the exact price curve it was shown. It is pinned for provenance only. A forecast is \textbf{gated upside} (Chapter~\ref{ch:valuestack}) and is never priced into the firm floor. If the file cannot be read, or lacks the metadata needed to pin it honestly (a source, a version, a production date -- none of which the platform will invent), the run continues without it and says so in a note. The operator can supply the missing labels with \code{-{}-forecast-source} and \code{-{}-forecast-version}.
+
+\subsection{Step 5: load the versioned assumption library}
+
+The tool loads the assumption library at the requested version (default \code{gb\_v0\_1}). This is the single versioned source of every number the pipeline will use (Chapter~\ref{ch:assumptions}). An unknown version is a fatal error with exit code \code{2}: the platform will not silently substitute a different release. The chosen version is stamped onto the quote later, so any figure can be traced back to the exact number library that produced it.
+
+\subsection{Step 6: engine, finance, quote and telemetry}
+
+This single call is the deterministic core (Chapters~\ref{ch:engine}--\ref{ch:telemetry}). The tool hands the assembled site, the loaded assumptions, the forecast reference and the operator's notes to the one orchestration function that runs the pricing path. Inside that call, in order:
+
+\begin{enumerate}
+  \item the \textbf{optimisation engine} (the real half-hourly dispatch optimiser by default, Chapters~\ref{ch:engine}, \ref{ch:dispatch}) builds an optimisation request and solves it. The value stack (Chapter~\ref{ch:valuestack}) decides which revenue streams are open; the sizing search (Chapter~\ref{ch:sizing}) chooses the battery; the dispatch optimiser runs the chosen battery half-hour by half-hour;
+  \item the \textbf{financial model} (Chapter~\ref{ch:finance}) turns the chosen system and its dispatch into P50/P90 cashflows, debt-cover (DSCR), costs, credit mapping, and a price-to-target. If there is no positive sizing to price, it raises an ``insufficient inputs'' condition that the orchestrator catches: the quote is still produced, with no financial case and an honest warning naming what was missing;
+  \item where a priced base case exists, the \textbf{scenario engine} (Chapter~\ref{ch:scenarios}) is run to produce Low/Central/High sensitivities;
+  \item the \textbf{quote assembly} (Chapter~\ref{ch:quotes}) binds everything into one immutable, hashed, version-stamped QuoteRecord, carrying the operator's notes verbatim as warnings;
+  \item the \textbf{telemetry} step (Chapter~\ref{ch:telemetry}) emits a single event recording the data tier, the count of outstanding data asks, the outcome, and the contributor.
+\end{enumerate}
+
+The function returns one bundle: the stamped quote, its telemetry event, the assembled site, the optimisation result, and the financial case (which may be absent). Note what the CLI did here: it supplied inputs and received outputs. It did not price anything.
+
+\subsection{Step 7: persist the artifacts}
+
+The tool now writes the run to disk. By default the folder is \fpath{runs/<quote\_id>/}, named for the quote's identifier; \code{-{}-out} overrides the location. Into it the tool writes the QuoteRecord as \fpath{quote.json} and the telemetry event as \fpath{telemetry.json}. Then it calls the outputs module (Chapter~\ref{ch:outputs}) to render the three documents from the run, and writes \fpath{memo.md}, \fpath{proposal.md} and \fpath{report.html} alongside. Five files, one folder, one run. Because all three documents are rendered from the one record, they agree by construction.
+
+\subsection{Step 8: present}
+
+Finally the tool prints. Under \code{-{}-json} it emits the raw QuoteRecord as JSON, for piping into other tools. Otherwise it renders a readable terminal summary: the quote identifier and mode, the data tier, the bankable status (shown in red when \emph{not bankable}), the solver status, the provenance stamps (input hash, assumption version, code version), the forecast reference if one was pinned, and the artifact location. Below that it prints the ranked data asks as a numbered table, then every warning by name, then a one-line telemetry footer. The operator sees, in one screen, both the answer and an honest account of what is missing from it.
+
+\begin{figure}[H]
+\centering
+\resizebox{\textwidth}{!}{%
+\begin{tikzpicture}[node distance=7mm and 14mm]
+  % ---- operator inputs (top row) ----
+  \node[io] (sitejson) {\textbf{SiteModel}\\\textbf{JSON}\\\scriptsize required};
+  \node[io, right=of sitejson] (hh) {\textbf{Meter CSV}\\\scriptsize -{}-hh (optional)};
+  \node[io, right=of hh] (fc) {\textbf{Forecast}\\\scriptsize -{}-forecast (optional)};
+  \node[io, right=of fc] (av) {\textbf{Assumptions}\\\scriptsize -{}-assumptions};
+
+  % ---- spine ----
+  \node[proc, below=of sitejson] (load) {\textbf{1. Load \& validate}\\\scriptsize strict schema (ch.\,\ref{ch:contracts})};
+  \node[proc, below=of load] (fold) {\textbf{2--3. Fold HH \& re-grade}\\\scriptsize tier T0--T2, rank data asks\\\scriptsize (ch.\,\ref{ch:ingestion})};
+  \node[proc, below=of fold] (pin) {\textbf{4. Pin forecast}\\\scriptsize gated upside, provenance only\\\scriptsize (ch.\,\ref{ch:valuestack})};
+  \node[proc, below=of pin] (assum) {\textbf{5. Load assumptions}\\\scriptsize versioned library (ch.\,\ref{ch:assumptions})};
+
+  \node[procwide, below=of assum] (engine) {\textbf{6a. Engine}\\\scriptsize value stack \textperiodcentered{} dispatch MILP \textperiodcentered{} sizing\\\scriptsize (ch.\,\ref{ch:engine},\,\ref{ch:dispatch},\,\ref{ch:sizing})};
+  \node[procwide, below=of engine] (fin) {\textbf{6b. Finance}\\\scriptsize P50/P90 \textperiodcentered{} DSCR \textperiodcentered{} price-to-target\\\scriptsize scenarios (ch.\,\ref{ch:finance},\,\ref{ch:scenarios})};
+  \node[store, below=of fin] (quote) {\textbf{6c. QuoteRecord}\\\scriptsize hashed, stamped (ch.\,\ref{ch:quotes})};
+  \node[proc, below=of quote] (outputs) {\textbf{7. Render outputs}\\\scriptsize numbers injected (ch.\,\ref{ch:outputs})};
+
+  % ---- artifact stores (bottom row) ----
+  \node[store, below=of outputs, xshift=-44mm, fill=gridqGreenBg] (qj) {\fpath{quote.json}};
+  \node[store, right=of qj, fill=gridqGreenBg] (tj) {\fpath{telemetry.json}};
+  \node[store, right=of tj, fill=gridqGreenBg] (memo) {\fpath{memo.md}};
+  \node[store, right=of memo, fill=gridqGreenBg] (prop) {\fpath{proposal.md}};
+  \node[store, right=of prop, fill=gridqGreenBg] (rep) {\fpath{report.html}};
+
+  % spine arrows
+  \draw[flow] (sitejson) -- (load);
+  \draw[flow] (load) -- (fold);
+  \draw[flow] (fold) -- (pin);
+  \draw[flow] (pin) -- (assum);
+  \draw[flow] (assum) -- (engine);
+  \draw[flow] (engine) -- (fin);
+  \draw[flow] (fin) -- (quote);
+  \draw[flow] (quote) -- (outputs);
+
+  % side feeds
+  \draw[flow] (hh.south) to[out=-90,in=20] (fold.east);
+  \draw[flow] (fc.south) to[out=-90,in=20] (pin.east);
+  \draw[flow] (av.south) to[out=-90,in=20] (assum.east);
+
+  % telemetry tap
+  \node[proc, left=of quote, text width=24mm, minimum width=26mm] (tele) {\textbf{6d. Telemetry}\\\scriptsize (ch.\,\ref{ch:telemetry})};
+  \draw[flow] (quote.west) -- (tele.east);
+
+  % outputs to stores
+  \draw[flow] (quote.west) to[out=180,in=90] (qj.north);
+  \draw[flow] (tele.south) to[out=-90,in=90] (tj.north);
+  \draw[flow] (outputs.south) -- (memo.north);
+  \draw[flow] (outputs.south) to[out=-90,in=90] (prop.north);
+  \draw[flow] (outputs.south) to[out=-90,in=90] (rep.north);
+
+  % degrade feedback
+  \draw[flowback] (fin.west) to[out=180,in=180] node[flowlabel,pos=0.5] {no sizing $\rightarrow$ \emph{not bankable}} (quote.west);
+
+  % zone backdrop
+  \begin{scope}[on background layer]
+    \node[groupbox, fit=(engine)(fin)(quote)(tele),
+          inner sep=7pt, label={[note,rotate=90,anchor=south]west:DETERMINISTIC CORE}] {};
+  \end{scope}
+\end{tikzpicture}}
+\caption{The \code{run} command end to end. Operator input files enter at the top; the data passes down the spine through every pipeline stage (each labelled with its chapter); the deterministic core is one orchestration call; and five artifacts are persisted to the run folder at the bottom. The dashed feedback path is honest degradation: when finance has no positive sizing to price, the quote is still produced and stamped \emph{not bankable}.}
+\label{fig:cli-run}
+\end{figure}
+
+\section{A worked run}
+
+Concretely, suppose an operator runs a twelve-month site and supplies a real meter file. They might type a command of the form ``run the T2 example site, fold in this meter CSV, and write the result to \fpath{runs/acme}''. The tool loads and validates the site, reads and summarises the meter CSV, re-grades the site to T2 and points its meter reference at the file, finds no forecast to pin, loads the default \code{gb\_v0\_1} assumptions, runs the dispatch optimiser over the real load and tariff, prices the chosen battery, stamps the quote, emits telemetry, and writes five files to \fpath{runs/acme}. The summary shows a real firm-revenue floor and a chosen system size -- and still, on the placeholder library, a red \emph{not bankable} status (the next section explains why).
+
+If instead the operator runs the same site with \emph{no} meter file, the dispatch optimiser has no load series to read. The platform does not invent one. The run honestly degrades to an ``insufficient data'' result: no system is recommended, the financial model is skipped, the quote is produced with no financial case, and the summary leads with the ranked data asks (rank one: a twelve-month meter file). The run still succeeds and still writes five files. The documents wear the \emph{not bankable} banner and label every figure they cannot compute as \emph{unavailable} rather than guessing it.
+
+\section{Honest degradation, as the operator sees it}
+
+The platform's promise is that it always answers, but never pretends. The operator sees three concrete signals of this, and they are worth naming because they are what a person actually reads off the screen.
+
+\begin{table}[H]
+\centering
+\caption{The three honest-degradation signals visible in the run summary.}
+\label{tab:cli-degrade}
+\small\sffamily
+\begin{tabularx}{\textwidth}{@{}l L L@{}}
+\toprule
+\textbf{Signal} & \textbf{What it means} & \textbf{When it appears} \\
+\midrule
+\textbf{Validation warnings} & Notes naming anything the run could not use cleanly: a meter file that would not fold, a forecast that could not be pinned, an assumption that is a placeholder. Each is carried onto the quote by name. & Whenever a supplied input is partially usable or unusable. \\
+\textbf{Ranked data asks} & A numbered, prioritised list of the data that would most improve the quote, ordered by impact. & Whenever the site is short of a fully-evidenced T2; longest for a thin T0 site. \\
+\textbf{Not-bankable status} & The quote's bankable flag, shown in red. The figures rest on values that are not yet market-confirmed, so the platform refuses to call them bankable. & On the current placeholder library, \emph{always} -- by design. \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\begin{keyidea}[Every quote on the placeholder library is not bankable, on purpose]
+On the current \code{gb\_v0\_1} assumption set, every quote the \code{run} command produces is deliberately stamped \emph{not bankable}, even when the dispatch optimiser has run over real metered load and produced genuine numbers. A real dispatch on placeholder assumptions is still not bankable: the assumptions are stand-ins, not market-calibrated values, and the platform will not let a placeholder masquerade as a bankable figure. This is the same safety property stated in Chapter~\ref{ch:overview}, now visible on the operator's screen.
+\end{keyidea}
+
+\section{The render command}
+
+The second command, \code{render}, exists because the QuoteRecord is the single source of truth and the three documents are pure functions of it. Given a saved \fpath{quote.json}, \code{render} reloads it, runs the outputs module (Chapter~\ref{ch:outputs}), and regenerates \fpath{memo.md}, \fpath{proposal.md} and \fpath{report.html} -- byte-for-byte identical to the originals, because no number is recomputed and nothing in the maths depends on the wall clock. This is the determinism guarantee made operationally visible: re-rendering a saved quote can never produce a different document.
+
+The command optionally takes the SiteModel too, with \code{-{}-site}. The record stores only a site identifier, not the whole site, so the counterparty, consents and physical-gate sections of the documents need the site to fill them. Without it, those sections render as \emph{site context not supplied} -- never assumed, never invented. If the supplied site file fails to load, \code{render} warns and proceeds without it rather than aborting: the documents are still produced, just with the site-dependent sections labelled as missing.
+
+\begin{plainnote}
+Think of \code{run} as ``compute and write'', and \code{render} as ``re-print''. \code{run} drives the whole pricing path and saves a record. \code{render} takes that saved record and produces the documents again, with no pricing of any kind. You re-render when you want fresh documents from an old quote -- for instance after improving the prose templates -- with an absolute guarantee that the numbers are unchanged.
+\end{plainnote}
+
+\section{What this chapter ties together}
+
+Reading down the \code{run} sequence is reading the whole manual in order. Table~\ref{tab:cli-trace} maps each step of the command to the chapter that explains the work it triggers. The command is the spine; every chapter is one vertebra.
+
+\begin{table}[H]
+\centering
+\caption{Each step of \code{gridq run} traced to the chapter that explains it.}
+\label{tab:cli-trace}
+\small\sffamily
+\begin{tabularx}{\textwidth}{@{}c L l@{}}
+\toprule
+\textbf{Step} & \textbf{What happens} & \textbf{Chapter} \\
+\midrule
+1 & Load and validate the SiteModel against its strict schema & \ref{ch:contracts} \\
+2--3 & Fold in the meter file, re-grade the data tier, rank the data asks & \ref{ch:ingestion} \\
+4 & Pin the wholesale forecast as gated-upside provenance & \ref{ch:valuestack} \\
+5 & Load the versioned assumption library & \ref{ch:assumptions} \\
+6a & Build and solve the optimisation request (value stack, dispatch, sizing) & \ref{ch:engine}, \ref{ch:dispatch}, \ref{ch:sizing} \\
+6b & Run the financial model; add Low/Central/High sensitivities & \ref{ch:finance}, \ref{ch:scenarios} \\
+6c & Assemble the immutable, hashed, stamped QuoteRecord & \ref{ch:quotes} \\
+6d & Emit the telemetry event & \ref{ch:telemetry} \\
+7 & Render and persist the three documents from the record & \ref{ch:outputs} \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\begin{rebuild}[How to rebuild this step]
+To re-implement the command-line layer from scratch:
+\begin{enumerate}
+  \item \textbf{Keep it thin.} The CLI reads files, calls one orchestration function, writes files, and prints. It performs no arithmetic and holds no business rules. Defer all heavy imports (solver, finance, data frames) into the \code{run} body so \code{version}/\code{info} stay instant.
+  \item \textbf{Implement \code{run} as a straight sequence:} (1) load and strictly validate the site, exiting \code{2} on failure; (2) if a meter CSV is given, load it attributed to the site, summarise it, and fold it in, catching a fold failure as a warning and keeping the original site; (3) assemble the final site and populate the ranked data asks, adding the forecast file as an ask if wholesale was requested but none was supplied; (4) if a forecast is given, pin it as a source/version/hash reference for provenance only, never the floor, warning if it cannot be pinned honestly; (5) load the assumption library at the requested version, exiting \code{2} on an unknown version; (6) call the single orchestrator that runs engine $\rightarrow$ finance $\rightarrow$ quote assembly $\rightarrow$ telemetry, catching ``no sizing to price'' as a \emph{not-bankable} quote with no financial case; (7) make the output folder (default \fpath{runs/<quote\_id>/}), write \fpath{quote.json} and \fpath{telemetry.json}, then render and write \fpath{memo.md}, \fpath{proposal.md}, \fpath{report.html}; (8) print a summary table plus the ranked asks and warnings, or the raw JSON under a flag.
+  \item \textbf{Implement \code{render}} as: reload the QuoteRecord, optionally load a SiteModel (warn and continue without it on failure), run the outputs module, and write the three documents to a folder defaulting to alongside the quote.
+  \item \textbf{Invariants to hold:} the CLI never computes a figure; a fatal input error exits \code{2} and a degraded run exits \code{0} with warnings; every supplied input that could not be used cleanly produces a named warning; the run always writes all five artifacts; re-rendering a saved quote is byte-for-byte identical.
+  \item \textbf{What to test:} a valid T2 site with a meter file writes five artifacts and a non-empty firm floor; the same site with no meter file degrades to an insufficient-data, not-bankable quote that still writes five artifacts and leads with the data asks; an unknown assumption version and an unloadable site each exit \code{2}; a forecast lacking source/version is not pinned and emits a warning; \code{render} on a saved quote reproduces the original documents byte-for-byte; \code{render} without a site labels the site-dependent sections as not supplied.
+\end{enumerate}
+\end{rebuild}
+
+\begin{caution}[Exit code 0 does not mean bankable]
+A run that exits \code{0} has succeeded as a run: it produced a stamped quote and five artifacts. It says nothing about whether the quote is bankable. On the placeholder library it never is. Treat the bankable status and the warnings, not the exit code, as the signal of whether an output is a real commercial offer.
+\end{caution}

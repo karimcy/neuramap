@@ -1,0 +1,13 @@
+{
+  "dataset_id": "596f29ac-0387-4ba4-a6d3-95c243140707",
+  "fetched_utc": "2026-07-20T12:00:00",
+  "fetcher": "gridq.dev.fetch_neso_ckan",
+  "fetcher_args": {
+    "resource": "eac-results"
+  },
+  "licence": "NESO Open Data Licence",
+  "record_count": 36288,
+  "sha256": "22121dba2aca95f08b895620dd9d6760ad5a840ce3b7fa86f772f90842cdd611",
+  "size_bytes": 8209234,
+  "source_url": "https://api.neso.energy/api/3/action/datastore_search?resource_id=596f29ac-0387-4ba4-a6d3-95c243140707&limit=60000"
+}

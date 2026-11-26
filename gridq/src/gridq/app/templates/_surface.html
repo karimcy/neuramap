@@ -1,0 +1,63 @@
+{# 3D sizing surface (power × duration × return). Drawn client-side from the island; the typed grid
+   below is the accessible, no-JS fallback. Every number comes from quote.sizing_grid. #}
+<div class="card" data-reveal>
+  <div class="console-head">
+    <h2>Sizing surface</h2>
+    <span class="console-status"><span class="status-dot"></span>engine · solved</span>
+  </div>
+  {% if not quote.sizing_grid or not quote.sizing_grid.points %}
+    <p class="unavail">{{ fmt_unavailable("no evaluated sizing grid was persisted for this run") }}</p>
+  {% else %}
+  <p class="muted">How the battery size was chosen. The surface is the
+    <strong>{{ surface.z_label | lower }}</strong> across every power and duration the optimiser
+    evaluated; the heat map is the same field seen from above, with the
+    <span style="color:var(--firm);font-weight:700">covenant-feasible sizes</span> highlighted and the
+    <span style="color:var(--accent);font-weight:700">chosen optimum</span> marked.
+    {% if surface.selected %}Selected size: <strong>{{ surface.selected.label }}</strong>.{% endif %}</p>
+  {% if surface.provenance %}
+  <p class="muted"><small>Surface provenance: {{ surface.provenance }}.</small></p>
+  {% endif %}
+
+  <div class="surface-pair">
+    <figure class="surface-fig">
+      <div class="surface-canvas" id="surface" role="img"
+           aria-label="3D sizing surface: {{ surface.z_label | lower }} over the evaluated power-by-duration grid"></div>
+      <figcaption class="surface-cap">Return surface (drag to orbit, scroll to zoom)</figcaption>
+    </figure>
+    <figure class="surface-fig">
+      <div class="surface-canvas" id="surface-heatmap" role="img"
+           aria-label="Heat map of {{ surface.z_label | lower }} over power and duration, feasible region and optimum marked"></div>
+      <figcaption class="surface-cap">Same field from above (hover a point for its candidate)</figcaption>
+    </figure>
+  </div>
+  <div class="surface-legend">
+    <span><span class="sw sw-dot" style="background:var(--firm)"></span>Covenant-feasible (P90 DSCR ≥ {{ surface.covenant_label }})</span>
+    <span><span class="sw sw-diamond" style="background:var(--accent)"></span>Chosen optimum</span>
+    {% if not surface.has_surface %}<span class="muted">Return axis flat: no levered or project return on the current assumptions.</span>{% endif %}
+  </div>
+  {% if surface.holes_filled %}<p class="fallback-note">{{ surface.holes_filled }} of the evaluated sizes returned no viable equity return; the surface shows them at the floor. Exact per-size figures are in the grid below.</p>{% endif %}
+
+  <details style="margin-top:0.8rem">
+    <summary class="muted">Show the evaluated grid</summary>
+    <div class="tablewrap"><table class="data">
+      <thead><tr>
+        <th>Power</th><th>Duration</th><th class="num">Levered return</th><th class="num">Project IRR</th>
+        <th class="num">P90 DSCR</th><th>Covenant</th>
+      </tr></thead>
+      <tbody>
+        {% set sel = quote.sizing_grid.selected %}
+        {% for p in quote.sizing_grid.points %}
+        <tr class="{% if sel and p.power_kw == sel.power_kw and p.duration_hours == sel.duration_hours %}is-selected{% endif %} {% if p.passes_covenant %}is-feasible{% endif %}">
+          <td>{{ fmt_kw(p.power_kw) }}</td>
+          <td>{{ fmt_hours(p.duration_hours) }}</td>
+          <td class="num">{{ fmt_opt(p.levered_return_pct, fmt_pct) }}</td>
+          <td class="num">{{ fmt_opt(p.project_irr_pct, fmt_pct) }}</td>
+          <td class="num">{{ fmt_opt(p.min_p90_dscr, fmt_ratio) }}</td>
+          <td>{{ fmt_pass_fail(p.passes_covenant) }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table></div>
+  </details>
+  {% endif %}
+</div>

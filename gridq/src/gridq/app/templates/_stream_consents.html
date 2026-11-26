@@ -1,0 +1,37 @@
+{# Per-stream customer consent (Revenue-Data Drive / Slice 3, D43). Each ticked box authorises
+   GridQ to pursue that revenue stream on the customer's behalf; the three streams whose agreed
+   rate has no dedicated ExportArrangement home (Capacity Market £/kW/yr, Balancing Mechanism and
+   Ancillary £/MW/yr) carry an optional agreed-rate input. The export tariff, aggregator cut and
+   local-flex rate keep their own fields above and are not duplicated here. Field names:
+   consent_<stream_lower> (checkbox) + consent_rate_<stream_lower> (rate) - mapped in
+   app._site_from_form onto SiteModel.stream_consents. Shared by the wizard and the real form. #}
+<h3 style="margin:1.2rem 0 0.3rem">Revenue streams - consent to pursue</h3>
+<p class="muted">Tick each revenue stream you authorise us to pursue on your behalf, and enter any
+  rate you have already agreed. Consent authorises us to pursue this revenue; it is not a guarantee.</p>
+<div class="field-row" style="flex-wrap:wrap">
+  {% for sid, slabel, unit in [
+      ('tariff_arbitrage','Tariff arbitrage',''),
+      ('duos_red_band_avoidance','DUoS red-band avoidance',''),
+      ('mic_asc_headroom','MIC / ASC headroom',''),
+      ('ppa_or_bill_savings','PPA / bill savings',''),
+      ('load_service','Load service',''),
+      ('capacity_market','Capacity Market','£/kW/yr'),
+      ('local_flex_piclo','Local flexibility (Piclo)',''),
+      ('wholesale_p415','Wholesale (P415)',''),
+      ('balancing_mechanism','Balancing Mechanism','£/MW/yr'),
+      ('ancillary_dc_dm_dr','Ancillary (DC / DM / DR)','£/MW/yr')
+  ] %}
+  <div class="field" style="min-width:14rem">
+    <label style="display:flex; align-items:center; gap:0.5rem; font-weight:inherit">
+      <input type="checkbox" name="consent_{{ sid }}" style="width:auto; margin:0"
+        {% if form is defined and form.get('consent_' ~ sid) %}checked{% endif %}>
+      <span>{{ slabel }}</span>
+    </label>
+    {% if unit %}
+    <input name="consent_rate_{{ sid }}" inputmode="decimal"
+      placeholder="Agreed rate ({{ unit }})" aria-label="{{ slabel }} agreed rate ({{ unit }})"
+      value="{{ form.get('consent_rate_' ~ sid, '') if form is defined else '' }}">
+    {% endif %}
+  </div>
+  {% endfor %}
+</div>

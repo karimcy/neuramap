@@ -1,0 +1,459 @@
+{
+  "$defs": {
+    "EvidenceType": {
+      "description": "What the document is. The fifteen 1.0.0 members are the spec §11 D1 list plus the two\nkinds WP-GRC-03 and A6 need. 1.1.0 appends seventeen: the agreements, opinions,\ncertificates, reports, licences, registrations and data records the roadmap's acceptance\ncriteria name, and the three kinds Neura may also issue itself (a baseline method, a trial\nrecord, a decision record). 1.2.0 appends five: the executed counterparts of the WP-GRC-09\ncontract templates that no earlier member fits (an assessment statement of work, a master\nservices agreement, a site access and installation agreement, a lender reliance letter, a\nperformance wrapper agreement). Their required fields live in IC-15, not here.\n\n**There is no assumption-like member, by design.** A test asserts that no member's value\nnames an assumption, a derivation, a placeholder or an approval-by-assumption.",
+      "enum": [
+        "mpan_registration",
+        "connection_offer",
+        "connection_agreement",
+        "g99_approval",
+        "g100_compliance",
+        "bmu_registration",
+        "cmu_prequalification",
+        "capacity_agreement",
+        "dno_flexibility_contract",
+        "aggregator_agreement",
+        "meter_commissioning_certificate",
+        "customer_consent",
+        "critical_facilities_signoff",
+        "regulatory_publication",
+        "counterparty_rate",
+        "data_processing_agreement",
+        "data_sharing_agreement",
+        "non_disclosure_agreement",
+        "legal_opinion",
+        "conformity_certificate",
+        "technical_report",
+        "data_licence",
+        "method_agreement",
+        "service_level_agreement",
+        "commissioning_record",
+        "control_authority_signoff",
+        "fmar_registration",
+        "metered_data_record",
+        "operational_data_record",
+        "baseline_method",
+        "trial_record",
+        "decision_record",
+        "assessment_statement_of_work",
+        "master_services_agreement",
+        "site_access_installation_agreement",
+        "lender_reliance_letter",
+        "performance_wrapper_agreement"
+      ],
+      "title": "EvidenceType",
+      "type": "string"
+    },
+    "ExpiresOn": {
+      "additionalProperties": false,
+      "description": "The evidence stops being valid **on** ``expires_on``: valid strictly before it.",
+      "properties": {
+        "expires_on": {
+          "format": "date",
+          "title": "Expires On",
+          "type": "string"
+        },
+        "kind": {
+          "const": "expires_on",
+          "title": "Kind",
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind",
+        "expires_on"
+      ],
+      "title": "ExpiresOn",
+      "type": "object"
+    },
+    "Issuer": {
+      "additionalProperties": false,
+      "properties": {
+        "name": {
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Name",
+          "type": "string"
+        },
+        "reference": {
+          "anyOf": [
+            {
+              "minLength": 1,
+              "pattern": "\\S",
+              "type": "string"
+            },
+            {
+              "$ref": "#/$defs/Unknown"
+            }
+          ],
+          "title": "Reference"
+        },
+        "role": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/IssuerRole"
+            },
+            {
+              "$ref": "#/$defs/SelfIssuerRole"
+            }
+          ],
+          "title": "Role"
+        }
+      },
+      "required": [
+        "name",
+        "role",
+        "reference"
+      ],
+      "title": "Issuer",
+      "type": "object"
+    },
+    "IssuerRole": {
+      "description": "Who issued the document. **Neura is not an issuer role**: a claim Neura authors about\nitself or a site is an assumption or a derived record, never evidence. Neura may *verify*.",
+      "enum": [
+        "dno",
+        "idno",
+        "neso",
+        "elexon",
+        "emr_settlement",
+        "ofgem",
+        "government",
+        "supplier",
+        "aggregator",
+        "customer",
+        "host",
+        "meter_operator",
+        "oem",
+        "insurer",
+        "lender",
+        "independent_engineer",
+        "legal_adviser",
+        "certification_body",
+        "data_provider",
+        "funder",
+        "research_partner",
+        "independent_verifier"
+      ],
+      "title": "IssuerRole",
+      "type": "string"
+    },
+    "NoExpiry": {
+      "additionalProperties": false,
+      "description": "The document states no expiry (e.g. an enduring agreement). The reason says where.",
+      "properties": {
+        "kind": {
+          "const": "no_expiry",
+          "title": "Kind",
+          "type": "string"
+        },
+        "reason": {
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Reason",
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind",
+        "reason"
+      ],
+      "title": "NoExpiry",
+      "type": "object"
+    },
+    "SelfIssuerRole": {
+      "description": "Neura as issuer of its own pre-registration and decision records (ADR-D10 option b). The\nvalue is the self-issued marker: it is on the wire in every such object. Not an\n`IssuerRole`, so it can never be a publisher role (IC-2) or the party an instruction serves\n(IC-11).",
+      "enum": [
+        "neura_self_issued"
+      ],
+      "title": "SelfIssuerRole",
+      "type": "string"
+    },
+    "SiteScope": {
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "const": "site",
+          "title": "Kind",
+          "type": "string"
+        },
+        "site_id": {
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Site Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind",
+        "site_id"
+      ],
+      "title": "SiteScope",
+      "type": "object"
+    },
+    "StreamScope": {
+      "additionalProperties": false,
+      "description": "A revenue stream, at one site or at ``ALL_SITES`` (a market-wide rule for the stream).\n\n``stream`` is an upper-snake identifier; GridQ's `MarketStream` names are valid values but\nthe contract does not import GridQ's enum (contracts are a leaf).",
+      "properties": {
+        "kind": {
+          "const": "stream",
+          "title": "Kind",
+          "type": "string"
+        },
+        "site_id": {
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Site Id",
+          "type": "string"
+        },
+        "stream": {
+          "pattern": "^[A-Z][A-Z0-9_]*$",
+          "title": "Stream",
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind",
+        "stream",
+        "site_id"
+      ],
+      "title": "StreamScope",
+      "type": "object"
+    },
+    "Unknown": {
+      "additionalProperties": false,
+      "description": "A value that exists but is not known. Always explicit, always with a reason; never ``None``.\n\nSerialised as ``{\"kind\": \"unknown\", \"reason\": \"...\"}``. ``kind`` is required (no default) so\na hand-written payload that omits it is refused rather than guessed at.",
+      "properties": {
+        "kind": {
+          "const": "unknown",
+          "title": "Kind",
+          "type": "string"
+        },
+        "reason": {
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Reason",
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind",
+        "reason"
+      ],
+      "title": "Unknown",
+      "type": "object"
+    },
+    "Unverified": {
+      "additionalProperties": false,
+      "description": "A document is held but nobody has yet checked it against its issuer.",
+      "properties": {
+        "kind": {
+          "const": "unverified",
+          "title": "Kind",
+          "type": "string"
+        },
+        "reason": {
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Reason",
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind",
+        "reason"
+      ],
+      "title": "Unverified",
+      "type": "object"
+    },
+    "VerificationMethod": {
+      "description": "How the verifier checked it.",
+      "enum": [
+        "confirmed_with_issuer",
+        "checked_against_issuer_register",
+        "retrieved_from_issuer_publication",
+        "document_inspection"
+      ],
+      "title": "VerificationMethod",
+      "type": "string"
+    },
+    "Verified": {
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "const": "verified",
+          "title": "Kind",
+          "type": "string"
+        },
+        "method": {
+          "$ref": "#/$defs/VerificationMethod"
+        },
+        "verified_on": {
+          "format": "date",
+          "title": "Verified On",
+          "type": "string"
+        },
+        "verifier": {
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Verifier",
+          "type": "string"
+        },
+        "verifier_role": {
+          "$ref": "#/$defs/VerifierRole"
+        }
+      },
+      "required": [
+        "kind",
+        "verifier",
+        "verifier_role",
+        "method",
+        "verified_on"
+      ],
+      "title": "Verified",
+      "type": "object"
+    },
+    "VerifierRole": {
+      "description": "Who checked the document against its issuer.",
+      "enum": [
+        "neura_internal",
+        "independent_third_party"
+      ],
+      "title": "VerifierRole",
+      "type": "string"
+    }
+  },
+  "additionalProperties": false,
+  "description": "IC-4 v1.2.0. One hashed document, issued by a third party or, for a baseline method, a\ntrial record or a decision record only, by Neura with issuer role neura_self_issued (ADR-D10\noption b). Neura cannot verify its own record, and its decision record names and dates the\ndecision. An object labelled 1.0.0 holds only 1.0.0 types and roles; one labelled 1.1.0 holds\nonly 1.1.0 types. Final: it cannot be subclassed.",
+  "properties": {
+    "contract": {
+      "const": "IC-4",
+      "default": "IC-4",
+      "title": "Contract",
+      "type": "string"
+    },
+    "contract_version": {
+      "default": "1.2.0",
+      "enum": [
+        "1.0.0",
+        "1.1.0",
+        "1.2.0"
+      ],
+      "title": "Contract Version",
+      "type": "string"
+    },
+    "document_hash": {
+      "pattern": "^sha256:[0-9a-f]{64}$",
+      "title": "Document Hash",
+      "type": "string"
+    },
+    "effective_from": {
+      "anyOf": [
+        {
+          "format": "date",
+          "type": "string"
+        },
+        {
+          "$ref": "#/$defs/Unknown"
+        }
+      ],
+      "title": "Effective From"
+    },
+    "evidence_type": {
+      "$ref": "#/$defs/EvidenceType"
+    },
+    "expiry": {
+      "discriminator": {
+        "mapping": {
+          "expires_on": "#/$defs/ExpiresOn",
+          "no_expiry": "#/$defs/NoExpiry",
+          "unknown": "#/$defs/Unknown"
+        },
+        "propertyName": "kind"
+      },
+      "oneOf": [
+        {
+          "$ref": "#/$defs/ExpiresOn"
+        },
+        {
+          "$ref": "#/$defs/NoExpiry"
+        },
+        {
+          "$ref": "#/$defs/Unknown"
+        }
+      ],
+      "title": "Expiry"
+    },
+    "issued_on": {
+      "format": "date",
+      "title": "Issued On",
+      "type": "string"
+    },
+    "issuer": {
+      "$ref": "#/$defs/Issuer"
+    },
+    "record_class": {
+      "enum": [
+        "registered",
+        "synthetic_fixture"
+      ],
+      "title": "Record Class",
+      "type": "string"
+    },
+    "scope": {
+      "discriminator": {
+        "mapping": {
+          "site": "#/$defs/SiteScope",
+          "stream": "#/$defs/StreamScope"
+        },
+        "propertyName": "kind"
+      },
+      "oneOf": [
+        {
+          "$ref": "#/$defs/SiteScope"
+        },
+        {
+          "$ref": "#/$defs/StreamScope"
+        }
+      ],
+      "title": "Scope"
+    },
+    "title": {
+      "minLength": 1,
+      "pattern": "\\S",
+      "title": "Title",
+      "type": "string"
+    },
+    "verification": {
+      "discriminator": {
+        "mapping": {
+          "unverified": "#/$defs/Unverified",
+          "verified": "#/$defs/Verified"
+        },
+        "propertyName": "kind"
+      },
+      "oneOf": [
+        {
+          "$ref": "#/$defs/Verified"
+        },
+        {
+          "$ref": "#/$defs/Unverified"
+        }
+      ],
+      "title": "Verification"
+    }
+  },
+  "required": [
+    "record_class",
+    "evidence_type",
+    "title",
+    "issuer",
+    "document_hash",
+    "issued_on",
+    "effective_from",
+    "expiry",
+    "scope",
+    "verification"
+  ],
+  "title": "EvidenceObject",
+  "type": "object"
+}

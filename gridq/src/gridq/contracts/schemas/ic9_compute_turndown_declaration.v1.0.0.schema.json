@@ -1,0 +1,1523 @@
+{
+  "$defs": {
+    "AbsoluteCurve": {
+      "additionalProperties": false,
+      "description": "A duration curve in kW, shortest hold first: durations strictly up, kW strictly down.",
+      "properties": {
+        "kind": {
+          "const": "absolute_kw",
+          "title": "Kind",
+          "type": "string"
+        },
+        "points": {
+          "items": {
+            "$ref": "#/$defs/AbsolutePoint"
+          },
+          "minItems": 1,
+          "title": "Points",
+          "type": "array"
+        }
+      },
+      "required": [
+        "kind",
+        "points"
+      ],
+      "title": "AbsoluteCurve",
+      "type": "object"
+    },
+    "AbsolutePoint": {
+      "additionalProperties": false,
+      "description": "``turn_down_kw`` of IT load can be held for up to ``max_hold_min`` minutes.",
+      "properties": {
+        "max_hold_min": {
+          "maximum": 1440,
+          "minimum": 1,
+          "title": "Max Hold Min",
+          "type": "integer"
+        },
+        "turn_down_kw": {
+          "minimum": 1,
+          "title": "Turn Down Kw",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "max_hold_min",
+        "turn_down_kw"
+      ],
+      "title": "AbsolutePoint",
+      "type": "object"
+    },
+    "AvailabilityPrice": {
+      "additionalProperties": false,
+      "description": "A holding fee: pence per MW of turn-down held available, per hour.",
+      "properties": {
+        "kind": {
+          "const": "availability_price",
+          "title": "Kind",
+          "type": "string"
+        },
+        "pence_per_mw_per_hour": {
+          "minimum": 1,
+          "title": "Pence Per Mw Per Hour",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "kind",
+        "pence_per_mw_per_hour"
+      ],
+      "title": "AvailabilityPrice",
+      "type": "object"
+    },
+    "AvailabilityTemplate": {
+      "additionalProperties": false,
+      "description": "When each envelope is offered: the recurring GB-clock template and the dated overrides.\n\n``seasons`` partition the months (sorted by first month), ``day_groups`` the ISO week (sorted\nby first weekday), ``bands`` the local day (sorted, contiguous, 0 to 1440). ``cells`` hold\nexactly one state per (season, day group, band), in that order, and the template is\ncanonical: no two bands, day groups or seasons carry the same states everywhere.",
+      "properties": {
+        "bands": {
+          "items": {
+            "$ref": "#/$defs/TimeBand"
+          },
+          "minItems": 1,
+          "title": "Bands",
+          "type": "array"
+        },
+        "cells": {
+          "items": {
+            "$ref": "#/$defs/TemplateCell"
+          },
+          "minItems": 1,
+          "title": "Cells",
+          "type": "array"
+        },
+        "day_groups": {
+          "items": {
+            "$ref": "#/$defs/DayGroup"
+          },
+          "minItems": 1,
+          "title": "Day Groups",
+          "type": "array"
+        },
+        "overrides": {
+          "items": {
+            "$ref": "#/$defs/Override"
+          },
+          "title": "Overrides",
+          "type": "array"
+        },
+        "seasons": {
+          "items": {
+            "$ref": "#/$defs/Season"
+          },
+          "minItems": 1,
+          "title": "Seasons",
+          "type": "array"
+        }
+      },
+      "required": [
+        "seasons",
+        "day_groups",
+        "bands",
+        "cells",
+        "overrides"
+      ],
+      "title": "AvailabilityTemplate",
+      "type": "object"
+    },
+    "CallLimits": {
+      "additionalProperties": false,
+      "description": "The SLA class's budget, shared by every envelope that names the class. A limit the SLA does\nnot have is ``not_applicable``; one not known is ``unknown`` (never checked, never assumed).",
+      "properties": {
+        "kind": {
+          "const": "call_limits",
+          "title": "Kind",
+          "type": "string"
+        },
+        "max_cumulative": {
+          "discriminator": {
+            "mapping": {
+              "duration_budget": "#/$defs/DurationBudget",
+              "not_applicable": "#/$defs/NotApplicable",
+              "unknown": "#/$defs/Unknown"
+            },
+            "propertyName": "kind"
+          },
+          "oneOf": [
+            {
+              "$ref": "#/$defs/DurationBudget"
+            },
+            {
+              "$ref": "#/$defs/NotApplicable"
+            },
+            {
+              "$ref": "#/$defs/Unknown"
+            }
+          ],
+          "title": "Max Cumulative"
+        },
+        "max_events": {
+          "discriminator": {
+            "mapping": {
+              "event_budget": "#/$defs/EventBudget",
+              "not_applicable": "#/$defs/NotApplicable",
+              "unknown": "#/$defs/Unknown"
+            },
+            "propertyName": "kind"
+          },
+          "oneOf": [
+            {
+              "$ref": "#/$defs/EventBudget"
+            },
+            {
+              "$ref": "#/$defs/NotApplicable"
+            },
+            {
+              "$ref": "#/$defs/Unknown"
+            }
+          ],
+          "title": "Max Events"
+        },
+        "min_rest": {
+          "discriminator": {
+            "mapping": {
+              "minimum_rest": "#/$defs/MinimumRest",
+              "not_applicable": "#/$defs/NotApplicable",
+              "unknown": "#/$defs/Unknown"
+            },
+            "propertyName": "kind"
+          },
+          "oneOf": [
+            {
+              "$ref": "#/$defs/MinimumRest"
+            },
+            {
+              "$ref": "#/$defs/NotApplicable"
+            },
+            {
+              "$ref": "#/$defs/Unknown"
+            }
+          ],
+          "title": "Min Rest"
+        }
+      },
+      "required": [
+        "kind",
+        "max_events",
+        "max_cumulative",
+        "min_rest"
+      ],
+      "title": "CallLimits",
+      "type": "object"
+    },
+    "DayGroup": {
+      "additionalProperties": false,
+      "description": "A set of ISO weekdays (1 = Monday ... 7 = Sunday). The day groups partition the week.",
+      "properties": {
+        "day_group_id": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]*$",
+          "title": "Day Group Id",
+          "type": "string"
+        },
+        "iso_weekdays": {
+          "items": {
+            "maximum": 7,
+            "minimum": 1,
+            "type": "integer"
+          },
+          "minItems": 1,
+          "title": "Iso Weekdays",
+          "type": "array"
+        }
+      },
+      "required": [
+        "day_group_id",
+        "iso_weekdays"
+      ],
+      "title": "DayGroup",
+      "type": "object"
+    },
+    "DeclaredBasis": {
+      "additionalProperties": false,
+      "description": "The operator states the envelopes from its own knowledge of its workloads; supporting IC-4\nevidence may be listed (sorted by hash; may be empty).",
+      "properties": {
+        "kind": {
+          "const": "operator_declared",
+          "title": "Kind",
+          "type": "string"
+        },
+        "supporting_evidence": {
+          "items": {
+            "$ref": "#/$defs/EvidenceRef"
+          },
+          "title": "Supporting Evidence",
+          "type": "array"
+        }
+      },
+      "required": [
+        "kind",
+        "supporting_evidence"
+      ],
+      "title": "DeclaredBasis",
+      "type": "object"
+    },
+    "DurationBudget": {
+      "additionalProperties": false,
+      "description": "At most ``max_minutes`` of hold in events starting in any ``window_days`` x 24 h.",
+      "properties": {
+        "kind": {
+          "const": "duration_budget",
+          "title": "Kind",
+          "type": "string"
+        },
+        "max_minutes": {
+          "minimum": 1,
+          "title": "Max Minutes",
+          "type": "integer"
+        },
+        "window_days": {
+          "minimum": 1,
+          "title": "Window Days",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "kind",
+        "max_minutes",
+        "window_days"
+      ],
+      "title": "DurationBudget",
+      "type": "object"
+    },
+    "EventBudget": {
+      "additionalProperties": false,
+      "description": "At most ``max_events`` events start in any ``window_days`` x 24 h.",
+      "properties": {
+        "kind": {
+          "const": "event_budget",
+          "title": "Kind",
+          "type": "string"
+        },
+        "max_events": {
+          "minimum": 1,
+          "title": "Max Events",
+          "type": "integer"
+        },
+        "window_days": {
+          "minimum": 1,
+          "title": "Window Days",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "kind",
+        "max_events",
+        "window_days"
+      ],
+      "title": "EventBudget",
+      "type": "object"
+    },
+    "EventFee": {
+      "additionalProperties": false,
+      "description": "A fee per called event, in pence.",
+      "properties": {
+        "kind": {
+          "const": "event_fee",
+          "title": "Kind",
+          "type": "string"
+        },
+        "pence": {
+          "minimum": 1,
+          "title": "Pence",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "kind",
+        "pence"
+      ],
+      "title": "EventFee",
+      "type": "object"
+    },
+    "EvidenceRef": {
+      "additionalProperties": false,
+      "description": "A reference to an IC-4 instance by its content hash (what IC-1 and others embed).",
+      "properties": {
+        "contract": {
+          "const": "IC-4",
+          "title": "Contract",
+          "type": "string"
+        },
+        "contract_version": {
+          "pattern": "^1\\.(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)$",
+          "title": "Contract Version",
+          "type": "string"
+        },
+        "evidence_hash": {
+          "pattern": "^sha256:[0-9a-f]{64}$",
+          "title": "Evidence Hash",
+          "type": "string"
+        },
+        "kind": {
+          "const": "evidence_ref",
+          "title": "Kind",
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind",
+        "contract",
+        "contract_version",
+        "evidence_hash"
+      ],
+      "title": "EvidenceRef",
+      "type": "object"
+    },
+    "FirmOffer": {
+      "additionalProperties": false,
+      "description": "A binding price, with the offer document as IC-4 evidence.",
+      "properties": {
+        "evidence": {
+          "$ref": "#/$defs/EvidenceRef"
+        },
+        "kind": {
+          "const": "firm_offer",
+          "title": "Kind",
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind",
+        "evidence"
+      ],
+      "title": "FirmOffer",
+      "type": "object"
+    },
+    "Indicative": {
+      "additionalProperties": false,
+      "description": "The operator stated the price on ``stated_on`` without a binding offer document.",
+      "properties": {
+        "kind": {
+          "const": "indicative",
+          "title": "Kind",
+          "type": "string"
+        },
+        "stated_on": {
+          "format": "date",
+          "title": "Stated On",
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind",
+        "stated_on"
+      ],
+      "title": "Indicative",
+      "type": "object"
+    },
+    "ItReference": {
+      "additionalProperties": false,
+      "description": "The IT load the operator never turns down below, whatever is called.",
+      "properties": {
+        "kind": {
+          "const": "it_reference",
+          "title": "Kind",
+          "type": "string"
+        },
+        "retained_it_floor_kw": {
+          "minimum": 0,
+          "title": "Retained It Floor Kw",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "kind",
+        "retained_it_floor_kw"
+      ],
+      "title": "ItReference",
+      "type": "object"
+    },
+    "MeteredBasis": {
+      "additionalProperties": false,
+      "description": "Measured on IT metering across real events against a baseline method fixed in advance.\nRequires IC-4 evidence: the meter records and the baseline method.",
+      "properties": {
+        "baseline_method": {
+          "$ref": "#/$defs/EvidenceRef"
+        },
+        "kind": {
+          "const": "metered",
+          "title": "Kind",
+          "type": "string"
+        },
+        "meter_evidence": {
+          "items": {
+            "$ref": "#/$defs/EvidenceRef"
+          },
+          "minItems": 1,
+          "title": "Meter Evidence",
+          "type": "array"
+        },
+        "n_events": {
+          "minimum": 1,
+          "title": "N Events",
+          "type": "integer"
+        },
+        "observed_from": {
+          "format": "date-time",
+          "title": "Observed From",
+          "type": "string"
+        },
+        "observed_until": {
+          "format": "date-time",
+          "title": "Observed Until",
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind",
+        "meter_evidence",
+        "baseline_method",
+        "observed_from",
+        "observed_until",
+        "n_events"
+      ],
+      "title": "MeteredBasis",
+      "type": "object"
+    },
+    "MinimumRest": {
+      "additionalProperties": false,
+      "description": "At least ``minutes`` from the end of one event of the class to the start of the next.",
+      "properties": {
+        "kind": {
+          "const": "minimum_rest",
+          "title": "Kind",
+          "type": "string"
+        },
+        "minutes": {
+          "minimum": 1,
+          "title": "Minutes",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "kind",
+        "minutes"
+      ],
+      "title": "MinimumRest",
+      "type": "object"
+    },
+    "NoReturn": {
+      "additionalProperties": false,
+      "description": "The turned-down energy does not come back at this site.",
+      "properties": {
+        "kind": {
+          "const": "no_return",
+          "title": "Kind",
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind"
+      ],
+      "title": "NoReturn",
+      "type": "object"
+    },
+    "NotApplicable": {
+      "additionalProperties": false,
+      "description": "A term that does not exist for this record (e.g. a LIFO position on a firm connection).\n\nDistinct from `Unknown`: \"not applicable\" is a statement about the agreement, \"unknown\" is a\nstatement about our knowledge of it. Both carry a reason.",
+      "properties": {
+        "kind": {
+          "const": "not_applicable",
+          "title": "Kind",
+          "type": "string"
+        },
+        "reason": {
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Reason",
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind",
+        "reason"
+      ],
+      "title": "NotApplicable",
+      "type": "object"
+    },
+    "Offered": {
+      "additionalProperties": false,
+      "description": "The named envelopes are offered (each envelope is a menu item; `stack_at` combines them).",
+      "properties": {
+        "envelope_ids": {
+          "items": {
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]*$",
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Envelope Ids",
+          "type": "array"
+        },
+        "kind": {
+          "const": "offered",
+          "title": "Kind",
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind",
+        "envelope_ids"
+      ],
+      "title": "Offered",
+      "type": "object"
+    },
+    "Override": {
+      "additionalProperties": false,
+      "description": "Replaces the template's state wholesale over ``[start, end)`` (UTC, on the grid): a dated\nwithdrawal (``unavailable``: a blackout), a dated offer, or a dated ``unknown``. Never a\nfield-by-field merge.",
+      "properties": {
+        "end": {
+          "format": "date-time",
+          "title": "End",
+          "type": "string"
+        },
+        "override_id": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]*$",
+          "title": "Override Id",
+          "type": "string"
+        },
+        "reason": {
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Reason",
+          "type": "string"
+        },
+        "start": {
+          "format": "date-time",
+          "title": "Start",
+          "type": "string"
+        },
+        "state": {
+          "discriminator": {
+            "mapping": {
+              "offered": "#/$defs/Offered",
+              "unavailable": "#/$defs/Unavailable",
+              "unknown": "#/$defs/Unknown"
+            },
+            "propertyName": "kind"
+          },
+          "oneOf": [
+            {
+              "$ref": "#/$defs/Offered"
+            },
+            {
+              "$ref": "#/$defs/Unavailable"
+            },
+            {
+              "$ref": "#/$defs/Unknown"
+            }
+          ],
+          "title": "State"
+        }
+      },
+      "required": [
+        "override_id",
+        "start",
+        "end",
+        "state",
+        "reason"
+      ],
+      "title": "Override",
+      "type": "object"
+    },
+    "PriceOffer": {
+      "additionalProperties": false,
+      "description": "What the operator asks to be paid, by component. A component that is not charged is\n``not_applicable`` (an amount is never zero); one not yet stated is ``unknown``. At least one\ncomponent is an amount or ``not_applicable`` (all ``unknown`` is the whole price\n``unknown``). A firm offer has no ``unknown`` component.",
+      "properties": {
+        "availability": {
+          "discriminator": {
+            "mapping": {
+              "availability_price": "#/$defs/AvailabilityPrice",
+              "not_applicable": "#/$defs/NotApplicable",
+              "unknown": "#/$defs/Unknown"
+            },
+            "propertyName": "kind"
+          },
+          "oneOf": [
+            {
+              "$ref": "#/$defs/AvailabilityPrice"
+            },
+            {
+              "$ref": "#/$defs/NotApplicable"
+            },
+            {
+              "$ref": "#/$defs/Unknown"
+            }
+          ],
+          "title": "Availability"
+        },
+        "currency": {
+          "const": "GBP",
+          "title": "Currency",
+          "type": "string"
+        },
+        "kind": {
+          "const": "price_offer",
+          "title": "Kind",
+          "type": "string"
+        },
+        "per_event": {
+          "discriminator": {
+            "mapping": {
+              "event_fee": "#/$defs/EventFee",
+              "not_applicable": "#/$defs/NotApplicable",
+              "unknown": "#/$defs/Unknown"
+            },
+            "propertyName": "kind"
+          },
+          "oneOf": [
+            {
+              "$ref": "#/$defs/EventFee"
+            },
+            {
+              "$ref": "#/$defs/NotApplicable"
+            },
+            {
+              "$ref": "#/$defs/Unknown"
+            }
+          ],
+          "title": "Per Event"
+        },
+        "price_basis": {
+          "discriminator": {
+            "mapping": {
+              "firm_offer": "#/$defs/FirmOffer",
+              "indicative": "#/$defs/Indicative",
+              "synthetic_placeholder": "#/$defs/SyntheticPlaceholder"
+            },
+            "propertyName": "kind"
+          },
+          "oneOf": [
+            {
+              "$ref": "#/$defs/Indicative"
+            },
+            {
+              "$ref": "#/$defs/FirmOffer"
+            },
+            {
+              "$ref": "#/$defs/SyntheticPlaceholder"
+            }
+          ],
+          "title": "Price Basis"
+        },
+        "utilisation": {
+          "discriminator": {
+            "mapping": {
+              "not_applicable": "#/$defs/NotApplicable",
+              "unknown": "#/$defs/Unknown",
+              "utilisation_price": "#/$defs/UtilisationPrice"
+            },
+            "propertyName": "kind"
+          },
+          "oneOf": [
+            {
+              "$ref": "#/$defs/UtilisationPrice"
+            },
+            {
+              "$ref": "#/$defs/NotApplicable"
+            },
+            {
+              "$ref": "#/$defs/Unknown"
+            }
+          ],
+          "title": "Utilisation"
+        }
+      },
+      "required": [
+        "kind",
+        "currency",
+        "availability",
+        "utilisation",
+        "per_event",
+        "price_basis"
+      ],
+      "title": "PriceOffer",
+      "type": "object"
+    },
+    "ReboundSize": {
+      "additionalProperties": false,
+      "description": "How much comes back after a hold, when the SLA class says energy returns. When it returns\nis the class's ``energy_return``. ``recovery_permille`` is the energy recovered per 1,000 of\nthe energy turned down (above 1,000 if recovery costs more than it saved).",
+      "properties": {
+        "kind": {
+          "const": "rebound_size",
+          "title": "Kind",
+          "type": "string"
+        },
+        "max_rebound_kw": {
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "$ref": "#/$defs/Unknown"
+            }
+          ],
+          "title": "Max Rebound Kw"
+        },
+        "recovery_permille": {
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "$ref": "#/$defs/Unknown"
+            }
+          ],
+          "title": "Recovery Permille"
+        }
+      },
+      "required": [
+        "kind",
+        "recovery_permille",
+        "max_rebound_kw"
+      ],
+      "title": "ReboundSize",
+      "type": "object"
+    },
+    "RelativeCurve": {
+      "additionalProperties": false,
+      "description": "A duration curve in basis points of running IT load, shortest hold first, with an optional\nkW cap. kW is monotone in basis points at any load, so the curve's Pareto rule holds in kW.",
+      "properties": {
+        "cap_kw": {
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "$ref": "#/$defs/NotApplicable"
+            }
+          ],
+          "title": "Cap Kw"
+        },
+        "kind": {
+          "const": "share_of_it_load",
+          "title": "Kind",
+          "type": "string"
+        },
+        "points": {
+          "items": {
+            "$ref": "#/$defs/RelativePoint"
+          },
+          "minItems": 1,
+          "title": "Points",
+          "type": "array"
+        }
+      },
+      "required": [
+        "kind",
+        "points",
+        "cap_kw"
+      ],
+      "title": "RelativeCurve",
+      "type": "object"
+    },
+    "RelativePoint": {
+      "additionalProperties": false,
+      "description": "``reduction_bp`` basis points of the IT load running before the event can be held for up\nto ``max_hold_min`` minutes.",
+      "properties": {
+        "max_hold_min": {
+          "maximum": 1440,
+          "minimum": 1,
+          "title": "Max Hold Min",
+          "type": "integer"
+        },
+        "reduction_bp": {
+          "maximum": 10000,
+          "minimum": 1,
+          "title": "Reduction Bp",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "max_hold_min",
+        "reduction_bp"
+      ],
+      "title": "RelativePoint",
+      "type": "object"
+    },
+    "ResponseTerms": {
+      "additionalProperties": false,
+      "description": "How fast the turn-down arrives: notice needed before the event starts, and seconds from the\nstart to the full reduction. Seconds, because compute responds inside a minute; a consumer on\nminutes reads ``ceil(s / 60)``. A hold counts from the start.",
+      "properties": {
+        "kind": {
+          "const": "response_terms",
+          "title": "Kind",
+          "type": "string"
+        },
+        "min_notice_s": {
+          "minimum": 0,
+          "title": "Min Notice S",
+          "type": "integer"
+        },
+        "ramp_s": {
+          "minimum": 0,
+          "title": "Ramp S",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "kind",
+        "min_notice_s",
+        "ramp_s"
+      ],
+      "title": "ResponseTerms",
+      "type": "object"
+    },
+    "ReturnsLater": {
+      "additionalProperties": false,
+      "description": "The turned-down energy comes back at this site, within ``return_window_min`` of release.",
+      "properties": {
+        "kind": {
+          "const": "returns_later",
+          "title": "Kind",
+          "type": "string"
+        },
+        "return_window_min": {
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "$ref": "#/$defs/Unknown"
+            }
+          ],
+          "title": "Return Window Min"
+        }
+      },
+      "required": [
+        "kind",
+        "return_window_min"
+      ],
+      "title": "ReturnsLater",
+      "type": "object"
+    },
+    "Season": {
+      "additionalProperties": false,
+      "description": "A set of calendar months. The declaration's seasons partition the twelve months.",
+      "properties": {
+        "months": {
+          "items": {
+            "maximum": 12,
+            "minimum": 1,
+            "type": "integer"
+          },
+          "minItems": 1,
+          "title": "Months",
+          "type": "array"
+        },
+        "season_id": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]*$",
+          "title": "Season Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "season_id",
+        "months"
+      ],
+      "title": "Season",
+      "type": "object"
+    },
+    "SlaClass": {
+      "additionalProperties": false,
+      "description": "A service-level class, declared once and named by envelopes.\n\n``operator_label`` is the operator's own name for it: opaque, never parsed, compared or\nranked. ``workload_action`` constrains ``energy_return``: deferred work returns (not\n``no_return``); moved or dropped work does not return here (not ``returns_later``); slowed\nwork may do either. There is no rank and no firmness: protection is the absence of an\nenvelope, and every IC-9 kW is CONDITIONAL to a consumer.",
+      "properties": {
+        "call_limits": {
+          "$ref": "#/$defs/CallLimits"
+        },
+        "class_id": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]*$",
+          "title": "Class Id",
+          "type": "string"
+        },
+        "energy_return": {
+          "discriminator": {
+            "mapping": {
+              "no_return": "#/$defs/NoReturn",
+              "returns_later": "#/$defs/ReturnsLater",
+              "unknown": "#/$defs/Unknown"
+            },
+            "propertyName": "kind"
+          },
+          "oneOf": [
+            {
+              "$ref": "#/$defs/ReturnsLater"
+            },
+            {
+              "$ref": "#/$defs/NoReturn"
+            },
+            {
+              "$ref": "#/$defs/Unknown"
+            }
+          ],
+          "title": "Energy Return"
+        },
+        "operator_label": {
+          "maxLength": 200,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Operator Label",
+          "type": "string"
+        },
+        "sla_evidence": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/EvidenceRef"
+            },
+            {
+              "$ref": "#/$defs/Unknown"
+            }
+          ],
+          "title": "Sla Evidence"
+        },
+        "workload_action": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/WorkloadAction"
+            },
+            {
+              "$ref": "#/$defs/Unknown"
+            }
+          ],
+          "title": "Workload Action"
+        }
+      },
+      "required": [
+        "class_id",
+        "operator_label",
+        "workload_action",
+        "energy_return",
+        "call_limits",
+        "sla_evidence"
+      ],
+      "title": "SlaClass",
+      "type": "object"
+    },
+    "Stacking": {
+      "additionalProperties": false,
+      "description": "How the offered envelopes combine. ``merit_order`` lists every envelope once: `stack_at`\ntakes them in that order, one per exclusion group, until ``max_concurrent_turn_down_kw``.",
+      "properties": {
+        "kind": {
+          "const": "stacking",
+          "title": "Kind",
+          "type": "string"
+        },
+        "max_concurrent_turn_down_kw": {
+          "minimum": 1,
+          "title": "Max Concurrent Turn Down Kw",
+          "type": "integer"
+        },
+        "merit_order": {
+          "items": {
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]*$",
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Merit Order",
+          "type": "array"
+        }
+      },
+      "required": [
+        "kind",
+        "merit_order",
+        "max_concurrent_turn_down_kw"
+      ],
+      "title": "Stacking",
+      "type": "object"
+    },
+    "SyntheticPlaceholder": {
+      "additionalProperties": false,
+      "description": "A schema-test fixture's price: a placeholder, not an offer. Required exactly when the\ndeclaration's ``record_class`` is ``synthetic_fixture``.",
+      "properties": {
+        "kind": {
+          "const": "synthetic_placeholder",
+          "title": "Kind",
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind"
+      ],
+      "title": "SyntheticPlaceholder",
+      "type": "object"
+    },
+    "TemplateCell": {
+      "additionalProperties": false,
+      "description": "The state of one (season, day group, band) of the recurring template.",
+      "properties": {
+        "band_id": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]*$",
+          "title": "Band Id",
+          "type": "string"
+        },
+        "day_group_id": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]*$",
+          "title": "Day Group Id",
+          "type": "string"
+        },
+        "season_id": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]*$",
+          "title": "Season Id",
+          "type": "string"
+        },
+        "state": {
+          "discriminator": {
+            "mapping": {
+              "offered": "#/$defs/Offered",
+              "unavailable": "#/$defs/Unavailable",
+              "unknown": "#/$defs/Unknown"
+            },
+            "propertyName": "kind"
+          },
+          "oneOf": [
+            {
+              "$ref": "#/$defs/Offered"
+            },
+            {
+              "$ref": "#/$defs/Unavailable"
+            },
+            {
+              "$ref": "#/$defs/Unknown"
+            }
+          ],
+          "title": "State"
+        }
+      },
+      "required": [
+        "season_id",
+        "day_group_id",
+        "band_id",
+        "state"
+      ],
+      "title": "TemplateCell",
+      "type": "object"
+    },
+    "TimeBand": {
+      "additionalProperties": false,
+      "description": "A half-open local-clock window ``[start_minute, end_minute)`` on `CLOCK`, on the 30-minute\ngrid. ``end_minute == 1440`` is midnight at the end of the day; a band never wraps midnight.",
+      "properties": {
+        "band_id": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]*$",
+          "title": "Band Id",
+          "type": "string"
+        },
+        "end_minute": {
+          "maximum": 1440,
+          "minimum": 30,
+          "title": "End Minute",
+          "type": "integer"
+        },
+        "start_minute": {
+          "maximum": 1410,
+          "minimum": 0,
+          "title": "Start Minute",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "band_id",
+        "start_minute",
+        "end_minute"
+      ],
+      "title": "TimeBand",
+      "type": "object"
+    },
+    "TrialledBasis": {
+      "additionalProperties": false,
+      "description": "Observed in a bounded trial of turn-down events against a baseline method fixed in advance\n(IC-11's pattern). Requires IC-4 evidence: the trial records and the baseline method.",
+      "properties": {
+        "baseline_method": {
+          "$ref": "#/$defs/EvidenceRef"
+        },
+        "kind": {
+          "const": "trialled",
+          "title": "Kind",
+          "type": "string"
+        },
+        "n_events": {
+          "minimum": 1,
+          "title": "N Events",
+          "type": "integer"
+        },
+        "observed_from": {
+          "format": "date-time",
+          "title": "Observed From",
+          "type": "string"
+        },
+        "observed_until": {
+          "format": "date-time",
+          "title": "Observed Until",
+          "type": "string"
+        },
+        "trial_evidence": {
+          "items": {
+            "$ref": "#/$defs/EvidenceRef"
+          },
+          "minItems": 1,
+          "title": "Trial Evidence",
+          "type": "array"
+        }
+      },
+      "required": [
+        "kind",
+        "trial_evidence",
+        "baseline_method",
+        "observed_from",
+        "observed_until",
+        "n_events"
+      ],
+      "title": "TrialledBasis",
+      "type": "object"
+    },
+    "TurndownEnvelope": {
+      "additionalProperties": false,
+      "description": "One menu item: a duration curve of IT turn-down with its response, price, rebound and SLA\nclass. Envelopes in one ``exclusion_group`` are alternatives; any others stack (`stack_at`).",
+      "properties": {
+        "curve": {
+          "discriminator": {
+            "mapping": {
+              "absolute_kw": "#/$defs/AbsoluteCurve",
+              "share_of_it_load": "#/$defs/RelativeCurve"
+            },
+            "propertyName": "kind"
+          },
+          "oneOf": [
+            {
+              "$ref": "#/$defs/AbsoluteCurve"
+            },
+            {
+              "$ref": "#/$defs/RelativeCurve"
+            }
+          ],
+          "title": "Curve"
+        },
+        "envelope_id": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]*$",
+          "title": "Envelope Id",
+          "type": "string"
+        },
+        "exclusion_group": {
+          "anyOf": [
+            {
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]*$",
+              "type": "string"
+            },
+            {
+              "$ref": "#/$defs/NotApplicable"
+            }
+          ],
+          "title": "Exclusion Group"
+        },
+        "price": {
+          "discriminator": {
+            "mapping": {
+              "price_offer": "#/$defs/PriceOffer",
+              "unknown": "#/$defs/Unknown"
+            },
+            "propertyName": "kind"
+          },
+          "oneOf": [
+            {
+              "$ref": "#/$defs/PriceOffer"
+            },
+            {
+              "$ref": "#/$defs/Unknown"
+            }
+          ],
+          "title": "Price"
+        },
+        "rebound": {
+          "discriminator": {
+            "mapping": {
+              "not_applicable": "#/$defs/NotApplicable",
+              "rebound_size": "#/$defs/ReboundSize",
+              "unknown": "#/$defs/Unknown"
+            },
+            "propertyName": "kind"
+          },
+          "oneOf": [
+            {
+              "$ref": "#/$defs/ReboundSize"
+            },
+            {
+              "$ref": "#/$defs/NotApplicable"
+            },
+            {
+              "$ref": "#/$defs/Unknown"
+            }
+          ],
+          "title": "Rebound"
+        },
+        "response": {
+          "$ref": "#/$defs/ResponseTerms"
+        },
+        "sla_class_id": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]*$",
+          "title": "Sla Class Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "envelope_id",
+        "sla_class_id",
+        "response",
+        "price",
+        "curve",
+        "rebound",
+        "exclusion_group"
+      ],
+      "title": "TurndownEnvelope",
+      "type": "object"
+    },
+    "Unavailable": {
+      "additionalProperties": false,
+      "description": "Nothing is offered, for a stated reason. A template cell reads as ``not_offered``; a dated\noverride reads as ``blackout`` (`CallReason`).",
+      "properties": {
+        "kind": {
+          "const": "unavailable",
+          "title": "Kind",
+          "type": "string"
+        },
+        "reason_code": {
+          "$ref": "#/$defs/UnavailableReason"
+        }
+      },
+      "required": [
+        "kind",
+        "reason_code"
+      ],
+      "title": "Unavailable",
+      "type": "object"
+    },
+    "UnavailableReason": {
+      "description": "Why a cell or an override offers nothing (as distinct from ``unknown``).",
+      "enum": [
+        "workload_protected",
+        "outside_agreed_window",
+        "operator_withdrawn",
+        "maintenance"
+      ],
+      "title": "UnavailableReason",
+      "type": "string"
+    },
+    "Unknown": {
+      "additionalProperties": false,
+      "description": "A value that exists but is not known. Always explicit, always with a reason; never ``None``.\n\nSerialised as ``{\"kind\": \"unknown\", \"reason\": \"...\"}``. ``kind`` is required (no default) so\na hand-written payload that omits it is refused rather than guessed at.",
+      "properties": {
+        "kind": {
+          "const": "unknown",
+          "title": "Kind",
+          "type": "string"
+        },
+        "reason": {
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Reason",
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind",
+        "reason"
+      ],
+      "title": "Unknown",
+      "type": "object"
+    },
+    "UtilisationPrice": {
+      "additionalProperties": false,
+      "description": "An energy fee: pence per MWh of IT load turned down.",
+      "properties": {
+        "kind": {
+          "const": "utilisation_price",
+          "title": "Kind",
+          "type": "string"
+        },
+        "pence_per_mwh": {
+          "minimum": 1,
+          "title": "Pence Per Mwh",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "kind",
+        "pence_per_mwh"
+      ],
+      "title": "UtilisationPrice",
+      "type": "object"
+    },
+    "WorkloadAction": {
+      "description": "What the operator does to its workloads to turn down. Closed; a minor version extends it.",
+      "enum": [
+        "deferred",
+        "slowed",
+        "moved",
+        "dropped"
+      ],
+      "title": "WorkloadAction",
+      "type": "string"
+    }
+  },
+  "additionalProperties": false,
+  "description": "IC-9 v1.0.0: the turn-down one GPU operator declares at one site over one validity.\n\n``envelopes`` are the menu (sorted by ``envelope_id``), ``sla_classes`` the service classes\nthey name (sorted by ``class_id``; each named by at least one envelope), ``availability``\nsays which envelopes are offered at every half-hour of ``[valid_from, valid_until)``, and\n``resolved_hash`` binds its compilation (`resolve`). ``stacking`` and ``it_reference`` are\nthe arithmetic that stops one kW being counted twice. Every envelope is offered somewhere.",
+  "properties": {
+    "availability": {
+      "$ref": "#/$defs/AvailabilityTemplate"
+    },
+    "basis": {
+      "discriminator": {
+        "mapping": {
+          "metered": "#/$defs/MeteredBasis",
+          "operator_declared": "#/$defs/DeclaredBasis",
+          "trialled": "#/$defs/TrialledBasis"
+        },
+        "propertyName": "kind"
+      },
+      "oneOf": [
+        {
+          "$ref": "#/$defs/DeclaredBasis"
+        },
+        {
+          "$ref": "#/$defs/TrialledBasis"
+        },
+        {
+          "$ref": "#/$defs/MeteredBasis"
+        }
+      ],
+      "title": "Basis"
+    },
+    "clock": {
+      "const": "Europe/London",
+      "title": "Clock",
+      "type": "string"
+    },
+    "contract": {
+      "const": "IC-9",
+      "default": "IC-9",
+      "title": "Contract",
+      "type": "string"
+    },
+    "contract_version": {
+      "const": "1.0.0",
+      "default": "1.0.0",
+      "title": "Contract Version",
+      "type": "string"
+    },
+    "declaration_id": {
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]*$",
+      "title": "Declaration Id",
+      "type": "string"
+    },
+    "envelopes": {
+      "items": {
+        "$ref": "#/$defs/TurndownEnvelope"
+      },
+      "minItems": 1,
+      "title": "Envelopes",
+      "type": "array"
+    },
+    "issued_at": {
+      "format": "date-time",
+      "title": "Issued At",
+      "type": "string"
+    },
+    "it_reference": {
+      "$ref": "#/$defs/ItReference"
+    },
+    "measurement_point": {
+      "const": "it_load",
+      "title": "Measurement Point",
+      "type": "string"
+    },
+    "operator_id": {
+      "minLength": 1,
+      "pattern": "\\S",
+      "title": "Operator Id",
+      "type": "string"
+    },
+    "record_class": {
+      "enum": [
+        "registered",
+        "synthetic_fixture"
+      ],
+      "title": "Record Class",
+      "type": "string"
+    },
+    "resolved_hash": {
+      "pattern": "^sha256:[0-9a-f]{64}$",
+      "title": "Resolved Hash",
+      "type": "string"
+    },
+    "site_id": {
+      "minLength": 1,
+      "pattern": "\\S",
+      "title": "Site Id",
+      "type": "string"
+    },
+    "sla_classes": {
+      "items": {
+        "$ref": "#/$defs/SlaClass"
+      },
+      "minItems": 1,
+      "title": "Sla Classes",
+      "type": "array"
+    },
+    "stacking": {
+      "$ref": "#/$defs/Stacking"
+    },
+    "supersedes": {
+      "anyOf": [
+        {
+          "pattern": "^sha256:[0-9a-f]{64}$",
+          "type": "string"
+        },
+        {
+          "$ref": "#/$defs/NotApplicable"
+        }
+      ],
+      "title": "Supersedes"
+    },
+    "valid_from": {
+      "format": "date-time",
+      "title": "Valid From",
+      "type": "string"
+    },
+    "valid_until": {
+      "format": "date-time",
+      "title": "Valid Until",
+      "type": "string"
+    }
+  },
+  "required": [
+    "record_class",
+    "declaration_id",
+    "site_id",
+    "operator_id",
+    "issued_at",
+    "valid_from",
+    "valid_until",
+    "supersedes",
+    "measurement_point",
+    "clock",
+    "sla_classes",
+    "envelopes",
+    "availability",
+    "resolved_hash",
+    "stacking",
+    "it_reference",
+    "basis"
+  ],
+  "title": "ComputeTurndownDeclaration",
+  "type": "object"
+}

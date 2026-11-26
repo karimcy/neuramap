@@ -1,0 +1,13 @@
+{
+  "dataset_id": "London Power Networks LC14 statement 2026 v1.2",
+  "fetched_utc": "2026-11-26T08:23:04",
+  "fetcher": "curl -L (WP-UW-07, run by hand; the document itself is not vendored)",
+  "fetcher_args": {},
+  "last_modified": "Wed, 24 Dec 2025 08:35:20 GMT",
+  "licence": "unclear: no licence is stated in the document",
+  "record_count": 2,
+  "sha256": "657293369de0cf26d36af27a21a1010861c6c8cc8e60ec3781f86d998e374a03",
+  "size_bytes": 1034149,
+  "source_url": "https://media.umbraco.io/ukpn-cms/h5ahq0jp/london-power-networks-lc14-statement-2026-v1-2.pdf",
+  "used_for": "Paras 2.41-2.43 and 2.48-2.53: the demand exceeded capacity and demand chargeable kVArh formulas in text form (ENWL's own statement carries them as embedded equation objects)"
+}

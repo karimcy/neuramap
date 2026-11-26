@@ -1,0 +1,49 @@
+{
+  "contract": "IC-13",
+  "contract_version": "1.0.0",
+  "iss": "https://identity.invalid/ic13-test-fixture",
+  "sub": "SYNTHETIC-USER-0002",
+  "aud": "gridq-api-ic13-fixture",
+  "iat": 1794902400,
+  "nbf": 1794902400,
+  "exp": 1794931200,
+  "jti": "SYNTHETIC-TOKEN-customer",
+  "org": {
+    "org_id": "SYNTHETIC-ORG-CUSTOMER-A",
+    "kind": "customer"
+  },
+  "role": "customer",
+  "scopes": [
+    {
+      "resource": "customer_data",
+      "org_id": "SYNTHETIC-ORG-CUSTOMER-A",
+      "resource_id": "*",
+      "actions": [
+        "read",
+        "write"
+      ]
+    },
+    {
+      "resource": "site",
+      "org_id": "SYNTHETIC-ORG-CUSTOMER-A",
+      "resource_id": "SYNTHETIC-SITE-A1",
+      "actions": [
+        "read",
+        "write"
+      ]
+    },
+    {
+      "resource": "telemetry",
+      "org_id": "SYNTHETIC-ORG-CUSTOMER-A",
+      "resource_id": "*",
+      "actions": [
+        "read"
+      ]
+    }
+  ],
+  "amr": [
+    "mfa",
+    "otp",
+    "pwd"
+  ]
+}

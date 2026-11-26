@@ -1,0 +1,186 @@
+{
+ "contract": "IC-9",
+ "contract_version": "1.0.0",
+ "record_class": "synthetic_fixture",
+ "declaration_id": "ic9-synthetic-clock-autumn-2027",
+ "site_id": "SYNTHETIC-DC-GPU-CLOCK",
+ "operator_id": "SYNTHETIC-OPERATOR-GPU",
+ "issued_at": "2027-01-15T00:00:00Z",
+ "valid_from": "2027-10-28T00:00:00Z",
+ "valid_until": "2027-11-04T00:00:00Z",
+ "supersedes": {
+  "kind": "not_applicable",
+  "reason": "synthetic fixture: the only declaration for this window"
+ },
+ "measurement_point": "it_load",
+ "clock": "Europe/London",
+ "sla_classes": [
+  {
+   "class_id": "SYNTHETIC-CLASS-BATCH-TRAINING",
+   "operator_label": "SYNTHETIC-batch training, checkpoint and resume",
+   "workload_action": "deferred",
+   "energy_return": {
+    "kind": "returns_later",
+    "return_window_min": 480
+   },
+   "call_limits": {
+    "kind": "call_limits",
+    "max_events": {
+     "kind": "event_budget",
+     "max_events": 3,
+     "window_days": 7
+    },
+    "max_cumulative": {
+     "kind": "not_applicable",
+     "reason": "synthetic fixture: no cumulative-duration budget"
+    },
+    "min_rest": {
+     "kind": "not_applicable",
+     "reason": "synthetic fixture: no minimum rest"
+    }
+   },
+   "sla_evidence": {
+    "kind": "unknown",
+    "reason": "synthetic fixture: no service-level document exists"
+   }
+  }
+ ],
+ "envelopes": [
+  {
+   "envelope_id": "env-overnight",
+   "sla_class_id": "SYNTHETIC-CLASS-BATCH-TRAINING",
+   "response": {
+    "kind": "response_terms",
+    "min_notice_s": 3600,
+    "ramp_s": 300
+   },
+   "price": {
+    "kind": "price_offer",
+    "currency": "GBP",
+    "availability": {
+     "kind": "not_applicable",
+     "reason": "synthetic fixture: no availability fee in this placeholder"
+    },
+    "utilisation": {
+     "kind": "utilisation_price",
+     "pence_per_mwh": 1000
+    },
+    "per_event": {
+     "kind": "not_applicable",
+     "reason": "synthetic fixture: no event fee in this placeholder"
+    },
+    "price_basis": {
+     "kind": "synthetic_placeholder"
+    }
+   },
+   "curve": {
+    "kind": "absolute_kw",
+    "points": [
+     {
+      "max_hold_min": 60,
+      "turn_down_kw": 1200
+     },
+     {
+      "max_hold_min": 420,
+      "turn_down_kw": 800
+     }
+    ]
+   },
+   "rebound": {
+    "kind": "rebound_size",
+    "recovery_permille": 1000,
+    "max_rebound_kw": 1200
+   },
+   "exclusion_group": {
+    "kind": "not_applicable",
+    "reason": "synthetic fixture: the only envelope"
+   }
+  }
+ ],
+ "availability": {
+  "seasons": [
+   {
+    "season_id": "all-year",
+    "months": [
+     1,
+     2,
+     3,
+     4,
+     5,
+     6,
+     7,
+     8,
+     9,
+     10,
+     11,
+     12
+    ]
+   }
+  ],
+  "day_groups": [
+   {
+    "day_group_id": "all-week",
+    "iso_weekdays": [
+     1,
+     2,
+     3,
+     4,
+     5,
+     6,
+     7
+    ]
+   }
+  ],
+  "bands": [
+   {
+    "band_id": "night",
+    "start_minute": 0,
+    "end_minute": 420
+   },
+   {
+    "band_id": "day",
+    "start_minute": 420,
+    "end_minute": 1440
+   }
+  ],
+  "cells": [
+   {
+    "season_id": "all-year",
+    "day_group_id": "all-week",
+    "band_id": "night",
+    "state": {
+     "kind": "offered",
+     "envelope_ids": [
+      "env-overnight"
+     ]
+    }
+   },
+   {
+    "season_id": "all-year",
+    "day_group_id": "all-week",
+    "band_id": "day",
+    "state": {
+     "kind": "unavailable",
+     "reason_code": "workload_protected"
+    }
+   }
+  ],
+  "overrides": []
+ },
+ "resolved_hash": "sha256:85bac799b0bcc9cfa169534ea6e338e880ba2d22fad5ae3a696b5f8bf6596a99",
+ "stacking": {
+  "kind": "stacking",
+  "merit_order": [
+   "env-overnight"
+  ],
+  "max_concurrent_turn_down_kw": 1200
+ },
+ "it_reference": {
+  "kind": "it_reference",
+  "retained_it_floor_kw": 0
+ },
+ "basis": {
+  "kind": "operator_declared",
+  "supporting_evidence": []
+ }
+}

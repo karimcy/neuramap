@@ -1,0 +1,30 @@
+{
+  "contract": "IC-4",
+  "contract_version": "1.1.0",
+  "record_class": "synthetic_fixture",
+  "evidence_type": "trial_record",
+  "title": "Synthetic record of a bounded cooling flex trial (schema-test fixture)",
+  "issuer": {
+    "name": "SYNTHETIC-NEURA (fixture; a self-issued pre-registration record)",
+    "role": "neura_self_issued",
+    "reference": "SYNTH-TRIAL-0001"
+  },
+  "document_hash": "sha256:90a217d06f743a9f785ad5e835e5003bb0656941ff02758822487e39093c1a0c",
+  "issued_on": "2026-10-05",
+  "effective_from": "2026-10-05",
+  "expiry": {
+    "kind": "no_expiry",
+    "reason": "synthetic fixture: a trial record does not lapse"
+  },
+  "scope": {
+    "kind": "site",
+    "site_id": "SYNTHETIC-DC-CHILLED-WATER"
+  },
+  "verification": {
+    "kind": "verified",
+    "verifier": "SYNTHETIC-INDEPENDENT-VERIFIER (fixture; not a real body)",
+    "verifier_role": "independent_third_party",
+    "method": "document_inspection",
+    "verified_on": "2026-10-19"
+  }
+}

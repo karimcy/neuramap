@@ -1,0 +1,70 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.eggs/
+build/
+dist/
+.installed.cfg
+
+# Virtual envs
+.venv/
+venv/
+env/
+.gamspy_venv/
+
+# Tooling caches
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.coverage
+htmlcov/
+
+# Environment / secrets
+.env
+.env.local
+*.local
+
+# Per-machine Claude Code config (e.g. env.GRIDQ_CONTRIBUTOR = Olly) — never shared.
+.claude/settings.local.json
+
+# Agent worktrees: machine-local nested checkouts (~187MB incl. tooling caches). Never commit.
+.claude/worktrees/
+
+# Local data (file-based storage in v1 — see docs/decisions.md D4)
+# NOTE 2026-08-11 (Olly): `data/` and `examples/real/` were un-ignored so a CLOUD session can
+# see the real site inputs — a cloud environment clones from origin and cannot otherwise run
+# the Grundon/Harwell validations at all. This reverses the earlier never-commit policy on a
+# PRIVATE repo, deliberately. Git history is permanent: treat everything under those paths as
+# customer-confidential, and do not make this repository public without rewriting history.
+*.parquet
+
+# Real customer intake data (HH series, site facts, invoices) — now TRACKED, see the note
+# above. Still customer-confidential; never edit the source workbooks, re-derive instead.
+
+# Quote-run artifacts written by `gridq run` (file-based; reproducible from inputs).
+runs/
+# WP-GRC-05: the IC-4 evidence registry (executed DPAs). Never committed.
+evidence/
+# WP-OPS-01: the owner-side candidate site dossier and its register (customer facts). Never
+# committed; `python -m gridq.ops.dossier` refuses to write a real-site dossier elsewhere.
+dossiers/
+
+# OS / editor
+.DS_Store
+.idea/
+.vscode/
+*.swp
+
+# Manual build artifacts: the PDF is regenerable from chapters/*.tex (carry decision — LFS vs
+# release asset — pending per HANDOFF 2026-07-01); build/ is LaTeX intermediates.
+docs/manual/GridQ-Platform-Manual.pdf
+docs/manual/build/
+
+.venv/
+
+# Claude Code agent worktrees (scratch; never shared)
+.claude/worktrees/
+
+# OS cruft inside the now-tracked data paths
+.DS_Store

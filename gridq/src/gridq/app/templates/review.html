@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+{% block title %}Review - GridQ{% endblock %}
+{% block crumbs %}<a href="/">Dashboard</a> <span class="sep">/</span> <span class="here">Review</span>{% endblock %}
+{% block content %}
+{% set badge = {"blocker":"badge-warn","assumption":"badge-indicative","condition":"badge-indicative","estimate":"badge-neutral","info":"badge-neutral"} %}
+
+<div class="card-head" style="margin-bottom:0.4rem">
+  <h1 style="margin:0">Review</h1>
+  {% if runs %}
+  <select class="review-pick" onchange="if(this.value)location.href='/review?run='+this.value">
+    {% for r in runs %}
+    <option value="{{ r.quote_id }}" {% if r.quote_id == selected_id %}selected{% endif %}>{{ r.label }}</option>
+    {% endfor %}
+  </select>
+  {% endif %}
+</div>
+<p class="lede">A red-team check of this run: every outstanding issue, what to do about it, and who
+  needs to do it. Work the blockers first.</p>
+
+{% if not review %}
+<div class="card"><p class="recent-empty">No completed runs to review yet. Start a quote, then come back here.</p>
+  <div style="text-align:center"><a class="btn" href="/new-quote">Start a quote</a></div>
+</div>
+{% elif review.total == 0 %}
+<div class="card"><p class="recent-empty">No outstanding issues on this run. Every expected input is present.</p></div>
+{% else %}
+
+<div class="stat-row" style="margin-top:0.5rem">
+  <div class="stat"><div class="stat__num">{{ review.counts.blocker }}</div><div class="stat__label">Blocks bankable</div></div>
+  <div class="stat"><div class="stat__num">{{ review.counts.conditions_combined }}</div><div class="stat__label">Conditions</div></div>
+  <div class="stat"><div class="stat__num">{{ review.counts.estimate }}</div><div class="stat__label">Estimate flags</div></div>
+  <div class="stat"><div class="stat__num">{{ review.total }}</div><div class="stat__label">Total issues</div></div>
+</div>
+
+<div class="stack" style="margin-top:1.3rem">
+  {% for item in review['items'] %}
+  <div class="card review-item review-{{ item.severity }}">
+    <div class="card-head" style="align-items:flex-start">
+      <div>
+        <span class="badge {{ badge[item.severity] }}">{{ severity_label[item.severity] }}</span>
+        <h3 style="margin:0.5rem 0 0">{{ item.title }}</h3>
+      </div>
+      <span class="owner-chip">Owner: {{ item.owner }}</span>
+    </div>
+    <p class="muted" style="margin:0.4rem 0 0.6rem">{{ item.problem }}</p>
+    <div class="todo-label">To do</div>
+    <ul class="todo">
+      {% for step in item.todos %}<li>{{ step }}</li>{% endfor %}
+    </ul>
+  </div>
+  {% endfor %}
+</div>
+
+<p class="fallback-note">Issues are compiled deterministically from this run's ranked data asks and
+  warnings. Nothing here is generated prose; each item maps to a recorded gap and its fix.</p>
+{% endif %}
+
+{% endblock %}

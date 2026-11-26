@@ -1,0 +1,336 @@
+# GridQ assumption library — GB, v0.1
+#
+# EVERY value here is a PLACEHOLDER until reviewed and confirmed. Each entry carries its
+# own status/confidence/source/owner. No module may hold these numbers privately — they
+# are loaded via gridq.assumptions.load_assumptions("gb_v0_1"). See docs/assumption_library.md.
+
+metadata:
+  market: GB
+  version: gb_v0_1
+  released: 2026-06-17
+  currency: GBP
+  notes: First placeholder GB assumption set. Nothing here is confirmed; do not present as bankable.
+
+battery_capex:
+  installed_cost:
+    value: 500000
+    unit: GBP/MW
+    source: neura_plan (indicative ~£500k/MW)
+    status: placeholder
+    owner_or_reviewer: Oli
+    confidence: low
+    last_reviewed: 2026-06-17
+    notes: Indicative all-in installed cost; refine against real installer quotes (capex benchmark library, later).
+  installed_cost_benchmark_band:
+    value:
+      low: 300000
+      high: 900000
+    unit: GBP/MW
+    source: placeholder
+    status: placeholder
+    owner_or_reviewer: Oli
+    confidence: low
+    last_reviewed: 2026-06-17
+    notes: >-
+      Plausibility band for installed capex (£/MW); an installer/modelled unit cost outside it is
+      flagged for review (never blocks, never changes a figure). Illustrative placeholder bounds
+      pending a real capex benchmark library.
+
+battery_opex:
+  annual_fixed_opex:
+    value: 12000
+    unit: GBP/MW/yr
+    source: placeholder
+    status: placeholder
+    owner_or_reviewer: Oli
+    confidence: low
+    last_reviewed: 2026-06-17
+    notes: Fixed O&M placeholder; excludes energy/levy costs (those are dispatch-driven).
+
+degradation:
+  annual_capacity_fade_pct:
+    value: 2.5
+    unit: percent_per_year
+    source: placeholder
+    status: placeholder
+    owner_or_reviewer: Olly
+    confidence: low
+    last_reviewed: 2026-06-17
+    notes: Calendar+cycle fade proxy. Day-one sizing must hold end-of-life capability (no augmentation).
+
+round_trip_efficiency:
+  ac_round_trip:
+    value: 0.88
+    unit: ratio
+    source: system_requirements (≈12% round-trip loss)
+    status: placeholder
+    owner_or_reviewer: Olly
+    confidence: low
+    last_reviewed: 2026-06-17
+    notes: AC-coupled round-trip efficiency; losses bought at the price actually faced.
+
+parasitic_load:
+  standby_kw_per_mw:
+    value: 5.0
+    unit: kW/MW
+    source: placeholder
+    status: placeholder
+    owner_or_reviewer: Olly
+    confidence: low
+    last_reviewed: 2026-06-17
+    notes: HVAC/BMS parasitic draw, billed at the host tariff.
+
+warranty_cycle_limits:
+  max_cycles_per_year_by_duration_h:
+    value:
+      "1": 548
+      "2": 365
+      "4": 250
+    unit: cycles/yr
+    source: placeholder
+    status: placeholder
+    owner_or_reviewer: Olly
+    confidence: low
+    last_reviewed: 2026-06-17
+    notes: Hard throughput caps by duration (h). Overcycling is not available to the optimiser.
+
+financing:
+  target_equity_irr_pct:
+    value: 12.0
+    unit: percent
+    source: neura_plan (investors need ~12-13%)
+    status: placeholder
+    owner_or_reviewer: Oli (confirm with Sim — portfolio finance)
+    confidence: low
+    last_reviewed: 2026-06-17
+    notes: Target return the price recommendation must hit. Portfolio cost of capital is Sim's.
+  credit_rate_tenor_policy:
+    value:
+      strong: {rate_pct: 6.0, tenor_years: 12}
+      adequate: {rate_pct: 7.5, tenor_years: 10}
+      weak: {rate_pct: 9.5, tenor_years: 7}
+    unit: "{credit_band: {rate_pct: percent, tenor_years: years}}"
+    source: placeholder (illustrative credit policy — Sim to set real bands)
+    status: placeholder
+    owner_or_reviewer: Sim (portfolio finance / credit policy)
+    confidence: low
+    last_reviewed: 2026-06-23
+    notes: >-
+      Deterministic credit-band -> (rate, tenor) mapping (M9 v1 deliverable, finance/credit.py).
+      Keys are CreditStatus values; only strong/adequate/weak are mappable. unknown/not_assessed
+      are deliberately absent -> unavailable, never invented. Worse band -> higher rate / shorter
+      tenor (monotonicity enforced in code). Gearing (debt_gearing_pct) is Sim's portfolio finance
+      and is NOT added here. Bump the library version when these values are confirmed.
+
+dscr_covenants:
+  min_p90_dscr:
+    value: 1.30
+    unit: ratio
+    source: data_contracts (illustrative covenant)
+    status: placeholder
+    owner_or_reviewer: Oli (confirm with Sim)
+    confidence: low
+    last_reviewed: 2026-06-17
+    notes: Debt sized/sculpted on the P90 case; the optimiser cannot select what this would reject.
+
+p50_p90_haircuts:
+  p90_revenue_haircut_pct:
+    value: 15.0
+    unit: percent
+    source: placeholder
+    status: placeholder
+    owner_or_reviewer: Oli
+    confidence: low
+    last_reviewed: 2026-06-17
+    notes: P50->P90 revenue haircut placeholder; calibrate against backtests (M7) before relying on it.
+  perfect_foresight_haircut_pct:
+    value: 20.0
+    unit: percent
+    source: placeholder
+    status: needs_review
+    owner_or_reviewer: Olly
+    confidence: low
+    last_reviewed: 2026-06-17
+    notes: Perfect-foresight haircut — must be calibrated/versioned (M7); no confidence asserted yet.
+
+tariff_arbitrage:
+  indicative_value_gbp_per_mw_yr:
+    value: 30000
+    unit: GBP/MW/yr
+    source: placeholder
+    status: placeholder
+    owner_or_reviewer: Olly
+    confidence: low
+    last_reviewed: 2026-06-17
+    notes: Import-side bankable-floor stream; actual value is site-derived from the half-hourly load+tariff.
+
+duos:
+  red_band_avoidance_gbp_per_mw_yr:
+    value: 18000
+    unit: GBP/MW/yr
+    source: placeholder
+    status: placeholder
+    owner_or_reviewer: Olly
+    confidence: low
+    last_reviewed: 2026-06-17
+    notes: DUoS red-band avoidance (post-TCR treatment; no Triad story). Site-derived in practice.
+
+mic_asc_headroom:
+  value_gbp_per_mw_yr:
+    value: 12000
+    unit: GBP/MW/yr
+    source: placeholder
+    status: placeholder
+    owner_or_reviewer: Olly
+    confidence: low
+    last_reviewed: 2026-06-17
+    notes: Value where the connection (MIC/ASC) actually binds; only priced where it binds.
+
+capacity_market:
+  clearing_price_gbp_per_kw_yr:
+    value: 30.0
+    unit: GBP/kW/yr
+    source: placeholder
+    status: needs_review
+    owner_or_reviewer: Oli
+    confidence: low
+    last_reviewed: 2026-06-17
+    notes: Indicative CM clearing price; source a real auction/forecast series.
+  de_rating_factor_by_duration_h:
+    value:
+      "1": 0.40
+      "2": 0.65
+      "4": 0.95
+    unit: ratio
+    source: placeholder
+    status: needs_review
+    owner_or_reviewer: Oli
+    confidence: low
+    last_reviewed: 2026-06-17
+    notes: De-rating by duration; deliverability verified to the final contract year at degraded capability.
+
+local_flex_piclo:
+  utilisation_price_gbp_per_mwh:
+    value: 150.0
+    unit: GBP/MWh
+    source: placeholder
+    status: needs_review
+    owner_or_reviewer: Oli
+    confidence: low
+    last_reviewed: 2026-06-17
+    notes: Local flex (Piclo et al.) — only priced when a tender is open in the site's DNO area.
+
+wholesale_p415:
+  gated_upside_value_gbp_per_mw_yr:
+    value: 0
+    unit: GBP/MW/yr
+    source: placeholder (gated)
+    status: needs_review
+    owner_or_reviewer: Olly (with RTM partner)
+    confidence: low
+    last_reviewed: 2026-06-17
+    notes: GATED — never in the priced floor. Zero until the route-to-market partner/API assumptions are known.
+
+balancing_mechanism:
+  gated_upside_value_gbp_per_mw_yr:
+    value: 0
+    unit: GBP/MW/yr
+    source: placeholder (gated)
+    status: needs_review
+    owner_or_reviewer: Olly (with RTM partner)
+    confidence: low
+    last_reviewed: 2026-06-17
+    notes: GATED — requires the RTM partner + export consents. Placeholder zero; listed as conditional upside only.
+
+ancillary_services:
+  dc_dm_dr_value_gbp_per_mw_yr:
+    value: 0
+    unit: GBP/MW/yr
+    source: placeholder (gated)
+    status: needs_review
+    owner_or_reviewer: Olly (with RTM partner)
+    confidence: low
+    last_reviewed: 2026-06-17
+    notes: GATED — DC/DM/DR with decay; needs a commercial forecast source + minimum aggregated portfolio MW.
+
+business_rates:
+  annual_gbp_per_mw:
+    value: 8000
+    unit: GBP/MW/yr
+    source: placeholder
+    status: needs_review
+    owner_or_reviewer: Oli (confirm treatment)
+    confidence: low
+    last_reviewed: 2026-06-17
+    notes: Business-rates treatment of BTM BESS must be confirmed before it silently flatters every quote.
+
+insurance:
+  annual_pct_of_capex:
+    value: 0.5
+    unit: percent_of_capex_per_year
+    source: placeholder
+    status: placeholder
+    owner_or_reviewer: Oli
+    confidence: low
+    last_reviewed: 2026-06-17
+    notes: Annual insurance as a percent of installed capex.
+
+metering_idno:
+  annual_gbp_per_site:
+    value: 1200
+    unit: GBP/site/yr
+    source: placeholder
+    status: placeholder
+    owner_or_reviewer: Oli
+    confidence: low
+    last_reviewed: 2026-06-17
+    notes: Metering / IDNO standing costs per site.
+
+dno_costs:
+  annual_gbp_per_site:
+    value: 1500
+    unit: GBP/site/yr
+    source: placeholder
+    status: placeholder
+    owner_or_reviewer: Oli
+    confidence: low
+    last_reviewed: 2026-06-17
+    notes: DNO-related operating costs (excludes one-off connection modification capex).
+
+quote_validity:
+  indicative_validity_days:
+    value: 30
+    unit: days
+    source: placeholder
+    status: placeholder
+    owner_or_reviewer: Oli
+    confidence: low
+    last_reviewed: 2026-06-17
+    notes: How long an indicative (banded) quote stays valid before it lapses or must reprice.
+  reprice_tolerance_pct:
+    value: 5.0
+    unit: "%"
+    source: placeholder
+    status: placeholder
+    owner_or_reviewer: Oli
+    confidence: low
+    last_reviewed: 2026-06-17
+    notes: >-
+      Relative tolerance beyond which a material assumption move forces a quote to reprice
+      before signature (consistency contract #3 — a quote is valid only against the assumption
+      version that produced it). A commercial-policy default, not a market figure; placeholder
+      pending Olly's underwriting policy.
+
+scenario_weights:
+  central_low_high:
+    value:
+      low: 0.25
+      central: 0.50
+      high: 0.25
+    unit: probability_weights
+    source: placeholder
+    status: placeholder
+    owner_or_reviewer: Oli
+    confidence: low
+    last_reviewed: 2026-06-17
+    notes: Discrete probability weights for the Low/Central/High price cases; must sum to 1.0.

@@ -1,0 +1,158 @@
+{
+ "contract": "IC-3",
+ "contract_version": "1.0.0",
+ "kind": "resolved_timeline",
+ "site_id": "SYNTHETIC-SITE-FIRM",
+ "valid_from": "2027-03-25T00:00:00Z",
+ "valid_until": "2027-04-01T00:00:00Z",
+ "resolution_min": 30,
+ "n_periods": 336,
+ "terms": [
+  {
+   "terms_hash": "sha256:31ff65f71aa59734c96baf08668fef04810700a93b8b3410fc184dc7fcc241e7",
+   "terms": {
+    "import_limit_kw": 20000,
+    "export_limit_kw": 2000,
+    "import_basis": "firm",
+    "discharge": {
+     "resilience_kw": 200,
+     "services": [],
+     "merchant_kw": 1800,
+     "withheld": {
+      "kind": "not_applicable",
+      "reason": "synthetic fixture: nothing is withheld"
+     }
+    },
+    "charge": {
+     "resilience_kw": 0,
+     "services": [],
+     "merchant_kw": 2000,
+     "withheld": {
+      "kind": "not_applicable",
+      "reason": "synthetic fixture: nothing is withheld"
+     }
+    },
+    "energy": {
+     "resilience_floor_kwh": 800,
+     "held_up": [],
+     "merchant_kwh": 3200,
+     "held_down": [],
+     "withheld_kwh": 0
+    },
+    "thermal": {
+     "kind": "not_applicable",
+     "reason": "synthetic fixture: no controllable cooling plant"
+    }
+   }
+  },
+  {
+   "terms_hash": "sha256:9a13b40322621c1287b23f4febb7490b8c6b9b6874cbb7933a43aa95266da00e",
+   "terms": {
+    "import_limit_kw": 20000,
+    "export_limit_kw": 2000,
+    "import_basis": "firm",
+    "discharge": {
+     "resilience_kw": 200,
+     "services": [
+      {
+       "service_id": "svc-capacity-market",
+       "kw": 1000
+      }
+     ],
+     "merchant_kw": 800,
+     "withheld": {
+      "kind": "not_applicable",
+      "reason": "synthetic fixture: nothing is withheld"
+     }
+    },
+    "charge": {
+     "resilience_kw": 0,
+     "services": [],
+     "merchant_kw": 2000,
+     "withheld": {
+      "kind": "not_applicable",
+      "reason": "synthetic fixture: nothing is withheld"
+     }
+    },
+    "energy": {
+     "resilience_floor_kwh": 800,
+     "held_up": [
+      {
+       "service_id": "svc-capacity-market",
+       "kwh": 1000
+      }
+     ],
+     "merchant_kwh": 2200,
+     "held_down": [],
+     "withheld_kwh": 0
+    },
+    "thermal": {
+     "kind": "not_applicable",
+     "reason": "synthetic fixture: no controllable cooling plant"
+    }
+   }
+  }
+ ],
+ "steps": [
+  {
+   "index": 0,
+   "terms_hash": "sha256:31ff65f71aa59734c96baf08668fef04810700a93b8b3410fc184dc7fcc241e7"
+  },
+  {
+   "index": 14,
+   "terms_hash": "sha256:9a13b40322621c1287b23f4febb7490b8c6b9b6874cbb7933a43aa95266da00e"
+  },
+  {
+   "index": 48,
+   "terms_hash": "sha256:31ff65f71aa59734c96baf08668fef04810700a93b8b3410fc184dc7fcc241e7"
+  },
+  {
+   "index": 62,
+   "terms_hash": "sha256:9a13b40322621c1287b23f4febb7490b8c6b9b6874cbb7933a43aa95266da00e"
+  },
+  {
+   "index": 96,
+   "terms_hash": "sha256:31ff65f71aa59734c96baf08668fef04810700a93b8b3410fc184dc7fcc241e7"
+  },
+  {
+   "index": 110,
+   "terms_hash": "sha256:9a13b40322621c1287b23f4febb7490b8c6b9b6874cbb7933a43aa95266da00e"
+  },
+  {
+   "index": 144,
+   "terms_hash": "sha256:31ff65f71aa59734c96baf08668fef04810700a93b8b3410fc184dc7fcc241e7"
+  },
+  {
+   "index": 156,
+   "terms_hash": "sha256:9a13b40322621c1287b23f4febb7490b8c6b9b6874cbb7933a43aa95266da00e"
+  },
+  {
+   "index": 190,
+   "terms_hash": "sha256:31ff65f71aa59734c96baf08668fef04810700a93b8b3410fc184dc7fcc241e7"
+  },
+  {
+   "index": 204,
+   "terms_hash": "sha256:9a13b40322621c1287b23f4febb7490b8c6b9b6874cbb7933a43aa95266da00e"
+  },
+  {
+   "index": 238,
+   "terms_hash": "sha256:31ff65f71aa59734c96baf08668fef04810700a93b8b3410fc184dc7fcc241e7"
+  },
+  {
+   "index": 252,
+   "terms_hash": "sha256:9a13b40322621c1287b23f4febb7490b8c6b9b6874cbb7933a43aa95266da00e"
+  },
+  {
+   "index": 286,
+   "terms_hash": "sha256:31ff65f71aa59734c96baf08668fef04810700a93b8b3410fc184dc7fcc241e7"
+  },
+  {
+   "index": 300,
+   "terms_hash": "sha256:9a13b40322621c1287b23f4febb7490b8c6b9b6874cbb7933a43aa95266da00e"
+  },
+  {
+   "index": 334,
+   "terms_hash": "sha256:31ff65f71aa59734c96baf08668fef04810700a93b8b3410fc184dc7fcc241e7"
+  }
+ ]
+}

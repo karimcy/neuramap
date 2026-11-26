@@ -1,0 +1,295 @@
+{
+ "contract": "IC-2",
+ "contract_version": "1.0.0",
+ "set_id": "ic2-synthetic-replay-three-years",
+ "site_id": "SYNTHETIC-SITE-NON-FIRM-DC",
+ "direction": "import",
+ "signal_basis": "demand_import_restriction",
+ "depth_definition": "synthetic: MW below the agreed import capacity",
+ "reference_capacity_mw": 4.0,
+ "connection_agreement": {
+  "kind": "not_applicable",
+  "reason": "synthetic fixture; no agreement exists"
+ },
+ "evidence_class": "synthetic_fixture",
+ "provenance": {
+  "kind": "synthetic_fixture",
+  "statement": "Schema-test data; not a site anyone holds. Values are synthetic.",
+  "modelled_on": "the shape of the git-ignored UKPN DER4 replay (fixtures/real/)"
+ },
+ "weight_basis": "equal_over_observed_periods",
+ "weight_rule": "synthetic: one scenario per synthetic year, weights equal (1/3)",
+ "n_half_hours": 48,
+ "scenarios": [
+  {
+   "scenario_id": "y2031",
+   "label": "Synthetic year 2031",
+   "weight": {
+    "numerator": 1,
+    "denominator": 3
+   },
+   "period_start": "2031-06-11T00:00:00Z",
+   "half_hourly": {
+    "resolution_s": 1800,
+    "n_intervals": 48,
+    "steps": [
+     {
+      "index": 0,
+      "mw": 0.0
+     },
+     {
+      "index": 23,
+      "mw": 0.4666666666666667
+     },
+     {
+      "index": 24,
+      "mw": 0.0
+     },
+     {
+      "index": 26,
+      "mw": 1.25
+     },
+     {
+      "index": 27,
+      "mw": 2.4375
+     },
+     {
+      "index": 28,
+      "mw": 0.5066666666666667
+     },
+     {
+      "index": 29,
+      "mw": 3.736666666666667
+     },
+     {
+      "index": 30,
+      "mw": 0.0
+     }
+    ]
+   },
+   "minute": {
+    "resolution_s": 60,
+    "n_intervals": 1440,
+    "steps": [
+     {
+      "index": 0,
+      "mw": 0.0
+     },
+     {
+      "index": 712,
+      "mw": 3.5
+     },
+     {
+      "index": 716,
+      "mw": 0.0
+     },
+     {
+      "index": 800,
+      "mw": 3.75
+     },
+     {
+      "index": 829,
+      "mw": 1.875
+     },
+     {
+      "index": 830,
+      "mw": 0.0
+     },
+     {
+      "index": 866,
+      "mw": 3.8
+     },
+     {
+      "index": 899,
+      "mw": 1.9
+     },
+     {
+      "index": 900,
+      "mw": 0.0
+     }
+    ]
+   },
+   "events": [
+    {
+     "start": "2031-06-11T11:52:00Z",
+     "end": "2031-06-11T11:56:00Z",
+     "mean_depth_mw": 3.5,
+     "peak_depth_mw": 3.75,
+     "notice_s": {
+      "kind": "unknown",
+      "reason": "synthetic: notice not modelled in this fixture"
+     },
+     "source_ref": "SYNTH-EVT-2031-0"
+    },
+    {
+     "start": "2031-06-11T13:20:00Z",
+     "end": "2031-06-11T13:49:30Z",
+     "mean_depth_mw": 3.75,
+     "peak_depth_mw": 4.0,
+     "notice_s": {
+      "kind": "unknown",
+      "reason": "synthetic: notice not modelled in this fixture"
+     },
+     "source_ref": "SYNTH-EVT-2031-1"
+    },
+    {
+     "start": "2031-06-11T14:26:00Z",
+     "end": "2031-06-11T14:59:30Z",
+     "mean_depth_mw": 3.8,
+     "peak_depth_mw": 4.05,
+     "notice_s": {
+      "kind": "unknown",
+      "reason": "synthetic: notice not modelled in this fixture"
+     },
+     "source_ref": "SYNTH-EVT-2031-2"
+    }
+   ]
+  },
+  {
+   "scenario_id": "y2032",
+   "label": "Synthetic year 2032",
+   "weight": {
+    "numerator": 1,
+    "denominator": 3
+   },
+   "period_start": "2032-06-11T00:00:00Z",
+   "half_hourly": {
+    "resolution_s": 1800,
+    "n_intervals": 48,
+    "steps": [
+     {
+      "index": 0,
+      "mw": 0.0
+     }
+    ]
+   },
+   "minute": {
+    "resolution_s": 60,
+    "n_intervals": 1440,
+    "steps": [
+     {
+      "index": 0,
+      "mw": 0.0
+     }
+    ]
+   },
+   "events": []
+  },
+  {
+   "scenario_id": "y2033",
+   "label": "Synthetic year 2033",
+   "weight": {
+    "numerator": 1,
+    "denominator": 3
+   },
+   "period_start": "2033-06-11T00:00:00Z",
+   "half_hourly": {
+    "resolution_s": 1800,
+    "n_intervals": 48,
+    "steps": [
+     {
+      "index": 0,
+      "mw": 0.0
+     },
+     {
+      "index": 21,
+      "mw": 1.1083333333333334
+     },
+     {
+      "index": 22,
+      "mw": 0.0
+     },
+     {
+      "index": 24,
+      "mw": 2.1533333333333333
+     },
+     {
+      "index": 25,
+      "mw": 0.6333333333333333
+     },
+     {
+      "index": 26,
+      "mw": 0.0
+     },
+     {
+      "index": 46,
+      "mw": 1.25
+     },
+     {
+      "index": 47,
+      "mw": 2.5
+     }
+    ]
+   },
+   "minute": {
+    "resolution_s": 60,
+    "n_intervals": 1440,
+    "steps": [
+     {
+      "index": 0,
+      "mw": 0.0
+     },
+     {
+      "index": 643,
+      "mw": 3.8
+     },
+     {
+      "index": 651,
+      "mw": 2.85
+     },
+     {
+      "index": 652,
+      "mw": 0.0
+     },
+     {
+      "index": 733,
+      "mw": 3.8
+     },
+     {
+      "index": 755,
+      "mw": 0.0
+     },
+     {
+      "index": 1395,
+      "mw": 2.5
+     }
+    ]
+   },
+   "events": [
+    {
+     "start": "2033-06-11T10:43:00Z",
+     "end": "2033-06-11T10:51:45Z",
+     "mean_depth_mw": 3.8,
+     "peak_depth_mw": 4.05,
+     "notice_s": {
+      "kind": "unknown",
+      "reason": "synthetic: notice not modelled in this fixture"
+     },
+     "source_ref": "SYNTH-EVT-2033-0"
+    },
+    {
+     "start": "2033-06-11T12:13:00Z",
+     "end": "2033-06-11T12:35:00Z",
+     "mean_depth_mw": 3.8,
+     "peak_depth_mw": 4.05,
+     "notice_s": {
+      "kind": "unknown",
+      "reason": "synthetic: notice not modelled in this fixture"
+     },
+     "source_ref": "SYNTH-EVT-2033-1"
+    },
+    {
+     "start": "2033-06-11T23:15:00Z",
+     "end": "2033-06-12T00:00:00Z",
+     "mean_depth_mw": 2.5,
+     "peak_depth_mw": 2.75,
+     "notice_s": {
+      "kind": "unknown",
+      "reason": "synthetic: notice not modelled in this fixture"
+     },
+     "source_ref": "SYNTH-EVT-2033-2"
+    }
+   ]
+  }
+ ]
+}

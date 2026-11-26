@@ -1,0 +1,13 @@
+{
+  "dataset_id": "ENWL LC14 statement (use of system charging methodology) 2026/27 v1.0 final",
+  "fetched_utc": "2026-11-26T08:34:59",
+  "fetcher": "curl -L (WP-UW-07, run by hand; the document itself is not vendored)",
+  "fetcher_args": {},
+  "last_modified": "Mon, 03 Feb 2025 11:07:09 GMT",
+  "licence": "unclear: no licence is stated on the publisher's page or in the document",
+  "record_count": 6,
+  "sha256": "107f3456cf1b8be8a593c2259a6ad9bb8110d0e1c3318e574b8347f221218971",
+  "size_bytes": 593368,
+  "source_url": "https://www.enwl.co.uk/globalassets/about-us/regulatory-information/documents/current-charging-information/26-27/enwl-lc14-statement-2026-27_v1.0-final.docx",
+  "used_for": "Exceeded capacity ('charged for the full duration of the billing period in which the breach occurs'; 'maximum value from the billing period is applied'), excess reactive power (33% threshold; 'summated over the billing period'; square root to two decimal places), HH data 'in respect of each calendar month', EDCM has no reactive charge component. Quoted in src/gridq/tariffs/hv_tariff_model.py and tests/test_hv_tariff_model.py"
+}

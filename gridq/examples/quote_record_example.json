@@ -1,0 +1,23 @@
+{
+  "schema_version": "0.1.0",
+  "quote_id": "quote_000123",
+  "quote_mode": "indicative",
+  "site_id": "site_000123",
+  "input_hash": "sha256:placeholder",
+  "assumption_version": "assumptions/2026-06.3",
+  "code_version": "git:scaffold",
+  "optimisation_result": null,
+  "financial_case": null,
+  "data_tier": "T2_VALIDATED_12_MONTH_HALF_HOURLY",
+  "expiry_date": "2026-07-17",
+  "status_history": [
+    {
+      "schema_version": "0.1.0",
+      "quote_mode": "draft",
+      "timestamp": "2026-06-17T09:00:00",
+      "note": "created"
+    }
+  ],
+  "warnings": [],
+  "created_at": "2026-06-17T09:00:00"
+}

@@ -1,0 +1,15 @@
+{
+ "contract": "IC-11",
+ "contract_version": "1.0.0",
+ "ack_id": "ic11-synthetic-ack-partial",
+ "instruction_id": "ic11-synthetic-instr-0001",
+ "instruction_hash": "sha256:67e7e2da64b768bdcd0a3e18afa2b53e978823fe6cb0ff1f5cd6406ed88965b4",
+ "acknowledged_at": "2027-01-14T23:31:40Z",
+ "responder_id": "thermaflex-synthetic-site-controller",
+ "response": {
+  "kind": "partially_accepted",
+  "accepted_kw": 350,
+  "reason_code": "it_safety_limit",
+  "detail": "synthetic: hall 2 inlet at 21.0 C; holding 500 kW for 120 min would pass the 21.5 C binding limit"
+ }
+}

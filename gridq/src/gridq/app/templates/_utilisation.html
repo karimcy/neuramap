@@ -1,0 +1,27 @@
+{# Battery utilisation breakdown: how the battery spends its time, as an animated donut + a list.
+   Percentages are computed server-side from the representative dispatch day (view.utilisation_island);
+   the list is the accessible, no-JS source of truth. #}
+<div class="card" data-reveal>
+  <div class="console-head">
+    <h2>Battery utilisation over the year</h2>
+    <span class="console-status"><span class="status-dot"></span>engine · solved</span>
+  </div>
+  {% if utilisation and utilisation.available %}
+  <p class="muted">How the battery spends its time, from the {{ utilisation.basis }}, illustrative of
+    the annual pattern: charging, discharging at the peak, discharging off-peak, or idle and
+    available. Shares of the day's half-hours.</p>
+  <div class="util-wrap">
+    <div class="chart-canvas" id="chart-utilisation" role="img"
+         aria-label="Battery utilisation breakdown by operating mode"></div>
+    <ul class="util-legend">
+      {% for s in utilisation.segments %}
+      <li><span class="util-pct">{{ s.pct }}</span>
+        <span class="util-name">{{ s.label }}</span>
+        <span class="util-note">{{ s.note }}</span></li>
+      {% endfor %}
+    </ul>
+  </div>
+  {% else %}
+  <p class="unavail">{{ fmt_unavailable("no dispatch was solved, so utilisation cannot be shown") }}</p>
+  {% endif %}
+</div>

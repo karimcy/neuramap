@@ -1,0 +1,260 @@
+{% extends "base.html" %}
+{% block title %}New Quote - GridQ{% endblock %}
+{% block head %}<link rel="stylesheet" href="/static/vendor/leaflet/leaflet.css">{% endblock %}
+{% block crumbs %}<a href="/">Dashboard</a> <span class="sep">/</span> <span class="here">New Quote</span>{% endblock %}
+{% block content %}
+
+<div class="card-head" style="margin-bottom:0.6rem">
+  <h1 style="margin:0">New Quote</h1>
+  <button type="button" class="btn secondary" id="load-demo">Load demo data</button>
+</div>
+
+{# ---- progress bar ---- #}
+<ol class="wiz-steps" id="wiz-steps" aria-label="Wizard progress">
+  <li class="wiz-step is-active" data-step="1"><span class="dot">1</span><span class="lbl">Site</span></li>
+  <li class="wiz-step" data-step="2"><span class="dot">2</span><span class="lbl">Consumption</span></li>
+  <li class="wiz-step" data-step="3"><span class="dot">3</span><span class="lbl">Load profile</span></li>
+  <li class="wiz-step" data-step="4"><span class="dot">4</span><span class="lbl">Equipment</span></li>
+  <li class="wiz-step" data-step="5"><span class="dot">5</span><span class="lbl">Consents &amp; grid</span></li>
+  <li class="wiz-step" data-step="6"><span class="dot">6</span><span class="lbl">Review</span></li>
+</ol>
+<div class="wiz-track"><div class="wiz-fill" id="wiz-fill"></div></div>
+
+<form id="wiz-form" class="wiz-card" enctype="multipart/form-data">
+  <input type="hidden" name="demo" id="f-demo" value="">
+
+  {# ===== Stage 1: Site ===== #}
+  <section class="wiz-pane is-active" data-pane="1">
+    <h2>Site information</h2>
+    <p class="muted">Where the site is and how it connects. The location sets your DNO region and
+      tariff bands, the coordinates drive the on-site solar simulation, and the grid connection caps
+      how large a system can be - all inputs the optimiser and underwriting model build on.</p>
+    <div class="grid grid-2">
+      <div class="field">
+        <label for="f-name">Project name</label>
+        <input id="f-name" name="site_name" placeholder="e.g. Tesco Express, Manchester" data-req>
+      </div>
+      <div class="field">
+        <label for="f-business">Business type</label>
+        <select id="f-business" name="business_type" data-req>
+          <option value="">Select type...</option>
+          <option>Office</option><option>Retail</option><option>Hotel</option>
+          <option>Restaurant</option><option>Warehouse</option><option>Supermarket</option>
+          <option>Industrial</option><option>Generic Commercial</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="field wiz-autocomplete">
+      <label for="f-address">Address</label>
+      <input id="f-address" name="address" placeholder="Start typing a town, city or postcode" autocomplete="off" data-req>
+      <ul class="wiz-suggest" id="addr-suggest" hidden></ul>
+      <span class="hint">Type to search, or drop a pin on the map below. Selecting fills the postcode, coordinates and DNO region.</span>
+    </div>
+
+    <div class="wiz-map" id="wiz-map" role="application" aria-label="Map: zoom and click to select the site location"></div>
+    <span class="hint">Scroll to zoom, drag to pan, click to drop a pin. The address and postcode fill from the point you choose.</span>
+
+    <div class="grid grid-3">
+      <div class="field"><label for="f-postcode">Postcode</label><input id="f-postcode" name="postcode" placeholder="M1 1PT" data-req></div>
+      <div class="field"><label for="f-lat">Latitude</label><input id="f-lat" name="latitude" inputmode="decimal" placeholder="53.4808" data-req></div>
+      <div class="field"><label for="f-lon">Longitude</label><input id="f-lon" name="longitude" inputmode="decimal" placeholder="-2.2426" data-req></div>
+    </div>
+
+    <div class="grid grid-3">
+      <div class="field">
+        <label for="f-dno">DNO region</label>
+        <select id="f-dno" name="dno_region" data-req>
+          <option value="">Select DNO region...</option>
+          <option>Electricity North West</option><option>Northern Powergrid (Northeast)</option>
+          <option>Northern Powergrid (Yorkshire)</option><option>SP Manweb</option>
+          <option>SP Distribution</option><option>SSEN Southern</option>
+          <option>SSEN Northern (SHEPD)</option><option>UKPN East</option>
+          <option>UKPN London</option><option>UKPN South East</option>
+          <option>NGED East Midlands</option><option>NGED West Midlands</option>
+          <option>NGED South West</option><option>NGED South Wales</option>
+        </select>
+      </div>
+      <div class="field">
+        <label for="f-tariff">Current tariff</label>
+        <select id="f-tariff" name="tariff_type" data-req>
+          <option value="">Select tariff...</option>
+          <option>Flat Rate</option><option>Economy 7 (Day/Night)</option>
+          <option>Half-Hourly C&amp;I (DUoS RAG)</option><option>EV Time-of-Use</option>
+          <option>Seasonal Time-of-Use</option><option>Demand + HH Metered</option>
+        </select>
+      </div>
+      <div class="field">
+        <label for="f-mic">Grid connection (kVA)</label>
+        <input id="f-mic" name="grid_connection_kva" inputmode="numeric" placeholder="150" data-req>
+        <span class="hint">Maximum grid connection capacity.</span>
+      </div>
+    </div>
+
+    <div class="wiz-tariff" id="tariff-card" hidden></div>
+  </section>
+
+  {# ===== Stage 2: Consumption ===== #}
+  <section class="wiz-pane" data-pane="2">
+    <h2>Consumption data</h2>
+    <p class="muted">How would you like to provide your electricity usage?</p>
+    <div class="method-grid" id="method-grid">
+      <button type="button" class="method is-active" data-method="manual"><b>Manual entry</b><span>Annual consumption and peak demand</span></button>
+      <button type="button" class="method" data-method="csv"><b>CSV / Excel upload</b><span>Smart-meter half-hourly data</span><em class="best">Most accurate</em></button>
+      <button type="button" class="method" data-method="bill"><b>Bill scan</b><span>Upload a bill image or PDF</span></button>
+      <button type="button" class="method is-soon" data-method="api" disabled><b>Smart Meter API</b><span>Connect directly to your meter</span><em class="soon">Soon</em></button>
+    </div>
+
+    <input type="hidden" name="consumption_method" id="f-method" value="manual">
+
+    <div class="method-panel is-active" data-panel="manual">
+      <div class="grid grid-2">
+        <div class="field"><label for="f-annual">Annual consumption (kWh)</label><input id="f-annual" name="annual_consumption_kwh" inputmode="numeric" placeholder="250000" data-req-manual></div>
+        <div class="field"><label for="f-peak">Peak demand (kW)</label><input id="f-peak" name="max_import_kw" inputmode="numeric" placeholder="95"><span class="hint">Optional. Estimated from usage if blank.</span></div>
+      </div>
+      <p class="muted" id="daily-note"></p>
+      <p class="manual-tip">We will model a half-hourly load profile from these figures so your quote
+        can run. For the most realistic, bankable result, upload a half-hourly meter file instead
+        (CSV / Excel above).</p>
+    </div>
+
+    <div class="method-panel" data-panel="csv">
+      <label class="dropzone" for="f-hh"><span class="dz-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" x2="12" y1="3" y2="15"/></svg></span><b>Drag &amp; drop, or browse</b><span>Smart-meter CSV or Excel with a timestamp and a power column</span></label>
+      <input type="file" id="f-hh" name="hh_file" accept=".csv,.xlsx,.xls" hidden>
+      <p class="muted" id="hh-name"></p>
+    </div>
+
+    <div class="method-panel" data-panel="bill">
+      <label class="dropzone" for="f-bill"><span class="dz-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="M10 9H8"/><path d="M16 13H8"/><path d="M16 17H8"/></svg></span><b>Drag &amp; drop, or browse</b><span>An electricity bill as a PDF or an image</span></label>
+      <input type="file" id="f-bill" name="bill_file" accept=".pdf,.png,.jpg,.jpeg" hidden>
+      <p class="muted" id="bill-name"></p>
+    </div>
+  </section>
+
+  {# ===== Stage 3: Load profile ===== #}
+  <section class="wiz-pane" data-pane="3">
+    <h2>Load profile</h2>
+    <p class="muted">A modelled daily demand shape from your business type and annual usage. It updates as your inputs change.</p>
+    <div class="grid grid-2" style="align-items:start">
+      <div class="field">
+        <label for="f-archetype">Daily pattern</label>
+        <select id="f-archetype" name="load_archetype">
+          <option value="auto">Auto from business type</option>
+          <option>Office</option><option>Retail</option><option>Hotel</option>
+          <option>Restaurant</option><option>Warehouse</option><option>Supermarket</option>
+          <option>Industrial</option><option>Generic Commercial</option>
+        </select>
+        <div class="profile-stats" id="profile-stats"></div>
+      </div>
+      <div class="chart-canvas chart-tall" id="load-curve" role="img" aria-label="Modelled daily load profile"></div>
+    </div>
+  </section>
+
+  {# ===== Stage 4: Battery system ===== #}
+  <section class="wiz-pane" data-pane="4">
+    <h2>Battery system</h2>
+    <p class="muted">This tool sizes the battery and its inverter. Leave on Auto-select and the
+      optimiser sizes it, or pick specific products to constrain the per-unit choice. Solar is an
+      input, not sized here.</p>
+    <div class="field">
+      <label for="f-battery">Battery system</label>
+      <select id="f-battery" name="equip_battery">
+        <option value="auto">Auto-select (recommended)</option>
+        {% for b in eq.batteries %}<option>{{ b.maker }} {{ b.model }} - {{ "%.2f"|format(b.energy_kwh) }}kWh {{ b.chemistry }} (£{{ "%.2f"|format(b.price) }}/kWh)</option>{% endfor %}
+      </select>
+    </div>
+    <div class="field">
+      <label for="f-inverter">Inverter</label>
+      <select id="f-inverter" name="equip_inverter">
+        <option value="auto">Auto-select (recommended)</option>
+        {% for i in eq.inverters %}<option>{{ i.maker }} {{ i.model }} - {{ "%.1f"|format(i.power_kw) }}kW{% if i.hybrid %} Hybrid{% endif %} (£{{ "%.2f"|format(i.price) }}/W)</option>{% endfor %}
+      </select>
+    </div>
+    <div class="field">
+      <label for="f-solar-kwp">Existing solar PV (optional)</label>
+      <input id="f-solar-kwp" name="existing_solar_kwp" inputmode="decimal" placeholder="e.g. 250">
+      <span class="hint">If the site already has solar, enter its capacity in kWp. We do not size
+        solar here; this captures how it interacts with the battery. Leave blank if there is none.</span>
+    </div>
+    <p class="fallback-note">The full equipment catalogue is on the Equipment page.</p>
+  </section>
+
+  {# ===== Stage 5: Review ===== #}
+  <section class="wiz-pane" data-pane="5">
+    <h2>Consents &amp; grid arrangements</h2>
+    <p class="muted">Declared status - "unknown" is a valid answer. Gaps come back as ranked data asks; they never block the run.</p>
+    <div class="field-row">
+      {% for fid, flabel in [('g98','G98 (small-scale)'), ('g99','G99'), ('g100','G100'), ('dno_application_state','DNO application state'), ('supplier_consent','Supplier consent')] %}
+      <div class="field"><label for="wz_{{ fid }}">{{ flabel }}</label>
+        <select id="wz_{{ fid }}" name="{{ fid }}">
+          {% for st in ['unknown','not_started','applied','approved','rejected','not_required'] %}
+            <option value="{{ st }}">{{ st.replace('_',' ') }}</option>
+          {% endfor %}
+        </select></div>
+      {% endfor %}
+    </div>
+    <div class="field-row">
+      <div class="field"><label for="wz_import_mpan">Import MPAN</label>
+        <input id="wz_import_mpan" name="import_mpan"></div>
+      <div class="field"><label for="wz_export_mpan">Export MPAN</label>
+        <input id="wz_export_mpan" name="export_mpan"></div>
+      <div class="field"><label for="wz_mec_kw">MEC - export capacity (kW)</label>
+        <input id="wz_mec_kw" name="mec_kw" inputmode="decimal"></div>
+      <div class="field"><label for="wz_asc_kw">ASC - authorised supply capacity (kW)</label>
+        <input id="wz_asc_kw" name="asc_kw" inputmode="decimal"></div>
+    </div>
+    <div class="field-row">
+      <div class="field"><label for="wz_export_route">Export route</label>
+        <select id="wz_export_route" name="export_route">
+          {% for rt in ['unknown','none','ppa_export','flexibility_aggregator'] %}
+            <option value="{{ rt }}">{{ rt.replace('_',' ') }}</option>
+          {% endfor %}
+        </select></div>
+      <div class="field"><label for="wz_export_counterparty">Export counterparty</label>
+        <input id="wz_export_counterparty" name="export_counterparty"></div>
+      <div class="field"><label for="wz_aggregator_cut_pct">Aggregator cut (%, e.g. 20)</label>
+        <input id="wz_aggregator_cut_pct" name="aggregator_cut_pct" inputmode="decimal"></div>
+    </div>
+    <div class="field-row">
+      <div class="field"><label for="wz_export_tariff">Export tariff (£/kWh, if PPA)</label>
+        <input id="wz_export_tariff" name="export_tariff_gbp_per_kwh" inputmode="decimal"></div>
+      <div class="field"><label for="wz_local_flex_agreed_rate">Local flex agreed rate (£/MWh, if any)</label>
+        <input id="wz_local_flex_agreed_rate" name="local_flex_agreed_rate_gbp_per_mwh" inputmode="decimal"></div>
+    </div>
+    {% include "_stream_consents.html" %}
+    {% include "_lender_terms.html" %}
+    {% include "_lifecycle.html" %}
+  </section>
+
+  <section class="wiz-pane" data-pane="6">
+    <h2>Review</h2>
+    <div class="grid grid-2">
+      <div class="card"><h3 style="margin-top:0">Site</h3><dl class="kv" id="rev-site"></dl></div>
+      <div class="card"><h3 style="margin-top:0">Consumption &amp; system</h3><dl class="kv" id="rev-consume"></dl></div>
+    </div>
+    <div class="card" style="margin-top:1rem">
+      <h3 style="margin-top:0">Modelled load profile</h3>
+      <div class="chart-canvas chart-tall" id="review-curve" role="img" aria-label="Modelled daily load profile"></div>
+    </div>
+    <div class="panel asks" id="gate-missing" hidden>
+      <strong>Before you can run:</strong>
+      <ul id="gate-list" style="margin:0.4rem 0 0; padding-left:1.2rem"></ul>
+    </div>
+    <p class="muted" style="margin-top:0.8rem">This runs load profiling, solar simulation, system optimisation, and the financial model.</p>
+  </section>
+
+  {# ---- nav ---- #}
+  <div class="wiz-nav">
+    <button type="button" class="btn secondary" id="wiz-back" hidden>Back</button>
+    <button type="button" class="btn" id="wiz-next">Continue</button>
+    <button type="submit" class="btn" id="wiz-submit" hidden disabled>Submit &amp; run pipeline</button>
+  </div>
+</form>
+
+{% endblock %}
+{% block scripts %}
+<script src="/static/plotly.min.js"></script>
+<script src="/static/vendor/leaflet/leaflet.js"></script>
+<script src="/static/run_progress.js?v={{ static_v }}"></script>
+<script src="/static/wizard.js?v={{ static_v }}"></script>
+{% endblock %}

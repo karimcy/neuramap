@@ -1,0 +1,89 @@
+{
+  "contract": "IC-1",
+  "contract_version": "1.0.0",
+  "agreement_ref": "SYNTH-CA-FIRM-01",
+  "site_id": "SYNTHETIC-SITE-FIRM",
+  "source": {
+    "kind": "synthetic_archetype",
+    "statement": "SYNTHETIC ARCHETYPE FOR SCHEMA TESTING - not a real customer agreement, not issued by any real party. Numbers are illustrative values chosen to exercise the schema; the structure follows the public GB sources cited (URLs as listed in the spec, not re-fetched when this fixture was written).",
+    "based_on": [
+      {
+        "title": "Neura UK Product Specification v1.1, §7.1 A1-01 and §10A IC-1",
+        "url": "Neura_UK_Product_Spec.md#71-a1-connection-risk-engine-non-firm--anm-curtailment--build-core-ip-with-oxford-psal",
+        "used_for": "The full term list this archetype instantiates"
+      },
+      {
+        "title": "DESNZ, Accelerating electricity network connections for strategic demand (as cited in spec §3.1, §17)",
+        "url": "https://www.gov.uk/government/consultations/accelerating-electricity-network-connections-for-strategic-demand",
+        "used_for": "Alternative connection agreements: non-firm, phased, hybrid (firm base plus interruptible tranche); N-1 vs N-2"
+      }
+    ]
+  },
+  "network_operator": {
+    "kind": "unknown",
+    "reason": "synthetic archetype: deliberately not tied to any network operator"
+  },
+  "archetype": "firm",
+  "firm_import_mw": 20.0,
+  "non_firm_import_mw": 0.0,
+  "profiled_import": {
+    "kind": "not_applicable",
+    "reason": "firm connection: the maximum import is constant"
+  },
+  "curtailment_limit": {
+    "kind": "not_applicable",
+    "reason": "firm connection: no curtailment right"
+  },
+  "exceeded_curtailment_price": {
+    "kind": "not_applicable",
+    "reason": "firm connection: no curtailment limit to exceed"
+  },
+  "non_firm_end_date": {
+    "kind": "not_applicable",
+    "reason": "firm connection: no non-firm period"
+  },
+  "firm_by_date": {
+    "kind": "not_applicable",
+    "reason": "already firm"
+  },
+  "tenure": "enduring",
+  "constraint_causes": {
+    "kind": "not_applicable",
+    "reason": "firm connection: no constraint-driven restriction"
+  },
+  "lifo_positions": {
+    "kind": "not_applicable",
+    "reason": "firm connection: not in an ANM LIFO stack"
+  },
+  "notice_period_s": {
+    "kind": "not_applicable",
+    "reason": "firm connection: no curtailment instructions"
+  },
+  "signal_type": {
+    "kind": "not_applicable",
+    "reason": "firm connection: no ANM signal"
+  },
+  "ramp": {
+    "kind": "unknown",
+    "reason": "synthetic archetype: ramp terms vary by offer; exercises the Unknown path"
+  },
+  "power_factor": {
+    "kind": "power_factor_terms",
+    "min_power_factor": 0.95,
+    "reactive_direction": "lagging"
+  },
+  "pcc": {
+    "kind": "pcc_terms",
+    "voltage_kv": 33.0,
+    "description": "Synthetic: customer 33 kV switchboard, DNO side of the metering CTs"
+  },
+  "network_security": "N-1",
+  "anm_response_time_s": {
+    "kind": "not_applicable",
+    "reason": "firm connection: no ANM"
+  },
+  "signal_protocol": {
+    "kind": "not_applicable",
+    "reason": "firm connection: no ANM"
+  }
+}

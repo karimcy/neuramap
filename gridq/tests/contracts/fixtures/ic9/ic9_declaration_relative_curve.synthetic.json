@@ -1,0 +1,211 @@
+{
+ "contract": "IC-9",
+ "contract_version": "1.0.0",
+ "record_class": "synthetic_fixture",
+ "declaration_id": "ic9-synthetic-neocloud-share-2027h1",
+ "site_id": "SYNTHETIC-DC-GPU-NEOCLOUD",
+ "operator_id": "SYNTHETIC-OPERATOR-NEOCLOUD",
+ "issued_at": "2026-12-01T00:00:00Z",
+ "valid_from": "2027-01-01T00:00:00Z",
+ "valid_until": "2027-07-01T00:00:00Z",
+ "supersedes": {
+  "kind": "not_applicable",
+  "reason": "synthetic fixture: the first declaration for this site"
+ },
+ "measurement_point": "it_load",
+ "clock": "Europe/London",
+ "sla_classes": [
+  {
+   "class_id": "SYNTHETIC-CLASS-THROTTLED",
+   "operator_label": "SYNTHETIC-power-capped clusters",
+   "workload_action": "slowed",
+   "energy_return": {
+    "kind": "unknown",
+    "reason": "synthetic fixture: whether slowed jobs run longer here is not known"
+   },
+   "call_limits": {
+    "kind": "call_limits",
+    "max_events": {
+     "kind": "not_applicable",
+     "reason": "synthetic fixture: no event budget"
+    },
+    "max_cumulative": {
+     "kind": "unknown",
+     "reason": "synthetic fixture: the cumulative-duration budget is not yet agreed"
+    },
+    "min_rest": {
+     "kind": "not_applicable",
+     "reason": "synthetic fixture: no minimum rest"
+    }
+   },
+   "sla_evidence": {
+    "kind": "unknown",
+    "reason": "synthetic fixture: no service-level document exists"
+   }
+  }
+ ],
+ "envelopes": [
+  {
+   "envelope_id": "env-share-of-load",
+   "sla_class_id": "SYNTHETIC-CLASS-THROTTLED",
+   "response": {
+    "kind": "response_terms",
+    "min_notice_s": 300,
+    "ramp_s": 60
+   },
+   "price": {
+    "kind": "price_offer",
+    "currency": "GBP",
+    "availability": {
+     "kind": "not_applicable",
+     "reason": "synthetic fixture: no availability fee in this placeholder"
+    },
+    "utilisation": {
+     "kind": "utilisation_price",
+     "pence_per_mwh": 800
+    },
+    "per_event": {
+     "kind": "not_applicable",
+     "reason": "synthetic fixture: no event fee in this placeholder"
+    },
+    "price_basis": {
+     "kind": "synthetic_placeholder"
+    }
+   },
+   "curve": {
+    "kind": "share_of_it_load",
+    "points": [
+     {
+      "max_hold_min": 30,
+      "reduction_bp": 3000
+     },
+     {
+      "max_hold_min": 240,
+      "reduction_bp": 2000
+     },
+     {
+      "max_hold_min": 600,
+      "reduction_bp": 1000
+     }
+    ],
+    "cap_kw": 8000
+   },
+   "rebound": {
+    "kind": "unknown",
+    "reason": "synthetic fixture: the class's energy return is unknown"
+   },
+   "exclusion_group": {
+    "kind": "not_applicable",
+    "reason": "synthetic fixture: the only envelope"
+   }
+  }
+ ],
+ "availability": {
+  "seasons": [
+   {
+    "season_id": "all-year",
+    "months": [
+     1,
+     2,
+     3,
+     4,
+     5,
+     6,
+     7,
+     8,
+     9,
+     10,
+     11,
+     12
+    ]
+   }
+  ],
+  "day_groups": [
+   {
+    "day_group_id": "all-week",
+    "iso_weekdays": [
+     1,
+     2,
+     3,
+     4,
+     5,
+     6,
+     7
+    ]
+   }
+  ],
+  "bands": [
+   {
+    "band_id": "night",
+    "start_minute": 0,
+    "end_minute": 420
+   },
+   {
+    "band_id": "day",
+    "start_minute": 420,
+    "end_minute": 1440
+   }
+  ],
+  "cells": [
+   {
+    "season_id": "all-year",
+    "day_group_id": "all-week",
+    "band_id": "night",
+    "state": {
+     "kind": "offered",
+     "envelope_ids": [
+      "env-share-of-load"
+     ]
+    }
+   },
+   {
+    "season_id": "all-year",
+    "day_group_id": "all-week",
+    "band_id": "day",
+    "state": {
+     "kind": "unavailable",
+     "reason_code": "outside_agreed_window"
+    }
+   }
+  ],
+  "overrides": []
+ },
+ "resolved_hash": "sha256:8bc1c15d7dd99903e2ff7ab76af70b28397f3d01dc63a3a599891b12689e2673",
+ "stacking": {
+  "kind": "stacking",
+  "merit_order": [
+   "env-share-of-load"
+  ],
+  "max_concurrent_turn_down_kw": 8000
+ },
+ "it_reference": {
+  "kind": "it_reference",
+  "retained_it_floor_kw": 1000
+ },
+ "basis": {
+  "kind": "trialled",
+  "trial_evidence": [
+   {
+    "kind": "evidence_ref",
+    "contract": "IC-4",
+    "contract_version": "1.1.0",
+    "evidence_hash": "sha256:d046bd742bcb581977639e80b68b38b9f2da2529516c54a9d5da9f4f5a3a0beb"
+   },
+   {
+    "kind": "evidence_ref",
+    "contract": "IC-4",
+    "contract_version": "1.1.0",
+    "evidence_hash": "sha256:e841362932b45ea81bb662033f618eac38ace38e87281ebbfac9e1e2ddce047d"
+   }
+  ],
+  "baseline_method": {
+   "kind": "evidence_ref",
+   "contract": "IC-4",
+   "contract_version": "1.1.0",
+   "evidence_hash": "sha256:a85f5f32db324872648d2c0bb63d8fa07c745c799304515e08d748fd3a17136a"
+  },
+  "observed_from": "2026-09-01T00:00:00Z",
+  "observed_until": "2026-11-01T00:00:00Z",
+  "n_events": 6
+ }
+}

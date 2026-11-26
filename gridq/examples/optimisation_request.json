@@ -1,0 +1,114 @@
+{
+  "schema_version": "0.1.0",
+  "request_id": "req_000123_a1",
+  "site_model": {
+    "schema_version": "0.1.0",
+    "site_id": "site_000123",
+    "site_name": "Acme Cold Store, Unit 4",
+    "postcode": "LE17 4XN",
+    "country": "GB",
+    "data_tier": "T2_VALIDATED_12_MONTH_HALF_HOURLY",
+    "load_data": {
+      "schema_version": "0.1.0",
+      "annual_kwh": 1850000.0,
+      "half_hourly_file_ref": "data/site_000123/hh_2025.parquet",
+      "half_hourly_rows": 17520,
+      "start_date": "2025-01-01",
+      "end_date": "2025-12-31",
+      "missing_intervals": 42,
+      "max_import_kw": 420.0,
+      "max_export_kw": 0.0,
+      "validation_warnings": []
+    },
+    "annual_consumption_kwh": null,
+    "tariff_stack": {
+      "schema_version": "0.1.0",
+      "supplier": "ExampleEnergy",
+      "tariff_name": "HH Wholesale-Shaped",
+      "standing_charge_per_day_gbp": 1.85,
+      "import_rates": {
+        "red": 0.42,
+        "amber": 0.21,
+        "green": 0.14
+      },
+      "export_rates": {},
+      "duos_red_rate": 0.21,
+      "duos_amber_rate": 0.03,
+      "duos_green_rate": 0.006,
+      "levies": {
+        "RO": 0.025,
+        "FiT": 0.006,
+        "CfD": 0.008
+      },
+      "source": "installer_bill_upload",
+      "confidence": "high",
+      "basis": {
+        "schema_version": "0.1.0",
+        "vat": "excluded",
+        "vat_attestation": "stated_by_record",
+        "levies": "itemised",
+        "network_charges": "itemised",
+        "vat_rate_fraction": null
+      },
+      "provenance": {
+        "schema_version": "0.1.0",
+        "commodity": "assumed",
+        "network": "assumed",
+        "levies": "assumed"
+      }
+    },
+    "connection": {
+      "schema_version": "0.1.0",
+      "mic_kw": 500.0,
+      "mec_kw": 0.0,
+      "asc_kw": 500.0,
+      "voltage_level": "HV",
+      "dno_region": "NGED_EM",
+      "import_headroom_kw": 80.0,
+      "export_headroom_kw": null,
+      "anm_or_curtailment_notes": null
+    },
+    "consents": {
+      "schema_version": "0.1.0",
+      "g98": "not_required",
+      "g99": "not_started",
+      "g100": "not_started",
+      "export_mpan": null,
+      "dno_application_state": "not_started",
+      "supplier_consent_state": "applied",
+      "notes": null
+    },
+    "physical_gates": {
+      "schema_version": "0.1.0",
+      "footprint_available": true,
+      "fire_separation_ok": true,
+      "access_ok": true,
+      "planning_or_landlord_issue": null,
+      "notes": "forklift access ok"
+    },
+    "counterparty": {
+      "schema_version": "0.1.0",
+      "legal_name": "Acme Cold Storage Ltd",
+      "company_number": "01234567",
+      "sector": "cold_storage",
+      "credit_status": "adequate",
+      "expected_tenure_years": 8.0,
+      "notes": null
+    },
+    "source_references": [
+      "installer_email_2026-06-10.pdf"
+    ],
+    "missing_data": [],
+    "created_at": "2026-06-17T09:00:00"
+  },
+  "assumption_version": "assumptions/2026-06.3",
+  "scenario_set_id": "central_set",
+  "requested_streams": [
+    "TARIFF_ARBITRAGE",
+    "DUOS_RED_BAND_AVOIDANCE",
+    "MIC_ASC_HEADROOM",
+    "CAPACITY_MARKET"
+  ],
+  "solve_mode": "baseline",
+  "created_at": "2026-06-17T09:00:00"
+}

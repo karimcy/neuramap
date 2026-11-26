@@ -1,0 +1,21 @@
+{
+ "contract": "IC-11",
+ "contract_version": "1.0.0",
+ "instruction_id": "ic11-synthetic-instr-0001",
+ "site_id": "SYNTHETIC-DC-AIR-COOLED-METERED",
+ "availability": {
+  "kind": "thermal_flex_availability_ref",
+  "contract": "IC-11",
+  "contract_version": "1.0.0",
+  "availability_hash": "sha256:9faa103a5e690f8a046f0f66aa9bcdcbea39a4c0db10c1db079270132a5a8aa4"
+ },
+ "issued_at": "2027-01-14T23:30:00Z",
+ "issuer_role": "neura_dispatch",
+ "issuer_id": "svc-synthetic-b2-dispatch",
+ "on_behalf_of": "dno",
+ "stream": "LOCAL_FLEX_PICLO",
+ "reduction_kw": 500,
+ "start": "2027-01-15T00:15:00Z",
+ "duration_min": 120,
+ "ack_deadline": "2027-01-14T23:40:00Z"
+}

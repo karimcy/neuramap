@@ -1,0 +1,49 @@
+{
+  "contract": "IC-13",
+  "contract_version": "1.0.0",
+  "iss": "https://identity.invalid/ic13-test-fixture",
+  "sub": "SYNTHETIC-USER-0001",
+  "aud": "gridq-api-ic13-fixture",
+  "iat": 1794902400,
+  "nbf": 1794902400,
+  "exp": 1794931200,
+  "jti": "SYNTHETIC-TOKEN-neura_ops",
+  "org": {
+    "org_id": "SYNTHETIC-ORG-NEURA",
+    "kind": "neura"
+  },
+  "role": "neura_ops",
+  "scopes": [
+    {
+      "resource": "device",
+      "org_id": "*",
+      "resource_id": "*",
+      "actions": [
+        "control_write",
+        "read"
+      ]
+    },
+    {
+      "resource": "site",
+      "org_id": "*",
+      "resource_id": "*",
+      "actions": [
+        "read",
+        "write"
+      ]
+    },
+    {
+      "resource": "telemetry",
+      "org_id": "*",
+      "resource_id": "*",
+      "actions": [
+        "read"
+      ]
+    }
+  ],
+  "amr": [
+    "mfa",
+    "otp",
+    "pwd"
+  ]
+}

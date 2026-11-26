@@ -1,0 +1,458 @@
+{
+ "contract": "IC-3",
+ "contract_version": "1.0.0",
+ "envelope_id": "ic3-synthetic-dc-chilled-water-2027",
+ "site_id": "SYNTHETIC-DC-CHILLED-WATER",
+ "record_class": "synthetic_fixture",
+ "source": {
+  "input_hash": "sha256:6458ae996a979e07ea0f2db345986fb5638e16021231301658153fb40b825f72",
+  "run": {
+   "run_id": "run_912a6272c7323682",
+   "assumption_version": "synthetic-fixture",
+   "code_version": "0.0.0-synthetic",
+   "schema_version": "0.1.0"
+  },
+  "producer": {
+   "engine": "gridq",
+   "engine_version": "0.0.0-synthetic"
+  },
+  "basis": {
+   "kind": "study",
+   "basis_id": "export_in_priced_floor_study_v1",
+   "label": "STUDY BASIS (D46) — EXPORT PRICED IN THE PRICED FLOOR — NOT AN UNDERWRITING OUTPUT",
+   "disclosure": "synthetic fixture: schema-test data, not a priced run; the banner is the named study basis's own"
+  },
+  "constraint_library": {
+   "kind": "constraint_library_pin",
+   "library_version": "0.0.0-synthetic",
+   "library_hash": {
+    "kind": "unknown",
+    "reason": "synthetic fixture: no library content exists to hash (WP-SIZE-02)"
+   },
+   "constraint_ids": [
+    "synthetic_import_limit",
+    "synthetic_soe_floor",
+    "synthetic_thermal_band"
+   ]
+  },
+  "assessment": {
+   "kind": "quote_binding",
+   "contract": "IC-12",
+   "contract_version": "2.0.0",
+   "quote_id": "quote_run_912a6272c7323682",
+   "quote_input_hash": "sha256:6458ae996a979e07ea0f2db345986fb5638e16021231301658153fb40b825f72"
+  },
+  "connection_agreement": {
+   "kind": "unknown",
+   "reason": "synthetic fixture: no IC-1 agreement fixture exists for this site"
+  },
+  "scenario_set": {
+   "kind": "unknown",
+   "reason": "synthetic fixture: no IC-2 scenario set exists for this site"
+  }
+ },
+ "supersedes": {
+  "kind": "not_applicable",
+  "reason": "synthetic fixture: the first envelope for this site"
+ },
+ "valid_from": "2027-01-01T00:00:00Z",
+ "valid_until": "2028-01-01T00:00:00Z",
+ "rated_discharge_kw": 1000,
+ "rated_charge_kw": 1000,
+ "usable_energy_kwh": 2000,
+ "fail_safe": {
+  "firm_import_limit_kw": 3000,
+  "resilience_floor_kwh": 400,
+  "markets": "declared_unavailable"
+ },
+ "services": [
+  {
+   "service_id": "svc-capacity-market",
+   "stream": "CAPACITY_MARKET",
+   "sustain_min": 60,
+   "counterparty_role": "emr_settlement",
+   "reference": {
+    "kind": "unknown",
+    "reason": "synthetic fixture: no counterparty reference exists"
+   },
+   "basis": {
+    "kind": "assumed_approved",
+    "confirmation_ask": "synthetic fixture: confirm a capacity agreement for the battery"
+   },
+   "underwritten": {
+    "kind": "unknown",
+    "reason": "synthetic fixture: no underwritten value is stated"
+   }
+  },
+  {
+   "service_id": "svc-dfs-cooling",
+   "stream": "DFS",
+   "sustain_min": {
+    "kind": "not_applicable",
+    "reason": "synthetic fixture: delivered by cooling turn-down only: no battery slice"
+   },
+   "counterparty_role": "neso",
+   "reference": {
+    "kind": "unknown",
+    "reason": "synthetic fixture: no counterparty reference exists"
+   },
+   "basis": {
+    "kind": "assumed_approved",
+    "confirmation_ask": "synthetic fixture: confirm demand-flexibility registration for the cooling plant"
+   },
+   "underwritten": {
+    "kind": "unknown",
+    "reason": "synthetic fixture: no underwritten value is stated"
+   }
+  }
+ ],
+ "thermal": {
+  "kind": "thermal_envelope",
+  "surface": {
+   "kind": "thermal_flex_availability_ref",
+   "contract": "IC-11",
+   "contract_version": "1.0.0",
+   "availability_hash": "sha256:bbac57be8fd2e8b05fa131ec21659d20e1c67b0e33c04bbf618f0d38a2d07025"
+  },
+  "binding": {
+   "point": "it_inlet",
+   "min_tenths_c": 180,
+   "max_tenths_c": 250
+  }
+ },
+ "seasons": [
+  {
+   "season_id": "winter",
+   "months": [
+    1,
+    2,
+    3,
+    11,
+    12
+   ]
+  },
+  {
+   "season_id": "shoulder",
+   "months": [
+    4,
+    5,
+    9,
+    10
+   ]
+  },
+  {
+   "season_id": "summer",
+   "months": [
+    6,
+    7,
+    8
+   ]
+  }
+ ],
+ "day_groups": [
+  {
+   "day_group_id": "all-week",
+   "iso_weekdays": [
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7
+   ]
+  }
+ ],
+ "bands": [
+  {
+   "band_id": "off-peak",
+   "start_minute": 0,
+   "end_minute": 960
+  },
+  {
+   "band_id": "peak",
+   "start_minute": 960,
+   "end_minute": 1140
+  },
+  {
+   "band_id": "flex-window",
+   "start_minute": 1140,
+   "end_minute": 1260
+  },
+  {
+   "band_id": "late",
+   "start_minute": 1260,
+   "end_minute": 1440
+  }
+ ],
+ "cells": [
+  {
+   "season_id": "winter",
+   "day_group_id": "all-week",
+   "band_id": "off-peak",
+   "terms_id": "base"
+  },
+  {
+   "season_id": "winter",
+   "day_group_id": "all-week",
+   "band_id": "peak",
+   "terms_id": "winter-peak"
+  },
+  {
+   "season_id": "winter",
+   "day_group_id": "all-week",
+   "band_id": "flex-window",
+   "terms_id": "winter-dfs"
+  },
+  {
+   "season_id": "winter",
+   "day_group_id": "all-week",
+   "band_id": "late",
+   "terms_id": "base"
+  },
+  {
+   "season_id": "shoulder",
+   "day_group_id": "all-week",
+   "band_id": "off-peak",
+   "terms_id": "base"
+  },
+  {
+   "season_id": "shoulder",
+   "day_group_id": "all-week",
+   "band_id": "peak",
+   "terms_id": "base"
+  },
+  {
+   "season_id": "shoulder",
+   "day_group_id": "all-week",
+   "band_id": "flex-window",
+   "terms_id": "shoulder-dfs"
+  },
+  {
+   "season_id": "shoulder",
+   "day_group_id": "all-week",
+   "band_id": "late",
+   "terms_id": "base"
+  },
+  {
+   "season_id": "summer",
+   "day_group_id": "all-week",
+   "band_id": "off-peak",
+   "terms_id": "base"
+  },
+  {
+   "season_id": "summer",
+   "day_group_id": "all-week",
+   "band_id": "peak",
+   "terms_id": "base"
+  },
+  {
+   "season_id": "summer",
+   "day_group_id": "all-week",
+   "band_id": "flex-window",
+   "terms_id": "base"
+  },
+  {
+   "season_id": "summer",
+   "day_group_id": "all-week",
+   "band_id": "late",
+   "terms_id": "base"
+  }
+ ],
+ "terms": [
+  {
+   "terms_id": "base",
+   "terms": {
+    "import_limit_kw": 3000,
+    "export_limit_kw": 0,
+    "import_basis": "firm",
+    "discharge": {
+     "resilience_kw": 200,
+     "services": [],
+     "merchant_kw": 800,
+     "withheld": {
+      "kind": "not_applicable",
+      "reason": "synthetic fixture: nothing is withheld"
+     }
+    },
+    "charge": {
+     "resilience_kw": 0,
+     "services": [],
+     "merchant_kw": 1000,
+     "withheld": {
+      "kind": "not_applicable",
+      "reason": "synthetic fixture: nothing is withheld"
+     }
+    },
+    "energy": {
+     "resilience_floor_kwh": 400,
+     "held_up": [],
+     "merchant_kwh": 1600,
+     "held_down": [],
+     "withheld_kwh": 0
+    },
+    "thermal": {
+     "kind": "thermal_terms",
+     "band": {
+      "point": "it_inlet",
+      "min_tenths_c": 180,
+      "max_tenths_c": 250
+     },
+     "commitments": []
+    }
+   }
+  },
+  {
+   "terms_id": "shoulder-dfs",
+   "terms": {
+    "import_limit_kw": 3000,
+    "export_limit_kw": 0,
+    "import_basis": "firm",
+    "discharge": {
+     "resilience_kw": 200,
+     "services": [],
+     "merchant_kw": 800,
+     "withheld": {
+      "kind": "not_applicable",
+      "reason": "synthetic fixture: nothing is withheld"
+     }
+    },
+    "charge": {
+     "resilience_kw": 0,
+     "services": [],
+     "merchant_kw": 1000,
+     "withheld": {
+      "kind": "not_applicable",
+      "reason": "synthetic fixture: nothing is withheld"
+     }
+    },
+    "energy": {
+     "resilience_floor_kwh": 400,
+     "held_up": [],
+     "merchant_kwh": 1600,
+     "held_down": [],
+     "withheld_kwh": 0
+    },
+    "thermal": {
+     "kind": "thermal_terms",
+     "band": {
+      "point": "it_inlet",
+      "min_tenths_c": 180,
+      "max_tenths_c": 240
+     },
+     "commitments": [
+      {
+       "service_id": "svc-dfs-cooling",
+       "reduction_kw": 300,
+       "duration_min": 60
+      }
+     ]
+    }
+   }
+  },
+  {
+   "terms_id": "winter-dfs",
+   "terms": {
+    "import_limit_kw": 3000,
+    "export_limit_kw": 0,
+    "import_basis": "firm",
+    "discharge": {
+     "resilience_kw": 200,
+     "services": [],
+     "merchant_kw": 800,
+     "withheld": {
+      "kind": "not_applicable",
+      "reason": "synthetic fixture: nothing is withheld"
+     }
+    },
+    "charge": {
+     "resilience_kw": 0,
+     "services": [],
+     "merchant_kw": 1000,
+     "withheld": {
+      "kind": "not_applicable",
+      "reason": "synthetic fixture: nothing is withheld"
+     }
+    },
+    "energy": {
+     "resilience_floor_kwh": 400,
+     "held_up": [],
+     "merchant_kwh": 1600,
+     "held_down": [],
+     "withheld_kwh": 0
+    },
+    "thermal": {
+     "kind": "thermal_terms",
+     "band": {
+      "point": "it_inlet",
+      "min_tenths_c": 180,
+      "max_tenths_c": 240
+     },
+     "commitments": [
+      {
+       "service_id": "svc-dfs-cooling",
+       "reduction_kw": 400,
+       "duration_min": 60
+      }
+     ]
+    }
+   }
+  },
+  {
+   "terms_id": "winter-peak",
+   "terms": {
+    "import_limit_kw": 3000,
+    "export_limit_kw": 0,
+    "import_basis": "firm",
+    "discharge": {
+     "resilience_kw": 200,
+     "services": [
+      {
+       "service_id": "svc-capacity-market",
+       "kw": 500
+      }
+     ],
+     "merchant_kw": 300,
+     "withheld": {
+      "kind": "not_applicable",
+      "reason": "synthetic fixture: nothing is withheld"
+     }
+    },
+    "charge": {
+     "resilience_kw": 0,
+     "services": [],
+     "merchant_kw": 1000,
+     "withheld": {
+      "kind": "not_applicable",
+      "reason": "synthetic fixture: nothing is withheld"
+     }
+    },
+    "energy": {
+     "resilience_floor_kwh": 400,
+     "held_up": [
+      {
+       "service_id": "svc-capacity-market",
+       "kwh": 500
+      }
+     ],
+     "merchant_kwh": 1100,
+     "held_down": [],
+     "withheld_kwh": 0
+    },
+    "thermal": {
+     "kind": "thermal_terms",
+     "band": {
+      "point": "it_inlet",
+      "min_tenths_c": 180,
+      "max_tenths_c": 250
+     },
+     "commitments": []
+    }
+   }
+  }
+ ],
+ "overrides": [],
+ "clock": "Europe/London",
+ "resolution_min": 30,
+ "resolved_hash": "sha256:d90067c71cd8d6890c394d1e5e27b9c773ed4cd6630af705c0f5c02fba320513"
+}

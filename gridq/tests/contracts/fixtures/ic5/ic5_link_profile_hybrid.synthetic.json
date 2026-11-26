@@ -1,0 +1,42 @@
+{
+ "contract": "IC-5",
+ "contract_version": "1.0.0",
+ "kind": "link_profile",
+ "profile_id": "ic5-synthetic-hybrid-link",
+ "site_id": "SYNTHETIC-SITE-HYBRID",
+ "record_class": "synthetic_fixture",
+ "connection_agreement": {
+  "kind": "connection_agreement_ref",
+  "contract": "IC-1",
+  "contract_version": "1.1.0",
+  "agreement_hash": "sha256:122618785497c4f998cbdb76b49746be63415bf56cc09c4a6187a333c3d7c6b1"
+ },
+ "anm_authority": "edge_local",
+ "cloud_heartbeat_interval_ms": 10000,
+ "edge_heartbeat_interval_ms": 10000,
+ "control_lease_ms": 60000,
+ "schedule_max_age_ms": 120000,
+ "mpc_cadence_ms": 60000,
+ "schedule_required_lookahead_ms": 600000,
+ "edge_silent_after_ms": 60000,
+ "resume_hold_ms": 30000,
+ "max_clock_skew_ms": 250,
+ "max_frame_bytes": 1048576,
+ "latency_budgets": {
+  "cloud_to_edge_schedule": {
+   "kind": "latency_budget",
+   "path": "cloud_to_edge_schedule",
+   "quantile_per_mille": 990,
+   "bound_ms": 5000,
+   "min_samples": 100
+  },
+  "edge_to_cloud_ack": {
+   "kind": "not_applicable",
+   "reason": "synthetic fixture: no acknowledgement budget set for this site"
+  },
+  "heartbeat": {
+   "kind": "not_applicable",
+   "reason": "synthetic fixture: no heartbeat budget set for this site"
+  }
+ }
+}

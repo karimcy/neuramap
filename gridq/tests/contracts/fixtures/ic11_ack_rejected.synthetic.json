@@ -1,0 +1,14 @@
+{
+ "contract": "IC-11",
+ "contract_version": "1.0.0",
+ "ack_id": "ic11-synthetic-ack-rejected",
+ "instruction_id": "ic11-synthetic-instr-0001",
+ "instruction_hash": "sha256:67e7e2da64b768bdcd0a3e18afa2b53e978823fe6cb0ff1f5cd6406ed88965b4",
+ "acknowledged_at": "2027-01-14T23:44:05Z",
+ "responder_id": "thermaflex-synthetic-site-controller",
+ "response": {
+  "kind": "rejected",
+  "reason_code": "rebound_recovery_in_progress",
+  "detail": "synthetic: the previous event's rebound is still recovering"
+ }
+}

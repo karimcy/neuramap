@@ -1,0 +1,52 @@
+{
+ "contract": "IC-14",
+ "contract_version": "1.0.0",
+ "tenant": {
+  "kind": "tenant_key",
+  "org_id": "SYNTHETIC-ORG-HYBRID",
+  "org_kind": "customer",
+  "site_id": "SYNTHETIC-SITE-HYBRID"
+ },
+ "site_id": "SYNTHETIC-SITE-HYBRID",
+ "series_id": "SYNTHETIC-ORG-HYBRID/SYNTHETIC-SITE-HYBRID/bess.bess-1.state_of_charge.device_reported.whole",
+ "data_class": "customer_commercial",
+ "record_class": "synthetic_fixture",
+ "kind": "series_descriptor",
+ "name": {
+  "asset_kind": "bess",
+  "asset_id": "bess-1",
+  "quantity": "state_of_charge",
+  "role": "device_reported",
+  "aspect": "whole"
+ },
+ "unit": "basis_point",
+ "resolution": "standard_1min",
+ "source": {
+  "kind": "source_address",
+  "protocol": "simulated",
+  "address": "sim:bms/soc"
+ },
+ "source_scaling": {
+  "kind": "source_scaling",
+  "source_unit_ucum": "%",
+  "scale_num": 100,
+  "scale_den": 1,
+  "offset": 0
+ },
+ "brick_class": {
+  "kind": "not_applicable",
+  "reason": "synthetic fixture: no Brick class chosen for this synthetic point"
+ },
+ "plausible_min": 0,
+ "plausible_max": 10000,
+ "meter": {
+  "kind": "not_applicable",
+  "reason": "synthetic fixture: device-reported, not metered"
+ },
+ "freshness": {
+  "kind": "freshness_policy",
+  "stale_after_ms": 3600000,
+  "lost_after_ms": 7200000
+ },
+ "max_batch_bytes": 16384
+}

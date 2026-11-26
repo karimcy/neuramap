@@ -1,0 +1,100 @@
+{
+  "schema_version": "0.1.0",
+  "site_id": "site_000900",
+  "site_name": "Riverside Bakery",
+  "postcode": "BS1 5TF",
+  "country": "GB",
+  "data_tier": "T0_ANNUAL_KWH_TARIFF_POSTCODE",
+  "load_data": {
+    "schema_version": "0.1.0",
+    "annual_kwh": 420000.0,
+    "half_hourly_file_ref": null,
+    "half_hourly_rows": null,
+    "start_date": null,
+    "end_date": null,
+    "missing_intervals": null,
+    "max_import_kw": null,
+    "max_export_kw": null,
+    "validation_warnings": []
+  },
+  "annual_consumption_kwh": 420000.0,
+  "tariff_stack": {
+    "schema_version": "0.1.0",
+    "supplier": "ExampleEnergy",
+    "tariff_name": "C&I Flex",
+    "standing_charge_per_day_gbp": 1.2,
+    "import_rates": {
+      "single": 0.24
+    },
+    "export_rates": {},
+    "duos_red_rate": 0.18,
+    "duos_amber_rate": 0.02,
+    "duos_green_rate": 0.005,
+    "levies": {
+      "RO": 0.025,
+      "CfD": 0.008
+    },
+    "source": "installer_estimate",
+    "confidence": "low",
+    "basis": {
+      "schema_version": "0.1.0",
+      "vat": "excluded",
+      "vat_attestation": "stated_by_record",
+      "levies": "itemised",
+      "network_charges": "itemised",
+      "vat_rate_fraction": null
+    },
+    "provenance": {
+      "schema_version": "0.1.0",
+      "commodity": "assumed",
+      "network": "assumed",
+      "levies": "assumed"
+    }
+  },
+  "connection": {
+    "schema_version": "0.1.0",
+    "mic_kw": 300.0,
+    "mec_kw": null,
+    "asc_kw": null,
+    "voltage_level": "LV",
+    "dno_region": "NGED_SW",
+    "import_headroom_kw": null,
+    "export_headroom_kw": null,
+    "anm_or_curtailment_notes": null
+  },
+  "consents": {
+    "schema_version": "0.1.0",
+    "g98": "unknown",
+    "g99": "unknown",
+    "g100": "unknown",
+    "export_mpan": null,
+    "dno_application_state": "not_started",
+    "supplier_consent_state": "not_started",
+    "notes": null
+  },
+  "physical_gates": {
+    "schema_version": "0.1.0",
+    "footprint_available": true,
+    "fire_separation_ok": true,
+    "access_ok": true,
+    "planning_or_landlord_issue": null,
+    "notes": null
+  },
+  "counterparty": {
+    "schema_version": "0.1.0",
+    "legal_name": "Riverside Bakery Ltd",
+    "company_number": "04567890",
+    "sector": "food_manufacturing",
+    "credit_status": "unknown",
+    "expected_tenure_years": null,
+    "notes": null
+  },
+  "source_references": [
+    "installer_intake_form.pdf"
+  ],
+  "missing_data": [
+    "12 months half-hourly data",
+    "MIC confirmation"
+  ],
+  "created_at": "2026-06-17T09:00:00"
+}

@@ -1,0 +1,13 @@
+{
+  "provenance": {
+    "source": "synthetic",
+    "reference": "SYNTHETIC test fixture for WP-UW-03; not a lender's terms"
+  },
+  "tenor_years": 10,
+  "interest_rate_pct": 7.0,
+  "gearing_pct": 50.0,
+  "amortisation": "annuity",
+  "cashflow_case": "P90",
+  "calculation_period": "annual",
+  "covenant": {"default_dscr": 1.2, "lock_up_dscr": 1.3}
+}

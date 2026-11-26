@@ -1,0 +1,82 @@
+{
+  "contract": "IC-1",
+  "contract_version": "1.0.0",
+  "agreement_ref": "SYNTH-CA-HYBRID-01",
+  "site_id": "SYNTHETIC-SITE-HYBRID",
+  "source": {
+    "kind": "synthetic_archetype",
+    "statement": "SYNTHETIC ARCHETYPE FOR SCHEMA TESTING - not a real customer agreement, not issued by any real party. Numbers are illustrative values chosen to exercise the schema; the structure follows the public GB sources cited (URLs as listed in the spec, not re-fetched when this fixture was written).",
+    "based_on": [
+      {
+        "title": "Neura UK Product Specification v1.1, §7.1 A1-01 and §10A IC-1",
+        "url": "Neura_UK_Product_Spec.md#71-a1-connection-risk-engine-non-firm--anm-curtailment--build-core-ip-with-oxford-psal",
+        "used_for": "The full term list this archetype instantiates"
+      },
+      {
+        "title": "DESNZ, Accelerating electricity network connections for strategic demand (as cited in spec §3.1, §17)",
+        "url": "https://www.gov.uk/government/consultations/accelerating-electricity-network-connections-for-strategic-demand",
+        "used_for": "Alternative connection agreements: non-firm, phased, hybrid (firm base plus interruptible tranche); N-1 vs N-2"
+      },
+      {
+        "title": "Ofgem, Access and forward-looking charges SCR decision (as cited in spec §7.1, §17)",
+        "url": "https://www.ofgem.gov.uk/decision/access-and-forward-looking-charges-significant-code-review-decision-and-direction",
+        "used_for": "Curtailment Limit and exceeded-curtailment price as agreement terms (implemented via DCUSA DCP404/405 per spec A1-01)"
+      },
+      {
+        "title": "SSEN, Curtailment methodology for Technical Limits (as cited in spec §7.1, §17)",
+        "url": "https://ssen.co.uk/globalassets/ssen-curtailment-methodology-for-technical-limits.pdf",
+        "used_for": "Interim non-firm access under transmission Technical Limits until reinforcement (firm-by date)"
+      }
+    ]
+  },
+  "network_operator": {
+    "kind": "unknown",
+    "reason": "synthetic archetype: deliberately not tied to any network operator"
+  },
+  "archetype": "hybrid",
+  "firm_import_mw": 10.0,
+  "non_firm_import_mw": 20.0,
+  "profiled_import": {
+    "kind": "not_applicable",
+    "reason": "the non-firm tranche is restricted by ANM setpoint, not by a time profile"
+  },
+  "curtailment_limit": {
+    "kind": "curtailment_limit",
+    "basis": "hours_per_year",
+    "value": 250.0
+  },
+  "exceeded_curtailment_price": {
+    "kind": "unknown",
+    "reason": "synthetic archetype: no price stated; exercises the Unknown path"
+  },
+  "non_firm_end_date": "2030-03-31",
+  "firm_by_date": "2030-03-31",
+  "tenure": "interim",
+  "constraint_causes": [
+    "transmission_technical_limits"
+  ],
+  "lifo_positions": {
+    "kind": "not_applicable",
+    "reason": "Technical Limits allocation, not a LIFO stack"
+  },
+  "notice_period_s": 0.0,
+  "signal_type": "setpoint",
+  "ramp": {
+    "kind": "ramp_terms",
+    "max_ramp_up_mw_per_min": 5.0,
+    "max_ramp_down_mw_per_min": 10.0
+  },
+  "power_factor": {
+    "kind": "power_factor_terms",
+    "min_power_factor": 0.95,
+    "reactive_direction": "lagging"
+  },
+  "pcc": {
+    "kind": "pcc_terms",
+    "voltage_kv": 33.0,
+    "description": "Synthetic: customer 33 kV switchboard, DNO side of the metering CTs"
+  },
+  "network_security": "N-1",
+  "anm_response_time_s": 15.0,
+  "signal_protocol": "dnp3"
+}

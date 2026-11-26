@@ -1,0 +1,51 @@
+\chapter{Glossary of terms}
+\label{app:glossary}
+
+This glossary collects the specialist vocabulary used across the manual. The context throughout is the Great Britain electricity market. Terms are defined here the first time they matter; this appendix is the single place to look them up.
+
+\renewcommand{\arraystretch}{1.35}
+\small\sffamily
+\begin{longtable}{@{}>{\bfseries}p{2.4cm} p{12.3cm}@{}}
+\toprule
+\textbf{\normalfont Term} & \textbf{\normalfont Meaning} \\
+\midrule
+\endfirsthead
+\toprule
+\textbf{\normalfont Term} & \textbf{\normalfont Meaning} \\
+\midrule
+\endhead
+\bottomrule
+\endfoot
+BESS & Battery Energy Storage System. The asset the platform sizes and underwrites. \\
+BTM & Behind-the-Meter. Sited on the customer's side of the supply meter, as opposed to grid-scale (front-of-meter). This platform is behind-the-meter. \\
+PPA & Power Purchase Agreement. The customer contract for the energy or service. The default structure here is a fixed price per kilowatt-hour; alternatives are a savings share and a capacity fee. \\
+CM & Capacity Market. A GB mechanism that pays assets for being available, de-rated by how long they can sustain output. A contracted revenue stream whose deliverability must be proven to the final contract year at the battery's degraded capability. \\
+Piclo & Piclo Flex, a marketplace through which network operators buy local flexibility services. A contracted stream, priceable when a tender is open in the site's network area. \\
+P415 & An industry modification that lets a flexibility provider reach the wholesale market independently of the site's energy supplier. It unlocks the wholesale upside, treated as a placeholder until a route-to-market partner's terms are known. \\
+BM & Balancing Mechanism. The system operator's near-real-time mechanism for balancing supply and demand. Part of the gated wholesale upside that needs a route-to-market partner. \\
+DNO & Distribution Network Operator. Owns and runs the regional distribution grid; the counterparty for connection, consents, and local flexibility. \\
+MIC & Maximum Import Capacity. The agreed ceiling on power drawn from the grid at the connection. Battery charging counts against it. \\
+MEC & Maximum Export Capacity. The agreed ceiling on power exported to the grid at the connection. \\
+ASC & Available (or Authorised) Supply Capacity. The capacity reserved and billed at the connection; a binding limit where it applies. \\
+G98 / G99 & Engineering standards for connecting generation or storage to the network. G98 covers small-scale; G99 covers larger installations. An export-side consent. \\
+G100 & An export-limitation scheme that caps export to within the agreed limit. \\
+ANM & Active Network Management. A scheme under which the network operator can curtail an asset to manage local constraints. \\
+DSCR & Debt Service Coverage Ratio. Cash available for debt service divided by the debt service due. The bankable constraint is that the conservative (P90) DSCR stays at or above a covenant; debt is sized and shaped on the P90 case. \\
+P50 & The median estimate: equal chance of the outcome being higher or lower. The central case. \\
+P90 & The conservative estimate met or beaten ninety per cent of the time. Lenders underwrite on it; single point estimates are not a deliverable. \\
+COD & Commercial Operation Date. When the asset starts operating; the point after which realised performance is compared against what was underwritten. \\
+RTM & Route To Market. The aggregator or optimiser partner that provides access to the wholesale, balancing, and ancillary markets. Its terms replace the placeholder values for those streams. \\
+SoC & State of Charge. The battery's current stored energy as a fraction of its usable capacity. \\
+SoH & State of Health. The battery's degradation over its life; an end-of-life model informs the capability the system is sized for. \\
+DUoS & Distribution Use of System. Charges for using the distribution network, banded red, amber, and green by time of day. Avoiding the expensive red band is part of the bankable import-side income floor. \\
+TCR & Targeted Charging Review. A reform of network charging that changed how some charges are levied. \\
+IDNO & Independent Distribution Network Operator. A network operator other than the regional incumbent. \\
+MPAN & Meter Point Administration Number. The unique identifier of an electricity supply or export point. \\
+EMS / M\&V & Energy Management System and Measurement \& Verification. The operating system that runs the battery and the method used to prove delivered savings. \\
+MILP & Mixed-Integer Linear Program. The mathematical form of the dispatch problem: a set of linear relationships, some variables required to be whole numbers, solved to maximise value subject to physical limits. \\
+\end{longtable}
+
+\vspace{6pt}
+\begin{caution}[Two look-alike labels that mean different things]
+The lifecycle state of a quote (\emph{draft, indicative, underwritten, contracted, operating}) answers ``where is this quote in its life?''. A separate label on a hand-built benchmark quote (\emph{indicative, underwritten, proposal, other}) answers ``what kind of thing did a human produce?''. They share the words \emph{indicative} and \emph{underwritten} but are not the same field. Chapter~\ref{ch:telemetry} keeps them apart.
+\end{caution}

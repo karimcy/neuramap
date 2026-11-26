@@ -1,0 +1,5624 @@
+{
+  "record_count": 801,
+  "records": [
+    {
+      "Auction Name": "2016-17 (TR) Transitional Capacity Auction",
+      "De-Rating Factor": 0.8786,
+      "Generating Technology Class": "Coal/biomass",
+      "Primary Fuel Type": "Biomass/Coal/EfW",
+      "_id": 1
+    },
+    {
+      "Auction Name": "2016-17 (TR) Transitional Capacity Auction",
+      "De-Rating Factor": 0.868,
+      "Generating Technology Class": "DSR",
+      "Primary Fuel Type": "DSR",
+      "_id": 2
+    },
+    {
+      "Auction Name": "2016-17 (TR) Transitional Capacity Auction",
+      "De-Rating Factor": 0.89,
+      "Generating Technology Class": "Combined Cycle Gas Turbine (CCGT)",
+      "Primary Fuel Type": "Gas",
+      "_id": 3
+    },
+    {
+      "Auction Name": "2016-17 (TR) Transitional Capacity Auction",
+      "De-Rating Factor": 0.9,
+      "Generating Technology Class": "CHP and autogeneration",
+      "Primary Fuel Type": "Gas",
+      "_id": 4
+    },
+    {
+      "Auction Name": "2016-17 (TR) Transitional Capacity Auction",
+      "De-Rating Factor": 0.9454,
+      "Generating Technology Class": "OCGT and Reciprocating Engines",
+      "Primary Fuel Type": "Gas",
+      "_id": 5
+    },
+    {
+      "Auction Name": "2016-17 (TR) Transitional Capacity Auction",
+      "De-Rating Factor": 0.8487,
+      "Generating Technology Class": "Hydro",
+      "Primary Fuel Type": "Hydro",
+      "_id": 6
+    },
+    {
+      "Auction Name": "2016-17 (TR) Transitional Capacity Auction",
+      "De-Rating Factor": 0.69,
+      "Generating Technology Class": "BritNED (Netherlands)",
+      "Primary Fuel Type": "Interconnector",
+      "_id": 7
+    },
+    {
+      "Auction Name": "2016-17 (TR) Transitional Capacity Auction",
+      "De-Rating Factor": 0.52,
+      "Generating Technology Class": "IFA (France)",
+      "Primary Fuel Type": "Interconnector",
+      "_id": 8
+    },
+    {
+      "Auction Name": "2016-17 (TR) Transitional Capacity Auction",
+      "De-Rating Factor": 0.56,
+      "Generating Technology Class": "Eleclink (France)",
+      "Primary Fuel Type": "Interconnector",
+      "_id": 9
+    },
+    {
+      "Auction Name": "2016-17 (TR) Transitional Capacity Auction",
+      "De-Rating Factor": 0.54,
+      "Generating Technology Class": "NEMO (Belgium)",
+      "Primary Fuel Type": "Interconnector",
+      "_id": 10
+    },
+    {
+      "Auction Name": "2016-17 (TR) Transitional Capacity Auction",
+      "De-Rating Factor": 0.06,
+      "Generating Technology Class": "Moyle and EWIC (Ireland)",
+      "Primary Fuel Type": "Interconnector",
+      "_id": 11
+    },
+    {
+      "Auction Name": "2016-17 (TR) Transitional Capacity Auction",
+      "De-Rating Factor": 0.8231,
+      "Generating Technology Class": "Nuclear",
+      "Primary Fuel Type": "Nuclear",
+      "_id": 12
+    },
+    {
+      "Auction Name": "2016-17 (TR) Transitional Capacity Auction",
+      "De-Rating Factor": 0.8461,
+      "Generating Technology Class": "Oil-fired steam generators",
+      "Primary Fuel Type": "Oil",
+      "_id": 13
+    },
+    {
+      "Auction Name": "2016-17 (TR) Transitional Capacity Auction",
+      "De-Rating Factor": 0.9663,
+      "Generating Technology Class": "Storage",
+      "Primary Fuel Type": "Storage",
+      "_id": 14
+    },
+    {
+      "Auction Name": "2017-18 (T-1) One Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.8692,
+      "Generating Technology Class": "Coal/biomass",
+      "Primary Fuel Type": "Biomass/Coal/EfW",
+      "_id": 15
+    },
+    {
+      "Auction Name": "2017-18 (T-1) One Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.8688,
+      "Generating Technology Class": "DSR",
+      "Primary Fuel Type": "DSR",
+      "_id": 16
+    },
+    {
+      "Auction Name": "2017-18 (T-1) One Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.9417,
+      "Generating Technology Class": "OCGT and Reciprocating Engines (Fuel Type - Diesel)",
+      "Primary Fuel Type": "Diesel",
+      "_id": 17
+    },
+    {
+      "Auction Name": "2017-18 (T-1) One Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.9417,
+      "Generating Technology Class": "OCGT and Reciprocating Engines (Fuel Type - Gas)",
+      "Primary Fuel Type": "Gas",
+      "_id": 18
+    },
+    {
+      "Auction Name": "2017-18 (T-1) One Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.876,
+      "Generating Technology Class": "Combined Cycle Gas Turbine (CCGT)",
+      "Primary Fuel Type": "Gas",
+      "_id": 19
+    },
+    {
+      "Auction Name": "2017-18 (T-1) One Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.9,
+      "Generating Technology Class": "CHP and autogeneration",
+      "Primary Fuel Type": "Gas",
+      "_id": 20
+    },
+    {
+      "Auction Name": "2017-18 (T-1) One Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.9417,
+      "Generating Technology Class": "OCGT and Reciprocating Engines",
+      "Primary Fuel Type": "Gas",
+      "_id": 21
+    },
+    {
+      "Auction Name": "2017-18 (T-1) One Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.8616,
+      "Generating Technology Class": "Hydro",
+      "Primary Fuel Type": "Hydro",
+      "_id": 22
+    },
+    {
+      "Auction Name": "2017-18 (T-1) One Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.59,
+      "Generating Technology Class": "IFA (France)",
+      "Primary Fuel Type": "Interconnector",
+      "_id": 23
+    },
+    {
+      "Auction Name": "2017-18 (T-1) One Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.3,
+      "Generating Technology Class": "Moyle and EWIC (Ireland)",
+      "Primary Fuel Type": "Interconnector",
+      "_id": 24
+    },
+    {
+      "Auction Name": "2017-18 (T-1) One Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.74,
+      "Generating Technology Class": "BritNED (Netherlands)",
+      "Primary Fuel Type": "Interconnector",
+      "_id": 25
+    },
+    {
+      "Auction Name": "2017-18 (T-1) One Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.8436,
+      "Generating Technology Class": "Nuclear",
+      "Primary Fuel Type": "Nuclear",
+      "_id": 26
+    },
+    {
+      "Auction Name": "2017-18 (T-1) One Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.8544,
+      "Generating Technology Class": "Oil-fired steam generators",
+      "Primary Fuel Type": "Oil",
+      "_id": 27
+    },
+    {
+      "Auction Name": "2017-18 (T-1) One Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.9629,
+      "Generating Technology Class": "Storage",
+      "Primary Fuel Type": "Storage",
+      "_id": 28
+    },
+    {
+      "Auction Name": "2017-18 (TR) Transitional Capacity Auction",
+      "De-Rating Factor": 0.8688,
+      "Generating Technology Class": "DSR",
+      "Primary Fuel Type": "DSR",
+      "_id": 29
+    },
+    {
+      "Auction Name": "2018-19 (T-1) One Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.8758,
+      "Generating Technology Class": "Coal/biomass",
+      "Primary Fuel Type": "Biomass/Coal/EfW",
+      "_id": 30
+    },
+    {
+      "Auction Name": "2018-19 (T-1) One Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.8634,
+      "Generating Technology Class": "DSR",
+      "Primary Fuel Type": "DSR",
+      "_id": 31
+    },
+    {
+      "Auction Name": "2018-19 (T-1) One Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.9481,
+      "Generating Technology Class": "OCGT and Reciprocating Engines (Fuel Type - Diesel)",
+      "Primary Fuel Type": "Diesel",
+      "_id": 32
+    },
+    {
+      "Auction Name": "2018-19 (T-1) One Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.9481,
+      "Generating Technology Class": "Reciprocating engines",
+      "Primary Fuel Type": "Gas",
+      "_id": 33
+    },
+    {
+      "Auction Name": "2018-19 (T-1) One Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.9481,
+      "Generating Technology Class": "OCGT and Reciprocating Engines (Fuel Type - Gas)",
+      "Primary Fuel Type": "Gas",
+      "_id": 34
+    },
+    {
+      "Auction Name": "2018-19 (T-1) One Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.9,
+      "Generating Technology Class": "Combined Heat and Power (CHP)",
+      "Primary Fuel Type": "Gas",
+      "_id": 35
+    },
+    {
+      "Auction Name": "2018-19 (T-1) One Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.9481,
+      "Generating Technology Class": "OCGT and Reciprocating Engines",
+      "Primary Fuel Type": "Gas",
+      "_id": 36
+    },
+    {
+      "Auction Name": "2018-19 (T-1) One Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.9481,
+      "Generating Technology Class": "Open Cycle Gas Turbine (OCGT)",
+      "Primary Fuel Type": "Gas",
+      "_id": 37
+    },
+    {
+      "Auction Name": "2018-19 (T-1) One Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.8854,
+      "Generating Technology Class": "Combined Cycle Gas Turbine (CCGT)",
+      "Primary Fuel Type": "Gas",
+      "_id": 38
+    },
+    {
+      "Auction Name": "2018-19 (T-1) One Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.9,
+      "Generating Technology Class": "CHP and autogeneration",
+      "Primary Fuel Type": "Gas",
+      "_id": 39
+    },
+    {
+      "Auction Name": "2018-19 (T-1) One Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.8792,
+      "Generating Technology Class": "Hydro",
+      "Primary Fuel Type": "Hydro",
+      "_id": 40
+    },
+    {
+      "Auction Name": "2018-19 (T-1) One Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.59,
+      "Generating Technology Class": "EWIC (Ireland)",
+      "Primary Fuel Type": "Interconnector",
+      "_id": 41
+    },
+    {
+      "Auction Name": "2018-19 (T-1) One Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.8524,
+      "Generating Technology Class": "Nuclear",
+      "Primary Fuel Type": "Nuclear",
+      "_id": 42
+    },
+    {
+      "Auction Name": "2018-19 (T-1) One Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.8804,
+      "Generating Technology Class": "Oil-fired steam generators",
+      "Primary Fuel Type": "Oil",
+      "_id": 43
+    },
+    {
+      "Auction Name": "2018-19 (T-1) One Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.9611,
+      "Generating Technology Class": "Storage",
+      "Primary Fuel Type": "Storage",
+      "_id": 44
+    },
+    {
+      "Auction Name": "2018-19 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.8764,
+      "Generating Technology Class": "Energy from Waste",
+      "Primary Fuel Type": "Biomass/Coal/EfW",
+      "_id": 45
+    },
+    {
+      "Auction Name": "2018-19 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.8764,
+      "Generating Technology Class": "Coal",
+      "Primary Fuel Type": "Biomass/Coal/EfW",
+      "_id": 46
+    },
+    {
+      "Auction Name": "2018-19 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.8764,
+      "Generating Technology Class": "Biomass",
+      "Primary Fuel Type": "Biomass/Coal/EfW",
+      "_id": 47
+    },
+    {
+      "Auction Name": "2018-19 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.897,
+      "Generating Technology Class": "DSR",
+      "Primary Fuel Type": "DSR",
+      "_id": 48
+    },
+    {
+      "Auction Name": "2018-19 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.9361,
+      "Generating Technology Class": "OCGT and Reciprocating Engines (Fuel Type - Diesel)",
+      "Primary Fuel Type": "Diesel",
+      "_id": 49
+    },
+    {
+      "Auction Name": "2018-19 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.9361,
+      "Generating Technology Class": "Open Cycle Gas Turbine (OCGT)",
+      "Primary Fuel Type": "Gas",
+      "_id": 50
+    },
+    {
+      "Auction Name": "2018-19 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.9361,
+      "Generating Technology Class": "OCGT and Reciprocating Engines (Fuel Type - Gas)",
+      "Primary Fuel Type": "Gas",
+      "_id": 51
+    },
+    {
+      "Auction Name": "2018-19 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.9,
+      "Generating Technology Class": "Combined Heat and Power (CHP)",
+      "Primary Fuel Type": "Gas",
+      "_id": 52
+    },
+    {
+      "Auction Name": "2018-19 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.88,
+      "Generating Technology Class": "Combined Cycle Gas Turbine (CCGT)",
+      "Primary Fuel Type": "Gas",
+      "_id": 53
+    },
+    {
+      "Auction Name": "2018-19 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.8361,
+      "Generating Technology Class": "Hydro",
+      "Primary Fuel Type": "Hydro",
+      "_id": 54
+    },
+    {
+      "Auction Name": "2018-19 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.8139,
+      "Generating Technology Class": "Nuclear",
+      "Primary Fuel Type": "Nuclear",
+      "_id": 55
+    },
+    {
+      "Auction Name": "2018-19 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.821,
+      "Generating Technology Class": "Oil-fired steam generators",
+      "Primary Fuel Type": "Oil",
+      "_id": 56
+    },
+    {
+      "Auction Name": "2018-19 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.9738,
+      "Generating Technology Class": "Storage",
+      "Primary Fuel Type": "Storage",
+      "_id": 57
+    },
+    {
+      "Auction Name": "2019-20 (T-1) One Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.8656,
+      "Generating Technology Class": "Biomass",
+      "Primary Fuel Type": "Biomass/Coal/EfW",
+      "_id": 58
+    },
+    {
+      "Auction Name": "2019-20 (T-1) One Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.8656,
+      "Generating Technology Class": "Energy from Waste",
+      "Primary Fuel Type": "Biomass/Coal/EfW",
+      "_id": 59
+    },
+    {
+      "Auction Name": "2019-20 (T-1) One Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.8656,
+      "Generating Technology Class": "Coal",
+      "Primary Fuel Type": "Biomass/Coal/EfW",
+      "_id": 60
+    },
+    {
+      "Auction Name": "2019-20 (T-1) One Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.8428,
+      "Generating Technology Class": "DSR",
+      "Primary Fuel Type": "DSR",
+      "_id": 61
+    },
+    {
+      "Auction Name": "2019-20 (T-1) One Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.9514,
+      "Generating Technology Class": "Reciprocating engines",
+      "Primary Fuel Type": "Gas",
+      "_id": 62
+    },
+    {
+      "Auction Name": "2019-20 (T-1) One Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.8905,
+      "Generating Technology Class": "Combined Cycle Gas Turbine (CCGT)",
+      "Primary Fuel Type": "Gas",
+      "_id": 63
+    },
+    {
+      "Auction Name": "2019-20 (T-1) One Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.9514,
+      "Generating Technology Class": "Open Cycle Gas Turbine (OCGT)",
+      "Primary Fuel Type": "Gas",
+      "_id": 64
+    },
+    {
+      "Auction Name": "2019-20 (T-1) One Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.9,
+      "Generating Technology Class": "Combined Heat and Power (CHP)",
+      "Primary Fuel Type": "Gas",
+      "_id": 65
+    },
+    {
+      "Auction Name": "2019-20 (T-1) One Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.9009,
+      "Generating Technology Class": "Hydro",
+      "Primary Fuel Type": "Hydro",
+      "_id": 66
+    },
+    {
+      "Auction Name": "2019-20 (T-1) One Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.73,
+      "Generating Technology Class": "Eleclink (France)",
+      "Primary Fuel Type": "Interconnector",
+      "_id": 67
+    },
+    {
+      "Auction Name": "2019-20 (T-1) One Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.68,
+      "Generating Technology Class": "NEMO (Belgium)",
+      "Primary Fuel Type": "Interconnector",
+      "_id": 68
+    },
+    {
+      "Auction Name": "2019-20 (T-1) One Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.69,
+      "Generating Technology Class": "IFA2 (France)",
+      "Primary Fuel Type": "Interconnector",
+      "_id": 69
+    },
+    {
+      "Auction Name": "2019-20 (T-1) One Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.43,
+      "Generating Technology Class": "EWIC (Ireland)",
+      "Primary Fuel Type": "Interconnector",
+      "_id": 70
+    },
+    {
+      "Auction Name": "2019-20 (T-1) One Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.26,
+      "Generating Technology Class": "Moyle (Northern Ireland)",
+      "Primary Fuel Type": "Interconnector",
+      "_id": 71
+    },
+    {
+      "Auction Name": "2019-20 (T-1) One Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.842,
+      "Generating Technology Class": "Nuclear",
+      "Primary Fuel Type": "Nuclear",
+      "_id": 72
+    },
+    {
+      "Auction Name": "2019-20 (T-1) One Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.8913,
+      "Generating Technology Class": "Oil-fired steam generators",
+      "Primary Fuel Type": "Oil",
+      "_id": 73
+    },
+    {
+      "Auction Name": "2019-20 (T-1) One Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.9552,
+      "Generating Technology Class": "Storage (Duration 12h)",
+      "Primary Fuel Type": "Storage",
+      "_id": 74
+    },
+    {
+      "Auction Name": "2019-20 (T-1) One Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.9552,
+      "Generating Technology Class": "Storage (Duration 11.5h)",
+      "Primary Fuel Type": "Storage",
+      "_id": 75
+    },
+    {
+      "Auction Name": "2019-20 (T-1) One Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.9552,
+      "Generating Technology Class": "Storage (Duration 11h)",
+      "Primary Fuel Type": "Storage",
+      "_id": 76
+    },
+    {
+      "Auction Name": "2019-20 (T-1) One Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.9552,
+      "Generating Technology Class": "Storage (Duration 10.5h)",
+      "Primary Fuel Type": "Storage",
+      "_id": 77
+    },
+    {
+      "Auction Name": "2019-20 (T-1) One Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.9552,
+      "Generating Technology Class": "Storage (Duration 10h)",
+      "Primary Fuel Type": "Storage",
+      "_id": 78
+    },
+    {
+      "Auction Name": "2019-20 (T-1) One Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.9552,
+      "Generating Technology Class": "Storage (Duration 9.5h)",
+      "Primary Fuel Type": "Storage",
+      "_id": 79
+    },
+    {
+      "Auction Name": "2019-20 (T-1) One Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.9552,
+      "Generating Technology Class": "Storage (Duration 9h)",
+      "Primary Fuel Type": "Storage",
+      "_id": 80
+    },
+    {
+      "Auction Name": "2019-20 (T-1) One Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.9552,
+      "Generating Technology Class": "Storage (Duration 8.5h)",
+      "Primary Fuel Type": "Storage",
+      "_id": 81
+    },
+    {
+      "Auction Name": "2019-20 (T-1) One Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.9552,
+      "Generating Technology Class": "Storage (Duration 8h)",
+      "Primary Fuel Type": "Storage",
+      "_id": 82
+    },
+    {
+      "Auction Name": "2019-20 (T-1) One Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.8157,
+      "Generating Technology Class": "Storage (Duration 3.5h)",
+      "Primary Fuel Type": "Storage",
+      "_id": 83
+    },
+    {
+      "Auction Name": "2019-20 (T-1) One Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.9552,
+      "Generating Technology Class": "Storage (Duration 7.5h)",
+      "Primary Fuel Type": "Storage",
+      "_id": 84
+    },
+    {
+      "Auction Name": "2019-20 (T-1) One Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.7809,
+      "Generating Technology Class": "Storage (Duration 3h)",
+      "Primary Fuel Type": "Storage",
+      "_id": 85
+    },
+    {
+      "Auction Name": "2019-20 (T-1) One Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.9552,
+      "Generating Technology Class": "Storage (Duration 6.5h)",
+      "Primary Fuel Type": "Storage",
+      "_id": 86
+    },
+    {
+      "Auction Name": "2019-20 (T-1) One Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.9552,
+      "Generating Technology Class": "Storage (Duration 6h)",
+      "Primary Fuel Type": "Storage",
+      "_id": 87
+    },
+    {
+      "Auction Name": "2019-20 (T-1) One Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.9552,
+      "Generating Technology Class": "Storage (Duration 5.5h)",
+      "Primary Fuel Type": "Storage",
+      "_id": 88
+    },
+    {
+      "Auction Name": "2019-20 (T-1) One Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.9552,
+      "Generating Technology Class": "Storage (Duration 5h)",
+      "Primary Fuel Type": "Storage",
+      "_id": 89
+    },
+    {
+      "Auction Name": "2019-20 (T-1) One Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.9552,
+      "Generating Technology Class": "Storage (Duration 4.5h)",
+      "Primary Fuel Type": "Storage",
+      "_id": 90
+    },
+    {
+      "Auction Name": "2019-20 (T-1) One Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.175,
+      "Generating Technology Class": "Storage (Duration 0.5h)",
+      "Primary Fuel Type": "Storage",
+      "_id": 91
+    },
+    {
+      "Auction Name": "2019-20 (T-1) One Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.3421,
+      "Generating Technology Class": "Storage (Duration 1h)",
+      "Primary Fuel Type": "Storage",
+      "_id": 92
+    },
+    {
+      "Auction Name": "2019-20 (T-1) One Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.9552,
+      "Generating Technology Class": "Storage (Duration 4h)",
+      "Primary Fuel Type": "Storage",
+      "_id": 93
+    },
+    {
+      "Auction Name": "2019-20 (T-1) One Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.628,
+      "Generating Technology Class": "Storage (Duration 2h)",
+      "Primary Fuel Type": "Storage",
+      "_id": 94
+    },
+    {
+      "Auction Name": "2019-20 (T-1) One Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.7196,
+      "Generating Technology Class": "Storage (Duration 2.5h)",
+      "Primary Fuel Type": "Storage",
+      "_id": 95
+    },
+    {
+      "Auction Name": "2019-20 (T-1) One Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.9552,
+      "Generating Technology Class": "Storage (Duration 7h)",
+      "Primary Fuel Type": "Storage",
+      "_id": 96
+    },
+    {
+      "Auction Name": "2019-20 (T-1) One Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.5,
+      "Generating Technology Class": "Storage (Duration 1.5h)",
+      "Primary Fuel Type": "Storage",
+      "_id": 97
+    },
+    {
+      "Auction Name": "2019-20 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.8786,
+      "Generating Technology Class": "Coal/biomass",
+      "Primary Fuel Type": "Biomass/Coal/EfW",
+      "_id": 98
+    },
+    {
+      "Auction Name": "2019-20 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.868,
+      "Generating Technology Class": "DSR",
+      "Primary Fuel Type": "DSR",
+      "_id": 99
+    },
+    {
+      "Auction Name": "2019-20 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.89,
+      "Generating Technology Class": "Combined Cycle Gas Turbine (CCGT)",
+      "Primary Fuel Type": "Gas",
+      "_id": 100
+    },
+    {
+      "Auction Name": "2019-20 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.9,
+      "Generating Technology Class": "CHP and autogeneration",
+      "Primary Fuel Type": "Gas",
+      "_id": 101
+    },
+    {
+      "Auction Name": "2019-20 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.9454,
+      "Generating Technology Class": "OCGT and Reciprocating Engines",
+      "Primary Fuel Type": "Gas",
+      "_id": 102
+    },
+    {
+      "Auction Name": "2019-20 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.8487,
+      "Generating Technology Class": "Hydro",
+      "Primary Fuel Type": "Hydro",
+      "_id": 103
+    },
+    {
+      "Auction Name": "2019-20 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.52,
+      "Generating Technology Class": "IFA (France)",
+      "Primary Fuel Type": "Interconnector",
+      "_id": 104
+    },
+    {
+      "Auction Name": "2019-20 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.56,
+      "Generating Technology Class": "Eleclink (France)",
+      "Primary Fuel Type": "Interconnector",
+      "_id": 105
+    },
+    {
+      "Auction Name": "2019-20 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.69,
+      "Generating Technology Class": "BritNED (Netherlands)",
+      "Primary Fuel Type": "Interconnector",
+      "_id": 106
+    },
+    {
+      "Auction Name": "2019-20 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.54,
+      "Generating Technology Class": "NEMO (Belgium)",
+      "Primary Fuel Type": "Interconnector",
+      "_id": 107
+    },
+    {
+      "Auction Name": "2019-20 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.06,
+      "Generating Technology Class": "Moyle and EWIC (Ireland)",
+      "Primary Fuel Type": "Interconnector",
+      "_id": 108
+    },
+    {
+      "Auction Name": "2019-20 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.8231,
+      "Generating Technology Class": "Nuclear",
+      "Primary Fuel Type": "Nuclear",
+      "_id": 109
+    },
+    {
+      "Auction Name": "2019-20 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.8461,
+      "Generating Technology Class": "Oil-fired steam generators",
+      "Primary Fuel Type": "Oil",
+      "_id": 110
+    },
+    {
+      "Auction Name": "2019-20 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.9663,
+      "Generating Technology Class": "Storage",
+      "Primary Fuel Type": "Storage",
+      "_id": 111
+    },
+    {
+      "Auction Name": "2020-21 (T-1) One Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.8581,
+      "Generating Technology Class": "Energy from Waste",
+      "Primary Fuel Type": "Biomass/Coal/EfW",
+      "_id": 112
+    },
+    {
+      "Auction Name": "2020-21 (T-1) One Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.8581,
+      "Generating Technology Class": "Biomass",
+      "Primary Fuel Type": "Biomass/Coal/EfW",
+      "_id": 113
+    },
+    {
+      "Auction Name": "2020-21 (T-1) One Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.8581,
+      "Generating Technology Class": "Coal",
+      "Primary Fuel Type": "Biomass/Coal/EfW",
+      "_id": 114
+    },
+    {
+      "Auction Name": "2020-21 (T-1) One Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.8614,
+      "Generating Technology Class": "DSR",
+      "Primary Fuel Type": "DSR",
+      "_id": 115
+    },
+    {
+      "Auction Name": "2020-21 (T-1) One Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.9498,
+      "Generating Technology Class": "Reciprocating engines",
+      "Primary Fuel Type": "Gas",
+      "_id": 116
+    },
+    {
+      "Auction Name": "2020-21 (T-1) One Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.9,
+      "Generating Technology Class": "Combined Cycle Gas Turbine (CCGT)",
+      "Primary Fuel Type": "Gas",
+      "_id": 117
+    },
+    {
+      "Auction Name": "2020-21 (T-1) One Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.9498,
+      "Generating Technology Class": "Open Cycle Gas Turbine (OCGT)",
+      "Primary Fuel Type": "Gas",
+      "_id": 118
+    },
+    {
+      "Auction Name": "2020-21 (T-1) One Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.9,
+      "Generating Technology Class": "Combined Heat and Power (CHP)",
+      "Primary Fuel Type": "Gas",
+      "_id": 119
+    },
+    {
+      "Auction Name": "2020-21 (T-1) One Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.8965,
+      "Generating Technology Class": "Hydro",
+      "Primary Fuel Type": "Hydro",
+      "_id": 120
+    },
+    {
+      "Auction Name": "2020-21 (T-1) One Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.92,
+      "Generating Technology Class": "Eleclink (France)",
+      "Primary Fuel Type": "Interconnector",
+      "_id": 121
+    },
+    {
+      "Auction Name": "2020-21 (T-1) One Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.82,
+      "Generating Technology Class": "NEMO (Belgium)",
+      "Primary Fuel Type": "Interconnector",
+      "_id": 122
+    },
+    {
+      "Auction Name": "2020-21 (T-1) One Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.87,
+      "Generating Technology Class": "IFA2 (France)",
+      "Primary Fuel Type": "Interconnector",
+      "_id": 123
+    },
+    {
+      "Auction Name": "2020-21 (T-1) One Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.8122,
+      "Generating Technology Class": "Nuclear",
+      "Primary Fuel Type": "Nuclear",
+      "_id": 124
+    },
+    {
+      "Auction Name": "2020-21 (T-1) One Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.9126,
+      "Generating Technology Class": "Oil-fired steam generators",
+      "Primary Fuel Type": "Oil",
+      "_id": 125
+    },
+    {
+      "Auction Name": "2020-21 (T-1) One Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.0234,
+      "Generating Technology Class": "Solar Photovoltaic",
+      "Primary Fuel Type": "Solar",
+      "_id": 126
+    },
+    {
+      "Auction Name": "2020-21 (T-1) One Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.247,
+      "Generating Technology Class": "Storage (Duration 1h)",
+      "Primary Fuel Type": "Storage",
+      "_id": 127
+    },
+    {
+      "Auction Name": "2020-21 (T-1) One Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.9508,
+      "Generating Technology Class": "Storage (Duration 5.5h+)",
+      "Primary Fuel Type": "Storage",
+      "_id": 128
+    },
+    {
+      "Auction Name": "2020-21 (T-1) One Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.3696,
+      "Generating Technology Class": "Storage (Duration 1.5h)",
+      "Primary Fuel Type": "Storage",
+      "_id": 129
+    },
+    {
+      "Auction Name": "2020-21 (T-1) One Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.4866,
+      "Generating Technology Class": "Storage (Duration 2h)",
+      "Primary Fuel Type": "Storage",
+      "_id": 130
+    },
+    {
+      "Auction Name": "2020-21 (T-1) One Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.5868,
+      "Generating Technology Class": "Storage (Duration 2.5h)",
+      "Primary Fuel Type": "Storage",
+      "_id": 131
+    },
+    {
+      "Auction Name": "2020-21 (T-1) One Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.9508,
+      "Generating Technology Class": "Storage (Duration 5h)",
+      "Primary Fuel Type": "Storage",
+      "_id": 132
+    },
+    {
+      "Auction Name": "2020-21 (T-1) One Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.1226,
+      "Generating Technology Class": "Storage (Duration 0.5h)",
+      "Primary Fuel Type": "Storage",
+      "_id": 133
+    },
+    {
+      "Auction Name": "2020-21 (T-1) One Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.7298,
+      "Generating Technology Class": "Storage (Duration 4h)",
+      "Primary Fuel Type": "Storage",
+      "_id": 134
+    },
+    {
+      "Auction Name": "2020-21 (T-1) One Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.7503,
+      "Generating Technology Class": "Storage (Duration 4.5h)",
+      "Primary Fuel Type": "Storage",
+      "_id": 135
+    },
+    {
+      "Auction Name": "2020-21 (T-1) One Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.6593,
+      "Generating Technology Class": "Storage (Duration 3h)",
+      "Primary Fuel Type": "Storage",
+      "_id": 136
+    },
+    {
+      "Auction Name": "2020-21 (T-1) One Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.7038,
+      "Generating Technology Class": "Storage (Duration 3.5h)",
+      "Primary Fuel Type": "Storage",
+      "_id": 137
+    },
+    {
+      "Auction Name": "2020-21 (T-1) One Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.0898,
+      "Generating Technology Class": "Onshore Wind",
+      "Primary Fuel Type": "Wind",
+      "_id": 138
+    },
+    {
+      "Auction Name": "2020-21 (T-1) One Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.1445,
+      "Generating Technology Class": "Offshore Wind",
+      "Primary Fuel Type": "Wind",
+      "_id": 139
+    },
+    {
+      "Auction Name": "2020-21 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.8692,
+      "Generating Technology Class": "Coal/biomass",
+      "Primary Fuel Type": "Biomass/Coal/EfW",
+      "_id": 140
+    },
+    {
+      "Auction Name": "2020-21 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.8688,
+      "Generating Technology Class": "DSR",
+      "Primary Fuel Type": "DSR",
+      "_id": 141
+    },
+    {
+      "Auction Name": "2020-21 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.9417,
+      "Generating Technology Class": "OCGT and Reciprocating Engines (Fuel Type - Diesel)",
+      "Primary Fuel Type": "Diesel",
+      "_id": 142
+    },
+    {
+      "Auction Name": "2020-21 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.9417,
+      "Generating Technology Class": "OCGT and Reciprocating Engines (Fuel Type - Gas)",
+      "Primary Fuel Type": "Gas",
+      "_id": 143
+    },
+    {
+      "Auction Name": "2020-21 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.9417,
+      "Generating Technology Class": "OCGT and Reciprocating Engines",
+      "Primary Fuel Type": "Gas",
+      "_id": 144
+    },
+    {
+      "Auction Name": "2020-21 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.9,
+      "Generating Technology Class": "Combined Cycle Gas Turbine (CCGT)",
+      "Primary Fuel Type": "Gas",
+      "_id": 145
+    },
+    {
+      "Auction Name": "2020-21 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.9,
+      "Generating Technology Class": "CHP and autogeneration",
+      "Primary Fuel Type": "Gas",
+      "_id": 146
+    },
+    {
+      "Auction Name": "2020-21 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.8616,
+      "Generating Technology Class": "Hydro",
+      "Primary Fuel Type": "Hydro",
+      "_id": 147
+    },
+    {
+      "Auction Name": "2020-21 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.78,
+      "Generating Technology Class": "NSL (Norway)",
+      "Primary Fuel Type": "Interconnector",
+      "_id": 148
+    },
+    {
+      "Auction Name": "2020-21 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.6,
+      "Generating Technology Class": "IFA (France)",
+      "Primary Fuel Type": "Interconnector",
+      "_id": 149
+    },
+    {
+      "Auction Name": "2020-21 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.65,
+      "Generating Technology Class": "Eleclink (France)",
+      "Primary Fuel Type": "Interconnector",
+      "_id": 150
+    },
+    {
+      "Auction Name": "2020-21 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.74,
+      "Generating Technology Class": "BritNED (Netherlands)",
+      "Primary Fuel Type": "Interconnector",
+      "_id": 151
+    },
+    {
+      "Auction Name": "2020-21 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.77,
+      "Generating Technology Class": "NEMO (Belgium)",
+      "Primary Fuel Type": "Interconnector",
+      "_id": 152
+    },
+    {
+      "Auction Name": "2020-21 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.26,
+      "Generating Technology Class": "Moyle and EWIC (Ireland)",
+      "Primary Fuel Type": "Interconnector",
+      "_id": 153
+    },
+    {
+      "Auction Name": "2020-21 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.62,
+      "Generating Technology Class": "IFA2 (France)",
+      "Primary Fuel Type": "Interconnector",
+      "_id": 154
+    },
+    {
+      "Auction Name": "2020-21 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.8436,
+      "Generating Technology Class": "Nuclear",
+      "Primary Fuel Type": "Nuclear",
+      "_id": 155
+    },
+    {
+      "Auction Name": "2020-21 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.8544,
+      "Generating Technology Class": "Oil-fired steam generators",
+      "Primary Fuel Type": "Oil",
+      "_id": 156
+    },
+    {
+      "Auction Name": "2020-21 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.9629,
+      "Generating Technology Class": "Storage",
+      "Primary Fuel Type": "Storage",
+      "_id": 157
+    },
+    {
+      "Auction Name": "2021-22 (T-1) One Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.848,
+      "Generating Technology Class": "Energy from Waste",
+      "Primary Fuel Type": "Biomass/Coal/EfW",
+      "_id": 158
+    },
+    {
+      "Auction Name": "2021-22 (T-1) One Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.848,
+      "Generating Technology Class": "Biomass",
+      "Primary Fuel Type": "Biomass/Coal/EfW",
+      "_id": 159
+    },
+    {
+      "Auction Name": "2021-22 (T-1) One Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.848,
+      "Generating Technology Class": "Coal",
+      "Primary Fuel Type": "Biomass/Coal/EfW",
+      "_id": 160
+    },
+    {
+      "Auction Name": "2021-22 (T-1) One Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.7921,
+      "Generating Technology Class": "DSR",
+      "Primary Fuel Type": "DSR",
+      "_id": 161
+    },
+    {
+      "Auction Name": "2021-22 (T-1) One Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.9,
+      "Generating Technology Class": "Combined Cycle Gas Turbine (CCGT)",
+      "Primary Fuel Type": "Gas",
+      "_id": 162
+    },
+    {
+      "Auction Name": "2021-22 (T-1) One Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.9,
+      "Generating Technology Class": "Combined Heat and Power (CHP)",
+      "Primary Fuel Type": "Gas",
+      "_id": 163
+    },
+    {
+      "Auction Name": "2021-22 (T-1) One Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.9522,
+      "Generating Technology Class": "Reciprocating engines",
+      "Primary Fuel Type": "Gas",
+      "_id": 164
+    },
+    {
+      "Auction Name": "2021-22 (T-1) One Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.9522,
+      "Generating Technology Class": "Open Cycle Gas Turbine (OCGT)",
+      "Primary Fuel Type": "Gas",
+      "_id": 165
+    },
+    {
+      "Auction Name": "2021-22 (T-1) One Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.9099,
+      "Generating Technology Class": "Hydro",
+      "Primary Fuel Type": "Hydro",
+      "_id": 166
+    },
+    {
+      "Auction Name": "2021-22 (T-1) One Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.0,
+      "Generating Technology Class": "BritNED (Netherlands)",
+      "Primary Fuel Type": "Interconnector",
+      "_id": 167
+    },
+    {
+      "Auction Name": "2021-22 (T-1) One Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.59,
+      "Generating Technology Class": "EWIC (Ireland)",
+      "Primary Fuel Type": "Interconnector",
+      "_id": 168
+    },
+    {
+      "Auction Name": "2021-22 (T-1) One Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.8143,
+      "Generating Technology Class": "Nuclear",
+      "Primary Fuel Type": "Nuclear",
+      "_id": 169
+    },
+    {
+      "Auction Name": "2021-22 (T-1) One Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.9522,
+      "Generating Technology Class": "Oil-fired steam generators",
+      "Primary Fuel Type": "Oil",
+      "_id": 170
+    },
+    {
+      "Auction Name": "2021-22 (T-1) One Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.0254,
+      "Generating Technology Class": "Solar Photovoltaic",
+      "Primary Fuel Type": "Solar",
+      "_id": 171
+    },
+    {
+      "Auction Name": "2021-22 (T-1) One Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.5823,
+      "Generating Technology Class": "Storage (Duration 2.5h)",
+      "Primary Fuel Type": "Storage",
+      "_id": 172
+    },
+    {
+      "Auction Name": "2021-22 (T-1) One Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.9464,
+      "Generating Technology Class": "Storage (Duration 5h)",
+      "Primary Fuel Type": "Storage",
+      "_id": 173
+    },
+    {
+      "Auction Name": "2021-22 (T-1) One Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.6876,
+      "Generating Technology Class": "Storage (Duration 3.5h)",
+      "Primary Fuel Type": "Storage",
+      "_id": 174
+    },
+    {
+      "Auction Name": "2021-22 (T-1) One Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.647,
+      "Generating Technology Class": "Storage (Duration 3h)",
+      "Primary Fuel Type": "Storage",
+      "_id": 175
+    },
+    {
+      "Auction Name": "2021-22 (T-1) One Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.1275,
+      "Generating Technology Class": "Storage (Duration 0.5h)",
+      "Primary Fuel Type": "Storage",
+      "_id": 176
+    },
+    {
+      "Auction Name": "2021-22 (T-1) One Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.7135,
+      "Generating Technology Class": "Storage (Duration 4h)",
+      "Primary Fuel Type": "Storage",
+      "_id": 177
+    },
+    {
+      "Auction Name": "2021-22 (T-1) One Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.732,
+      "Generating Technology Class": "Storage (Duration 4.5h)",
+      "Primary Fuel Type": "Storage",
+      "_id": 178
+    },
+    {
+      "Auction Name": "2021-22 (T-1) One Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.4917,
+      "Generating Technology Class": "Storage (Duration 2h)",
+      "Primary Fuel Type": "Storage",
+      "_id": 179
+    },
+    {
+      "Auction Name": "2021-22 (T-1) One Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.3771,
+      "Generating Technology Class": "Storage (Duration 1.5h)",
+      "Primary Fuel Type": "Storage",
+      "_id": 180
+    },
+    {
+      "Auction Name": "2021-22 (T-1) One Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.2532,
+      "Generating Technology Class": "Storage (Duration 1h)",
+      "Primary Fuel Type": "Storage",
+      "_id": 181
+    },
+    {
+      "Auction Name": "2021-22 (T-1) One Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.9464,
+      "Generating Technology Class": "Storage (Duration 5.5h+)",
+      "Primary Fuel Type": "Storage",
+      "_id": 182
+    },
+    {
+      "Auction Name": "2021-22 (T-1) One Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.1211,
+      "Generating Technology Class": "Offshore Wind",
+      "Primary Fuel Type": "Wind",
+      "_id": 183
+    },
+    {
+      "Auction Name": "2021-22 (T-1) One Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.0801,
+      "Generating Technology Class": "Onshore Wind",
+      "Primary Fuel Type": "Wind",
+      "_id": 184
+    },
+    {
+      "Auction Name": "2021-22 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.8758,
+      "Generating Technology Class": "Coal",
+      "Primary Fuel Type": "Biomass/Coal/EfW",
+      "_id": 185
+    },
+    {
+      "Auction Name": "2021-22 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.8758,
+      "Generating Technology Class": "Coal/biomass",
+      "Primary Fuel Type": "Biomass/Coal/EfW",
+      "_id": 186
+    },
+    {
+      "Auction Name": "2021-22 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.8758,
+      "Generating Technology Class": "Energy from Waste",
+      "Primary Fuel Type": "Biomass/Coal/EfW",
+      "_id": 187
+    },
+    {
+      "Auction Name": "2021-22 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.8634,
+      "Generating Technology Class": "DSR",
+      "Primary Fuel Type": "DSR",
+      "_id": 188
+    },
+    {
+      "Auction Name": "2021-22 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.9481,
+      "Generating Technology Class": "OCGT and Reciprocating Engines (Fuel Type - Diesel)",
+      "Primary Fuel Type": "Diesel",
+      "_id": 189
+    },
+    {
+      "Auction Name": "2021-22 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.9481,
+      "Generating Technology Class": "Reciprocating engines",
+      "Primary Fuel Type": "Gas",
+      "_id": 190
+    },
+    {
+      "Auction Name": "2021-22 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.9481,
+      "Generating Technology Class": "OCGT and Reciprocating Engines (Fuel Type - Gas)",
+      "Primary Fuel Type": "Gas",
+      "_id": 191
+    },
+    {
+      "Auction Name": "2021-22 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.9481,
+      "Generating Technology Class": "Open Cycle Gas Turbine (OCGT)",
+      "Primary Fuel Type": "Gas",
+      "_id": 192
+    },
+    {
+      "Auction Name": "2021-22 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.9,
+      "Generating Technology Class": "CHP and autogeneration",
+      "Primary Fuel Type": "Gas",
+      "_id": 193
+    },
+    {
+      "Auction Name": "2021-22 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.9,
+      "Generating Technology Class": "Combined Heat and Power (CHP)",
+      "Primary Fuel Type": "Gas",
+      "_id": 194
+    },
+    {
+      "Auction Name": "2021-22 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.9,
+      "Generating Technology Class": "Combined Cycle Gas Turbine (CCGT)",
+      "Primary Fuel Type": "Gas",
+      "_id": 195
+    },
+    {
+      "Auction Name": "2021-22 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.9481,
+      "Generating Technology Class": "OCGT and Reciprocating Engines",
+      "Primary Fuel Type": "Gas",
+      "_id": 196
+    },
+    {
+      "Auction Name": "2021-22 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.8792,
+      "Generating Technology Class": "Hydro",
+      "Primary Fuel Type": "Hydro",
+      "_id": 197
+    },
+    {
+      "Auction Name": "2021-22 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.63,
+      "Generating Technology Class": "IFA (France)",
+      "Primary Fuel Type": "Interconnector",
+      "_id": 198
+    },
+    {
+      "Auction Name": "2021-22 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.69,
+      "Generating Technology Class": "Eleclink (France)",
+      "Primary Fuel Type": "Interconnector",
+      "_id": 199
+    },
+    {
+      "Auction Name": "2021-22 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.76,
+      "Generating Technology Class": "BritNED (Netherlands)",
+      "Primary Fuel Type": "Interconnector",
+      "_id": 200
+    },
+    {
+      "Auction Name": "2021-22 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.75,
+      "Generating Technology Class": "NEMO (Belgium)",
+      "Primary Fuel Type": "Interconnector",
+      "_id": 201
+    },
+    {
+      "Auction Name": "2021-22 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.65,
+      "Generating Technology Class": "IFA2 (France)",
+      "Primary Fuel Type": "Interconnector",
+      "_id": 202
+    },
+    {
+      "Auction Name": "2021-22 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.85,
+      "Generating Technology Class": "NSL (Norway)",
+      "Primary Fuel Type": "Interconnector",
+      "_id": 203
+    },
+    {
+      "Auction Name": "2021-22 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.14,
+      "Generating Technology Class": "Moyle (Northern Ireland)",
+      "Primary Fuel Type": "Interconnector",
+      "_id": 204
+    },
+    {
+      "Auction Name": "2021-22 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.59,
+      "Generating Technology Class": "EWIC (Ireland)",
+      "Primary Fuel Type": "Interconnector",
+      "_id": 205
+    },
+    {
+      "Auction Name": "2021-22 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.8524,
+      "Generating Technology Class": "Nuclear",
+      "Primary Fuel Type": "Nuclear",
+      "_id": 206
+    },
+    {
+      "Auction Name": "2021-22 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.8804,
+      "Generating Technology Class": "Oil-fired steam generators",
+      "Primary Fuel Type": "Oil",
+      "_id": 207
+    },
+    {
+      "Auction Name": "2021-22 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.9611,
+      "Generating Technology Class": "Storage (Duration 2h)",
+      "Primary Fuel Type": "Storage",
+      "_id": 208
+    },
+    {
+      "Auction Name": "2021-22 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.9611,
+      "Generating Technology Class": "Storage",
+      "Primary Fuel Type": "Storage",
+      "_id": 209
+    },
+    {
+      "Auction Name": "2021-22 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.4041,
+      "Generating Technology Class": "Storage (Duration 1h)",
+      "Primary Fuel Type": "Storage",
+      "_id": 210
+    },
+    {
+      "Auction Name": "2022-23 (T-1) One Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.8011,
+      "Generating Technology Class": "Coal",
+      "Primary Fuel Type": "Biomass/Coal/EfW",
+      "_id": 211
+    },
+    {
+      "Auction Name": "2022-23 (T-1) One Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.8855,
+      "Generating Technology Class": "Biomass",
+      "Primary Fuel Type": "Biomass/Coal/EfW",
+      "_id": 212
+    },
+    {
+      "Auction Name": "2022-23 (T-1) One Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.8855,
+      "Generating Technology Class": "Energy from Waste",
+      "Primary Fuel Type": "Biomass/Coal/EfW",
+      "_id": 213
+    },
+    {
+      "Auction Name": "2022-23 (T-1) One Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.7845,
+      "Generating Technology Class": "DSR",
+      "Primary Fuel Type": "DSR",
+      "_id": 214
+    },
+    {
+      "Auction Name": "2022-23 (T-1) One Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.9092,
+      "Generating Technology Class": "Combined Heat and Power (CHP)",
+      "Primary Fuel Type": "Gas",
+      "_id": 215
+    },
+    {
+      "Auction Name": "2022-23 (T-1) One Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.9092,
+      "Generating Technology Class": "Combined Cycle Gas Turbine (CCGT)",
+      "Primary Fuel Type": "Gas",
+      "_id": 216
+    },
+    {
+      "Auction Name": "2022-23 (T-1) One Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.9547,
+      "Generating Technology Class": "Open Cycle Gas Turbine (OCGT)",
+      "Primary Fuel Type": "Gas",
+      "_id": 217
+    },
+    {
+      "Auction Name": "2022-23 (T-1) One Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.9547,
+      "Generating Technology Class": "Reciprocating engines",
+      "Primary Fuel Type": "Gas",
+      "_id": 218
+    },
+    {
+      "Auction Name": "2022-23 (T-1) One Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.9115,
+      "Generating Technology Class": "Hydro",
+      "Primary Fuel Type": "Hydro",
+      "_id": 219
+    },
+    {
+      "Auction Name": "2022-23 (T-1) One Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.8044,
+      "Generating Technology Class": "Nuclear",
+      "Primary Fuel Type": "Nuclear",
+      "_id": 220
+    },
+    {
+      "Auction Name": "2022-23 (T-1) One Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.9547,
+      "Generating Technology Class": "Oil-fired steam generators",
+      "Primary Fuel Type": "Oil",
+      "_id": 221
+    },
+    {
+      "Auction Name": "2022-23 (T-1) One Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.0215,
+      "Generating Technology Class": "Solar Photovoltaic",
+      "Primary Fuel Type": "Solar",
+      "_id": 222
+    },
+    {
+      "Auction Name": "2022-23 (T-1) One Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.9461,
+      "Generating Technology Class": "Storage (Duration 8h)",
+      "Primary Fuel Type": "Storage",
+      "_id": 223
+    },
+    {
+      "Auction Name": "2022-23 (T-1) One Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.9461,
+      "Generating Technology Class": "Storage (Duration 8.5h)",
+      "Primary Fuel Type": "Storage",
+      "_id": 224
+    },
+    {
+      "Auction Name": "2022-23 (T-1) One Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.9461,
+      "Generating Technology Class": "Storage (Duration 7.5h)",
+      "Primary Fuel Type": "Storage",
+      "_id": 225
+    },
+    {
+      "Auction Name": "2022-23 (T-1) One Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.9461,
+      "Generating Technology Class": "Storage (Duration 9h)",
+      "Primary Fuel Type": "Storage",
+      "_id": 226
+    },
+    {
+      "Auction Name": "2022-23 (T-1) One Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.9461,
+      "Generating Technology Class": "Storage (Duration 10h)",
+      "Primary Fuel Type": "Storage",
+      "_id": 227
+    },
+    {
+      "Auction Name": "2022-23 (T-1) One Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.9461,
+      "Generating Technology Class": "Storage (Duration 9.5h)",
+      "Primary Fuel Type": "Storage",
+      "_id": 228
+    },
+    {
+      "Auction Name": "2022-23 (T-1) One Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.9461,
+      "Generating Technology Class": "Storage (Duration 11h)",
+      "Primary Fuel Type": "Storage",
+      "_id": 229
+    },
+    {
+      "Auction Name": "2022-23 (T-1) One Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.9461,
+      "Generating Technology Class": "Storage (Duration 11.5h)",
+      "Primary Fuel Type": "Storage",
+      "_id": 230
+    },
+    {
+      "Auction Name": "2022-23 (T-1) One Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.9461,
+      "Generating Technology Class": "Storage (Duration 12h)",
+      "Primary Fuel Type": "Storage",
+      "_id": 231
+    },
+    {
+      "Auction Name": "2022-23 (T-1) One Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.9461,
+      "Generating Technology Class": "Storage (Duration 5.5h+)",
+      "Primary Fuel Type": "Storage",
+      "_id": 232
+    },
+    {
+      "Auction Name": "2022-23 (T-1) One Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.9461,
+      "Generating Technology Class": "Storage (Duration 7h)",
+      "Primary Fuel Type": "Storage",
+      "_id": 233
+    },
+    {
+      "Auction Name": "2022-23 (T-1) One Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.9461,
+      "Generating Technology Class": "Storage (Duration 10.5h)",
+      "Primary Fuel Type": "Storage",
+      "_id": 234
+    },
+    {
+      "Auction Name": "2022-23 (T-1) One Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.9461,
+      "Generating Technology Class": "Storage (Duration 6.5h)",
+      "Primary Fuel Type": "Storage",
+      "_id": 235
+    },
+    {
+      "Auction Name": "2022-23 (T-1) One Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.2587,
+      "Generating Technology Class": "Storage (Duration 1h)",
+      "Primary Fuel Type": "Storage",
+      "_id": 236
+    },
+    {
+      "Auction Name": "2022-23 (T-1) One Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.9461,
+      "Generating Technology Class": "Storage (Duration 5.5h)",
+      "Primary Fuel Type": "Storage",
+      "_id": 237
+    },
+    {
+      "Auction Name": "2022-23 (T-1) One Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.1294,
+      "Generating Technology Class": "Storage (Duration 0.5h)",
+      "Primary Fuel Type": "Storage",
+      "_id": 238
+    },
+    {
+      "Auction Name": "2022-23 (T-1) One Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.5063,
+      "Generating Technology Class": "Storage (Duration 2h)",
+      "Primary Fuel Type": "Storage",
+      "_id": 239
+    },
+    {
+      "Auction Name": "2022-23 (T-1) One Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.6061,
+      "Generating Technology Class": "Storage (Duration 2.5h)",
+      "Primary Fuel Type": "Storage",
+      "_id": 240
+    },
+    {
+      "Auction Name": "2022-23 (T-1) One Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.6782,
+      "Generating Technology Class": "Storage (Duration 3h)",
+      "Primary Fuel Type": "Storage",
+      "_id": 241
+    },
+    {
+      "Auction Name": "2022-23 (T-1) One Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.3862,
+      "Generating Technology Class": "Storage (Duration 1.5h)",
+      "Primary Fuel Type": "Storage",
+      "_id": 242
+    },
+    {
+      "Auction Name": "2022-23 (T-1) One Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.7484,
+      "Generating Technology Class": "Storage (Duration 4h)",
+      "Primary Fuel Type": "Storage",
+      "_id": 243
+    },
+    {
+      "Auction Name": "2022-23 (T-1) One Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.9461,
+      "Generating Technology Class": "Storage (Duration 4.5h)",
+      "Primary Fuel Type": "Storage",
+      "_id": 244
+    },
+    {
+      "Auction Name": "2022-23 (T-1) One Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.9461,
+      "Generating Technology Class": "Storage (Duration 5h)",
+      "Primary Fuel Type": "Storage",
+      "_id": 245
+    },
+    {
+      "Auction Name": "2022-23 (T-1) One Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.7225,
+      "Generating Technology Class": "Storage (Duration 3.5h)",
+      "Primary Fuel Type": "Storage",
+      "_id": 246
+    },
+    {
+      "Auction Name": "2022-23 (T-1) One Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.9461,
+      "Generating Technology Class": "Storage (Duration 6h)",
+      "Primary Fuel Type": "Storage",
+      "_id": 247
+    },
+    {
+      "Auction Name": "2022-23 (T-1) One Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.0781,
+      "Generating Technology Class": "Onshore Wind",
+      "Primary Fuel Type": "Wind",
+      "_id": 248
+    },
+    {
+      "Auction Name": "2022-23 (T-1) One Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.1133,
+      "Generating Technology Class": "Offshore Wind",
+      "Primary Fuel Type": "Wind",
+      "_id": 249
+    },
+    {
+      "Auction Name": "2022-23 (T-3) Three Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.8581,
+      "Generating Technology Class": "Energy from Waste",
+      "Primary Fuel Type": "Biomass/Coal/EfW",
+      "_id": 250
+    },
+    {
+      "Auction Name": "2022-23 (T-3) Three Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.8581,
+      "Generating Technology Class": "Coal",
+      "Primary Fuel Type": "Biomass/Coal/EfW",
+      "_id": 251
+    },
+    {
+      "Auction Name": "2022-23 (T-3) Three Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.8581,
+      "Generating Technology Class": "Biomass",
+      "Primary Fuel Type": "Biomass/Coal/EfW",
+      "_id": 252
+    },
+    {
+      "Auction Name": "2022-23 (T-3) Three Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.8614,
+      "Generating Technology Class": "DSR",
+      "Primary Fuel Type": "DSR",
+      "_id": 253
+    },
+    {
+      "Auction Name": "2022-23 (T-3) Three Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.9,
+      "Generating Technology Class": "Combined Heat and Power (CHP)",
+      "Primary Fuel Type": "Gas",
+      "_id": 254
+    },
+    {
+      "Auction Name": "2022-23 (T-3) Three Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.9498,
+      "Generating Technology Class": "Reciprocating engines",
+      "Primary Fuel Type": "Gas",
+      "_id": 255
+    },
+    {
+      "Auction Name": "2022-23 (T-3) Three Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.9498,
+      "Generating Technology Class": "Open Cycle Gas Turbine (OCGT)",
+      "Primary Fuel Type": "Gas",
+      "_id": 256
+    },
+    {
+      "Auction Name": "2022-23 (T-3) Three Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.9,
+      "Generating Technology Class": "Combined Cycle Gas Turbine (CCGT)",
+      "Primary Fuel Type": "Gas",
+      "_id": 257
+    },
+    {
+      "Auction Name": "2022-23 (T-3) Three Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.8965,
+      "Generating Technology Class": "Hydro",
+      "Primary Fuel Type": "Hydro",
+      "_id": 258
+    },
+    {
+      "Auction Name": "2022-23 (T-3) Three Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.69,
+      "Generating Technology Class": "IFA (France)",
+      "Primary Fuel Type": "Interconnector",
+      "_id": 259
+    },
+    {
+      "Auction Name": "2022-23 (T-3) Three Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.88,
+      "Generating Technology Class": "NSL (Norway)",
+      "Primary Fuel Type": "Interconnector",
+      "_id": 260
+    },
+    {
+      "Auction Name": "2022-23 (T-3) Three Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.56,
+      "Generating Technology Class": "EWIC (Ireland)",
+      "Primary Fuel Type": "Interconnector",
+      "_id": 261
+    },
+    {
+      "Auction Name": "2022-23 (T-3) Three Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.71,
+      "Generating Technology Class": "IFA2 (France)",
+      "Primary Fuel Type": "Interconnector",
+      "_id": 262
+    },
+    {
+      "Auction Name": "2022-23 (T-3) Three Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.58,
+      "Generating Technology Class": "NEMO (Belgium)",
+      "Primary Fuel Type": "Interconnector",
+      "_id": 263
+    },
+    {
+      "Auction Name": "2022-23 (T-3) Three Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.75,
+      "Generating Technology Class": "Eleclink (France)",
+      "Primary Fuel Type": "Interconnector",
+      "_id": 264
+    },
+    {
+      "Auction Name": "2022-23 (T-3) Three Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.5,
+      "Generating Technology Class": "BritNED (Netherlands)",
+      "Primary Fuel Type": "Interconnector",
+      "_id": 265
+    },
+    {
+      "Auction Name": "2022-23 (T-3) Three Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.56,
+      "Generating Technology Class": "Moyle (Northern Ireland)",
+      "Primary Fuel Type": "Interconnector",
+      "_id": 266
+    },
+    {
+      "Auction Name": "2022-23 (T-3) Three Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.8122,
+      "Generating Technology Class": "Nuclear",
+      "Primary Fuel Type": "Nuclear",
+      "_id": 267
+    },
+    {
+      "Auction Name": "2022-23 (T-3) Three Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.9126,
+      "Generating Technology Class": "Oil-fired steam generators",
+      "Primary Fuel Type": "Oil",
+      "_id": 268
+    },
+    {
+      "Auction Name": "2022-23 (T-3) Three Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.0313,
+      "Generating Technology Class": "Solar Photovoltaic",
+      "Primary Fuel Type": "Solar",
+      "_id": 269
+    },
+    {
+      "Auction Name": "2022-23 (T-3) Three Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.9508,
+      "Generating Technology Class": "Storage (Duration 12h)",
+      "Primary Fuel Type": "Storage",
+      "_id": 270
+    },
+    {
+      "Auction Name": "2022-23 (T-3) Three Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.5218,
+      "Generating Technology Class": "Storage (Duration 2.5h)",
+      "Primary Fuel Type": "Storage",
+      "_id": 271
+    },
+    {
+      "Auction Name": "2022-23 (T-3) Three Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.9508,
+      "Generating Technology Class": "Storage (Duration 6h)",
+      "Primary Fuel Type": "Storage",
+      "_id": 272
+    },
+    {
+      "Auction Name": "2022-23 (T-3) Three Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.6704,
+      "Generating Technology Class": "Storage (Duration 4h)",
+      "Primary Fuel Type": "Storage",
+      "_id": 273
+    },
+    {
+      "Auction Name": "2022-23 (T-3) Three Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.2136,
+      "Generating Technology Class": "Storage",
+      "Primary Fuel Type": "Storage",
+      "_id": 274
+    },
+    {
+      "Auction Name": "2022-23 (T-3) Three Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.6927,
+      "Generating Technology Class": "Storage (Duration 4.5h)",
+      "Primary Fuel Type": "Storage",
+      "_id": 275
+    },
+    {
+      "Auction Name": "2022-23 (T-3) Three Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.9508,
+      "Generating Technology Class": "Storage (Duration 5.5h)",
+      "Primary Fuel Type": "Storage",
+      "_id": 276
+    },
+    {
+      "Auction Name": "2022-23 (T-3) Three Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.7113,
+      "Generating Technology Class": "Storage (Duration 5h)",
+      "Primary Fuel Type": "Storage",
+      "_id": 277
+    },
+    {
+      "Auction Name": "2022-23 (T-3) Three Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.4253,
+      "Generating Technology Class": "Storage (Duration 2h)",
+      "Primary Fuel Type": "Storage",
+      "_id": 278
+    },
+    {
+      "Auction Name": "2022-23 (T-3) Three Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.3194,
+      "Generating Technology Class": "Storage (Duration 1.5h)",
+      "Primary Fuel Type": "Storage",
+      "_id": 279
+    },
+    {
+      "Auction Name": "2022-23 (T-3) Three Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.2136,
+      "Generating Technology Class": "Storage (Duration 1h)",
+      "Primary Fuel Type": "Storage",
+      "_id": 280
+    },
+    {
+      "Auction Name": "2022-23 (T-3) Three Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.1059,
+      "Generating Technology Class": "Storage (Duration 0.5h)",
+      "Primary Fuel Type": "Storage",
+      "_id": 281
+    },
+    {
+      "Auction Name": "2022-23 (T-3) Three Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.9508,
+      "Generating Technology Class": "Storage (Duration 5.5h+)",
+      "Primary Fuel Type": "Storage",
+      "_id": 282
+    },
+    {
+      "Auction Name": "2022-23 (T-3) Three Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.5943,
+      "Generating Technology Class": "Storage (Duration 3h)",
+      "Primary Fuel Type": "Storage",
+      "_id": 283
+    },
+    {
+      "Auction Name": "2022-23 (T-3) Three Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.6407,
+      "Generating Technology Class": "Storage (Duration 3.5h)",
+      "Primary Fuel Type": "Storage",
+      "_id": 284
+    },
+    {
+      "Auction Name": "2022-23 (T-3) Three Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.123,
+      "Generating Technology Class": "Offshore Wind",
+      "Primary Fuel Type": "Wind",
+      "_id": 285
+    },
+    {
+      "Auction Name": "2022-23 (T-3) Three Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.082,
+      "Generating Technology Class": "Onshore Wind",
+      "Primary Fuel Type": "Wind",
+      "_id": 286
+    },
+    {
+      "Auction Name": "2022-23 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.8656,
+      "Generating Technology Class": "Energy from Waste",
+      "Primary Fuel Type": "Biomass/Coal/EfW",
+      "_id": 287
+    },
+    {
+      "Auction Name": "2022-23 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.8656,
+      "Generating Technology Class": "Biomass",
+      "Primary Fuel Type": "Biomass/Coal/EfW",
+      "_id": 288
+    },
+    {
+      "Auction Name": "2022-23 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.8656,
+      "Generating Technology Class": "Coal",
+      "Primary Fuel Type": "Biomass/Coal/EfW",
+      "_id": 289
+    },
+    {
+      "Auction Name": "2022-23 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.8428,
+      "Generating Technology Class": "DSR",
+      "Primary Fuel Type": "DSR",
+      "_id": 290
+    },
+    {
+      "Auction Name": "2022-23 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.9,
+      "Generating Technology Class": "Combined Heat and Power (CHP)",
+      "Primary Fuel Type": "Gas",
+      "_id": 291
+    },
+    {
+      "Auction Name": "2022-23 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.9514,
+      "Generating Technology Class": "Reciprocating engines",
+      "Primary Fuel Type": "Gas",
+      "_id": 292
+    },
+    {
+      "Auction Name": "2022-23 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.9514,
+      "Generating Technology Class": "Open Cycle Gas Turbine (OCGT)",
+      "Primary Fuel Type": "Gas",
+      "_id": 293
+    },
+    {
+      "Auction Name": "2022-23 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.9,
+      "Generating Technology Class": "Combined Cycle Gas Turbine (CCGT)",
+      "Primary Fuel Type": "Gas",
+      "_id": 294
+    },
+    {
+      "Auction Name": "2022-23 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.9009,
+      "Generating Technology Class": "Hydro",
+      "Primary Fuel Type": "Hydro",
+      "_id": 295
+    },
+    {
+      "Auction Name": "2022-23 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.33,
+      "Generating Technology Class": "EWIC (Ireland)",
+      "Primary Fuel Type": "Interconnector",
+      "_id": 296
+    },
+    {
+      "Auction Name": "2022-23 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.33,
+      "Generating Technology Class": "Moyle (Northern Ireland)",
+      "Primary Fuel Type": "Interconnector",
+      "_id": 297
+    },
+    {
+      "Auction Name": "2022-23 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.87,
+      "Generating Technology Class": "NSL (Norway)",
+      "Primary Fuel Type": "Interconnector",
+      "_id": 298
+    },
+    {
+      "Auction Name": "2022-23 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.67,
+      "Generating Technology Class": "IFA2 (France)",
+      "Primary Fuel Type": "Interconnector",
+      "_id": 299
+    },
+    {
+      "Auction Name": "2022-23 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.5,
+      "Generating Technology Class": "NEMO (Belgium)",
+      "Primary Fuel Type": "Interconnector",
+      "_id": 300
+    },
+    {
+      "Auction Name": "2022-23 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.43,
+      "Generating Technology Class": "BritNED (Netherlands)",
+      "Primary Fuel Type": "Interconnector",
+      "_id": 301
+    },
+    {
+      "Auction Name": "2022-23 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.66,
+      "Generating Technology Class": "IFA (France)",
+      "Primary Fuel Type": "Interconnector",
+      "_id": 302
+    },
+    {
+      "Auction Name": "2022-23 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.71,
+      "Generating Technology Class": "Eleclink (France)",
+      "Primary Fuel Type": "Interconnector",
+      "_id": 303
+    },
+    {
+      "Auction Name": "2022-23 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.842,
+      "Generating Technology Class": "Nuclear",
+      "Primary Fuel Type": "Nuclear",
+      "_id": 304
+    },
+    {
+      "Auction Name": "2022-23 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.8913,
+      "Generating Technology Class": "Oil-fired steam generators",
+      "Primary Fuel Type": "Oil",
+      "_id": 305
+    },
+    {
+      "Auction Name": "2022-23 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.9552,
+      "Generating Technology Class": "Storage (Duration 5.5h)",
+      "Primary Fuel Type": "Storage",
+      "_id": 306
+    },
+    {
+      "Auction Name": "2022-23 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.9552,
+      "Generating Technology Class": "Storage (Duration 6h)",
+      "Primary Fuel Type": "Storage",
+      "_id": 307
+    },
+    {
+      "Auction Name": "2022-23 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.9552,
+      "Generating Technology Class": "Storage (Duration 6.5h)",
+      "Primary Fuel Type": "Storage",
+      "_id": 308
+    },
+    {
+      "Auction Name": "2022-23 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.9552,
+      "Generating Technology Class": "Storage (Duration 7h)",
+      "Primary Fuel Type": "Storage",
+      "_id": 309
+    },
+    {
+      "Auction Name": "2022-23 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.9552,
+      "Generating Technology Class": "Storage (Duration 7.5h)",
+      "Primary Fuel Type": "Storage",
+      "_id": 310
+    },
+    {
+      "Auction Name": "2022-23 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.9552,
+      "Generating Technology Class": "Storage (Duration 8h)",
+      "Primary Fuel Type": "Storage",
+      "_id": 311
+    },
+    {
+      "Auction Name": "2022-23 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.9552,
+      "Generating Technology Class": "Storage (Duration 12h)",
+      "Primary Fuel Type": "Storage",
+      "_id": 312
+    },
+    {
+      "Auction Name": "2022-23 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.9552,
+      "Generating Technology Class": "Storage (Duration 9h)",
+      "Primary Fuel Type": "Storage",
+      "_id": 313
+    },
+    {
+      "Auction Name": "2022-23 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.9552,
+      "Generating Technology Class": "Storage (Duration 11.5h)",
+      "Primary Fuel Type": "Storage",
+      "_id": 314
+    },
+    {
+      "Auction Name": "2022-23 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.9552,
+      "Generating Technology Class": "Storage (Duration 11h)",
+      "Primary Fuel Type": "Storage",
+      "_id": 315
+    },
+    {
+      "Auction Name": "2022-23 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.9552,
+      "Generating Technology Class": "Storage (Duration 10.5h)",
+      "Primary Fuel Type": "Storage",
+      "_id": 316
+    },
+    {
+      "Auction Name": "2022-23 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.9552,
+      "Generating Technology Class": "Storage (Duration 10h)",
+      "Primary Fuel Type": "Storage",
+      "_id": 317
+    },
+    {
+      "Auction Name": "2022-23 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.9552,
+      "Generating Technology Class": "Storage (Duration 8.5h)",
+      "Primary Fuel Type": "Storage",
+      "_id": 318
+    },
+    {
+      "Auction Name": "2022-23 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.9552,
+      "Generating Technology Class": "Storage (Duration 5h)",
+      "Primary Fuel Type": "Storage",
+      "_id": 319
+    },
+    {
+      "Auction Name": "2022-23 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.9552,
+      "Generating Technology Class": "Storage (Duration 9.5h)",
+      "Primary Fuel Type": "Storage",
+      "_id": 320
+    },
+    {
+      "Auction Name": "2022-23 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.8,
+      "Generating Technology Class": "Storage (Duration 4h)",
+      "Primary Fuel Type": "Storage",
+      "_id": 321
+    },
+    {
+      "Auction Name": "2022-23 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.1491,
+      "Generating Technology Class": "Storage (Duration 0.5h)",
+      "Primary Fuel Type": "Storage",
+      "_id": 322
+    },
+    {
+      "Auction Name": "2022-23 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.294,
+      "Generating Technology Class": "Storage (Duration 1h)",
+      "Primary Fuel Type": "Storage",
+      "_id": 323
+    },
+    {
+      "Auction Name": "2022-23 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.4357,
+      "Generating Technology Class": "Storage (Duration 1.5h)",
+      "Primary Fuel Type": "Storage",
+      "_id": 324
+    },
+    {
+      "Auction Name": "2022-23 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.9552,
+      "Generating Technology Class": "Storage (Duration 4.5h)",
+      "Primary Fuel Type": "Storage",
+      "_id": 325
+    },
+    {
+      "Auction Name": "2022-23 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.6682,
+      "Generating Technology Class": "Storage (Duration 2.5h)",
+      "Primary Fuel Type": "Storage",
+      "_id": 326
+    },
+    {
+      "Auction Name": "2022-23 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.7376,
+      "Generating Technology Class": "Storage (Duration 3h)",
+      "Primary Fuel Type": "Storage",
+      "_id": 327
+    },
+    {
+      "Auction Name": "2022-23 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.7778,
+      "Generating Technology Class": "Storage (Duration 3.5h)",
+      "Primary Fuel Type": "Storage",
+      "_id": 328
+    },
+    {
+      "Auction Name": "2022-23 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.5668,
+      "Generating Technology Class": "Storage (Duration 2h)",
+      "Primary Fuel Type": "Storage",
+      "_id": 329
+    },
+    {
+      "Auction Name": "2023-24 (T-1) One Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.8799,
+      "Generating Technology Class": "Energy from Waste",
+      "Primary Fuel Type": "Biomass/Coal/EfW",
+      "_id": 330
+    },
+    {
+      "Auction Name": "2023-24 (T-1) One Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.8799,
+      "Generating Technology Class": "Biomass",
+      "Primary Fuel Type": "Biomass/Coal/EfW",
+      "_id": 331
+    },
+    {
+      "Auction Name": "2023-24 (T-1) One Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.804,
+      "Generating Technology Class": "Coal",
+      "Primary Fuel Type": "Biomass/Coal/EfW",
+      "_id": 332
+    },
+    {
+      "Auction Name": "2023-24 (T-1) One Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.7145,
+      "Generating Technology Class": "DSR",
+      "Primary Fuel Type": "DSR",
+      "_id": 333
+    },
+    {
+      "Auction Name": "2023-24 (T-1) One Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.9518,
+      "Generating Technology Class": "Open Cycle Gas Turbine (OCGT)",
+      "Primary Fuel Type": "Gas",
+      "_id": 334
+    },
+    {
+      "Auction Name": "2023-24 (T-1) One Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.9134,
+      "Generating Technology Class": "Combined Cycle Gas Turbine (CCGT)",
+      "Primary Fuel Type": "Gas",
+      "_id": 335
+    },
+    {
+      "Auction Name": "2023-24 (T-1) One Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.9134,
+      "Generating Technology Class": "Combined Heat and Power (CHP)",
+      "Primary Fuel Type": "Gas",
+      "_id": 336
+    },
+    {
+      "Auction Name": "2023-24 (T-1) One Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.9518,
+      "Generating Technology Class": "Reciprocating engines",
+      "Primary Fuel Type": "Gas",
+      "_id": 337
+    },
+    {
+      "Auction Name": "2023-24 (T-1) One Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.9113,
+      "Generating Technology Class": "Hydro",
+      "Primary Fuel Type": "Hydro",
+      "_id": 338
+    },
+    {
+      "Auction Name": "2023-24 (T-1) One Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.7825,
+      "Generating Technology Class": "Nuclear",
+      "Primary Fuel Type": "Nuclear",
+      "_id": 339
+    },
+    {
+      "Auction Name": "2023-24 (T-1) One Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.9518,
+      "Generating Technology Class": "Oil-fired steam generators",
+      "Primary Fuel Type": "Oil",
+      "_id": 340
+    },
+    {
+      "Auction Name": "2023-24 (T-1) One Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.0332,
+      "Generating Technology Class": "Solar Photovoltaic",
+      "Primary Fuel Type": "Solar",
+      "_id": 341
+    },
+    {
+      "Auction Name": "2023-24 (T-1) One Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.4595,
+      "Generating Technology Class": "Storage (Duration 2.5h)",
+      "Primary Fuel Type": "Storage",
+      "_id": 342
+    },
+    {
+      "Auction Name": "2023-24 (T-1) One Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.3702,
+      "Generating Technology Class": "Storage (Duration 2h)",
+      "Primary Fuel Type": "Storage",
+      "_id": 343
+    },
+    {
+      "Auction Name": "2023-24 (T-1) One Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.279,
+      "Generating Technology Class": "Storage (Duration 1.5h)",
+      "Primary Fuel Type": "Storage",
+      "_id": 344
+    },
+    {
+      "Auction Name": "2023-24 (T-1) One Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.186,
+      "Generating Technology Class": "Storage (Duration 1h)",
+      "Primary Fuel Type": "Storage",
+      "_id": 345
+    },
+    {
+      "Auction Name": "2023-24 (T-1) One Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.093,
+      "Generating Technology Class": "Storage (Duration 0.5h)",
+      "Primary Fuel Type": "Storage",
+      "_id": 346
+    },
+    {
+      "Auction Name": "2023-24 (T-1) One Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.9525,
+      "Generating Technology Class": "Storage (Duration 12h)",
+      "Primary Fuel Type": "Storage",
+      "_id": 347
+    },
+    {
+      "Auction Name": "2023-24 (T-1) One Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.9525,
+      "Generating Technology Class": "Storage (Duration 11.5h)",
+      "Primary Fuel Type": "Storage",
+      "_id": 348
+    },
+    {
+      "Auction Name": "2023-24 (T-1) One Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.9525,
+      "Generating Technology Class": "Storage (Duration 11h)",
+      "Primary Fuel Type": "Storage",
+      "_id": 349
+    },
+    {
+      "Auction Name": "2023-24 (T-1) One Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.9525,
+      "Generating Technology Class": "Storage (Duration 10.5h)",
+      "Primary Fuel Type": "Storage",
+      "_id": 350
+    },
+    {
+      "Auction Name": "2023-24 (T-1) One Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.9525,
+      "Generating Technology Class": "Storage (Duration 10h)",
+      "Primary Fuel Type": "Storage",
+      "_id": 351
+    },
+    {
+      "Auction Name": "2023-24 (T-1) One Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.5879,
+      "Generating Technology Class": "Storage (Duration 3.5h)",
+      "Primary Fuel Type": "Storage",
+      "_id": 352
+    },
+    {
+      "Auction Name": "2023-24 (T-1) One Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.9525,
+      "Generating Technology Class": "Storage (Duration 9h)",
+      "Primary Fuel Type": "Storage",
+      "_id": 353
+    },
+    {
+      "Auction Name": "2023-24 (T-1) One Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.6232,
+      "Generating Technology Class": "Storage (Duration 4h)",
+      "Primary Fuel Type": "Storage",
+      "_id": 354
+    },
+    {
+      "Auction Name": "2023-24 (T-1) One Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.6474,
+      "Generating Technology Class": "Storage (Duration 4.5h)",
+      "Primary Fuel Type": "Storage",
+      "_id": 355
+    },
+    {
+      "Auction Name": "2023-24 (T-1) One Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.6697,
+      "Generating Technology Class": "Storage (Duration 5h)",
+      "Primary Fuel Type": "Storage",
+      "_id": 356
+    },
+    {
+      "Auction Name": "2023-24 (T-1) One Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.6902,
+      "Generating Technology Class": "Storage (Duration 5.5h)",
+      "Primary Fuel Type": "Storage",
+      "_id": 357
+    },
+    {
+      "Auction Name": "2023-24 (T-1) One Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.9525,
+      "Generating Technology Class": "Storage (Duration 9.5h)",
+      "Primary Fuel Type": "Storage",
+      "_id": 358
+    },
+    {
+      "Auction Name": "2023-24 (T-1) One Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.9525,
+      "Generating Technology Class": "Storage (Duration 6h)",
+      "Primary Fuel Type": "Storage",
+      "_id": 359
+    },
+    {
+      "Auction Name": "2023-24 (T-1) One Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.5339,
+      "Generating Technology Class": "Storage (Duration 3h)",
+      "Primary Fuel Type": "Storage",
+      "_id": 360
+    },
+    {
+      "Auction Name": "2023-24 (T-1) One Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.9525,
+      "Generating Technology Class": "Storage (Duration 8.5h)",
+      "Primary Fuel Type": "Storage",
+      "_id": 361
+    },
+    {
+      "Auction Name": "2023-24 (T-1) One Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.9525,
+      "Generating Technology Class": "Storage (Duration 8h)",
+      "Primary Fuel Type": "Storage",
+      "_id": 362
+    },
+    {
+      "Auction Name": "2023-24 (T-1) One Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.9525,
+      "Generating Technology Class": "Storage (Duration 7.5h)",
+      "Primary Fuel Type": "Storage",
+      "_id": 363
+    },
+    {
+      "Auction Name": "2023-24 (T-1) One Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.9525,
+      "Generating Technology Class": "Storage (Duration 6.5h)",
+      "Primary Fuel Type": "Storage",
+      "_id": 364
+    },
+    {
+      "Auction Name": "2023-24 (T-1) One Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.9525,
+      "Generating Technology Class": "Storage (Duration 7h)",
+      "Primary Fuel Type": "Storage",
+      "_id": 365
+    },
+    {
+      "Auction Name": "2023-24 (T-1) One Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.082,
+      "Generating Technology Class": "Onshore Wind",
+      "Primary Fuel Type": "Wind",
+      "_id": 366
+    },
+    {
+      "Auction Name": "2023-24 (T-1) One Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.1133,
+      "Generating Technology Class": "Offshore Wind",
+      "Primary Fuel Type": "Wind",
+      "_id": 367
+    },
+    {
+      "Auction Name": "2023-24 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.8581,
+      "Generating Technology Class": "Energy from Waste",
+      "Primary Fuel Type": "Biomass/Coal/EfW",
+      "_id": 368
+    },
+    {
+      "Auction Name": "2023-24 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.8581,
+      "Generating Technology Class": "Coal",
+      "Primary Fuel Type": "Biomass/Coal/EfW",
+      "_id": 369
+    },
+    {
+      "Auction Name": "2023-24 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.8581,
+      "Generating Technology Class": "Biomass",
+      "Primary Fuel Type": "Biomass/Coal/EfW",
+      "_id": 370
+    },
+    {
+      "Auction Name": "2023-24 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.8614,
+      "Generating Technology Class": "DSR",
+      "Primary Fuel Type": "DSR",
+      "_id": 371
+    },
+    {
+      "Auction Name": "2023-24 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.9,
+      "Generating Technology Class": "Combined Heat and Power (CHP)",
+      "Primary Fuel Type": "Gas",
+      "_id": 372
+    },
+    {
+      "Auction Name": "2023-24 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.9,
+      "Generating Technology Class": "Combined Cycle Gas Turbine (CCGT)",
+      "Primary Fuel Type": "Gas",
+      "_id": 373
+    },
+    {
+      "Auction Name": "2023-24 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.9498,
+      "Generating Technology Class": "Open Cycle Gas Turbine (OCGT)",
+      "Primary Fuel Type": "Gas",
+      "_id": 374
+    },
+    {
+      "Auction Name": "2023-24 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.9498,
+      "Generating Technology Class": "Reciprocating engines",
+      "Primary Fuel Type": "Gas",
+      "_id": 375
+    },
+    {
+      "Auction Name": "2023-24 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.8965,
+      "Generating Technology Class": "Hydro",
+      "Primary Fuel Type": "Hydro",
+      "_id": 376
+    },
+    {
+      "Auction Name": "2023-24 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.32,
+      "Generating Technology Class": "VikingLink (Denmark)",
+      "Primary Fuel Type": "Interconnector",
+      "_id": 377
+    },
+    {
+      "Auction Name": "2023-24 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.42,
+      "Generating Technology Class": "Greenlink (Republic of Ireland)",
+      "Primary Fuel Type": "Interconnector",
+      "_id": 378
+    },
+    {
+      "Auction Name": "2023-24 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.44,
+      "Generating Technology Class": "EWIC (Ireland)",
+      "Primary Fuel Type": "Interconnector",
+      "_id": 379
+    },
+    {
+      "Auction Name": "2023-24 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.63,
+      "Generating Technology Class": "IFA (France)",
+      "Primary Fuel Type": "Interconnector",
+      "_id": 380
+    },
+    {
+      "Auction Name": "2023-24 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.69,
+      "Generating Technology Class": "Eleclink (France)",
+      "Primary Fuel Type": "Interconnector",
+      "_id": 381
+    },
+    {
+      "Auction Name": "2023-24 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.46,
+      "Generating Technology Class": "NEMO (Belgium)",
+      "Primary Fuel Type": "Interconnector",
+      "_id": 382
+    },
+    {
+      "Auction Name": "2023-24 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.65,
+      "Generating Technology Class": "IFA2 (France)",
+      "Primary Fuel Type": "Interconnector",
+      "_id": 383
+    },
+    {
+      "Auction Name": "2023-24 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.88,
+      "Generating Technology Class": "NSL (Norway)",
+      "Primary Fuel Type": "Interconnector",
+      "_id": 384
+    },
+    {
+      "Auction Name": "2023-24 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.44,
+      "Generating Technology Class": "Moyle (Northern Ireland)",
+      "Primary Fuel Type": "Interconnector",
+      "_id": 385
+    },
+    {
+      "Auction Name": "2023-24 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.36,
+      "Generating Technology Class": "BritNED (Netherlands)",
+      "Primary Fuel Type": "Interconnector",
+      "_id": 386
+    },
+    {
+      "Auction Name": "2023-24 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.8122,
+      "Generating Technology Class": "Nuclear",
+      "Primary Fuel Type": "Nuclear",
+      "_id": 387
+    },
+    {
+      "Auction Name": "2023-24 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.9126,
+      "Generating Technology Class": "Oil-fired steam generators",
+      "Primary Fuel Type": "Oil",
+      "_id": 388
+    },
+    {
+      "Auction Name": "2023-24 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.0322,
+      "Generating Technology Class": "Solar Photovoltaic",
+      "Primary Fuel Type": "Solar",
+      "_id": 389
+    },
+    {
+      "Auction Name": "2023-24 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.9508,
+      "Generating Technology Class": "Storage (Duration 5.5h)",
+      "Primary Fuel Type": "Storage",
+      "_id": 390
+    },
+    {
+      "Auction Name": "2023-24 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.2043,
+      "Generating Technology Class": "Storage (Duration 1h)",
+      "Primary Fuel Type": "Storage",
+      "_id": 391
+    },
+    {
+      "Auction Name": "2023-24 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.1059,
+      "Generating Technology Class": "Storage",
+      "Primary Fuel Type": "Storage",
+      "_id": 392
+    },
+    {
+      "Auction Name": "2023-24 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.9508,
+      "Generating Technology Class": "Storage (Duration 5.5h+)",
+      "Primary Fuel Type": "Storage",
+      "_id": 393
+    },
+    {
+      "Auction Name": "2023-24 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.9508,
+      "Generating Technology Class": "Storage (Duration 7h)",
+      "Primary Fuel Type": "Storage",
+      "_id": 394
+    },
+    {
+      "Auction Name": "2023-24 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.1012,
+      "Generating Technology Class": "Storage (Duration 0.5h)",
+      "Primary Fuel Type": "Storage",
+      "_id": 395
+    },
+    {
+      "Auction Name": "2023-24 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.9508,
+      "Generating Technology Class": "Storage (Duration 6h)",
+      "Primary Fuel Type": "Storage",
+      "_id": 396
+    },
+    {
+      "Auction Name": "2023-24 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.4104,
+      "Generating Technology Class": "Storage (Duration 2h)",
+      "Primary Fuel Type": "Storage",
+      "_id": 397
+    },
+    {
+      "Auction Name": "2023-24 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.9508,
+      "Generating Technology Class": "Storage (Duration 12h)",
+      "Primary Fuel Type": "Storage",
+      "_id": 398
+    },
+    {
+      "Auction Name": "2023-24 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.5051,
+      "Generating Technology Class": "Storage (Duration 2.5h)",
+      "Primary Fuel Type": "Storage",
+      "_id": 399
+    },
+    {
+      "Auction Name": "2023-24 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.5794,
+      "Generating Technology Class": "Storage (Duration 3h)",
+      "Primary Fuel Type": "Storage",
+      "_id": 400
+    },
+    {
+      "Auction Name": "2023-24 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.6277,
+      "Generating Technology Class": "Storage (Duration 3.5h)",
+      "Primary Fuel Type": "Storage",
+      "_id": 401
+    },
+    {
+      "Auction Name": "2023-24 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.3083,
+      "Generating Technology Class": "Storage (Duration 1.5h)",
+      "Primary Fuel Type": "Storage",
+      "_id": 402
+    },
+    {
+      "Auction Name": "2023-24 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.6816,
+      "Generating Technology Class": "Storage (Duration 4.5h)",
+      "Primary Fuel Type": "Storage",
+      "_id": 403
+    },
+    {
+      "Auction Name": "2023-24 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.702,
+      "Generating Technology Class": "Storage (Duration 5h)",
+      "Primary Fuel Type": "Storage",
+      "_id": 404
+    },
+    {
+      "Auction Name": "2023-24 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.6593,
+      "Generating Technology Class": "Storage (Duration 4h)",
+      "Primary Fuel Type": "Storage",
+      "_id": 405
+    },
+    {
+      "Auction Name": "2023-24 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.0742,
+      "Generating Technology Class": "Onshore Wind",
+      "Primary Fuel Type": "Wind",
+      "_id": 406
+    },
+    {
+      "Auction Name": "2023-24 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.1055,
+      "Generating Technology Class": "Offshore Wind",
+      "Primary Fuel Type": "Wind",
+      "_id": 407
+    },
+    {
+      "Auction Name": "2024-25 (T-1) One Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.8852,
+      "Generating Technology Class": "Biomass",
+      "Primary Fuel Type": "Biomass/Coal/EfW",
+      "_id": 408
+    },
+    {
+      "Auction Name": "2024-25 (T-1) One Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.8852,
+      "Generating Technology Class": "Energy from Waste",
+      "Primary Fuel Type": "Biomass/Coal/EfW",
+      "_id": 409
+    },
+    {
+      "Auction Name": "2024-25 (T-1) One Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.7902,
+      "Generating Technology Class": "DSR",
+      "Primary Fuel Type": "DSR",
+      "_id": 410
+    },
+    {
+      "Auction Name": "2024-25 (T-1) One Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.9435,
+      "Generating Technology Class": "OCGT and Reciprocating Engines (Fuel Type - Gas)",
+      "Primary Fuel Type": "Gas",
+      "_id": 411
+    },
+    {
+      "Auction Name": "2024-25 (T-1) One Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.9159,
+      "Generating Technology Class": "Combined Cycle Gas Turbine (CCGT)",
+      "Primary Fuel Type": "Gas",
+      "_id": 412
+    },
+    {
+      "Auction Name": "2024-25 (T-1) One Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.9435,
+      "Generating Technology Class": "Open Cycle Gas Turbine (OCGT)",
+      "Primary Fuel Type": "Gas",
+      "_id": 413
+    },
+    {
+      "Auction Name": "2024-25 (T-1) One Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.9159,
+      "Generating Technology Class": "Combined Heat and Power (CHP)",
+      "Primary Fuel Type": "Gas",
+      "_id": 414
+    },
+    {
+      "Auction Name": "2024-25 (T-1) One Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.9435,
+      "Generating Technology Class": "Reciprocating engines",
+      "Primary Fuel Type": "Gas",
+      "_id": 415
+    },
+    {
+      "Auction Name": "2024-25 (T-1) One Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.912,
+      "Generating Technology Class": "Hydro",
+      "Primary Fuel Type": "Hydro",
+      "_id": 416
+    },
+    {
+      "Auction Name": "2024-25 (T-1) One Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.78,
+      "Generating Technology Class": "Nuclear",
+      "Primary Fuel Type": "Nuclear",
+      "_id": 417
+    },
+    {
+      "Auction Name": "2024-25 (T-1) One Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.9435,
+      "Generating Technology Class": "Oil-fired steam generators",
+      "Primary Fuel Type": "Oil",
+      "_id": 418
+    },
+    {
+      "Auction Name": "2024-25 (T-1) One Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.0508,
+      "Generating Technology Class": "Solar Photovoltaic",
+      "Primary Fuel Type": "Solar",
+      "_id": 419
+    },
+    {
+      "Auction Name": "2024-25 (T-1) One Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.0571,
+      "Generating Technology Class": "Storage (Duration 0.5h)",
+      "Primary Fuel Type": "Storage",
+      "_id": 420
+    },
+    {
+      "Auction Name": "2024-25 (T-1) One Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.9437,
+      "Generating Technology Class": "Storage (Duration 11.5h)",
+      "Primary Fuel Type": "Storage",
+      "_id": 421
+    },
+    {
+      "Auction Name": "2024-25 (T-1) One Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.1134,
+      "Generating Technology Class": "Storage (Duration 1h)",
+      "Primary Fuel Type": "Storage",
+      "_id": 422
+    },
+    {
+      "Auction Name": "2024-25 (T-1) One Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.1705,
+      "Generating Technology Class": "Storage (Duration 1.5h)",
+      "Primary Fuel Type": "Storage",
+      "_id": 423
+    },
+    {
+      "Auction Name": "2024-25 (T-1) One Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.341,
+      "Generating Technology Class": "Storage (Duration 3h)",
+      "Primary Fuel Type": "Storage",
+      "_id": 424
+    },
+    {
+      "Auction Name": "2024-25 (T-1) One Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.2838,
+      "Generating Technology Class": "Storage (Duration 2.5h)",
+      "Primary Fuel Type": "Storage",
+      "_id": 425
+    },
+    {
+      "Auction Name": "2024-25 (T-1) One Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.9437,
+      "Generating Technology Class": "Storage (Duration 10.5h)",
+      "Primary Fuel Type": "Storage",
+      "_id": 426
+    },
+    {
+      "Auction Name": "2024-25 (T-1) One Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.9437,
+      "Generating Technology Class": "Storage (Duration 10h)",
+      "Primary Fuel Type": "Storage",
+      "_id": 427
+    },
+    {
+      "Auction Name": "2024-25 (T-1) One Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.9437,
+      "Generating Technology Class": "Storage (Duration 9.5h)",
+      "Primary Fuel Type": "Storage",
+      "_id": 428
+    },
+    {
+      "Auction Name": "2024-25 (T-1) One Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.9437,
+      "Generating Technology Class": "Storage (Duration 9h)",
+      "Primary Fuel Type": "Storage",
+      "_id": 429
+    },
+    {
+      "Auction Name": "2024-25 (T-1) One Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.9437,
+      "Generating Technology Class": "Storage (Duration 8.5h)",
+      "Primary Fuel Type": "Storage",
+      "_id": 430
+    },
+    {
+      "Auction Name": "2024-25 (T-1) One Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.9437,
+      "Generating Technology Class": "Storage (Duration 8h)",
+      "Primary Fuel Type": "Storage",
+      "_id": 431
+    },
+    {
+      "Auction Name": "2024-25 (T-1) One Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.6727,
+      "Generating Technology Class": "Storage (Duration 7.5h)",
+      "Primary Fuel Type": "Storage",
+      "_id": 432
+    },
+    {
+      "Auction Name": "2024-25 (T-1) One Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.6414,
+      "Generating Technology Class": "Storage (Duration 7h)",
+      "Primary Fuel Type": "Storage",
+      "_id": 433
+    },
+    {
+      "Auction Name": "2024-25 (T-1) One Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.611,
+      "Generating Technology Class": "Storage (Duration 6.5h)",
+      "Primary Fuel Type": "Storage",
+      "_id": 434
+    },
+    {
+      "Auction Name": "2024-25 (T-1) One Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.2267,
+      "Generating Technology Class": "Storage (Duration 2h)",
+      "Primary Fuel Type": "Storage",
+      "_id": 435
+    },
+    {
+      "Auction Name": "2024-25 (T-1) One Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.5806,
+      "Generating Technology Class": "Storage (Duration 6h)",
+      "Primary Fuel Type": "Storage",
+      "_id": 436
+    },
+    {
+      "Auction Name": "2024-25 (T-1) One Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.5188,
+      "Generating Technology Class": "Storage (Duration 5h)",
+      "Primary Fuel Type": "Storage",
+      "_id": 437
+    },
+    {
+      "Auction Name": "2024-25 (T-1) One Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.4857,
+      "Generating Technology Class": "Storage (Duration 4.5h)",
+      "Primary Fuel Type": "Storage",
+      "_id": 438
+    },
+    {
+      "Auction Name": "2024-25 (T-1) One Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.9437,
+      "Generating Technology Class": "Storage (Duration 12h)",
+      "Primary Fuel Type": "Storage",
+      "_id": 439
+    },
+    {
+      "Auction Name": "2024-25 (T-1) One Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.446,
+      "Generating Technology Class": "Storage (Duration 4h)",
+      "Primary Fuel Type": "Storage",
+      "_id": 440
+    },
+    {
+      "Auction Name": "2024-25 (T-1) One Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.3963,
+      "Generating Technology Class": "Storage (Duration 3.5h)",
+      "Primary Fuel Type": "Storage",
+      "_id": 441
+    },
+    {
+      "Auction Name": "2024-25 (T-1) One Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.5493,
+      "Generating Technology Class": "Storage (Duration 5.5h)",
+      "Primary Fuel Type": "Storage",
+      "_id": 442
+    },
+    {
+      "Auction Name": "2024-25 (T-1) One Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.9437,
+      "Generating Technology Class": "Storage (Duration 11h)",
+      "Primary Fuel Type": "Storage",
+      "_id": 443
+    },
+    {
+      "Auction Name": "2024-25 (T-1) One Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.084,
+      "Generating Technology Class": "Onshore Wind",
+      "Primary Fuel Type": "Wind",
+      "_id": 444
+    },
+    {
+      "Auction Name": "2024-25 (T-1) One Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.1152,
+      "Generating Technology Class": "Offshore Wind",
+      "Primary Fuel Type": "Wind",
+      "_id": 445
+    },
+    {
+      "Auction Name": "2024-25 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.848,
+      "Generating Technology Class": "Energy from Waste",
+      "Primary Fuel Type": "Biomass/Coal/EfW",
+      "_id": 446
+    },
+    {
+      "Auction Name": "2024-25 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.848,
+      "Generating Technology Class": "Coal",
+      "Primary Fuel Type": "Biomass/Coal/EfW",
+      "_id": 447
+    },
+    {
+      "Auction Name": "2024-25 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.848,
+      "Generating Technology Class": "Biomass",
+      "Primary Fuel Type": "Biomass/Coal/EfW",
+      "_id": 448
+    },
+    {
+      "Auction Name": "2024-25 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.7921,
+      "Generating Technology Class": "DSR",
+      "Primary Fuel Type": "DSR",
+      "_id": 449
+    },
+    {
+      "Auction Name": "2024-25 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.9522,
+      "Generating Technology Class": "Reciprocating engines",
+      "Primary Fuel Type": "Gas",
+      "_id": 450
+    },
+    {
+      "Auction Name": "2024-25 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.9,
+      "Generating Technology Class": "Combined Cycle Gas Turbine (CCGT)",
+      "Primary Fuel Type": "Gas",
+      "_id": 451
+    },
+    {
+      "Auction Name": "2024-25 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.9522,
+      "Generating Technology Class": "Open Cycle Gas Turbine (OCGT)",
+      "Primary Fuel Type": "Gas",
+      "_id": 452
+    },
+    {
+      "Auction Name": "2024-25 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.9,
+      "Generating Technology Class": "Combined Heat and Power (CHP)",
+      "Primary Fuel Type": "Gas",
+      "_id": 453
+    },
+    {
+      "Auction Name": "2024-25 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.9099,
+      "Generating Technology Class": "Hydro",
+      "Primary Fuel Type": "Hydro",
+      "_id": 454
+    },
+    {
+      "Auction Name": "2024-25 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.49,
+      "Generating Technology Class": "Moyle (Northern Ireland)",
+      "Primary Fuel Type": "Interconnector",
+      "_id": 455
+    },
+    {
+      "Auction Name": "2024-25 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.9,
+      "Generating Technology Class": "NSL (Norway)",
+      "Primary Fuel Type": "Interconnector",
+      "_id": 456
+    },
+    {
+      "Auction Name": "2024-25 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.68,
+      "Generating Technology Class": "NEMO (Belgium)",
+      "Primary Fuel Type": "Interconnector",
+      "_id": 457
+    },
+    {
+      "Auction Name": "2024-25 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.61,
+      "Generating Technology Class": "BritNED (Netherlands)",
+      "Primary Fuel Type": "Interconnector",
+      "_id": 458
+    },
+    {
+      "Auction Name": "2024-25 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.75,
+      "Generating Technology Class": "Eleclink (France)",
+      "Primary Fuel Type": "Interconnector",
+      "_id": 459
+    },
+    {
+      "Auction Name": "2024-25 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.69,
+      "Generating Technology Class": "IFA (France)",
+      "Primary Fuel Type": "Interconnector",
+      "_id": 460
+    },
+    {
+      "Auction Name": "2024-25 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.52,
+      "Generating Technology Class": "VikingLink (Denmark)",
+      "Primary Fuel Type": "Interconnector",
+      "_id": 461
+    },
+    {
+      "Auction Name": "2024-25 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.71,
+      "Generating Technology Class": "IFA2 (France)",
+      "Primary Fuel Type": "Interconnector",
+      "_id": 462
+    },
+    {
+      "Auction Name": "2024-25 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.49,
+      "Generating Technology Class": "EWIC (Ireland)",
+      "Primary Fuel Type": "Interconnector",
+      "_id": 463
+    },
+    {
+      "Auction Name": "2024-25 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.8143,
+      "Generating Technology Class": "Nuclear",
+      "Primary Fuel Type": "Nuclear",
+      "_id": 464
+    },
+    {
+      "Auction Name": "2024-25 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.9522,
+      "Generating Technology Class": "Oil-fired steam generators",
+      "Primary Fuel Type": "Oil",
+      "_id": 465
+    },
+    {
+      "Auction Name": "2024-25 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.0234,
+      "Generating Technology Class": "Solar Photovoltaic",
+      "Primary Fuel Type": "Solar",
+      "_id": 466
+    },
+    {
+      "Auction Name": "2024-25 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.9464,
+      "Generating Technology Class": "Storage (Duration 12h)",
+      "Primary Fuel Type": "Storage",
+      "_id": 467
+    },
+    {
+      "Auction Name": "2024-25 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.1238,
+      "Generating Technology Class": "Storage (Duration 0.5h)",
+      "Primary Fuel Type": "Storage",
+      "_id": 468
+    },
+    {
+      "Auction Name": "2024-25 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.9464,
+      "Generating Technology Class": "Storage (Duration 6h)",
+      "Primary Fuel Type": "Storage",
+      "_id": 469
+    },
+    {
+      "Auction Name": "2024-25 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.2477,
+      "Generating Technology Class": "Storage (Duration 1h)",
+      "Primary Fuel Type": "Storage",
+      "_id": 470
+    },
+    {
+      "Auction Name": "2024-25 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.9464,
+      "Generating Technology Class": "Storage (Duration 5.5h)",
+      "Primary Fuel Type": "Storage",
+      "_id": 471
+    },
+    {
+      "Auction Name": "2024-25 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.9464,
+      "Generating Technology Class": "Storage (Duration 5.5h+)",
+      "Primary Fuel Type": "Storage",
+      "_id": 472
+    },
+    {
+      "Auction Name": "2024-25 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.9464,
+      "Generating Technology Class": "Storage (Duration 7h)",
+      "Primary Fuel Type": "Storage",
+      "_id": 473
+    },
+    {
+      "Auction Name": "2024-25 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.4862,
+      "Generating Technology Class": "Storage (Duration 2h)",
+      "Primary Fuel Type": "Storage",
+      "_id": 474
+    },
+    {
+      "Auction Name": "2024-25 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.3697,
+      "Generating Technology Class": "Storage (Duration 1.5h)",
+      "Primary Fuel Type": "Storage",
+      "_id": 475
+    },
+    {
+      "Auction Name": "2024-25 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.5878,
+      "Generating Technology Class": "Storage (Duration 2.5h)",
+      "Primary Fuel Type": "Storage",
+      "_id": 476
+    },
+    {
+      "Auction Name": "2024-25 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.6618,
+      "Generating Technology Class": "Storage (Duration 3h)",
+      "Primary Fuel Type": "Storage",
+      "_id": 477
+    },
+    {
+      "Auction Name": "2024-25 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.7098,
+      "Generating Technology Class": "Storage (Duration 3.5h)",
+      "Primary Fuel Type": "Storage",
+      "_id": 478
+    },
+    {
+      "Auction Name": "2024-25 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.7579,
+      "Generating Technology Class": "Storage (Duration 4.5h)",
+      "Primary Fuel Type": "Storage",
+      "_id": 479
+    },
+    {
+      "Auction Name": "2024-25 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.9464,
+      "Generating Technology Class": "Storage (Duration 5h)",
+      "Primary Fuel Type": "Storage",
+      "_id": 480
+    },
+    {
+      "Auction Name": "2024-25 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.7376,
+      "Generating Technology Class": "Storage (Duration 4h)",
+      "Primary Fuel Type": "Storage",
+      "_id": 481
+    },
+    {
+      "Auction Name": "2024-25 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.0781,
+      "Generating Technology Class": "Onshore Wind",
+      "Primary Fuel Type": "Wind",
+      "_id": 482
+    },
+    {
+      "Auction Name": "2024-25 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.1113,
+      "Generating Technology Class": "Offshore Wind",
+      "Primary Fuel Type": "Wind",
+      "_id": 483
+    },
+    {
+      "Auction Name": "2025-26 (T-1) One Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.8803,
+      "Generating Technology Class": "Energy from Waste",
+      "Primary Fuel Type": "Biomass/Coal/EfW",
+      "_id": 484
+    },
+    {
+      "Auction Name": "2025-26 (T-1) One Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.0,
+      "Generating Technology Class": "Coal",
+      "Primary Fuel Type": "Biomass/Coal/EfW",
+      "_id": 485
+    },
+    {
+      "Auction Name": "2025-26 (T-1) One Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.8803,
+      "Generating Technology Class": "Biomass",
+      "Primary Fuel Type": "Biomass/Coal/EfW",
+      "_id": 486
+    },
+    {
+      "Auction Name": "2025-26 (T-1) One Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.7987,
+      "Generating Technology Class": "DSR",
+      "Primary Fuel Type": "DSR",
+      "_id": 487
+    },
+    {
+      "Auction Name": "2025-26 (T-1) One Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.9349,
+      "Generating Technology Class": "Open Cycle Gas Turbine (OCGT)",
+      "Primary Fuel Type": "Gas",
+      "_id": 488
+    },
+    {
+      "Auction Name": "2025-26 (T-1) One Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.9095,
+      "Generating Technology Class": "Combined Heat and Power (CHP)",
+      "Primary Fuel Type": "Gas",
+      "_id": 489
+    },
+    {
+      "Auction Name": "2025-26 (T-1) One Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.9349,
+      "Generating Technology Class": "Reciprocating engines",
+      "Primary Fuel Type": "Gas",
+      "_id": 490
+    },
+    {
+      "Auction Name": "2025-26 (T-1) One Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.9095,
+      "Generating Technology Class": "Combined Cycle Gas Turbine (CCGT)",
+      "Primary Fuel Type": "Gas",
+      "_id": 491
+    },
+    {
+      "Auction Name": "2025-26 (T-1) One Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.91,
+      "Generating Technology Class": "Hydro",
+      "Primary Fuel Type": "Hydro",
+      "_id": 492
+    },
+    {
+      "Auction Name": "2025-26 (T-1) One Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.49,
+      "Generating Technology Class": "Greenlink (Republic of Ireland)",
+      "Primary Fuel Type": "Interconnector",
+      "_id": 493
+    },
+    {
+      "Auction Name": "2025-26 (T-1) One Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.7544,
+      "Generating Technology Class": "Nuclear",
+      "Primary Fuel Type": "Nuclear",
+      "_id": 494
+    },
+    {
+      "Auction Name": "2025-26 (T-1) One Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.9349,
+      "Generating Technology Class": "Oil-fired steam generators",
+      "Primary Fuel Type": "Oil",
+      "_id": 495
+    },
+    {
+      "Auction Name": "2025-26 (T-1) One Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.0547,
+      "Generating Technology Class": "Solar Photovoltaic",
+      "Primary Fuel Type": "Solar",
+      "_id": 496
+    },
+    {
+      "Auction Name": "2025-26 (T-1) One Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.8402,
+      "Generating Technology Class": "Storage (Duration 7h)",
+      "Primary Fuel Type": "Storage",
+      "_id": 497
+    },
+    {
+      "Auction Name": "2025-26 (T-1) One Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.1364,
+      "Generating Technology Class": "Storage (Duration 1h)",
+      "Primary Fuel Type": "Storage",
+      "_id": 498
+    },
+    {
+      "Auction Name": "2025-26 (T-1) One Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.651,
+      "Generating Technology Class": "Storage (Duration 5h)",
+      "Primary Fuel Type": "Storage",
+      "_id": 499
+    },
+    {
+      "Auction Name": "2025-26 (T-1) One Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.5417,
+      "Generating Technology Class": "Storage (Duration 4h)",
+      "Primary Fuel Type": "Storage",
+      "_id": 500
+    },
+    {
+      "Auction Name": "2025-26 (T-1) One Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.6987,
+      "Generating Technology Class": "Storage (Duration 5.5h)",
+      "Primary Fuel Type": "Storage",
+      "_id": 501
+    },
+    {
+      "Auction Name": "2025-26 (T-1) One Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.7926,
+      "Generating Technology Class": "Storage (Duration 6.5h)",
+      "Primary Fuel Type": "Storage",
+      "_id": 502
+    },
+    {
+      "Auction Name": "2025-26 (T-1) One Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.0682,
+      "Generating Technology Class": "Storage (Duration 0.5h)",
+      "Primary Fuel Type": "Storage",
+      "_id": 503
+    },
+    {
+      "Auction Name": "2025-26 (T-1) One Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.2033,
+      "Generating Technology Class": "Storage (Duration 1.5h)",
+      "Primary Fuel Type": "Storage",
+      "_id": 504
+    },
+    {
+      "Auction Name": "2025-26 (T-1) One Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.9299,
+      "Generating Technology Class": "Storage (Duration 10h)",
+      "Primary Fuel Type": "Storage",
+      "_id": 505
+    },
+    {
+      "Auction Name": "2025-26 (T-1) One Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.9299,
+      "Generating Technology Class": "Storage (Duration 11h)",
+      "Primary Fuel Type": "Storage",
+      "_id": 506
+    },
+    {
+      "Auction Name": "2025-26 (T-1) One Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.9299,
+      "Generating Technology Class": "Storage (Duration 11.5h)",
+      "Primary Fuel Type": "Storage",
+      "_id": 507
+    },
+    {
+      "Auction Name": "2025-26 (T-1) One Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.2715,
+      "Generating Technology Class": "Storage (Duration 2h)",
+      "Primary Fuel Type": "Storage",
+      "_id": 508
+    },
+    {
+      "Auction Name": "2025-26 (T-1) One Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.8865,
+      "Generating Technology Class": "Storage (Duration 7.5h)",
+      "Primary Fuel Type": "Storage",
+      "_id": 509
+    },
+    {
+      "Auction Name": "2025-26 (T-1) One Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.9299,
+      "Generating Technology Class": "Storage (Duration 8.5h)",
+      "Primary Fuel Type": "Storage",
+      "_id": 510
+    },
+    {
+      "Auction Name": "2025-26 (T-1) One Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.9299,
+      "Generating Technology Class": "Storage (Duration 12h)",
+      "Primary Fuel Type": "Storage",
+      "_id": 511
+    },
+    {
+      "Auction Name": "2025-26 (T-1) One Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.4079,
+      "Generating Technology Class": "Storage (Duration 3h)",
+      "Primary Fuel Type": "Storage",
+      "_id": 512
+    },
+    {
+      "Auction Name": "2025-26 (T-1) One Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.9299,
+      "Generating Technology Class": "Storage (Duration 10.5h)",
+      "Primary Fuel Type": "Storage",
+      "_id": 513
+    },
+    {
+      "Auction Name": "2025-26 (T-1) One Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.5996,
+      "Generating Technology Class": "Storage (Duration 4.5h)",
+      "Primary Fuel Type": "Storage",
+      "_id": 514
+    },
+    {
+      "Auction Name": "2025-26 (T-1) One Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.3397,
+      "Generating Technology Class": "Storage (Duration 2.5h)",
+      "Primary Fuel Type": "Storage",
+      "_id": 515
+    },
+    {
+      "Auction Name": "2025-26 (T-1) One Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.9299,
+      "Generating Technology Class": "Storage (Duration 8h)",
+      "Primary Fuel Type": "Storage",
+      "_id": 516
+    },
+    {
+      "Auction Name": "2025-26 (T-1) One Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.9299,
+      "Generating Technology Class": "Storage (Duration 9.5h)",
+      "Primary Fuel Type": "Storage",
+      "_id": 517
+    },
+    {
+      "Auction Name": "2025-26 (T-1) One Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.4761,
+      "Generating Technology Class": "Storage (Duration 3.5h)",
+      "Primary Fuel Type": "Storage",
+      "_id": 518
+    },
+    {
+      "Auction Name": "2025-26 (T-1) One Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.9299,
+      "Generating Technology Class": "Storage (Duration 9h)",
+      "Primary Fuel Type": "Storage",
+      "_id": 519
+    },
+    {
+      "Auction Name": "2025-26 (T-1) One Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.7463,
+      "Generating Technology Class": "Storage (Duration 6h)",
+      "Primary Fuel Type": "Storage",
+      "_id": 520
+    },
+    {
+      "Auction Name": "2025-26 (T-1) One Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.0957,
+      "Generating Technology Class": "Offshore Wind",
+      "Primary Fuel Type": "Wind",
+      "_id": 521
+    },
+    {
+      "Auction Name": "2025-26 (T-1) One Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.0771,
+      "Generating Technology Class": "Onshore Wind",
+      "Primary Fuel Type": "Wind",
+      "_id": 522
+    },
+    {
+      "Auction Name": "2025-26 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.8855,
+      "Generating Technology Class": "Biomass",
+      "Primary Fuel Type": "Biomass/Coal/EfW",
+      "_id": 523
+    },
+    {
+      "Auction Name": "2025-26 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.8855,
+      "Generating Technology Class": "Energy from Waste",
+      "Primary Fuel Type": "Biomass/Coal/EfW",
+      "_id": 524
+    },
+    {
+      "Auction Name": "2025-26 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.8011,
+      "Generating Technology Class": "Coal",
+      "Primary Fuel Type": "Biomass/Coal/EfW",
+      "_id": 525
+    },
+    {
+      "Auction Name": "2025-26 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.7845,
+      "Generating Technology Class": "DSR",
+      "Primary Fuel Type": "DSR",
+      "_id": 526
+    },
+    {
+      "Auction Name": "2025-26 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.9092,
+      "Generating Technology Class": "Combined Heat and Power (CHP)",
+      "Primary Fuel Type": "Gas",
+      "_id": 527
+    },
+    {
+      "Auction Name": "2025-26 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.9547,
+      "Generating Technology Class": "Reciprocating engines",
+      "Primary Fuel Type": "Gas",
+      "_id": 528
+    },
+    {
+      "Auction Name": "2025-26 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.9092,
+      "Generating Technology Class": "Combined Cycle Gas Turbine (CCGT)",
+      "Primary Fuel Type": "Gas",
+      "_id": 529
+    },
+    {
+      "Auction Name": "2025-26 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.9547,
+      "Generating Technology Class": "Open Cycle Gas Turbine (OCGT)",
+      "Primary Fuel Type": "Gas",
+      "_id": 530
+    },
+    {
+      "Auction Name": "2025-26 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.9115,
+      "Generating Technology Class": "Hydro",
+      "Primary Fuel Type": "Hydro",
+      "_id": 531
+    },
+    {
+      "Auction Name": "2025-26 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.63,
+      "Generating Technology Class": "VikingLink (Denmark)",
+      "Primary Fuel Type": "Interconnector",
+      "_id": 532
+    },
+    {
+      "Auction Name": "2025-26 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.49,
+      "Generating Technology Class": "EWIC (Ireland)",
+      "Primary Fuel Type": "Interconnector",
+      "_id": 533
+    },
+    {
+      "Auction Name": "2025-26 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.69,
+      "Generating Technology Class": "IFA (France)",
+      "Primary Fuel Type": "Interconnector",
+      "_id": 534
+    },
+    {
+      "Auction Name": "2025-26 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.75,
+      "Generating Technology Class": "Eleclink (France)",
+      "Primary Fuel Type": "Interconnector",
+      "_id": 535
+    },
+    {
+      "Auction Name": "2025-26 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.66,
+      "Generating Technology Class": "BritNED (Netherlands)",
+      "Primary Fuel Type": "Interconnector",
+      "_id": 536
+    },
+    {
+      "Auction Name": "2025-26 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.65,
+      "Generating Technology Class": "NEMO (Belgium)",
+      "Primary Fuel Type": "Interconnector",
+      "_id": 537
+    },
+    {
+      "Auction Name": "2025-26 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.71,
+      "Generating Technology Class": "IFA2 (France)",
+      "Primary Fuel Type": "Interconnector",
+      "_id": 538
+    },
+    {
+      "Auction Name": "2025-26 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.83,
+      "Generating Technology Class": "NSL (Norway)",
+      "Primary Fuel Type": "Interconnector",
+      "_id": 539
+    },
+    {
+      "Auction Name": "2025-26 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.49,
+      "Generating Technology Class": "Moyle (Northern Ireland)",
+      "Primary Fuel Type": "Interconnector",
+      "_id": 540
+    },
+    {
+      "Auction Name": "2025-26 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.8044,
+      "Generating Technology Class": "Nuclear",
+      "Primary Fuel Type": "Nuclear",
+      "_id": 541
+    },
+    {
+      "Auction Name": "2025-26 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.9547,
+      "Generating Technology Class": "Oil-fired steam generators",
+      "Primary Fuel Type": "Oil",
+      "_id": 542
+    },
+    {
+      "Auction Name": "2025-26 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.0332,
+      "Generating Technology Class": "Solar Photovoltaic",
+      "Primary Fuel Type": "Solar",
+      "_id": 543
+    },
+    {
+      "Auction Name": "2025-26 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.0998,
+      "Generating Technology Class": "Storage (Duration 0.5h)",
+      "Primary Fuel Type": "Storage",
+      "_id": 544
+    },
+    {
+      "Auction Name": "2025-26 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.1996,
+      "Generating Technology Class": "Storage (Duration 1h)",
+      "Primary Fuel Type": "Storage",
+      "_id": 545
+    },
+    {
+      "Auction Name": "2025-26 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.2994,
+      "Generating Technology Class": "Storage (Duration 1.5h)",
+      "Primary Fuel Type": "Storage",
+      "_id": 546
+    },
+    {
+      "Auction Name": "2025-26 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.3973,
+      "Generating Technology Class": "Storage (Duration 2h)",
+      "Primary Fuel Type": "Storage",
+      "_id": 547
+    },
+    {
+      "Auction Name": "2025-26 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.4897,
+      "Generating Technology Class": "Storage (Duration 2.5h)",
+      "Primary Fuel Type": "Storage",
+      "_id": 548
+    },
+    {
+      "Auction Name": "2025-26 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.5618,
+      "Generating Technology Class": "Storage (Duration 3h)",
+      "Primary Fuel Type": "Storage",
+      "_id": 549
+    },
+    {
+      "Auction Name": "2025-26 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.9461,
+      "Generating Technology Class": "Storage (Duration 11h)",
+      "Primary Fuel Type": "Storage",
+      "_id": 550
+    },
+    {
+      "Auction Name": "2025-26 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.6486,
+      "Generating Technology Class": "Storage (Duration 4h)",
+      "Primary Fuel Type": "Storage",
+      "_id": 551
+    },
+    {
+      "Auction Name": "2025-26 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.9461,
+      "Generating Technology Class": "Storage (Duration 5.5h+)",
+      "Primary Fuel Type": "Storage",
+      "_id": 552
+    },
+    {
+      "Auction Name": "2025-26 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.9461,
+      "Generating Technology Class": "Storage (Duration 12h)",
+      "Primary Fuel Type": "Storage",
+      "_id": 553
+    },
+    {
+      "Auction Name": "2025-26 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.9461,
+      "Generating Technology Class": "Storage (Duration 11.5h)",
+      "Primary Fuel Type": "Storage",
+      "_id": 554
+    },
+    {
+      "Auction Name": "2025-26 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.9461,
+      "Generating Technology Class": "Storage (Duration 10.5h)",
+      "Primary Fuel Type": "Storage",
+      "_id": 555
+    },
+    {
+      "Auction Name": "2025-26 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.9461,
+      "Generating Technology Class": "Storage (Duration 10h)",
+      "Primary Fuel Type": "Storage",
+      "_id": 556
+    },
+    {
+      "Auction Name": "2025-26 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.9461,
+      "Generating Technology Class": "Storage (Duration 9.5h)",
+      "Primary Fuel Type": "Storage",
+      "_id": 557
+    },
+    {
+      "Auction Name": "2025-26 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.6154,
+      "Generating Technology Class": "Storage (Duration 3.5h)",
+      "Primary Fuel Type": "Storage",
+      "_id": 558
+    },
+    {
+      "Auction Name": "2025-26 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.9461,
+      "Generating Technology Class": "Storage (Duration 8.5h)",
+      "Primary Fuel Type": "Storage",
+      "_id": 559
+    },
+    {
+      "Auction Name": "2025-26 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.9461,
+      "Generating Technology Class": "Storage (Duration 9h)",
+      "Primary Fuel Type": "Storage",
+      "_id": 560
+    },
+    {
+      "Auction Name": "2025-26 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.9461,
+      "Generating Technology Class": "Storage (Duration 7.5h)",
+      "Primary Fuel Type": "Storage",
+      "_id": 561
+    },
+    {
+      "Auction Name": "2025-26 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.9461,
+      "Generating Technology Class": "Storage (Duration 7h)",
+      "Primary Fuel Type": "Storage",
+      "_id": 562
+    },
+    {
+      "Auction Name": "2025-26 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.9461,
+      "Generating Technology Class": "Storage (Duration 6.5h)",
+      "Primary Fuel Type": "Storage",
+      "_id": 563
+    },
+    {
+      "Auction Name": "2025-26 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.9461,
+      "Generating Technology Class": "Storage (Duration 6h)",
+      "Primary Fuel Type": "Storage",
+      "_id": 564
+    },
+    {
+      "Auction Name": "2025-26 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.9461,
+      "Generating Technology Class": "Storage (Duration 5.5h)",
+      "Primary Fuel Type": "Storage",
+      "_id": 565
+    },
+    {
+      "Auction Name": "2025-26 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.6948,
+      "Generating Technology Class": "Storage (Duration 5h)",
+      "Primary Fuel Type": "Storage",
+      "_id": 566
+    },
+    {
+      "Auction Name": "2025-26 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.6745,
+      "Generating Technology Class": "Storage (Duration 4.5h)",
+      "Primary Fuel Type": "Storage",
+      "_id": 567
+    },
+    {
+      "Auction Name": "2025-26 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.9461,
+      "Generating Technology Class": "Storage (Duration 8h)",
+      "Primary Fuel Type": "Storage",
+      "_id": 568
+    },
+    {
+      "Auction Name": "2025-26 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.0625,
+      "Generating Technology Class": "Onshore Wind",
+      "Primary Fuel Type": "Wind",
+      "_id": 569
+    },
+    {
+      "Auction Name": "2025-26 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.0859,
+      "Generating Technology Class": "Offshore Wind",
+      "Primary Fuel Type": "Wind",
+      "_id": 570
+    },
+    {
+      "Auction Name": "2026-27 (T-1) One Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.8877,
+      "Generating Technology Class": "Energy from Waste",
+      "Primary Fuel Type": "Biomass/Coal/EfW",
+      "_id": 571
+    },
+    {
+      "Auction Name": "2026-27 (T-1) One Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.8877,
+      "Generating Technology Class": "Biomass",
+      "Primary Fuel Type": "Biomass/Coal/EfW",
+      "_id": 572
+    },
+    {
+      "Auction Name": "2026-27 (T-1) One Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.0,
+      "Generating Technology Class": "Coal",
+      "Primary Fuel Type": "Biomass/Coal/EfW",
+      "_id": 573
+    },
+    {
+      "Auction Name": "2026-27 (T-1) One Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.8558,
+      "Generating Technology Class": "DSR",
+      "Primary Fuel Type": "DSR",
+      "_id": 574
+    },
+    {
+      "Auction Name": "2026-27 (T-1) One Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.9079,
+      "Generating Technology Class": "Combined Heat and Power (CHP)",
+      "Primary Fuel Type": "Gas",
+      "_id": 575
+    },
+    {
+      "Auction Name": "2026-27 (T-1) One Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.9079,
+      "Generating Technology Class": "Combined Cycle Gas Turbine (CCGT)",
+      "Primary Fuel Type": "Gas",
+      "_id": 576
+    },
+    {
+      "Auction Name": "2026-27 (T-1) One Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.9296,
+      "Generating Technology Class": "Reciprocating engines",
+      "Primary Fuel Type": "Gas",
+      "_id": 577
+    },
+    {
+      "Auction Name": "2026-27 (T-1) One Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.9296,
+      "Generating Technology Class": "Open Cycle Gas Turbine (OCGT)",
+      "Primary Fuel Type": "Gas",
+      "_id": 578
+    },
+    {
+      "Auction Name": "2026-27 (T-1) One Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.904,
+      "Generating Technology Class": "Hydro",
+      "Primary Fuel Type": "Hydro",
+      "_id": 579
+    },
+    {
+      "Auction Name": "2026-27 (T-1) One Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.7554,
+      "Generating Technology Class": "Nuclear",
+      "Primary Fuel Type": "Nuclear",
+      "_id": 580
+    },
+    {
+      "Auction Name": "2026-27 (T-1) One Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.9296,
+      "Generating Technology Class": "Oil-fired steam generators",
+      "Primary Fuel Type": "Oil",
+      "_id": 581
+    },
+    {
+      "Auction Name": "2026-27 (T-1) One Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.0566,
+      "Generating Technology Class": "Solar Photovoltaic",
+      "Primary Fuel Type": "Solar",
+      "_id": 582
+    },
+    {
+      "Auction Name": "2026-27 (T-1) One Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.8495,
+      "Generating Technology Class": "Storage (Duration 6.5h)",
+      "Primary Fuel Type": "Storage",
+      "_id": 583
+    },
+    {
+      "Auction Name": "2026-27 (T-1) One Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.9216,
+      "Generating Technology Class": "Storage (Duration 9h)",
+      "Primary Fuel Type": "Storage",
+      "_id": 584
+    },
+    {
+      "Auction Name": "2026-27 (T-1) One Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.6745,
+      "Generating Technology Class": "Storage (Duration 5h)",
+      "Primary Fuel Type": "Storage",
+      "_id": 585
+    },
+    {
+      "Auction Name": "2026-27 (T-1) One Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.7329,
+      "Generating Technology Class": "Storage (Duration 5.5h)",
+      "Primary Fuel Type": "Storage",
+      "_id": 586
+    },
+    {
+      "Auction Name": "2026-27 (T-1) One Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.7912,
+      "Generating Technology Class": "Storage (Duration 6h)",
+      "Primary Fuel Type": "Storage",
+      "_id": 587
+    },
+    {
+      "Auction Name": "2026-27 (T-1) One Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.9216,
+      "Generating Technology Class": "Storage (Duration 9.5h)",
+      "Primary Fuel Type": "Storage",
+      "_id": 588
+    },
+    {
+      "Auction Name": "2026-27 (T-1) One Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.9216,
+      "Generating Technology Class": "Storage (Duration 7.5h)",
+      "Primary Fuel Type": "Storage",
+      "_id": 589
+    },
+    {
+      "Auction Name": "2026-27 (T-1) One Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.9216,
+      "Generating Technology Class": "Storage (Duration 8.5h)",
+      "Primary Fuel Type": "Storage",
+      "_id": 590
+    },
+    {
+      "Auction Name": "2026-27 (T-1) One Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.5444,
+      "Generating Technology Class": "Storage (Duration 4h)",
+      "Primary Fuel Type": "Storage",
+      "_id": 591
+    },
+    {
+      "Auction Name": "2026-27 (T-1) One Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.9216,
+      "Generating Technology Class": "Storage (Duration 10h)",
+      "Primary Fuel Type": "Storage",
+      "_id": 592
+    },
+    {
+      "Auction Name": "2026-27 (T-1) One Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.9216,
+      "Generating Technology Class": "Storage (Duration 12h)",
+      "Primary Fuel Type": "Storage",
+      "_id": 593
+    },
+    {
+      "Auction Name": "2026-27 (T-1) One Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.9216,
+      "Generating Technology Class": "Storage (Duration 8h)",
+      "Primary Fuel Type": "Storage",
+      "_id": 594
+    },
+    {
+      "Auction Name": "2026-27 (T-1) One Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.9216,
+      "Generating Technology Class": "Storage (Duration 11.5h)",
+      "Primary Fuel Type": "Storage",
+      "_id": 595
+    },
+    {
+      "Auction Name": "2026-27 (T-1) One Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.4756,
+      "Generating Technology Class": "Storage (Duration 3.5h)",
+      "Primary Fuel Type": "Storage",
+      "_id": 596
+    },
+    {
+      "Auction Name": "2026-27 (T-1) One Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.9216,
+      "Generating Technology Class": "Storage (Duration 10.5h)",
+      "Primary Fuel Type": "Storage",
+      "_id": 597
+    },
+    {
+      "Auction Name": "2026-27 (T-1) One Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.0688,
+      "Generating Technology Class": "Storage (Duration 0.5h)",
+      "Primary Fuel Type": "Storage",
+      "_id": 598
+    },
+    {
+      "Auction Name": "2026-27 (T-1) One Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.4083,
+      "Generating Technology Class": "Storage (Duration 3h)",
+      "Primary Fuel Type": "Storage",
+      "_id": 599
+    },
+    {
+      "Auction Name": "2026-27 (T-1) One Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.2049,
+      "Generating Technology Class": "Storage (Duration 1.5h)",
+      "Primary Fuel Type": "Storage",
+      "_id": 600
+    },
+    {
+      "Auction Name": "2026-27 (T-1) One Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.9078,
+      "Generating Technology Class": "Storage (Duration 7h)",
+      "Primary Fuel Type": "Storage",
+      "_id": 601
+    },
+    {
+      "Auction Name": "2026-27 (T-1) One Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.1361,
+      "Generating Technology Class": "Storage (Duration 1h)",
+      "Primary Fuel Type": "Storage",
+      "_id": 602
+    },
+    {
+      "Auction Name": "2026-27 (T-1) One Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.2722,
+      "Generating Technology Class": "Storage (Duration 2h)",
+      "Primary Fuel Type": "Storage",
+      "_id": 603
+    },
+    {
+      "Auction Name": "2026-27 (T-1) One Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.6117,
+      "Generating Technology Class": "Storage (Duration 4.5h)",
+      "Primary Fuel Type": "Storage",
+      "_id": 604
+    },
+    {
+      "Auction Name": "2026-27 (T-1) One Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.341,
+      "Generating Technology Class": "Storage (Duration 2.5h)",
+      "Primary Fuel Type": "Storage",
+      "_id": 605
+    },
+    {
+      "Auction Name": "2026-27 (T-1) One Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.9216,
+      "Generating Technology Class": "Storage (Duration 11h)",
+      "Primary Fuel Type": "Storage",
+      "_id": 606
+    },
+    {
+      "Auction Name": "2026-27 (T-1) One Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.0742,
+      "Generating Technology Class": "Onshore Wind",
+      "Primary Fuel Type": "Wind",
+      "_id": 607
+    },
+    {
+      "Auction Name": "2026-27 (T-1) One Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.0898,
+      "Generating Technology Class": "Offshore Wind",
+      "Primary Fuel Type": "Wind",
+      "_id": 608
+    },
+    {
+      "Auction Name": "2026-27 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.804,
+      "Generating Technology Class": "Coal",
+      "Primary Fuel Type": "Biomass/Coal/EfW",
+      "_id": 609
+    },
+    {
+      "Auction Name": "2026-27 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.8799,
+      "Generating Technology Class": "Energy from Waste",
+      "Primary Fuel Type": "Biomass/Coal/EfW",
+      "_id": 610
+    },
+    {
+      "Auction Name": "2026-27 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.8799,
+      "Generating Technology Class": "Biomass",
+      "Primary Fuel Type": "Biomass/Coal/EfW",
+      "_id": 611
+    },
+    {
+      "Auction Name": "2026-27 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.7145,
+      "Generating Technology Class": "DSR",
+      "Primary Fuel Type": "DSR",
+      "_id": 612
+    },
+    {
+      "Auction Name": "2026-27 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.9518,
+      "Generating Technology Class": "Reciprocating engines",
+      "Primary Fuel Type": "Gas",
+      "_id": 613
+    },
+    {
+      "Auction Name": "2026-27 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.9518,
+      "Generating Technology Class": "Open Cycle Gas Turbine (OCGT)",
+      "Primary Fuel Type": "Gas",
+      "_id": 614
+    },
+    {
+      "Auction Name": "2026-27 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.9134,
+      "Generating Technology Class": "Combined Cycle Gas Turbine (CCGT)",
+      "Primary Fuel Type": "Gas",
+      "_id": 615
+    },
+    {
+      "Auction Name": "2026-27 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.9134,
+      "Generating Technology Class": "Combined Heat and Power (CHP)",
+      "Primary Fuel Type": "Gas",
+      "_id": 616
+    },
+    {
+      "Auction Name": "2026-27 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.9113,
+      "Generating Technology Class": "Hydro",
+      "Primary Fuel Type": "Hydro",
+      "_id": 617
+    },
+    {
+      "Auction Name": "2026-27 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.83,
+      "Generating Technology Class": "NSL (Norway)",
+      "Primary Fuel Type": "Interconnector",
+      "_id": 618
+    },
+    {
+      "Auction Name": "2026-27 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.54,
+      "Generating Technology Class": "EWIC (Ireland)",
+      "Primary Fuel Type": "Interconnector",
+      "_id": 619
+    },
+    {
+      "Auction Name": "2026-27 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.54,
+      "Generating Technology Class": "Moyle (Northern Ireland)",
+      "Primary Fuel Type": "Interconnector",
+      "_id": 620
+    },
+    {
+      "Auction Name": "2026-27 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.65,
+      "Generating Technology Class": "IFA2 (France)",
+      "Primary Fuel Type": "Interconnector",
+      "_id": 621
+    },
+    {
+      "Auction Name": "2026-27 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.64,
+      "Generating Technology Class": "NEMO (Belgium)",
+      "Primary Fuel Type": "Interconnector",
+      "_id": 622
+    },
+    {
+      "Auction Name": "2026-27 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.69,
+      "Generating Technology Class": "Eleclink (France)",
+      "Primary Fuel Type": "Interconnector",
+      "_id": 623
+    },
+    {
+      "Auction Name": "2026-27 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.61,
+      "Generating Technology Class": "BritNED (Netherlands)",
+      "Primary Fuel Type": "Interconnector",
+      "_id": 624
+    },
+    {
+      "Auction Name": "2026-27 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.54,
+      "Generating Technology Class": "Greenlink (Republic of Ireland)",
+      "Primary Fuel Type": "Interconnector",
+      "_id": 625
+    },
+    {
+      "Auction Name": "2026-27 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.55,
+      "Generating Technology Class": "VikingLink (Denmark)",
+      "Primary Fuel Type": "Interconnector",
+      "_id": 626
+    },
+    {
+      "Auction Name": "2026-27 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.63,
+      "Generating Technology Class": "IFA (France)",
+      "Primary Fuel Type": "Interconnector",
+      "_id": 627
+    },
+    {
+      "Auction Name": "2026-27 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.7825,
+      "Generating Technology Class": "Nuclear",
+      "Primary Fuel Type": "Nuclear",
+      "_id": 628
+    },
+    {
+      "Auction Name": "2026-27 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.9518,
+      "Generating Technology Class": "Oil-fired steam generators",
+      "Primary Fuel Type": "Oil",
+      "_id": 629
+    },
+    {
+      "Auction Name": "2026-27 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.0498,
+      "Generating Technology Class": "Solar Photovoltaic",
+      "Primary Fuel Type": "Solar",
+      "_id": 630
+    },
+    {
+      "Auction Name": "2026-27 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.1777,
+      "Generating Technology Class": "Storage (Duration 1.5h)",
+      "Primary Fuel Type": "Storage",
+      "_id": 631
+    },
+    {
+      "Auction Name": "2026-27 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.2958,
+      "Generating Technology Class": "Storage (Duration 2.5h)",
+      "Primary Fuel Type": "Storage",
+      "_id": 632
+    },
+    {
+      "Auction Name": "2026-27 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.2363,
+      "Generating Technology Class": "Storage (Duration 2h)",
+      "Primary Fuel Type": "Storage",
+      "_id": 633
+    },
+    {
+      "Auction Name": "2026-27 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.1181,
+      "Generating Technology Class": "Storage (Duration 1h)",
+      "Primary Fuel Type": "Storage",
+      "_id": 634
+    },
+    {
+      "Auction Name": "2026-27 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.9525,
+      "Generating Technology Class": "Storage (Duration 12h)",
+      "Primary Fuel Type": "Storage",
+      "_id": 635
+    },
+    {
+      "Auction Name": "2026-27 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.9525,
+      "Generating Technology Class": "Storage (Duration 10.5h)",
+      "Primary Fuel Type": "Storage",
+      "_id": 636
+    },
+    {
+      "Auction Name": "2026-27 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.9525,
+      "Generating Technology Class": "Storage (Duration 10h)",
+      "Primary Fuel Type": "Storage",
+      "_id": 637
+    },
+    {
+      "Auction Name": "2026-27 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.4111,
+      "Generating Technology Class": "Storage (Duration 3.5h)",
+      "Primary Fuel Type": "Storage",
+      "_id": 638
+    },
+    {
+      "Auction Name": "2026-27 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.9525,
+      "Generating Technology Class": "Storage (Duration 9.5h)",
+      "Primary Fuel Type": "Storage",
+      "_id": 639
+    },
+    {
+      "Auction Name": "2026-27 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.0595,
+      "Generating Technology Class": "Storage (Duration 0.5h)",
+      "Primary Fuel Type": "Storage",
+      "_id": 640
+    },
+    {
+      "Auction Name": "2026-27 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.4586,
+      "Generating Technology Class": "Storage (Duration 4h)",
+      "Primary Fuel Type": "Storage",
+      "_id": 641
+    },
+    {
+      "Auction Name": "2026-27 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.3553,
+      "Generating Technology Class": "Storage (Duration 3h)",
+      "Primary Fuel Type": "Storage",
+      "_id": 642
+    },
+    {
+      "Auction Name": "2026-27 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.5283,
+      "Generating Technology Class": "Storage (Duration 5h)",
+      "Primary Fuel Type": "Storage",
+      "_id": 643
+    },
+    {
+      "Auction Name": "2026-27 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.5581,
+      "Generating Technology Class": "Storage (Duration 5.5h)",
+      "Primary Fuel Type": "Storage",
+      "_id": 644
+    },
+    {
+      "Auction Name": "2026-27 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.5897,
+      "Generating Technology Class": "Storage (Duration 6h)",
+      "Primary Fuel Type": "Storage",
+      "_id": 645
+    },
+    {
+      "Auction Name": "2026-27 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.6195,
+      "Generating Technology Class": "Storage (Duration 6.5h)",
+      "Primary Fuel Type": "Storage",
+      "_id": 646
+    },
+    {
+      "Auction Name": "2026-27 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.6492,
+      "Generating Technology Class": "Storage (Duration 7h)",
+      "Primary Fuel Type": "Storage",
+      "_id": 647
+    },
+    {
+      "Auction Name": "2026-27 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.6799,
+      "Generating Technology Class": "Storage (Duration 7.5h)",
+      "Primary Fuel Type": "Storage",
+      "_id": 648
+    },
+    {
+      "Auction Name": "2026-27 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.7088,
+      "Generating Technology Class": "Storage (Duration 8h)",
+      "Primary Fuel Type": "Storage",
+      "_id": 649
+    },
+    {
+      "Auction Name": "2026-27 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.7385,
+      "Generating Technology Class": "Storage (Duration 8.5h)",
+      "Primary Fuel Type": "Storage",
+      "_id": 650
+    },
+    {
+      "Auction Name": "2026-27 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.7664,
+      "Generating Technology Class": "Storage (Duration 9h)",
+      "Primary Fuel Type": "Storage",
+      "_id": 651
+    },
+    {
+      "Auction Name": "2026-27 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.9525,
+      "Generating Technology Class": "Storage (Duration 11.5h)",
+      "Primary Fuel Type": "Storage",
+      "_id": 652
+    },
+    {
+      "Auction Name": "2026-27 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.9525,
+      "Generating Technology Class": "Storage (Duration 11h)",
+      "Primary Fuel Type": "Storage",
+      "_id": 653
+    },
+    {
+      "Auction Name": "2026-27 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.4948,
+      "Generating Technology Class": "Storage (Duration 4.5h)",
+      "Primary Fuel Type": "Storage",
+      "_id": 654
+    },
+    {
+      "Auction Name": "2026-27 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.0674,
+      "Generating Technology Class": "Onshore Wind",
+      "Primary Fuel Type": "Wind",
+      "_id": 655
+    },
+    {
+      "Auction Name": "2026-27 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.083,
+      "Generating Technology Class": "Offshore Wind",
+      "Primary Fuel Type": "Wind",
+      "_id": 656
+    },
+    {
+      "Auction Name": "2027-28 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.8852,
+      "Generating Technology Class": "Biomass",
+      "Primary Fuel Type": "Biomass/Coal/EfW",
+      "_id": 657
+    },
+    {
+      "Auction Name": "2027-28 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.8852,
+      "Generating Technology Class": "Energy from Waste",
+      "Primary Fuel Type": "Biomass/Coal/EfW",
+      "_id": 658
+    },
+    {
+      "Auction Name": "2027-28 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.7902,
+      "Generating Technology Class": "DSR",
+      "Primary Fuel Type": "DSR",
+      "_id": 659
+    },
+    {
+      "Auction Name": "2027-28 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.9159,
+      "Generating Technology Class": "Combined Cycle Gas Turbine (CCGT)",
+      "Primary Fuel Type": "Gas",
+      "_id": 660
+    },
+    {
+      "Auction Name": "2027-28 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.9159,
+      "Generating Technology Class": "Combined Heat and Power (CHP)",
+      "Primary Fuel Type": "Gas",
+      "_id": 661
+    },
+    {
+      "Auction Name": "2027-28 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.9435,
+      "Generating Technology Class": "Open Cycle Gas Turbine (OCGT)",
+      "Primary Fuel Type": "Gas",
+      "_id": 662
+    },
+    {
+      "Auction Name": "2027-28 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.9435,
+      "Generating Technology Class": "Reciprocating engines",
+      "Primary Fuel Type": "Gas",
+      "_id": 663
+    },
+    {
+      "Auction Name": "2027-28 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.912,
+      "Generating Technology Class": "Hydro",
+      "Primary Fuel Type": "Hydro",
+      "_id": 664
+    },
+    {
+      "Auction Name": "2027-28 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.59,
+      "Generating Technology Class": "IFA (France)",
+      "Primary Fuel Type": "Interconnector",
+      "_id": 665
+    },
+    {
+      "Auction Name": "2027-28 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.64,
+      "Generating Technology Class": "Eleclink (France)",
+      "Primary Fuel Type": "Interconnector",
+      "_id": 666
+    },
+    {
+      "Auction Name": "2027-28 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.61,
+      "Generating Technology Class": "BritNED (Netherlands)",
+      "Primary Fuel Type": "Interconnector",
+      "_id": 667
+    },
+    {
+      "Auction Name": "2027-28 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.64,
+      "Generating Technology Class": "NEMO (Belgium)",
+      "Primary Fuel Type": "Interconnector",
+      "_id": 668
+    },
+    {
+      "Auction Name": "2027-28 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.6,
+      "Generating Technology Class": "IFA2 (France)",
+      "Primary Fuel Type": "Interconnector",
+      "_id": 669
+    },
+    {
+      "Auction Name": "2027-28 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.83,
+      "Generating Technology Class": "NSL (Norway)",
+      "Primary Fuel Type": "Interconnector",
+      "_id": 670
+    },
+    {
+      "Auction Name": "2027-28 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.54,
+      "Generating Technology Class": "EWIC (Ireland)",
+      "Primary Fuel Type": "Interconnector",
+      "_id": 671
+    },
+    {
+      "Auction Name": "2027-28 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.54,
+      "Generating Technology Class": "Moyle (Northern Ireland)",
+      "Primary Fuel Type": "Interconnector",
+      "_id": 672
+    },
+    {
+      "Auction Name": "2027-28 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.54,
+      "Generating Technology Class": "Greenlink (Republic of Ireland)",
+      "Primary Fuel Type": "Interconnector",
+      "_id": 673
+    },
+    {
+      "Auction Name": "2027-28 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.55,
+      "Generating Technology Class": "VikingLink (Denmark)",
+      "Primary Fuel Type": "Interconnector",
+      "_id": 674
+    },
+    {
+      "Auction Name": "2027-28 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.78,
+      "Generating Technology Class": "Nuclear",
+      "Primary Fuel Type": "Nuclear",
+      "_id": 675
+    },
+    {
+      "Auction Name": "2027-28 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.9435,
+      "Generating Technology Class": "Oil-fired steam generators",
+      "Primary Fuel Type": "Oil",
+      "_id": 676
+    },
+    {
+      "Auction Name": "2027-28 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.0635,
+      "Generating Technology Class": "Solar Photovoltaic",
+      "Primary Fuel Type": "Solar",
+      "_id": 677
+    },
+    {
+      "Auction Name": "2027-28 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.5677,
+      "Generating Technology Class": "Storage (Duration 7.5h)",
+      "Primary Fuel Type": "Storage",
+      "_id": 678
+    },
+    {
+      "Auction Name": "2027-28 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.4949,
+      "Generating Technology Class": "Storage (Duration 6.5h)",
+      "Primary Fuel Type": "Storage",
+      "_id": 679
+    },
+    {
+      "Auction Name": "2027-28 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.0387,
+      "Generating Technology Class": "Storage (Duration 0.5h)",
+      "Primary Fuel Type": "Storage",
+      "_id": 680
+    },
+    {
+      "Auction Name": "2027-28 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.0774,
+      "Generating Technology Class": "Storage (Duration 1h)",
+      "Primary Fuel Type": "Storage",
+      "_id": 681
+    },
+    {
+      "Auction Name": "2027-28 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.1152,
+      "Generating Technology Class": "Storage (Duration 1.5h)",
+      "Primary Fuel Type": "Storage",
+      "_id": 682
+    },
+    {
+      "Auction Name": "2027-28 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.1539,
+      "Generating Technology Class": "Storage (Duration 2h)",
+      "Primary Fuel Type": "Storage",
+      "_id": 683
+    },
+    {
+      "Auction Name": "2027-28 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.458,
+      "Generating Technology Class": "Storage (Duration 6h)",
+      "Primary Fuel Type": "Storage",
+      "_id": 684
+    },
+    {
+      "Auction Name": "2027-28 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.4212,
+      "Generating Technology Class": "Storage (Duration 5.5h)",
+      "Primary Fuel Type": "Storage",
+      "_id": 685
+    },
+    {
+      "Auction Name": "2027-28 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.3843,
+      "Generating Technology Class": "Storage (Duration 5h)",
+      "Primary Fuel Type": "Storage",
+      "_id": 686
+    },
+    {
+      "Auction Name": "2027-28 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.3465,
+      "Generating Technology Class": "Storage (Duration 4.5h)",
+      "Primary Fuel Type": "Storage",
+      "_id": 687
+    },
+    {
+      "Auction Name": "2027-28 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.3078,
+      "Generating Technology Class": "Storage (Duration 4h)",
+      "Primary Fuel Type": "Storage",
+      "_id": 688
+    },
+    {
+      "Auction Name": "2027-28 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.2691,
+      "Generating Technology Class": "Storage (Duration 3.5h)",
+      "Primary Fuel Type": "Storage",
+      "_id": 689
+    },
+    {
+      "Auction Name": "2027-28 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.5308,
+      "Generating Technology Class": "Storage (Duration 7h)",
+      "Primary Fuel Type": "Storage",
+      "_id": 690
+    },
+    {
+      "Auction Name": "2027-28 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.2304,
+      "Generating Technology Class": "Storage (Duration 3h)",
+      "Primary Fuel Type": "Storage",
+      "_id": 691
+    },
+    {
+      "Auction Name": "2027-28 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.1926,
+      "Generating Technology Class": "Storage (Duration 2.5h)",
+      "Primary Fuel Type": "Storage",
+      "_id": 692
+    },
+    {
+      "Auction Name": "2027-28 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.9437,
+      "Generating Technology Class": "Storage (Duration 11.5h)",
+      "Primary Fuel Type": "Storage",
+      "_id": 693
+    },
+    {
+      "Auction Name": "2027-28 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.6386,
+      "Generating Technology Class": "Storage (Duration 8.5h)",
+      "Primary Fuel Type": "Storage",
+      "_id": 694
+    },
+    {
+      "Auction Name": "2027-28 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.9437,
+      "Generating Technology Class": "Storage (Duration 9h)",
+      "Primary Fuel Type": "Storage",
+      "_id": 695
+    },
+    {
+      "Auction Name": "2027-28 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.9437,
+      "Generating Technology Class": "Storage (Duration 9.5h)",
+      "Primary Fuel Type": "Storage",
+      "_id": 696
+    },
+    {
+      "Auction Name": "2027-28 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.9437,
+      "Generating Technology Class": "Storage (Duration 10h)",
+      "Primary Fuel Type": "Storage",
+      "_id": 697
+    },
+    {
+      "Auction Name": "2027-28 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.9437,
+      "Generating Technology Class": "Storage (Duration 10.5h)",
+      "Primary Fuel Type": "Storage",
+      "_id": 698
+    },
+    {
+      "Auction Name": "2027-28 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.9437,
+      "Generating Technology Class": "Storage (Duration 11h)",
+      "Primary Fuel Type": "Storage",
+      "_id": 699
+    },
+    {
+      "Auction Name": "2027-28 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.6036,
+      "Generating Technology Class": "Storage (Duration 8h)",
+      "Primary Fuel Type": "Storage",
+      "_id": 700
+    },
+    {
+      "Auction Name": "2027-28 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.9437,
+      "Generating Technology Class": "Storage (Duration 12h)",
+      "Primary Fuel Type": "Storage",
+      "_id": 701
+    },
+    {
+      "Auction Name": "2027-28 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.0869,
+      "Generating Technology Class": "Offshore Wind",
+      "Primary Fuel Type": "Wind",
+      "_id": 702
+    },
+    {
+      "Auction Name": "2027-28 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.0703,
+      "Generating Technology Class": "Onshore Wind",
+      "Primary Fuel Type": "Wind",
+      "_id": 703
+    },
+    {
+      "Auction Name": "2028-29 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.8803,
+      "Generating Technology Class": "Biomass",
+      "Primary Fuel Type": "Biomass/Coal/EfW",
+      "_id": 704
+    },
+    {
+      "Auction Name": "2028-29 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.0,
+      "Generating Technology Class": "Coal",
+      "Primary Fuel Type": "Biomass/Coal/EfW",
+      "_id": 705
+    },
+    {
+      "Auction Name": "2028-29 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.8803,
+      "Generating Technology Class": "Energy from Waste",
+      "Primary Fuel Type": "Biomass/Coal/EfW",
+      "_id": 706
+    },
+    {
+      "Auction Name": "2028-29 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.7987,
+      "Generating Technology Class": "DSR",
+      "Primary Fuel Type": "DSR",
+      "_id": 707
+    },
+    {
+      "Auction Name": "2028-29 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.9349,
+      "Generating Technology Class": "Open Cycle Gas Turbine (OCGT)",
+      "Primary Fuel Type": "Gas",
+      "_id": 708
+    },
+    {
+      "Auction Name": "2028-29 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.9349,
+      "Generating Technology Class": "Reciprocating engines",
+      "Primary Fuel Type": "Gas",
+      "_id": 709
+    },
+    {
+      "Auction Name": "2028-29 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.9095,
+      "Generating Technology Class": "Combined Heat and Power (CHP)",
+      "Primary Fuel Type": "Gas",
+      "_id": 710
+    },
+    {
+      "Auction Name": "2028-29 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.9095,
+      "Generating Technology Class": "Combined Cycle Gas Turbine (CCGT)",
+      "Primary Fuel Type": "Gas",
+      "_id": 711
+    },
+    {
+      "Auction Name": "2028-29 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.91,
+      "Generating Technology Class": "Hydro",
+      "Primary Fuel Type": "Hydro",
+      "_id": 712
+    },
+    {
+      "Auction Name": "2028-29 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.62,
+      "Generating Technology Class": "IFA (France)",
+      "Primary Fuel Type": "Interconnector",
+      "_id": 713
+    },
+    {
+      "Auction Name": "2028-29 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.6,
+      "Generating Technology Class": "VikingLink (Denmark)",
+      "Primary Fuel Type": "Interconnector",
+      "_id": 714
+    },
+    {
+      "Auction Name": "2028-29 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.66,
+      "Generating Technology Class": "BritNED (Netherlands)",
+      "Primary Fuel Type": "Interconnector",
+      "_id": 715
+    },
+    {
+      "Auction Name": "2028-29 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.54,
+      "Generating Technology Class": "EWIC (Republic of Ireland)",
+      "Primary Fuel Type": "Interconnector",
+      "_id": 716
+    },
+    {
+      "Auction Name": "2028-29 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.75,
+      "Generating Technology Class": "NSL (Norway)",
+      "Primary Fuel Type": "Interconnector",
+      "_id": 717
+    },
+    {
+      "Auction Name": "2028-29 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.54,
+      "Generating Technology Class": "Moyle (Northern Ireland)",
+      "Primary Fuel Type": "Interconnector",
+      "_id": 718
+    },
+    {
+      "Auction Name": "2028-29 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.67,
+      "Generating Technology Class": "Eleclink (France)",
+      "Primary Fuel Type": "Interconnector",
+      "_id": 719
+    },
+    {
+      "Auction Name": "2028-29 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.67,
+      "Generating Technology Class": "NEMO (Belgium)",
+      "Primary Fuel Type": "Interconnector",
+      "_id": 720
+    },
+    {
+      "Auction Name": "2028-29 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.63,
+      "Generating Technology Class": "IFA2 (France)",
+      "Primary Fuel Type": "Interconnector",
+      "_id": 721
+    },
+    {
+      "Auction Name": "2028-29 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.54,
+      "Generating Technology Class": "Greenlink (Republic of Ireland)",
+      "Primary Fuel Type": "Interconnector",
+      "_id": 722
+    },
+    {
+      "Auction Name": "2028-29 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.6,
+      "Generating Technology Class": "NeuConnect (Germany)",
+      "Primary Fuel Type": "Interconnector",
+      "_id": 723
+    },
+    {
+      "Auction Name": "2028-29 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.7544,
+      "Generating Technology Class": "Nuclear",
+      "Primary Fuel Type": "Nuclear",
+      "_id": 724
+    },
+    {
+      "Auction Name": "2028-29 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.9349,
+      "Generating Technology Class": "Oil-fired steam generators",
+      "Primary Fuel Type": "Oil",
+      "_id": 725
+    },
+    {
+      "Auction Name": "2028-29 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.0625,
+      "Generating Technology Class": "Solar Photovoltaic",
+      "Primary Fuel Type": "Solar",
+      "_id": 726
+    },
+    {
+      "Auction Name": "2028-29 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.261,
+      "Generating Technology Class": "Storage (Duration 2.5h)",
+      "Primary Fuel Type": "Storage",
+      "_id": 727
+    },
+    {
+      "Auction Name": "2028-29 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.9299,
+      "Generating Technology Class": "Storage (Duration 10h)",
+      "Primary Fuel Type": "Storage",
+      "_id": 728
+    },
+    {
+      "Auction Name": "2028-29 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.7314,
+      "Generating Technology Class": "Storage (Duration 7h)",
+      "Primary Fuel Type": "Storage",
+      "_id": 729
+    },
+    {
+      "Auction Name": "2028-29 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.3127,
+      "Generating Technology Class": "Storage (Duration 3h)",
+      "Primary Fuel Type": "Storage",
+      "_id": 730
+    },
+    {
+      "Auction Name": "2028-29 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.9299,
+      "Generating Technology Class": "Storage (Duration 9.5h)",
+      "Primary Fuel Type": "Storage",
+      "_id": 731
+    },
+    {
+      "Auction Name": "2028-29 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.9299,
+      "Generating Technology Class": "Storage (Duration 12h)",
+      "Primary Fuel Type": "Storage",
+      "_id": 732
+    },
+    {
+      "Auction Name": "2028-29 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.9299,
+      "Generating Technology Class": "Storage (Duration 9h)",
+      "Primary Fuel Type": "Storage",
+      "_id": 733
+    },
+    {
+      "Auction Name": "2028-29 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.5234,
+      "Generating Technology Class": "Storage (Duration 5h)",
+      "Primary Fuel Type": "Storage",
+      "_id": 734
+    },
+    {
+      "Auction Name": "2028-29 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.9299,
+      "Generating Technology Class": "Storage (Duration 11h)",
+      "Primary Fuel Type": "Storage",
+      "_id": 735
+    },
+    {
+      "Auction Name": "2028-29 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.7831,
+      "Generating Technology Class": "Storage (Duration 7.5h)",
+      "Primary Fuel Type": "Storage",
+      "_id": 736
+    },
+    {
+      "Auction Name": "2028-29 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.1047,
+      "Generating Technology Class": "Storage (Duration 1h)",
+      "Primary Fuel Type": "Storage",
+      "_id": 737
+    },
+    {
+      "Auction Name": "2028-29 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.2094,
+      "Generating Technology Class": "Storage (Duration 2h)",
+      "Primary Fuel Type": "Storage",
+      "_id": 738
+    },
+    {
+      "Auction Name": "2028-29 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.9299,
+      "Generating Technology Class": "Storage (Duration 11.5h)",
+      "Primary Fuel Type": "Storage",
+      "_id": 739
+    },
+    {
+      "Auction Name": "2028-29 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.9299,
+      "Generating Technology Class": "Storage (Duration 10.5h)",
+      "Primary Fuel Type": "Storage",
+      "_id": 740
+    },
+    {
+      "Auction Name": "2028-29 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.053,
+      "Generating Technology Class": "Storage (Duration 0.5h)",
+      "Primary Fuel Type": "Storage",
+      "_id": 741
+    },
+    {
+      "Auction Name": "2028-29 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.6267,
+      "Generating Technology Class": "Storage (Duration 6h)",
+      "Primary Fuel Type": "Storage",
+      "_id": 742
+    },
+    {
+      "Auction Name": "2028-29 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.3657,
+      "Generating Technology Class": "Storage (Duration 3.5h)",
+      "Primary Fuel Type": "Storage",
+      "_id": 743
+    },
+    {
+      "Auction Name": "2028-29 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.6784,
+      "Generating Technology Class": "Storage (Duration 6.5h)",
+      "Primary Fuel Type": "Storage",
+      "_id": 744
+    },
+    {
+      "Auction Name": "2028-29 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.4704,
+      "Generating Technology Class": "Storage (Duration 4.5h)",
+      "Primary Fuel Type": "Storage",
+      "_id": 745
+    },
+    {
+      "Auction Name": "2028-29 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.8347,
+      "Generating Technology Class": "Storage (Duration 8h)",
+      "Primary Fuel Type": "Storage",
+      "_id": 746
+    },
+    {
+      "Auction Name": "2028-29 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.4174,
+      "Generating Technology Class": "Storage (Duration 4h)",
+      "Primary Fuel Type": "Storage",
+      "_id": 747
+    },
+    {
+      "Auction Name": "2028-29 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.8878,
+      "Generating Technology Class": "Storage (Duration 8.5h)",
+      "Primary Fuel Type": "Storage",
+      "_id": 748
+    },
+    {
+      "Auction Name": "2028-29 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.5751,
+      "Generating Technology Class": "Storage (Duration 5.5h)",
+      "Primary Fuel Type": "Storage",
+      "_id": 749
+    },
+    {
+      "Auction Name": "2028-29 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.1577,
+      "Generating Technology Class": "Storage (Duration 1.5h)",
+      "Primary Fuel Type": "Storage",
+      "_id": 750
+    },
+    {
+      "Auction Name": "2028-29 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.0762,
+      "Generating Technology Class": "Offshore Wind",
+      "Primary Fuel Type": "Wind",
+      "_id": 751
+    },
+    {
+      "Auction Name": "2028-29 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.0664,
+      "Generating Technology Class": "Onshore Wind",
+      "Primary Fuel Type": "Wind",
+      "_id": 752
+    },
+    {
+      "Auction Name": "2029-30 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.0,
+      "Generating Technology Class": "Coal",
+      "Primary Fuel Type": "Biomass/Coal/EfW",
+      "_id": 753
+    },
+    {
+      "Auction Name": "2029-30 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.8877,
+      "Generating Technology Class": "Biomass",
+      "Primary Fuel Type": "Biomass/Coal/EfW",
+      "_id": 754
+    },
+    {
+      "Auction Name": "2029-30 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.8877,
+      "Generating Technology Class": "Energy from Waste",
+      "Primary Fuel Type": "Biomass/Coal/EfW",
+      "_id": 755
+    },
+    {
+      "Auction Name": "2029-30 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.8558,
+      "Generating Technology Class": "DSR",
+      "Primary Fuel Type": "DSR",
+      "_id": 756
+    },
+    {
+      "Auction Name": "2029-30 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.9079,
+      "Generating Technology Class": "Combined Heat and Power (CHP)",
+      "Primary Fuel Type": "Gas",
+      "_id": 757
+    },
+    {
+      "Auction Name": "2029-30 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.9296,
+      "Generating Technology Class": "Reciprocating engines",
+      "Primary Fuel Type": "Gas",
+      "_id": 758
+    },
+    {
+      "Auction Name": "2029-30 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.9079,
+      "Generating Technology Class": "Combined Cycle Gas Turbine (CCGT)",
+      "Primary Fuel Type": "Gas",
+      "_id": 759
+    },
+    {
+      "Auction Name": "2029-30 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.9296,
+      "Generating Technology Class": "Open Cycle Gas Turbine (OCGT)",
+      "Primary Fuel Type": "Gas",
+      "_id": 760
+    },
+    {
+      "Auction Name": "2029-30 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.904,
+      "Generating Technology Class": "Hydro",
+      "Primary Fuel Type": "Hydro",
+      "_id": 761
+    },
+    {
+      "Auction Name": "2029-30 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.64,
+      "Generating Technology Class": "IFA2 (France)",
+      "Primary Fuel Type": "Interconnector",
+      "_id": 762
+    },
+    {
+      "Auction Name": "2029-30 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.6,
+      "Generating Technology Class": "EWIC (Republic of Ireland)",
+      "Primary Fuel Type": "Interconnector",
+      "_id": 763
+    },
+    {
+      "Auction Name": "2029-30 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.62,
+      "Generating Technology Class": "IFA (France)",
+      "Primary Fuel Type": "Interconnector",
+      "_id": 764
+    },
+    {
+      "Auction Name": "2029-30 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.68,
+      "Generating Technology Class": "NEMO (Belgium)",
+      "Primary Fuel Type": "Interconnector",
+      "_id": 765
+    },
+    {
+      "Auction Name": "2029-30 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.63,
+      "Generating Technology Class": "NeuConnect (Germany)",
+      "Primary Fuel Type": "Interconnector",
+      "_id": 766
+    },
+    {
+      "Auction Name": "2029-30 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.67,
+      "Generating Technology Class": "BritNED (Netherlands)",
+      "Primary Fuel Type": "Interconnector",
+      "_id": 767
+    },
+    {
+      "Auction Name": "2029-30 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.7,
+      "Generating Technology Class": "NSL (Norway)",
+      "Primary Fuel Type": "Interconnector",
+      "_id": 768
+    },
+    {
+      "Auction Name": "2029-30 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.68,
+      "Generating Technology Class": "Eleclink (France)",
+      "Primary Fuel Type": "Interconnector",
+      "_id": 769
+    },
+    {
+      "Auction Name": "2029-30 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.63,
+      "Generating Technology Class": "VikingLink (Denmark)",
+      "Primary Fuel Type": "Interconnector",
+      "_id": 770
+    },
+    {
+      "Auction Name": "2029-30 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.6,
+      "Generating Technology Class": "Greenlink (Republic of Ireland)",
+      "Primary Fuel Type": "Interconnector",
+      "_id": 771
+    },
+    {
+      "Auction Name": "2029-30 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.6,
+      "Generating Technology Class": "Moyle (Northern Ireland)",
+      "Primary Fuel Type": "Interconnector",
+      "_id": 772
+    },
+    {
+      "Auction Name": "2029-30 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.7554,
+      "Generating Technology Class": "Nuclear",
+      "Primary Fuel Type": "Nuclear",
+      "_id": 773
+    },
+    {
+      "Auction Name": "2029-30 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.9296,
+      "Generating Technology Class": "Oil-fired steam generators",
+      "Primary Fuel Type": "Oil",
+      "_id": 774
+    },
+    {
+      "Auction Name": "2029-30 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.0596,
+      "Generating Technology Class": "Solar Photovoltaic",
+      "Primary Fuel Type": "Solar",
+      "_id": 775
+    },
+    {
+      "Auction Name": "2029-30 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.6052,
+      "Generating Technology Class": "Storage (Duration 5.5h)",
+      "Primary Fuel Type": "Storage",
+      "_id": 776
+    },
+    {
+      "Auction Name": "2029-30 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.4953,
+      "Generating Technology Class": "Storage (Duration 4.5h)",
+      "Primary Fuel Type": "Storage",
+      "_id": 777
+    },
+    {
+      "Auction Name": "2029-30 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.9216,
+      "Generating Technology Class": "Storage (Duration 9.5h)",
+      "Primary Fuel Type": "Storage",
+      "_id": 778
+    },
+    {
+      "Auction Name": "2029-30 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.9216,
+      "Generating Technology Class": "Storage (Duration 11.5h)",
+      "Primary Fuel Type": "Storage",
+      "_id": 779
+    },
+    {
+      "Auction Name": "2029-30 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.9216,
+      "Generating Technology Class": "Storage (Duration 8.5h)",
+      "Primary Fuel Type": "Storage",
+      "_id": 780
+    },
+    {
+      "Auction Name": "2029-30 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.6608,
+      "Generating Technology Class": "Storage (Duration 6h)",
+      "Primary Fuel Type": "Storage",
+      "_id": 781
+    },
+    {
+      "Auction Name": "2029-30 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.2755,
+      "Generating Technology Class": "Storage (Duration 2.5h)",
+      "Primary Fuel Type": "Storage",
+      "_id": 782
+    },
+    {
+      "Auction Name": "2029-30 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.9216,
+      "Generating Technology Class": "Storage (Duration 9h)",
+      "Primary Fuel Type": "Storage",
+      "_id": 783
+    },
+    {
+      "Auction Name": "2029-30 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.0557,
+      "Generating Technology Class": "Storage (Duration 0.5h)",
+      "Primary Fuel Type": "Storage",
+      "_id": 784
+    },
+    {
+      "Auction Name": "2029-30 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.7136,
+      "Generating Technology Class": "Storage (Duration 6.5h)",
+      "Primary Fuel Type": "Storage",
+      "_id": 785
+    },
+    {
+      "Auction Name": "2029-30 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.1641,
+      "Generating Technology Class": "Storage (Duration 1.5h)",
+      "Primary Fuel Type": "Storage",
+      "_id": 786
+    },
+    {
+      "Auction Name": "2029-30 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.9216,
+      "Generating Technology Class": "Storage (Duration 11h)",
+      "Primary Fuel Type": "Storage",
+      "_id": 787
+    },
+    {
+      "Auction Name": "2029-30 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.8777,
+      "Generating Technology Class": "Storage (Duration 8h)",
+      "Primary Fuel Type": "Storage",
+      "_id": 788
+    },
+    {
+      "Auction Name": "2029-30 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.9216,
+      "Generating Technology Class": "Storage (Duration 10.5h)",
+      "Primary Fuel Type": "Storage",
+      "_id": 789
+    },
+    {
+      "Auction Name": "2029-30 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.1099,
+      "Generating Technology Class": "Storage (Duration 1h)",
+      "Primary Fuel Type": "Storage",
+      "_id": 790
+    },
+    {
+      "Auction Name": "2029-30 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.7693,
+      "Generating Technology Class": "Storage (Duration 7h)",
+      "Primary Fuel Type": "Storage",
+      "_id": 791
+    },
+    {
+      "Auction Name": "2029-30 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.2198,
+      "Generating Technology Class": "Storage (Duration 2h)",
+      "Primary Fuel Type": "Storage",
+      "_id": 792
+    },
+    {
+      "Auction Name": "2029-30 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.9216,
+      "Generating Technology Class": "Storage (Duration 10h)",
+      "Primary Fuel Type": "Storage",
+      "_id": 793
+    },
+    {
+      "Auction Name": "2029-30 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.9216,
+      "Generating Technology Class": "Storage (Duration 12h)",
+      "Primary Fuel Type": "Storage",
+      "_id": 794
+    },
+    {
+      "Auction Name": "2029-30 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.8235,
+      "Generating Technology Class": "Storage (Duration 7.5h)",
+      "Primary Fuel Type": "Storage",
+      "_id": 795
+    },
+    {
+      "Auction Name": "2029-30 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.5509,
+      "Generating Technology Class": "Storage (Duration 5h)",
+      "Primary Fuel Type": "Storage",
+      "_id": 796
+    },
+    {
+      "Auction Name": "2029-30 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.3854,
+      "Generating Technology Class": "Storage (Duration 3.5h)",
+      "Primary Fuel Type": "Storage",
+      "_id": 797
+    },
+    {
+      "Auction Name": "2029-30 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.4396,
+      "Generating Technology Class": "Storage (Duration 4h)",
+      "Primary Fuel Type": "Storage",
+      "_id": 798
+    },
+    {
+      "Auction Name": "2029-30 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.3297,
+      "Generating Technology Class": "Storage (Duration 3h)",
+      "Primary Fuel Type": "Storage",
+      "_id": 799
+    },
+    {
+      "Auction Name": "2029-30 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.0781,
+      "Generating Technology Class": "Offshore Wind",
+      "Primary Fuel Type": "Wind",
+      "_id": 800
+    },
+    {
+      "Auction Name": "2029-30 (T-4) Four Year Ahead Capacity Auction",
+      "De-Rating Factor": 0.0635,
+      "Generating Technology Class": "Onshore Wind",
+      "Primary Fuel Type": "Wind",
+      "_id": 801
+    }
+  ],
+  "resource": "cm-derating",
+  "resource_id": "d94ff98d-39ba-40d6-9672-7433de0631ac",
+  "source_url": "https://api.neso.energy/api/3/action/datastore_search?resource_id=d94ff98d-39ba-40d6-9672-7433de0631ac&limit=2000",
+  "summary": {
+    "auction_name": "2029-30 (T-4) Four Year Ahead Capacity Auction",
+    "delivery_year_start": 2029,
+    "factors": {
+      "1": 0.1099,
+      "2": 0.2198,
+      "4": 0.4396
+    }
+  }
+}

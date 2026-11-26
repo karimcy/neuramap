@@ -1,0 +1,27 @@
+{
+ "contract": "IC-4",
+ "contract_version": "1.2.0",
+ "record_class": "synthetic_fixture",
+ "evidence_type": "lender_reliance_letter",
+ "title": "Synthetic countersigned lender reliance letter (schema-test fixture)",
+ "issuer": {
+  "name": "SYNTHETIC-LENDER (fixture; not a real bank)",
+  "role": "lender",
+  "reference": "SYNTH-RELIANCE-0001"
+ },
+ "document_hash": "sha256:46a3413750295e0e184d9fc735c4fecf3831fd427df0f95e9917bcf6fa5bb489",
+ "issued_on": "2026-11-24",
+ "effective_from": "2026-11-24",
+ "expiry": {
+  "kind": "no_expiry",
+  "reason": "synthetic fixture: no term is agreed"
+ },
+ "scope": {
+  "kind": "site",
+  "site_id": "SYNTHETIC-SITE-HYBRID"
+ },
+ "verification": {
+  "kind": "unverified",
+  "reason": "synthetic fixture: not checked against any signed copy"
+ }
+}

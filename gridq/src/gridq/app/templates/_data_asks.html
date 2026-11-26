@@ -1,0 +1,18 @@
+{# Ranked data-asks panel - the "what to add to sharpen this" list. Never invented values. #}
+{% if asks %}
+<div class="panel asks">
+  <h3>Sharpen this quote - ranked data asks</h3>
+  <p class="muted">Supply these in order. Missing inputs are listed honestly here; nothing is guessed
+    to force a result.</p>
+  <ol class="asks">
+    {% for ask in asks %}
+    <li>
+      <strong>{{ ask.title }}</strong>
+      <div class="why">{{ ask.why }}</div>
+      {% if ask.blocks %}<div class="blocks">unlocks: {{ ask.blocks | join(', ') }}</div>{% endif %}
+      {% if ask.detail %}<div class="blocks">{{ ask.detail }}</div>{% endif %}
+    </li>
+    {% endfor %}
+  </ol>
+</div>
+{% endif %}

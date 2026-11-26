@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GridQ — Engineering Changes, 1–2 July 2026 (the North-Star Drive)</title>
+<style>
+  :root{--ink:#0f172a;--muted:#475569;--bg:#f8fafc;--card:#ffffff;--line:#e2e8f0;--accent:#ff6b35;--good:#15803d;--warn:#b45309;--bad:#b91c1c;}
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;background:var(--bg);color:var(--ink);line-height:1.55;padding:2rem 1rem 4rem}
+  main{max-width:960px;margin:0 auto}
+  h1{font-size:1.7rem;margin-bottom:.25rem}
+  h2{font-size:1.2rem;margin:2.2rem 0 .6rem;border-bottom:2px solid var(--accent);padding-bottom:.3rem}
+  h3{font-size:1.02rem;margin:1.2rem 0 .35rem}
+  p{margin:.5rem 0;color:var(--ink)}
+  .sub{color:var(--muted);font-size:.95rem}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:1.1rem 1.3rem;margin:.8rem 0}
+  .pill{display:inline-block;font-size:.72rem;font-weight:700;letter-spacing:.03em;padding:.15rem .55rem;border-radius:999px;margin-right:.4rem;vertical-align:middle}
+  .pill.green{background:#dcfce7;color:var(--good)} .pill.amber{background:#fef3c7;color:var(--warn)} .pill.red{background:#fee2e2;color:var(--bad)} .pill.blue{background:#dbeafe;color:#1d4ed8}
+  ul{margin:.4rem 0 .6rem 1.3rem} li{margin:.28rem 0}
+  code{background:#f1f5f9;border:1px solid var(--line);border-radius:5px;padding:.05rem .35rem;font-size:.88em;font-family:ui-monospace,Menlo,Consolas,monospace}
+  table{width:100%;border-collapse:collapse;margin:.6rem 0;font-size:.92rem}
+  th,td{border:1px solid var(--line);padding:.45rem .6rem;text-align:left;vertical-align:top}
+  th{background:#f1f5f9}
+  .scroll{overflow-x:auto}
+  .banner{border-left:5px solid var(--warn);background:#fffbeb;padding: .8rem 1rem;border-radius:8px;margin:1rem 0;font-size:.95rem}
+  .kpi{display:flex;flex-wrap:wrap;gap:.8rem;margin:.9rem 0}
+  .kpi div{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:.7rem 1rem;min-width:130px}
+  .kpi b{display:block;font-size:1.35rem}
+  footer{margin-top:3rem;color:var(--muted);font-size:.85rem}
+</style>
+</head>
+<body>
+<main>
+  <h1>GridQ — the North-Star Drive</h1>
+  <p class="sub">Engineering changes, 1–2 July 2026 · branch <code>agent/sizing-search</code> (work left uncommitted per the parallel-lane convention) · driven by Karim via an autonomous loop · this page describes changes only — it prices nothing and contains no underwriting numbers.</p>
+
+  <div class="banner"><strong>Honesty note.</strong> Every quote remains <strong>not&nbsp;bankable</strong>: both assumption releases still contain 0 confirmed values, and no gate was softened by any change below. Several changes exist precisely to make outputs <em>less</em> flattering (see the perfect-foresight adjustment).</div>
+
+  <div class="kpi">
+    <div><b>568 → 658</b>tests, all green</div>
+    <div><b>14</b>loop iterations</div>
+    <div><b>3</b>waves advanced (6, 7, 8)</div>
+    <div><b>4</b>decisions recorded (D31–D30)</div>
+    <div><b>2</b>real defects found &amp; fixed</div>
+  </div>
+
+  <h2>0 · The goal that ordered all of this</h2>
+  <div class="card">
+    <p><strong><code>docs/north_star.md</code> — adopted (D27).</strong> The battery as a <em>two-sided firming asset</em>, three promises:</p>
+    <ul>
+      <li><strong>Customer</strong> — “we firm your energy cost”: peak protection, capacity management, a record-backed bill.</li>
+      <li><strong>Grid</strong> — dependable contracted flexibility: committed capability actually <em>reserved in dispatch</em> and provably deliverable at end-of-tenor degraded capacity.</li>
+      <li><strong>Lender</strong> — a P90 that can be diligenced: firmness-differentiated risk, penalty-aware downside, computed deliverability.</li>
+    </ul>
+    <p class="sub">Grounded in a 13-agent deep review (<code>docs/reviews/2026-07-01-deep-review.md</code>) and hardened by a 4-lens adversarial critic panel before adoption. Waves 6–11 are the build sequence; Waves 6 and 7 are now complete, Wave 8 is 4 slices in.</p>
+  </div>
+
+  <h2>1 · Wave 6 — the adaptive sizing search (issue 016, complete)</h2>
+  <div class="card">
+    <p><span class="pill green">DONE</span>The fixed 3×3 sizing grid is replaced by a continuous power×energy search, with the exact full-year half-hourly LP kept as the only inner evaluator.</p>
+    <ul>
+      <li><strong>Continuous domain</strong> (<code>SizingDomain</code>): site-scaled bounds from the site’s own peak/connection (never an invented kW); floating C-rate inside a sane 0.5–8&nbsp;h band. <em>Fixed a real defect:</em> the Latin-hypercube sampler could emit specs outside the duration band — power is now sampled only within the band-feasible window.</li>
+      <li><strong>Exact continuous evaluator</strong>: any (power, energy) point scored through the identical dispatch+finance path, with the <strong>objective metric recorded per point</strong> (levered return / project IRR / priced-floor fallback) so a search can never claim the levered objective while debt terms are absent (B001).</li>
+      <li><strong>Parallel solve harness</strong>: one solver per worker, results provably identical to sequential. Measured: 2.0&nbsp;s/solve → 0.8&nbsp;s effective at 4 threads (2.5×); a ~1,600-point dense exact grid ≈ 21&nbsp;min.</li>
+      <li><strong>Dense reference + adaptive refiner + PSO baseline</strong>, all budgeted, seeded, step-aware (D32: duration-keyed assumptions keep conservative flooring). Bake-off on the demo site: both search methods reach ≈ zero information loss vs the dense reference (D33).</li>
+      <li><strong>Real-site validation</strong>: the wider scope changes the recommendation — 124&nbsp;kW×4&nbsp;h → 165&nbsp;kW×8&nbsp;h, +10.8% objective vs the shipped 3×3.</li>
+    </ul>
+    <div class="banner"><strong>Finding C025 (filed, gating).</strong> The optimum pins to the 8&nbsp;h band edge because the placeholder capex is per-MW only — energy is capex-free, so long durations are artificially attractive. <strong>The engine default stays on the 3×3</strong> until a £/kWh capex component lands in the assumption library (D33 gate).</div>
+  </div>
+
+  <h2>2 · Wave 7 — the firming substrate (complete; C017 &amp; the “dead seam” closed)</h2>
+  <div class="card">
+    <p><span class="pill green">DONE</span>The deep review’s central finding was that firming existed as <em>vocabulary without mechanics</em>. All five mechanics are now real code:</p>
+    <div class="scroll"><table>
+      <tr><th>Piece</th><th>What it does now</th><th>Proof</th></tr>
+      <tr><td><strong>W7-1</strong> · <code>AvailabilityCommitment</code></td><td>The market-agnostic firming-contract shape (committed kW, optional held kWh, recurring windows, tenor, provenance — nothing defaulted into existence) + a typed payload on constraint descriptors. Seam design flagged for Olly as C026 <em>before</em> building.</td><td>Frozen contracts untouched; quote hashes proven unchanged.</td></tr>
+      <tr><td><strong>W7-2</strong> · solver compiler</td><td><code>problem.constraints</code> is finally read: commitments compile into reserved net-injection headroom (<code>discharge−charge ≤ power−C</code>) and held state-of-energy floors over deterministic calendar masks.</td><td>On the real solver: the unconstrained solve full-discharges through the committed window; the committed solve provably holds headroom and SoE — at a measured cost to dispatch value (it binds economics, not just algebra).</td></tr>
+      <tr><td><strong>W7-3</strong> · end-of-tenor deliverability</td><td><code>capability(N) = power × derate × (1−fade)<sup>N</sup> ≥ committed kW</code> — computed per sizing candidate, three-state honest (a data-ask is never a pass).</td><td>M4’s dormant acceptance criterion fires: a candidate that <em>passes its DSCR covenant</em> is rejected for year-15 capability shortfall.</td></tr>
+      <tr><td><strong>W7-4</strong> · evidence-bearing gates</td><td>The first <code>GateContext</code> producer: gate facts asserted only from commitments carrying a contract reference, each paired with <code>CommitmentEvidence</code> (who confirmed, on what basis, against which contract). Engine-computed verdicts say so — never dressed up as third-party confirmation.</td><td>End-to-end: a referenced, deliverable CM commitment flips the gate CONDITIONAL→CONTRACTED and prices the <em>reserved</em> capability; an undeliverable one stays CONDITIONAL; everything stays not&nbsp;bankable.</td></tr>
+      <tr><td><strong>W7-5</strong> · the customer bill (C017 resolved)</td><td>Bill before/after computed from the exact series the MILP optimised, decomposed (energy / DUoS / levies), losses honestly priced (negative savings representable), persisted hash-safe onto the record, and rendered in the proposal <em>with a permanent label of what is NOT modelled</em> (standing charges, capacity charges, TNUoS residual).</td><td>The proposal headline is a record number; the AST no-arithmetic guard caught (and forced the fix of) a string concat during the build — the invariant works.</td></tr>
+    </table></div>
+  </div>
+
+  <h2>3 · Wave 8 — underwriting risk shapes (4 slices in)</h2>
+  <div class="card">
+    <ul>
+      <li><span class="pill blue">D30</span><strong>Assumption-schema evolution</strong>: the 23 sections stay required forever; new sections grow as optional-with-empty-default (<code>availability</code>, <code>penalties</code>, <code>tnuos</code> homes declared — empty means “predates the section”, never zero). Frozen releases load byte-identically.</li>
+      <li><span class="pill amber">HONESTY</span><strong>The perfect-foresight haircut is consumed</strong> — previously in the library with <em>zero</em> code consumers, meaning P50 was the raw full-knowledge LP optimum. It now enters as a named deduction on dispatch-optimised revenue only, loudly labelled INTERIM until the M7 backtest measures the real ratio. Consequence handled: the demo’s illustrative gearing re-tuned 55%→25% (the correction halved its thin CFADS — the covenant gate now demonstrably fires: 1 pass / 8 rejected).</li>
+      <li><strong>Firmness-differentiated P90</strong>: contracted revenue reads its own haircut key when a release carries it (today it shares the merchant haircut, loudly warned); revenue split firm/contracted proven to sum to the total.</li>
+      <li><strong>The penalty line</strong>: an empty <code>penalties</code> section now produces a “your P90 excludes penalties and is optimistic on this axis” data-ask whenever contracted revenue is priced; a populated CM annual-cap key puts the bounded worst case into the P90 series only.</li>
+      <li><strong>Contracted-basis DSCR</strong>: measured against the same debt service on a deliberately conservative all-costs contracted CFADS (no cost allocation invented) — reported, and gated only informationally until the lender/Sim policy defines the per-basis covenant. DSCR itself remains unavailable without real gearing (B001) — that gate never softens.</li>
+    </ul>
+    <p class="sub">Remaining Wave-8: <code>ValueStreamResult</code> growth (a deliberate seam event, flagged), and the <strong>gb_v1_1</strong> release (fold <code>credit_rate_tenor_policy</code>, populate the new sections with sourced values).</p>
+  </div>
+
+  <h2>4 · What the UI shows differently</h2>
+  <div class="card">
+    <ul>
+      <li><strong>“Your bill — before &amp; after” renders real numbers</strong> on solved runs (including the demo, which gained the same hook) with the not-modelled label attached — previously permanently “pending”.</li>
+      <li><strong>The 3D sizing surface’s feasible region is honest again</strong>: after the P50 correction the demo shows 1 covenant-passing candidate and 8 rejected — the gate visibly firing rather than decorating.</li>
+      <li><strong>New warnings surface everywhere warnings render</strong>: the interim foresight adjustment, the shared-haircut notice, the penalties data-ask, contracted-basis DSCR notes, end-of-tenor deliverability workings, commitment evidence provenance.</li>
+      <li>Nothing customer-facing gained an invented number; several figures got honestly smaller.</li>
+    </ul>
+  </div>
+
+  <h2>5 · Open items needing humans</h2>
+  <div class="card">
+    <ul>
+      <li><span class="pill red">NOW</span><strong>Auth-gate the live URL</strong> (<code>GRIDQ_BASIC_AUTH</code>, built &amp; dormant) — a real prospect’s prefill remains reachable on the open URL (task #16; reserved for Olly/Karim).</li>
+      <li><strong>Olly to review</strong>: C026 (commitment schema), the solver compiler + kind registry, the deliverability arithmetic, the foresight-stream scope, D32/D33.</li>
+      <li><strong>Sourcing</strong> (unblocks bankability): NESO de-rating + clearing series, CM penalty caps, £/kWh capex component (C025), Piclo tenders, Sim’s gearing (B001), the RTM partner (B002).</li>
+    </ul>
+  </div>
+
+  <footer>
+    Generated 2 July 2026 from the repository’s changelog, decisions log (D31–D30) and handoff log — every claim traces to a test or a recorded decision on <code>agent/sizing-search</code>. This page is deployed additively and is safe to delete.
+  </footer>
+</main>
+</body>
+</html>

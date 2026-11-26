@@ -1,0 +1,12 @@
+{
+  "keys": [
+    {
+      "kty": "RSA",
+      "use": "sig",
+      "alg": "RS256",
+      "kid": "TEST-ONLY-ic13-fixture-key-1",
+      "n": "q7pNPJ9RD7-N9tY4PFmqkmaRMp__UW3EqBVTNEC6Xc_yZoAH4UB6xVJxdWii1gA_5Cpov1uyjOVIfsGCwzzyVpfY_OeBbWsbK2zktjs0ro8h0CRDm0cnjTrK1l0YV6WEVydG_nCwfODo5iOEBHw_W1sjDd0MEewZ6tBPkAnzTHNgOv4l3foS09RBN6OQ8M699EE1UnolsvTXqowPRrii-J8QxfHiNd-s9s2T2wvdaIksMPEK3LDHaPu6CVnMmbS99l61v-6FvJ9UEAsh8lRYZWxmqPBK-JeTPF2RC4DDB7JKFYsWuBYEU5o61es7nc2YNK278uZx2xkFyydCm9bG7w",
+      "e": "AQAB"
+    }
+  ]
+}

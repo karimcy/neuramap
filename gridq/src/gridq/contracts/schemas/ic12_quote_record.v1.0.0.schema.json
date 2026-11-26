@@ -1,0 +1,1769 @@
+{
+  "$defs": {
+    "BankableStatus": {
+      "description": "Whether a result is fit for a lender's review.",
+      "enum": [
+        "not_bankable",
+        "review_required",
+        "bankable_candidate"
+      ],
+      "title": "BankableStatus",
+      "type": "string"
+    },
+    "CapitalRecoveryAccount": {
+      "additionalProperties": false,
+      "description": "The **always-defined** return account (D47/D50, Olly 2026-08-17).\n\n``irr`` and ``equity_irr`` on :class:`FinancialCase` are legitimately nullable: an IRR does not\nexist for a series whose every cashflow is non-positive, and guessing one would be worse than\nrefusing it. But a record whose ONLY return field is that null tells a reader \"no value was\nfound\" when the truth is \"the value was measured and it falls £N short of returning capital\".\nThis account is therefore **mandatory** on every ``FinancialCase`` and every field but\n``capital_recovery_pct`` is non-nullable, so the two statements can never be confused.\n\nUndiscounted by design: the library carries no sourced project discount rate, and discounting at\n``financing.target_equity_irr_pct`` (an equity *target*, withdrawn as a hurdle by CLAUDE.md §2)\nwould be an invented input under D45. Computed by ``gridq.finance.returns.capital_recovery``;\nthis schema only carries the shape, per the module docstring above.",
+      "properties": {
+        "annual_net_margin_gbp": {
+          "description": "Mean operating-year net cashflow. Negative means the asset loses money yearly.",
+          "title": "Annual Net Margin Gbp",
+          "type": "number"
+        },
+        "capital_outlay_gbp": {
+          "description": "Year-0 outlay as a positive number; 0.0 when year 0 is not an outlay.",
+          "minimum": 0,
+          "title": "Capital Outlay Gbp",
+          "type": "number"
+        },
+        "capital_recovery_gap_gbp": {
+          "description": "Outlay minus operating cashflow. POSITIVE is a shortfall and is the figure that replaces a null IRR; negative means capital is returned with that much to spare.",
+          "title": "Capital Recovery Gap Gbp",
+          "type": "number"
+        },
+        "capital_recovery_pct": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Operating cashflow as a percentage of the outlay. None ONLY where there was no outlay to recover, which is the single legitimate null on this model.",
+          "title": "Capital Recovery Pct"
+        },
+        "every_operating_year_non_positive": {
+          "description": "True means no year turns cash-positive, which is why project IRR is refused.",
+          "title": "Every Operating Year Non Positive",
+          "type": "boolean"
+        },
+        "lifetime_net_cashflow_gbp": {
+          "description": "Sum of the whole series, outlay included. Undiscounted bottom line.",
+          "title": "Lifetime Net Cashflow Gbp",
+          "type": "number"
+        },
+        "narrative": {
+          "description": "One reader-facing sentence carrying the measured position and its direction. Reaches rendered packs, so it holds no em/en dash (house style is zero).",
+          "minLength": 1,
+          "title": "Narrative",
+          "type": "string"
+        },
+        "operating_cashflow_gbp": {
+          "description": "Sum of years 1..N: the cash the asset generates over the horizon.",
+          "title": "Operating Cashflow Gbp",
+          "type": "number"
+        },
+        "schema_version": {
+          "default": "0.1.0",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "status": {
+          "description": "capital_never_returned | partial_capital_recovery | capital_returned | no_capital_outlay | insufficient_series",
+          "title": "Status",
+          "type": "string"
+        }
+      },
+      "required": [
+        "annual_net_margin_gbp",
+        "operating_cashflow_gbp",
+        "capital_outlay_gbp",
+        "lifetime_net_cashflow_gbp",
+        "capital_recovery_gap_gbp",
+        "every_operating_year_non_positive",
+        "status",
+        "narrative"
+      ],
+      "title": "CapitalRecoveryAccount",
+      "type": "object"
+    },
+    "ConfidenceBand": {
+      "description": "How much weight a validation result can carry. Ordered worst to best.\n\nEvidential strength — never a probability, never P50/P90, never a hurdle\n(`docs/validation_requirements.md` §2). Defined here rather than in `gridq.quotes.confidence`\nso the band and the Gate-2 ceiling can be **persisted on the QuoteRecord** and enforced by the\nlifecycle gate (N21); `gridq.quotes.confidence` re-exports it, so its public name is unchanged.",
+      "enum": [
+        "low",
+        "medium",
+        "high"
+      ],
+      "title": "ConfidenceBand",
+      "type": "string"
+    },
+    "CovenantStatus": {
+      "additionalProperties": false,
+      "description": "P90-DSCR covenant check.",
+      "properties": {
+        "covenant": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Covenant"
+        },
+        "min_p90_dscr": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Min P90 Dscr"
+        },
+        "passes": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Passes"
+        },
+        "schema_version": {
+          "default": "0.1.0",
+          "title": "Schema Version",
+          "type": "string"
+        }
+      },
+      "title": "CovenantStatus",
+      "type": "object"
+    },
+    "CustomerBill": {
+      "additionalProperties": false,
+      "description": "Annual customer bill decomposition, before vs after the solved dispatch.\n\nIn the **before-only** mode (no dispatch — see the module docstring) every AFTER-side field is\n``None`` and only the BEFORE side and the battery-invariant fixed lines carry figures.",
+      "properties": {
+        "annual_bill_after_gbp": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Annual Bill After Gbp"
+        },
+        "annual_bill_before_gbp": {
+          "minimum": 0,
+          "title": "Annual Bill Before Gbp",
+          "type": "number"
+        },
+        "annual_saving_gbp": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "before − after; negative is representable (losses cost real money). ``None`` in the before-only mode — with no dispatch there is no saving, and 0.0 would read as a computed one.",
+          "title": "Annual Saving Gbp"
+        },
+        "basis": {
+          "description": "What the bill includes AND excludes — the honesty label the proposal must carry alongside the headline.",
+          "minLength": 1,
+          "title": "Basis",
+          "type": "string"
+        },
+        "capacity_gbp": {
+          "default": 0.0,
+          "minimum": 0,
+          "title": "Capacity Gbp",
+          "type": "number"
+        },
+        "duos_after_gbp": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Duos After Gbp"
+        },
+        "duos_before_gbp": {
+          "minimum": 0,
+          "title": "Duos Before Gbp",
+          "type": "number"
+        },
+        "energy_after_gbp": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Energy After Gbp"
+        },
+        "energy_before_gbp": {
+          "minimum": 0,
+          "title": "Energy Before Gbp",
+          "type": "number"
+        },
+        "import_after_kwh": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Import After Kwh"
+        },
+        "import_before_kwh": {
+          "minimum": 0,
+          "title": "Import Before Kwh",
+          "type": "number"
+        },
+        "levies_after_gbp": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Levies After Gbp"
+        },
+        "levies_before_gbp": {
+          "minimum": 0,
+          "title": "Levies Before Gbp",
+          "type": "number"
+        },
+        "levy_rate_gbp_per_kwh": {
+          "minimum": 0,
+          "title": "Levy Rate Gbp Per Kwh",
+          "type": "number"
+        },
+        "peak_import_after_kw": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Peak Import After Kw"
+        },
+        "peak_import_before_kw": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Peak Import Before Kw"
+        },
+        "schema_version": {
+          "default": "0.1.0",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "standing_gbp": {
+          "default": 0.0,
+          "minimum": 0,
+          "title": "Standing Gbp",
+          "type": "number"
+        }
+      },
+      "required": [
+        "annual_bill_before_gbp",
+        "annual_bill_after_gbp",
+        "annual_saving_gbp",
+        "energy_before_gbp",
+        "energy_after_gbp",
+        "duos_before_gbp",
+        "duos_after_gbp",
+        "levies_before_gbp",
+        "levies_after_gbp",
+        "import_before_kwh",
+        "import_after_kwh",
+        "levy_rate_gbp_per_kwh",
+        "basis"
+      ],
+      "title": "CustomerBill",
+      "type": "object"
+    },
+    "DataTier": {
+      "description": "Data quality tier of a site's load information.",
+      "enum": [
+        "T0_ANNUAL_KWH_TARIFF_POSTCODE",
+        "T1_PARTIAL_HALF_HOURLY",
+        "T2_VALIDATED_12_MONTH_HALF_HOURLY"
+      ],
+      "title": "DataTier",
+      "type": "string"
+    },
+    "DebtAssumptions": {
+      "additionalProperties": false,
+      "description": "Per-site debt assumptions (placeholder in v1; portfolio finance is Sim's).\n\n**Percent, not fraction.** Every ``*_pct`` field here is a percentage: 60% gearing is\n``60.0``, not ``0.6``. The distinction is enforced below because the ``[0, 100]`` bound alone\ncannot catch it — ``0.6`` is a perfectly valid 0.6%, so a fraction written by mistake sails\nthrough validation and sizes the debt **100× too small**, silently taking the DSCR, the\ncovenant verdict and the equity IRR with it (hostile review F-52).",
+      "properties": {
+        "gearing_pct": {
+          "anyOf": [
+            {
+              "maximum": 100,
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Gearing Pct"
+        },
+        "rate_pct": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Rate Pct"
+        },
+        "schema_version": {
+          "default": "0.1.0",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "sculpting_basis": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Sculpting Basis"
+        },
+        "tenor_years": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Tenor Years"
+        }
+      },
+      "title": "DebtAssumptions",
+      "type": "object"
+    },
+    "DispatchProfile": {
+      "additionalProperties": false,
+      "description": "A representative dispatch day sliced from the solved schedule — the chart's data source.\n\n``points`` is one day of half-hourly dispatch in period order; the day is selected\n**deterministically** from the metered horizon (the highest-total-discharge day, earliest index\non ties — the most legible day of the dispatch strategy), recorded in ``selection_basis`` and\n``representative_day_index`` so the reader knows which real day this is. Every value is a\nreal solved half-hour — **not** an average over days. ``interval_hours`` is the half-hourly Δt\n(0.5). ``power_kw`` / ``energy_kwh`` / ``duration_hours`` echo the dispatched spec.",
+      "properties": {
+        "duration_hours": {
+          "minimum": 0,
+          "title": "Duration Hours",
+          "type": "number"
+        },
+        "energy_kwh": {
+          "minimum": 0,
+          "title": "Energy Kwh",
+          "type": "number"
+        },
+        "interval_hours": {
+          "exclusiveMinimum": 0,
+          "title": "Interval Hours",
+          "type": "number"
+        },
+        "points": {
+          "items": {
+            "$ref": "#/$defs/DispatchProfilePoint"
+          },
+          "title": "Points",
+          "type": "array"
+        },
+        "power_kw": {
+          "minimum": 0,
+          "title": "Power Kw",
+          "type": "number"
+        },
+        "representative_day_index": {
+          "minimum": 0,
+          "title": "Representative Day Index",
+          "type": "integer"
+        },
+        "schema_version": {
+          "default": "0.1.0",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "selection_basis": {
+          "title": "Selection Basis",
+          "type": "string"
+        }
+      },
+      "required": [
+        "power_kw",
+        "energy_kwh",
+        "duration_hours",
+        "interval_hours",
+        "representative_day_index",
+        "selection_basis"
+      ],
+      "title": "DispatchProfile",
+      "type": "object"
+    },
+    "DispatchProfilePoint": {
+      "additionalProperties": false,
+      "description": "One half-hour of the representative dispatch day — real solved values, never invented.\n\n``charge_kw`` / ``discharge_kw`` are the AC-side battery power in that half-hour (kW, both\n``≥ 0``); ``soe_kwh`` is the state of energy (kWh); ``site_load_kw`` the metered site load;\n``duos_rate_gbp_per_kwh`` the DUoS rate the dispatch faced; ``red_band`` whether the half-hour\nsits in a DUoS red band; ``energy_price_gbp_per_kwh`` the time-of-use energy price the MILP\narbitraged (``None`` when the tariff had no time-mappable spread — not coerced to 0).",
+      "properties": {
+        "charge_kw": {
+          "minimum": 0,
+          "title": "Charge Kw",
+          "type": "number"
+        },
+        "discharge_kw": {
+          "minimum": 0,
+          "title": "Discharge Kw",
+          "type": "number"
+        },
+        "duos_rate_gbp_per_kwh": {
+          "title": "Duos Rate Gbp Per Kwh",
+          "type": "number"
+        },
+        "energy_price_gbp_per_kwh": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Energy Price Gbp Per Kwh"
+        },
+        "period": {
+          "minimum": 0,
+          "title": "Period",
+          "type": "integer"
+        },
+        "red_band": {
+          "title": "Red Band",
+          "type": "boolean"
+        },
+        "schema_version": {
+          "default": "0.1.0",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "site_load_kw": {
+          "title": "Site Load Kw",
+          "type": "number"
+        },
+        "soe_kwh": {
+          "minimum": 0,
+          "title": "Soe Kwh",
+          "type": "number"
+        }
+      },
+      "required": [
+        "period",
+        "charge_kw",
+        "discharge_kw",
+        "soe_kwh",
+        "site_load_kw",
+        "duos_rate_gbp_per_kwh",
+        "red_band"
+      ],
+      "title": "DispatchProfilePoint",
+      "type": "object"
+    },
+    "DscrSummary": {
+      "additionalProperties": false,
+      "description": "Debt Service Coverage Ratio summary (computed on the P90 case).",
+      "properties": {
+        "basis": {
+          "default": "P90",
+          "title": "Basis",
+          "type": "string"
+        },
+        "by_year": {
+          "items": {
+            "type": "number"
+          },
+          "title": "By Year",
+          "type": "array"
+        },
+        "min_dscr": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Min Dscr"
+        },
+        "schema_version": {
+          "default": "0.1.0",
+          "title": "Schema Version",
+          "type": "string"
+        }
+      },
+      "title": "DscrSummary",
+      "type": "object"
+    },
+    "FinancialCase": {
+      "additionalProperties": false,
+      "description": "The bankable result. Cashflows may be negative (year-0 capex) — a documented\nexception to the no-negative-GBP rule.",
+      "properties": {
+        "capital_recovery": {
+          "$ref": "#/$defs/CapitalRecoveryAccount",
+          "description": "MANDATORY (D47): the always-defined return account. Deliberately has no default, so a FinancialCase cannot be constructed whose only return figure is a null IRR."
+        },
+        "case_id": {
+          "title": "Case Id",
+          "type": "string"
+        },
+        "covenant_status": {
+          "$ref": "#/$defs/CovenantStatus"
+        },
+        "debt_assumptions": {
+          "$ref": "#/$defs/DebtAssumptions"
+        },
+        "dscr_summary": {
+          "$ref": "#/$defs/DscrSummary"
+        },
+        "equity_irr": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Levered (equity) IRR on the P50 base case (%); the P90 case governs the DSCR covenant. None when there is no debt or the equity series is non-conventional.",
+          "title": "Equity Irr"
+        },
+        "irr": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Project (unlevered) IRR (%).",
+          "title": "Irr"
+        },
+        "p50_cashflows": {
+          "description": "Annual cashflows (GBP); year 0 is typically negative.",
+          "items": {
+            "type": "number"
+          },
+          "title": "P50 Cashflows",
+          "type": "array"
+        },
+        "p90_cashflows": {
+          "description": "Annual cashflows (GBP); year 0 is typically negative.",
+          "items": {
+            "type": "number"
+          },
+          "title": "P90 Cashflows",
+          "type": "array"
+        },
+        "payback_years": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Payback Years"
+        },
+        "price_recommendation": {
+          "$ref": "#/$defs/PriceRecommendation"
+        },
+        "schema_version": {
+          "default": "0.1.0",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "warnings": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Warnings",
+          "type": "array"
+        }
+      },
+      "required": [
+        "case_id",
+        "dscr_summary",
+        "capital_recovery",
+        "debt_assumptions",
+        "price_recommendation",
+        "covenant_status"
+      ],
+      "title": "FinancialCase",
+      "type": "object"
+    },
+    "Firmness": {
+      "description": "How firm a value stream is in the priced case.",
+      "enum": [
+        "firm",
+        "contracted",
+        "conditional",
+        "excluded"
+      ],
+      "title": "Firmness",
+      "type": "string"
+    },
+    "HalfHourlyBasis": {
+      "description": "How the half-hourly series underwriting priced was obtained (validation Gate 2).\n\nLives in the schema layer, not in `gridq.ingestion.hh_mandate` where the gate is, because the\nbasis has to be **persisted on the QuoteRecord** and read by downstream gates (N21). Before\nthat it existed only as a word interpolated into a warning string, so no gate could branch on\nit: a modelled-basis run and a metered run were treated identically by every downstream check.\n`gridq.ingestion.hh_mandate` re-exports this name, so the gate's own vocabulary is unchanged.",
+      "enum": [
+        "metered",
+        "modelled",
+        "mixed"
+      ],
+      "title": "HalfHourlyBasis",
+      "type": "string"
+    },
+    "ImplementationLevel": {
+      "description": "How real the optimiser that produced a result is.",
+      "enum": [
+        "baseline",
+        "in_progress",
+        "production"
+      ],
+      "title": "ImplementationLevel",
+      "type": "string"
+    },
+    "MarketStream": {
+      "description": "The value-stream registry (the vocabulary of revenue/cost streams).",
+      "enum": [
+        "PPA_OR_BILL_SAVINGS",
+        "TARIFF_ARBITRAGE",
+        "DUOS_RED_BAND_AVOIDANCE",
+        "MIC_ASC_HEADROOM",
+        "CAPACITY_MARKET",
+        "LOAD_SERVICE",
+        "LOCAL_FLEX_PICLO",
+        "WHOLESALE_P415",
+        "BALANCING_MECHANISM",
+        "ANCILLARY_DC_DM_DR",
+        "DFS",
+        "AGREED_CAPACITY_REDUCTION"
+      ],
+      "title": "MarketStream",
+      "type": "string"
+    },
+    "OptimisationResult": {
+      "additionalProperties": false,
+      "description": "The object the engine returns. Frozen shared contract (with the stream registry).",
+      "properties": {
+        "bankable_status": {
+          "$ref": "#/$defs/BankableStatus"
+        },
+        "constraints_binding": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Constraints Binding",
+          "type": "array"
+        },
+        "created_at": {
+          "format": "date-time",
+          "title": "Created At",
+          "type": "string"
+        },
+        "dispatch_schedule_ref": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Dispatch Schedule Ref"
+        },
+        "duration_hours": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Duration Hours"
+        },
+        "gated_upside": {
+          "items": {
+            "$ref": "#/$defs/ValueStreamResult"
+          },
+          "title": "Gated Upside",
+          "type": "array"
+        },
+        "implementation_level": {
+          "$ref": "#/$defs/ImplementationLevel"
+        },
+        "request_id": {
+          "title": "Request Id",
+          "type": "string"
+        },
+        "result_id": {
+          "title": "Result Id",
+          "type": "string"
+        },
+        "schema_version": {
+          "default": "0.1.0",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "selected_energy_kwh": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Selected Energy Kwh"
+        },
+        "selected_power_kw": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Selected Power Kw"
+        },
+        "selection_status": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/SelectionStatus"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "solver_metadata": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/SolverMetadata"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "solver_status": {
+          "$ref": "#/$defs/SolverStatus"
+        },
+        "value_streams": {
+          "items": {
+            "$ref": "#/$defs/ValueStreamResult"
+          },
+          "title": "Value Streams",
+          "type": "array"
+        },
+        "warnings": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Warnings",
+          "type": "array"
+        }
+      },
+      "required": [
+        "result_id",
+        "request_id",
+        "implementation_level",
+        "bankable_status",
+        "solver_status"
+      ],
+      "title": "OptimisationResult",
+      "type": "object"
+    },
+    "PriceRecommendation": {
+      "additionalProperties": false,
+      "description": "The recommended price/structure that hits the target return.\n\n``counterfactual_import_gbp_per_kwh`` (additive, 2026-07-07) is the customer's current\nblended import energy cost (mean of the tariff's import rates plus £/kWh levy lines — a\ndisclosed blended-rate approximation, the same convention the parasitic-load cost line\nuses). ``exceeds_counterfactual`` is True when the price required to hit the target return\nis ABOVE what the customer already pays per kWh — i.e. the project is not commercially\nviable as a fixed PPA and the number must never be presented as an offer. ``None`` on\nhistorical records and where either side is unavailable.",
+      "properties": {
+        "counterfactual_import_gbp_per_kwh": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Counterfactual Import Gbp Per Kwh"
+        },
+        "exceeds_counterfactual": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Exceeds Counterfactual"
+        },
+        "hits_target_return": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Hits Target Return"
+        },
+        "schema_version": {
+          "default": "0.1.0",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "structure": {
+          "$ref": "#/$defs/PriceStructure",
+          "default": "fixed_gbp_per_kwh"
+        },
+        "value_gbp_per_kwh": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Value Gbp Per Kwh"
+        }
+      },
+      "title": "PriceRecommendation",
+      "type": "object"
+    },
+    "PriceStructure": {
+      "description": "Commercial structure of the price recommendation.",
+      "enum": [
+        "fixed_gbp_per_kwh",
+        "savings_share",
+        "capacity_fee",
+        "capped_bill"
+      ],
+      "title": "PriceStructure",
+      "type": "string"
+    },
+    "QuoteMode": {
+      "description": "Quote lifecycle state.",
+      "enum": [
+        "draft",
+        "indicative",
+        "underwritten",
+        "contracted",
+        "operating",
+        "lapsed"
+      ],
+      "title": "QuoteMode",
+      "type": "string"
+    },
+    "ScenarioSensitivity": {
+      "additionalProperties": false,
+      "description": "One scenario's DSCR/return outcome — a row of the Output-2 sensitivity table.\n\nProduced by re-running the financial model under a scenario (Low/Central/High). ``min_dscr``\nand ``irr_pct`` are ``None`` when their inputs are unavailable (e.g. no debt → no DSCR) — never\nguessed.",
+      "properties": {
+        "cod_delay_months": {
+          "default": 0,
+          "minimum": 0,
+          "title": "Cod Delay Months",
+          "type": "integer"
+        },
+        "irr_pct": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Irr Pct"
+        },
+        "label": {
+          "title": "Label",
+          "type": "string"
+        },
+        "min_dscr": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Min Dscr"
+        },
+        "note": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Note"
+        },
+        "scenario_id": {
+          "title": "Scenario Id",
+          "type": "string"
+        },
+        "schema_version": {
+          "default": "0.1.0",
+          "title": "Schema Version",
+          "type": "string"
+        }
+      },
+      "required": [
+        "scenario_id",
+        "label"
+      ],
+      "title": "ScenarioSensitivity",
+      "type": "object"
+    },
+    "SelectionStatus": {
+      "description": "What the sizing selection concluded (distinct from the solver's numerical status).\n\nA dispatch can solve OPTIMAL at every candidate size and the run can still end with no\nrecommendable system: when no candidate produces any return metric (project IRR or levered\nreturn), the honest verdict is ``no_viable_configuration`` — a first-class economics verdict,\nnever a smallest-grid-corner \"recommendation\" (the pre-2026-07-07 failure mode). Additive and\noptional on `OptimisationResult` so historical records (``None``) still load.",
+      "enum": [
+        "selected",
+        "no_viable_configuration",
+        "insufficient_data",
+        "infeasible"
+      ],
+      "title": "SelectionStatus",
+      "type": "string"
+    },
+    "SizingGrid": {
+      "additionalProperties": false,
+      "description": "The full evaluated sizing grid + the chosen optimum — the 3D surface's data source.\n\n``points`` is every evaluated candidate in deterministic ``(power, duration)`` order (inherited\nfrom `SearchSpace.candidates()`); ``selected`` is the chosen optimum — the covenant-feasible\nbest, the unlevered best, the indicatively-chosen fallback, or ``None`` when none exists, which\nis honest, not an error. ``selection_basis`` names which of the four it is (they are enumerated\non the field itself below), and must be read alongside it:\nthe grid used to report ``selected=None`` and \"no bankable candidate\" on runs whose\n`OptimisationResult` said ``selection_status=SELECTED`` and named a kW, with both persisted on\nthe same `QuoteRecord` (N16). ``covenant`` is the P90-DSCR covenant the feasibility flag is\nmeasured against (``None`` when unknown). ``bankable`` mirrors `SizingRun.bankable` — never\n``True`` on the placeholder.",
+      "properties": {
+        "bankable": {
+          "title": "Bankable",
+          "type": "boolean"
+        },
+        "covenant": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Covenant"
+        },
+        "points": {
+          "items": {
+            "$ref": "#/$defs/SizingGridPoint"
+          },
+          "title": "Points",
+          "type": "array"
+        },
+        "schema_version": {
+          "default": "0.2.0",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "search_space_size": {
+          "minimum": 0,
+          "title": "Search Space Size",
+          "type": "integer"
+        },
+        "search_version": {
+          "default": "enumerate-v1",
+          "title": "Search Version",
+          "type": "string"
+        },
+        "selected": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/SizingGridPoint"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "selection_basis": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Selection Basis"
+        },
+        "selection_reason": {
+          "title": "Selection Reason",
+          "type": "string"
+        }
+      },
+      "required": [
+        "search_space_size",
+        "bankable",
+        "selection_reason"
+      ],
+      "title": "SizingGrid",
+      "type": "object"
+    },
+    "SizingGridPoint": {
+      "additionalProperties": false,
+      "description": "One evaluated (power, duration) candidate and the scalars the surface/objective read.\n\nMirrors `gridq.sizing.sizer.CandidateEvaluation`, keeping only the plottable, serializable\nscalars (the heavy per-candidate `OptimisationResult`/`FinancialModelResult` are dropped).\n``levered_return_pct`` is the equity IRR (P50 basis; ``None`` without injected debt — the\nsurface's z-axis), ``project_irr_pct`` the unlevered fallback. ``passes_covenant`` is the\nP90-DSCR feasibility flag — ``True``/``False`` when the DSCR is available, ``None`` when it is\nnot (no debt structure), never coerced to ``False``; ``min_p90_dscr`` is likewise ``None`` when\nunavailable.\n\n**The revenue fields (``0.2.0``) exist because their absence made the record say something\nfalse.** Up to 2026-08-17 a point carried every ratio the objective ranks on and not one £, so\na run that selected nothing persisted an evaluated grid that could not state what any candidate\nhad *earned*. The pack then read as \"this site earns nothing\" on sites whose own recorded\nverdict said the dispatch had discharged tens of MWh: the true sentence is \"the best candidate\nearns £X/yr and still does not cover its costs\", and only the second is a result rather than an\nimplication. Both are negatives; only the second is evidenced. (It also makes an existing claim\ntrue: `optimisation.valuation` already tells readers \"the per-candidate figures are in the\nsizing grid\".)\n\nRead the £ fields by these rules:\n\n* ``annual_revenue_gbp`` is the **priced floor** — firm + contracted streams only, copied from\n  ``CashflowModel.total_annual_revenue_gbp``, the identical figure the finance model built this\n  candidate's cashflows on. It is NOT the sum of ``revenue_streams``, which also carries the\n  held-out entries.\n* ``None`` on any £ field means **no cashflow model was built for this candidate** (see\n  ``priceable``) — genuinely unmeasured, never a zero. A ``0.0`` means measured and zero.\n* The costs are the two recorded lines EBITDA nets off, kept separate exactly as\n  `CashflowModel` keeps them, so \"does not cover its costs\" can be checked rather than\n  asserted. Neither is escalated and neither includes capex (year-1 basis, as elsewhere).",
+      "properties": {
+        "annual_dispatch_cost_gbp": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Annual Dispatch Cost Gbp"
+        },
+        "annual_operating_cost_gbp": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Annual Operating Cost Gbp"
+        },
+        "annual_revenue_gbp": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Annual Revenue Gbp"
+        },
+        "bankable": {
+          "title": "Bankable",
+          "type": "boolean"
+        },
+        "duration_hours": {
+          "minimum": 0,
+          "title": "Duration Hours",
+          "type": "number"
+        },
+        "end_of_life_deliverable": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "End Of Life Deliverable"
+        },
+        "energy_kwh": {
+          "minimum": 0,
+          "title": "Energy Kwh",
+          "type": "number"
+        },
+        "levered_return_pct": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Levered Return Pct"
+        },
+        "min_p90_dscr": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Min P90 Dscr"
+        },
+        "passes_covenant": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Passes Covenant"
+        },
+        "power_kw": {
+          "minimum": 0,
+          "title": "Power Kw",
+          "type": "number"
+        },
+        "priceable": {
+          "title": "Priceable",
+          "type": "boolean"
+        },
+        "project_irr_pct": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Project Irr Pct"
+        },
+        "proxy": {
+          "default": false,
+          "title": "Proxy",
+          "type": "boolean"
+        },
+        "revenue_streams": {
+          "items": {
+            "$ref": "#/$defs/SizingGridStreamRevenue"
+          },
+          "title": "Revenue Streams",
+          "type": "array"
+        },
+        "schema_version": {
+          "default": "0.2.0",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "solver_status": {
+          "$ref": "#/$defs/SolverStatus"
+        },
+        "stage": {
+          "default": "grid",
+          "title": "Stage",
+          "type": "string"
+        }
+      },
+      "required": [
+        "power_kw",
+        "duration_hours",
+        "energy_kwh",
+        "priceable",
+        "bankable",
+        "solver_status"
+      ],
+      "title": "SizingGridPoint",
+      "type": "object"
+    },
+    "SizingGridStreamRevenue": {
+      "additionalProperties": false,
+      "description": "One value stream's year-1 revenue for one evaluated candidate, with its floor membership.\n\nA copy of the four fields of the candidate's own `ValueStreamResult` that a reader needs to\ntell one ``£0.00`` from another, and nothing else (the per-stream warning prose — a 250-word\nparagraph repeated across every stream of a no-spec run — stays on the top-level record where\nit is stated once).\n\n**Why `in_priced_floor` is stored rather than left to be re-derived.** A recorded zero has\nthree different meanings and they must not collapse (D45):\n\n* ``in_priced_floor=True`` with ``annual_revenue_gbp == 0.0`` — the stream IS in the priced\n  floor, the optimiser priced it, and the trade came out at nothing. A measured result.\n* ``in_priced_floor=False`` — the stream was held OUT of the floor by its firmness/gate\n  (``gate_status`` says which), so its £ is upside and its zero is not a floor measurement at\n  all. A held-out stream may equally carry a **non-zero** ``annual_revenue_gbp``: conditional\n  capacity-market upside does exactly that, and summing it into the floor would be a false\n  claim in the opposite direction.\n* The whole list empty, or `SizingGridPoint.annual_revenue_gbp` ``None`` — nothing was\n  measured for this candidate. Never written as ``0.0``.\n\nIt is stamped from `schemas.market.is_priced_floor`, the same predicate\n`finance.cashflows.revenue_by_stream` filters on, so the floor breakdown here and the floor\ntotal in `SizingGridPoint.annual_revenue_gbp` cannot disagree about which streams compose it.",
+      "properties": {
+        "annual_revenue_gbp": {
+          "minimum": 0,
+          "title": "Annual Revenue Gbp",
+          "type": "number"
+        },
+        "firmness": {
+          "title": "Firmness",
+          "type": "string"
+        },
+        "gate_status": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Gate Status"
+        },
+        "in_priced_floor": {
+          "title": "In Priced Floor",
+          "type": "boolean"
+        },
+        "schema_version": {
+          "default": "0.2.0",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "stream": {
+          "title": "Stream",
+          "type": "string"
+        }
+      },
+      "required": [
+        "stream",
+        "annual_revenue_gbp",
+        "firmness",
+        "in_priced_floor"
+      ],
+      "title": "SizingGridStreamRevenue",
+      "type": "object"
+    },
+    "SolverMetadata": {
+      "additionalProperties": false,
+      "description": "Run metadata stamped onto a result (versions, seed, timing, environment).",
+      "properties": {
+        "assumption_version": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Assumption Version"
+        },
+        "code_version": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Code Version"
+        },
+        "model_version": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Model Version"
+        },
+        "reproduction_env": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Reproduction Env"
+        },
+        "schema_version": {
+          "default": "0.1.0",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "seed": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Seed"
+        },
+        "solve_seconds": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Solve Seconds"
+        }
+      },
+      "title": "SolverMetadata",
+      "type": "object"
+    },
+    "SolverStatus": {
+      "description": "Outcome reported by the optimiser/mock.",
+      "enum": [
+        "baseline",
+        "mock",
+        "optimal",
+        "feasible",
+        "infeasible",
+        "insufficient_data"
+      ],
+      "title": "SolverStatus",
+      "type": "string"
+    },
+    "StatusHistoryEntry": {
+      "additionalProperties": false,
+      "description": "One prior lifecycle state, for the append-only history trail.",
+      "properties": {
+        "note": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Note"
+        },
+        "quote_mode": {
+          "$ref": "#/$defs/QuoteMode"
+        },
+        "schema_version": {
+          "default": "0.1.0",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "timestamp": {
+          "format": "date-time",
+          "title": "Timestamp",
+          "type": "string"
+        }
+      },
+      "required": [
+        "quote_mode"
+      ],
+      "title": "StatusHistoryEntry",
+      "type": "object"
+    },
+    "ValueStreamResult": {
+      "additionalProperties": false,
+      "description": "The annual revenue/cost and firmness of one market stream for a site.",
+      "properties": {
+        "annual_cost_gbp": {
+          "default": 0.0,
+          "minimum": 0,
+          "title": "Annual Cost Gbp",
+          "type": "number"
+        },
+        "annual_revenue_gbp": {
+          "default": 0.0,
+          "minimum": 0,
+          "title": "Annual Revenue Gbp",
+          "type": "number"
+        },
+        "assumptions_used": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Assumptions Used",
+          "type": "array"
+        },
+        "consent_status": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "The orthogonal 'consent given' label (Revenue-Data Drive / D43): 'given' when the customer explicitly consented to this stream at intake, else None. Additive and optional — carried through from the gate; it never affects the firmness bar (a gated-upside stream still cannot be FIRM) and drives the proposal's 'consent given' line.",
+          "title": "Consent Status"
+        },
+        "firmness": {
+          "$ref": "#/$defs/Firmness"
+        },
+        "gate_status": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Gate Status"
+        },
+        "schema_version": {
+          "default": "0.1.0",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "stream": {
+          "$ref": "#/$defs/MarketStream"
+        },
+        "unlock_condition": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Unlock Condition"
+        },
+        "warnings": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Warnings",
+          "type": "array"
+        }
+      },
+      "required": [
+        "stream",
+        "firmness"
+      ],
+      "title": "ValueStreamResult",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "description": "A quote at a point in its lifecycle. Traceable via input/version hashes.",
+  "properties": {
+    "assumption_version": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Assumption Version"
+    },
+    "basis_override_note": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Basis Override Note"
+    },
+    "code_version": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Code Version"
+    },
+    "confidence_band": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/ConfidenceBand"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "confidence_binding_factors": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Confidence Binding Factors",
+      "type": "array"
+    },
+    "confidence_ceiling": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/ConfidenceBand"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "created_at": {
+      "format": "date-time",
+      "title": "Created At",
+      "type": "string"
+    },
+    "customer_bill": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/CustomerBill"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "data_tier": {
+      "$ref": "#/$defs/DataTier"
+    },
+    "dispatch_profile": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/DispatchProfile"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "expiry_date": {
+      "anyOf": [
+        {
+          "format": "date",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Expiry Date"
+    },
+    "financial_case": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/FinancialCase"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "half_hourly_basis": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/HalfHourlyBasis"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "input_hash": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Input Hash"
+    },
+    "optimisation_result": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/OptimisationResult"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "provisioning_opportunity_cost_gbp": {
+      "anyOf": [
+        {
+          "type": "number"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Provisioning Opportunity Cost Gbp"
+    },
+    "quote_id": {
+      "title": "Quote Id",
+      "type": "string"
+    },
+    "quote_mode": {
+      "$ref": "#/$defs/QuoteMode"
+    },
+    "scenario_sensitivities": {
+      "items": {
+        "$ref": "#/$defs/ScenarioSensitivity"
+      },
+      "title": "Scenario Sensitivities",
+      "type": "array"
+    },
+    "schema_version": {
+      "default": "0.1.0",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "site_id": {
+      "title": "Site Id",
+      "type": "string"
+    },
+    "sizing_grid": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/SizingGrid"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "status_history": {
+      "items": {
+        "$ref": "#/$defs/StatusHistoryEntry"
+      },
+      "title": "Status History",
+      "type": "array"
+    },
+    "study_basis_id": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Study Basis Id"
+    },
+    "warnings": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Warnings",
+      "type": "array"
+    }
+  },
+  "required": [
+    "quote_id",
+    "quote_mode",
+    "site_id",
+    "data_tier"
+  ],
+  "title": "QuoteRecord",
+  "type": "object"
+}

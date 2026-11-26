@@ -1,0 +1,2302 @@
+{
+  "$defs": {
+    "AssumedApproved": {
+      "additionalProperties": false,
+      "description": "The service is assumed approved, with the question that would confirm it. Labelled, never\nrefused (D57): it partitions exactly like an evidenced service.",
+      "properties": {
+        "confirmation_ask": {
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Confirmation Ask",
+          "type": "string"
+        },
+        "kind": {
+          "const": "assumed_approved",
+          "title": "Kind",
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind",
+        "confirmation_ask"
+      ],
+      "title": "AssumedApproved",
+      "type": "object"
+    },
+    "AvailabilityRef": {
+      "additionalProperties": false,
+      "description": "A reference to an IC-11 availability surface by content hash.",
+      "properties": {
+        "availability_hash": {
+          "pattern": "^sha256:[0-9a-f]{64}$",
+          "title": "Availability Hash",
+          "type": "string"
+        },
+        "contract": {
+          "const": "IC-11",
+          "title": "Contract",
+          "type": "string"
+        },
+        "contract_version": {
+          "pattern": "^1\\.(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)$",
+          "title": "Contract Version",
+          "type": "string"
+        },
+        "kind": {
+          "const": "thermal_flex_availability_ref",
+          "title": "Kind",
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind",
+        "contract",
+        "contract_version",
+        "availability_hash"
+      ],
+      "title": "AvailabilityRef",
+      "type": "object"
+    },
+    "BessDispatch": {
+      "additionalProperties": false,
+      "description": "One direction at ``kw``: the merchant share plus each service's delivery, exactly.",
+      "properties": {
+        "direction": {
+          "$ref": "#/$defs/Direction"
+        },
+        "kind": {
+          "const": "dispatch",
+          "title": "Kind",
+          "type": "string"
+        },
+        "kw": {
+          "minimum": 1,
+          "title": "Kw",
+          "type": "integer"
+        },
+        "merchant_kw": {
+          "minimum": 0,
+          "title": "Merchant Kw",
+          "type": "integer"
+        },
+        "service_delivery": {
+          "items": {
+            "$ref": "#/$defs/ServiceDelivery"
+          },
+          "title": "Service Delivery",
+          "type": "array"
+        }
+      },
+      "required": [
+        "kind",
+        "direction",
+        "kw",
+        "merchant_kw",
+        "service_delivery"
+      ],
+      "title": "BessDispatch",
+      "type": "object"
+    },
+    "BessIdle": {
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "const": "idle",
+          "title": "Kind",
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind"
+      ],
+      "title": "BessIdle",
+      "type": "object"
+    },
+    "CellTerms": {
+      "additionalProperties": false,
+      "description": "Everything in force in one cell: the site import and export limits at the connection point,\nthe partition of each battery direction, the energy stack and the thermal terms.",
+      "properties": {
+        "charge": {
+          "$ref": "#/$defs/PowerPartition"
+        },
+        "discharge": {
+          "$ref": "#/$defs/PowerPartition"
+        },
+        "energy": {
+          "$ref": "#/$defs/EnergyStack"
+        },
+        "export_limit_kw": {
+          "minimum": 0,
+          "title": "Export Limit Kw",
+          "type": "integer"
+        },
+        "import_basis": {
+          "$ref": "#/$defs/ImportBasis"
+        },
+        "import_limit_kw": {
+          "minimum": 0,
+          "title": "Import Limit Kw",
+          "type": "integer"
+        },
+        "thermal": {
+          "discriminator": {
+            "mapping": {
+              "not_applicable": "#/$defs/NotApplicable",
+              "thermal_terms": "#/$defs/ThermalTerms"
+            },
+            "propertyName": "kind"
+          },
+          "oneOf": [
+            {
+              "$ref": "#/$defs/ThermalTerms"
+            },
+            {
+              "$ref": "#/$defs/NotApplicable"
+            }
+          ],
+          "title": "Thermal"
+        }
+      },
+      "required": [
+        "import_limit_kw",
+        "export_limit_kw",
+        "import_basis",
+        "discharge",
+        "charge",
+        "energy",
+        "thermal"
+      ],
+      "title": "CellTerms",
+      "type": "object"
+    },
+    "CloudHeartbeat": {
+      "additionalProperties": false,
+      "description": "The cloud is alive (renews the edge's lease) and says whether the market link is up.",
+      "properties": {
+        "kind": {
+          "const": "cloud_heartbeat",
+          "title": "Kind",
+          "type": "string"
+        },
+        "market_link": {
+          "enum": [
+            "up",
+            "down"
+          ],
+          "title": "Market Link",
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind",
+        "market_link"
+      ],
+      "title": "CloudHeartbeat",
+      "type": "object"
+    },
+    "CommittedService": {
+      "additionalProperties": false,
+      "description": "A service the asset is committed to. Its battery slices and thermal commitments are in the\ncells; this states what it is and what it rests on.\n\n``sustain_min`` is how long a battery slice must be held: every positive slice has held energy\nof at least ``ceil(kw x sustain_min / 60)`` kWh. A service delivered only by cooling turn-down\nhas no battery slice, and its ``sustain_min`` is not applicable (each thermal commitment\nstates its own duration).",
+      "properties": {
+        "basis": {
+          "discriminator": {
+            "mapping": {
+              "assumed_approved": "#/$defs/AssumedApproved",
+              "evidenced": "#/$defs/Evidenced",
+              "unknown": "#/$defs/Unknown"
+            },
+            "propertyName": "kind"
+          },
+          "oneOf": [
+            {
+              "$ref": "#/$defs/Evidenced"
+            },
+            {
+              "$ref": "#/$defs/AssumedApproved"
+            },
+            {
+              "$ref": "#/$defs/Unknown"
+            }
+          ],
+          "title": "Basis"
+        },
+        "counterparty_role": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/IssuerRole"
+            },
+            {
+              "$ref": "#/$defs/Unknown"
+            }
+          ],
+          "title": "Counterparty Role"
+        },
+        "reference": {
+          "anyOf": [
+            {
+              "minLength": 1,
+              "pattern": "\\S",
+              "type": "string"
+            },
+            {
+              "$ref": "#/$defs/Unknown"
+            }
+          ],
+          "title": "Reference"
+        },
+        "service_id": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]*$",
+          "title": "Service Id",
+          "type": "string"
+        },
+        "stream": {
+          "pattern": "^[A-Z][A-Z0-9_]*$",
+          "title": "Stream",
+          "type": "string"
+        },
+        "sustain_min": {
+          "anyOf": [
+            {
+              "maximum": 1440,
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "$ref": "#/$defs/NotApplicable"
+            }
+          ],
+          "title": "Sustain Min"
+        },
+        "underwritten": {
+          "discriminator": {
+            "mapping": {
+              "not_applicable": "#/$defs/NotApplicable",
+              "underwritten_value": "#/$defs/UnderwrittenValue",
+              "unknown": "#/$defs/Unknown"
+            },
+            "propertyName": "kind"
+          },
+          "oneOf": [
+            {
+              "$ref": "#/$defs/UnderwrittenValue"
+            },
+            {
+              "$ref": "#/$defs/Unknown"
+            },
+            {
+              "$ref": "#/$defs/NotApplicable"
+            }
+          ],
+          "title": "Underwritten"
+        }
+      },
+      "required": [
+        "service_id",
+        "stream",
+        "sustain_min",
+        "counterparty_role",
+        "reference",
+        "basis",
+        "underwritten"
+      ],
+      "title": "CommittedService",
+      "type": "object"
+    },
+    "ConnectionAgreementRef": {
+      "additionalProperties": false,
+      "description": "The IC-1 agreement the restrictions apply under, by content hash.",
+      "properties": {
+        "agreement_hash": {
+          "pattern": "^sha256:[0-9a-f]{64}$",
+          "title": "Agreement Hash",
+          "type": "string"
+        },
+        "contract": {
+          "const": "IC-1",
+          "title": "Contract",
+          "type": "string"
+        },
+        "contract_version": {
+          "pattern": "^1\\.(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)$",
+          "title": "Contract Version",
+          "type": "string"
+        },
+        "kind": {
+          "const": "connection_agreement_ref",
+          "title": "Kind",
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind",
+        "contract",
+        "contract_version",
+        "agreement_hash"
+      ],
+      "title": "ConnectionAgreementRef",
+      "type": "object"
+    },
+    "ConstraintLibraryPin": {
+      "additionalProperties": false,
+      "description": "The constraint library the envelope was sized with (WP-SIZE-02). Dispatch compares its own\nlibrary with this (`check_constraint_library`).",
+      "properties": {
+        "constraint_ids": {
+          "items": {
+            "pattern": "^[a-z][a-z0-9_]*$",
+            "type": "string"
+          },
+          "title": "Constraint Ids",
+          "type": "array"
+        },
+        "kind": {
+          "const": "constraint_library_pin",
+          "title": "Kind",
+          "type": "string"
+        },
+        "library_hash": {
+          "anyOf": [
+            {
+              "pattern": "^sha256:[0-9a-f]{64}$",
+              "type": "string"
+            },
+            {
+              "$ref": "#/$defs/Unknown"
+            }
+          ],
+          "title": "Library Hash"
+        },
+        "library_version": {
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Library Version",
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind",
+        "library_version",
+        "library_hash",
+        "constraint_ids"
+      ],
+      "title": "ConstraintLibraryPin",
+      "type": "object"
+    },
+    "DayGroup": {
+      "additionalProperties": false,
+      "description": "A set of ISO weekdays (1 = Monday ... 7 = Sunday). The day groups partition the week.",
+      "properties": {
+        "day_group_id": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]*$",
+          "title": "Day Group Id",
+          "type": "string"
+        },
+        "iso_weekdays": {
+          "items": {
+            "maximum": 7,
+            "minimum": 1,
+            "type": "integer"
+          },
+          "minItems": 1,
+          "title": "Iso Weekdays",
+          "type": "array"
+        }
+      },
+      "required": [
+        "day_group_id",
+        "iso_weekdays"
+      ],
+      "title": "DayGroup",
+      "type": "object"
+    },
+    "Direction": {
+      "enum": [
+        "discharge",
+        "charge"
+      ],
+      "title": "Direction",
+      "type": "string"
+    },
+    "DispatchEnvelope": {
+      "additionalProperties": false,
+      "description": "IC-3 v1.0.0: the terms live dispatch must honour at one site over one validity.\n\nThe template (``seasons`` x ``day_groups`` x ``bands`` → ``cells`` → ``terms``) and the dated\n``overrides`` say which `CellTerms` are in force at every half-hour of ``[valid_from,\nvalid_until)``; ``resolved_hash`` is the hash of that compilation. Power kW, energy kWh, time\nin minutes, temperatures in tenths of a degree: integers throughout, and every partition sums\nexactly.",
+      "properties": {
+        "bands": {
+          "items": {
+            "$ref": "#/$defs/TimeBand"
+          },
+          "minItems": 1,
+          "title": "Bands",
+          "type": "array"
+        },
+        "cells": {
+          "items": {
+            "$ref": "#/$defs/TemplateCell"
+          },
+          "minItems": 1,
+          "title": "Cells",
+          "type": "array"
+        },
+        "clock": {
+          "const": "Europe/London",
+          "title": "Clock",
+          "type": "string"
+        },
+        "contract": {
+          "const": "IC-3",
+          "default": "IC-3",
+          "title": "Contract",
+          "type": "string"
+        },
+        "contract_version": {
+          "const": "1.0.0",
+          "default": "1.0.0",
+          "title": "Contract Version",
+          "type": "string"
+        },
+        "day_groups": {
+          "items": {
+            "$ref": "#/$defs/DayGroup"
+          },
+          "minItems": 1,
+          "title": "Day Groups",
+          "type": "array"
+        },
+        "envelope_id": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]*$",
+          "title": "Envelope Id",
+          "type": "string"
+        },
+        "fail_safe": {
+          "$ref": "#/$defs/FailSafe"
+        },
+        "overrides": {
+          "items": {
+            "$ref": "#/$defs/Override"
+          },
+          "title": "Overrides",
+          "type": "array"
+        },
+        "rated_charge_kw": {
+          "minimum": 1,
+          "title": "Rated Charge Kw",
+          "type": "integer"
+        },
+        "rated_discharge_kw": {
+          "minimum": 1,
+          "title": "Rated Discharge Kw",
+          "type": "integer"
+        },
+        "record_class": {
+          "$ref": "#/$defs/RecordClass"
+        },
+        "resolution_min": {
+          "const": 30,
+          "title": "Resolution Min",
+          "type": "integer"
+        },
+        "resolved_hash": {
+          "pattern": "^sha256:[0-9a-f]{64}$",
+          "title": "Resolved Hash",
+          "type": "string"
+        },
+        "seasons": {
+          "items": {
+            "$ref": "#/$defs/Season"
+          },
+          "minItems": 1,
+          "title": "Seasons",
+          "type": "array"
+        },
+        "services": {
+          "items": {
+            "$ref": "#/$defs/CommittedService"
+          },
+          "title": "Services",
+          "type": "array"
+        },
+        "site_id": {
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Site Id",
+          "type": "string"
+        },
+        "source": {
+          "$ref": "#/$defs/EnvelopeSource"
+        },
+        "supersedes": {
+          "anyOf": [
+            {
+              "pattern": "^sha256:[0-9a-f]{64}$",
+              "type": "string"
+            },
+            {
+              "$ref": "#/$defs/NotApplicable"
+            }
+          ],
+          "title": "Supersedes"
+        },
+        "terms": {
+          "items": {
+            "$ref": "#/$defs/NamedTerms"
+          },
+          "minItems": 1,
+          "title": "Terms",
+          "type": "array"
+        },
+        "thermal": {
+          "discriminator": {
+            "mapping": {
+              "not_applicable": "#/$defs/NotApplicable",
+              "thermal_envelope": "#/$defs/ThermalEnvelope",
+              "unknown": "#/$defs/Unknown"
+            },
+            "propertyName": "kind"
+          },
+          "oneOf": [
+            {
+              "$ref": "#/$defs/ThermalEnvelope"
+            },
+            {
+              "$ref": "#/$defs/NotApplicable"
+            },
+            {
+              "$ref": "#/$defs/Unknown"
+            }
+          ],
+          "title": "Thermal"
+        },
+        "usable_energy_kwh": {
+          "minimum": 1,
+          "title": "Usable Energy Kwh",
+          "type": "integer"
+        },
+        "valid_from": {
+          "format": "date-time",
+          "title": "Valid From",
+          "type": "string"
+        },
+        "valid_until": {
+          "format": "date-time",
+          "title": "Valid Until",
+          "type": "string"
+        }
+      },
+      "required": [
+        "envelope_id",
+        "site_id",
+        "record_class",
+        "source",
+        "supersedes",
+        "valid_from",
+        "valid_until",
+        "clock",
+        "resolution_min",
+        "rated_discharge_kw",
+        "rated_charge_kw",
+        "usable_energy_kwh",
+        "fail_safe",
+        "services",
+        "thermal",
+        "seasons",
+        "day_groups",
+        "bands",
+        "cells",
+        "terms",
+        "overrides",
+        "resolved_hash"
+      ],
+      "title": "DispatchEnvelope",
+      "type": "object"
+    },
+    "EnergyStack": {
+      "additionalProperties": false,
+      "description": "The usable energy, stacked bottom to top: ``resilience_floor_kwh``, energy held so\ndischarge services can be delivered (``held_up``), the merchant band, headroom held so charge\nservices can be absorbed (``held_down``), and withheld energy. The sum equals the usable\nenergy exactly. State of energy floor = resilience + held up; ceiling = usable - held down -\nwithheld (`flat_limits`).",
+      "properties": {
+        "held_down": {
+          "items": {
+            "$ref": "#/$defs/HeldEnergy"
+          },
+          "title": "Held Down",
+          "type": "array"
+        },
+        "held_up": {
+          "items": {
+            "$ref": "#/$defs/HeldEnergy"
+          },
+          "title": "Held Up",
+          "type": "array"
+        },
+        "merchant_kwh": {
+          "minimum": 0,
+          "title": "Merchant Kwh",
+          "type": "integer"
+        },
+        "resilience_floor_kwh": {
+          "minimum": 0,
+          "title": "Resilience Floor Kwh",
+          "type": "integer"
+        },
+        "withheld_kwh": {
+          "minimum": 0,
+          "title": "Withheld Kwh",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "resilience_floor_kwh",
+        "held_up",
+        "merchant_kwh",
+        "held_down",
+        "withheld_kwh"
+      ],
+      "title": "EnergyStack",
+      "type": "object"
+    },
+    "EnterFailSafe": {
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "const": "enter_fail_safe",
+          "title": "Kind",
+          "type": "string"
+        },
+        "reason": {
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Reason",
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind",
+        "reason"
+      ],
+      "title": "EnterFailSafe",
+      "type": "object"
+    },
+    "EnvelopeInstall": {
+      "additionalProperties": false,
+      "description": "An IC-3 envelope and its compiled timeline, delivered to the edge to hold. The timeline\nmust be the envelope's compilation (by hash), so the edge needs no clock logic.",
+      "properties": {
+        "envelope": {
+          "$ref": "#/$defs/DispatchEnvelope"
+        },
+        "kind": {
+          "const": "envelope_install",
+          "title": "Kind",
+          "type": "string"
+        },
+        "timeline": {
+          "$ref": "#/$defs/ResolvedTimeline"
+        }
+      },
+      "required": [
+        "kind",
+        "envelope",
+        "timeline"
+      ],
+      "title": "EnvelopeInstall",
+      "type": "object"
+    },
+    "EnvelopeRef": {
+      "additionalProperties": false,
+      "description": "A reference to an IC-3 envelope by content hash, with its source input hash (what IC-8,\nIC-15 and the ledger embed).",
+      "properties": {
+        "contract": {
+          "const": "IC-3",
+          "title": "Contract",
+          "type": "string"
+        },
+        "contract_version": {
+          "pattern": "^1\\.(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)$",
+          "title": "Contract Version",
+          "type": "string"
+        },
+        "envelope_hash": {
+          "pattern": "^sha256:[0-9a-f]{64}$",
+          "title": "Envelope Hash",
+          "type": "string"
+        },
+        "input_hash": {
+          "pattern": "^sha256:[0-9a-f]{64}$",
+          "title": "Input Hash",
+          "type": "string"
+        },
+        "kind": {
+          "const": "dispatch_envelope_ref",
+          "title": "Kind",
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind",
+        "contract",
+        "contract_version",
+        "envelope_hash",
+        "input_hash"
+      ],
+      "title": "EnvelopeRef",
+      "type": "object"
+    },
+    "EnvelopeSource": {
+      "additionalProperties": false,
+      "description": "Where the envelope came from. ``input_hash`` is required and is never the hash of nothing;\nthe assessment quote's input hash equals it; ``run.run_id`` re-derives from the pins.",
+      "properties": {
+        "assessment": {
+          "$ref": "#/$defs/QuoteBinding"
+        },
+        "basis": {
+          "discriminator": {
+            "mapping": {
+              "study": "#/$defs/StudyBasisLabel",
+              "underwriting": "#/$defs/UnderwritingBasisLabel"
+            },
+            "propertyName": "kind"
+          },
+          "oneOf": [
+            {
+              "$ref": "#/$defs/StudyBasisLabel"
+            },
+            {
+              "$ref": "#/$defs/UnderwritingBasisLabel"
+            }
+          ],
+          "title": "Basis"
+        },
+        "connection_agreement": {
+          "discriminator": {
+            "mapping": {
+              "connection_agreement_ref": "#/$defs/ConnectionAgreementRef",
+              "not_applicable": "#/$defs/NotApplicable",
+              "unknown": "#/$defs/Unknown"
+            },
+            "propertyName": "kind"
+          },
+          "oneOf": [
+            {
+              "$ref": "#/$defs/ConnectionAgreementRef"
+            },
+            {
+              "$ref": "#/$defs/NotApplicable"
+            },
+            {
+              "$ref": "#/$defs/Unknown"
+            }
+          ],
+          "title": "Connection Agreement"
+        },
+        "constraint_library": {
+          "discriminator": {
+            "mapping": {
+              "constraint_library_pin": "#/$defs/ConstraintLibraryPin",
+              "unknown": "#/$defs/Unknown"
+            },
+            "propertyName": "kind"
+          },
+          "oneOf": [
+            {
+              "$ref": "#/$defs/ConstraintLibraryPin"
+            },
+            {
+              "$ref": "#/$defs/Unknown"
+            }
+          ],
+          "title": "Constraint Library"
+        },
+        "input_hash": {
+          "pattern": "^sha256:[0-9a-f]{64}$",
+          "title": "Input Hash",
+          "type": "string"
+        },
+        "producer": {
+          "$ref": "#/$defs/Producer"
+        },
+        "run": {
+          "$ref": "#/$defs/RunPins"
+        },
+        "scenario_set": {
+          "discriminator": {
+            "mapping": {
+              "not_applicable": "#/$defs/NotApplicable",
+              "scenario_set_ref": "#/$defs/ScenarioSetRef",
+              "unknown": "#/$defs/Unknown"
+            },
+            "propertyName": "kind"
+          },
+          "oneOf": [
+            {
+              "$ref": "#/$defs/ScenarioSetRef"
+            },
+            {
+              "$ref": "#/$defs/NotApplicable"
+            },
+            {
+              "$ref": "#/$defs/Unknown"
+            }
+          ],
+          "title": "Scenario Set"
+        }
+      },
+      "required": [
+        "input_hash",
+        "run",
+        "producer",
+        "basis",
+        "constraint_library",
+        "assessment",
+        "connection_agreement",
+        "scenario_set"
+      ],
+      "title": "EnvelopeSource",
+      "type": "object"
+    },
+    "EvidenceRef": {
+      "additionalProperties": false,
+      "description": "A reference to an IC-4 instance by its content hash (what IC-1 and others embed).",
+      "properties": {
+        "contract": {
+          "const": "IC-4",
+          "title": "Contract",
+          "type": "string"
+        },
+        "contract_version": {
+          "pattern": "^1\\.(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)$",
+          "title": "Contract Version",
+          "type": "string"
+        },
+        "evidence_hash": {
+          "pattern": "^sha256:[0-9a-f]{64}$",
+          "title": "Evidence Hash",
+          "type": "string"
+        },
+        "kind": {
+          "const": "evidence_ref",
+          "title": "Kind",
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind",
+        "contract",
+        "contract_version",
+        "evidence_hash"
+      ],
+      "title": "EvidenceRef",
+      "type": "object"
+    },
+    "Evidenced": {
+      "additionalProperties": false,
+      "description": "The service rests on an IC-4 evidence object (a contract, an award, an agreement).",
+      "properties": {
+        "evidence": {
+          "$ref": "#/$defs/EvidenceRef"
+        },
+        "kind": {
+          "const": "evidenced",
+          "title": "Kind",
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind",
+        "evidence"
+      ],
+      "title": "Evidenced",
+      "type": "object"
+    },
+    "ExpectedOutcome": {
+      "additionalProperties": false,
+      "description": "What the cloud expects at the end of the period (for the envelope check and telemetry\nreconciliation); the edge does not actuate these.",
+      "properties": {
+        "site_export_kw": {
+          "minimum": 0,
+          "title": "Site Export Kw",
+          "type": "integer"
+        },
+        "site_import_kw": {
+          "minimum": 0,
+          "title": "Site Import Kw",
+          "type": "integer"
+        },
+        "soe_end_kwh": {
+          "minimum": 0,
+          "title": "Soe End Kwh",
+          "type": "integer"
+        },
+        "temperature": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/TemperatureRange"
+            },
+            {
+              "$ref": "#/$defs/NotApplicable"
+            }
+          ],
+          "title": "Temperature"
+        }
+      },
+      "required": [
+        "soe_end_kwh",
+        "site_import_kw",
+        "site_export_kw",
+        "temperature"
+      ],
+      "title": "ExpectedOutcome",
+      "type": "object"
+    },
+    "FailSafe": {
+      "additionalProperties": false,
+      "description": "What the edge reverts to on loss of the cloud or market link (spec B1-02): import at or\nbelow the firm limit, state of energy at or above the resilience floor, markets declared\nunavailable. ``resilience_floor_kwh`` equals the lowest resilience floor in force anywhere in\nthe validity, so entering fail-safe from any compliant state is already compliant.",
+      "properties": {
+        "firm_import_limit_kw": {
+          "minimum": 0,
+          "title": "Firm Import Limit Kw",
+          "type": "integer"
+        },
+        "markets": {
+          "const": "declared_unavailable",
+          "title": "Markets",
+          "type": "string"
+        },
+        "resilience_floor_kwh": {
+          "minimum": 0,
+          "title": "Resilience Floor Kwh",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "firm_import_limit_kw",
+        "resilience_floor_kwh",
+        "markets"
+      ],
+      "title": "FailSafe",
+      "type": "object"
+    },
+    "HashedTerms": {
+      "additionalProperties": false,
+      "properties": {
+        "terms": {
+          "$ref": "#/$defs/CellTerms"
+        },
+        "terms_hash": {
+          "pattern": "^sha256:[0-9a-f]{64}$",
+          "title": "Terms Hash",
+          "type": "string"
+        }
+      },
+      "required": [
+        "terms_hash",
+        "terms"
+      ],
+      "title": "HashedTerms",
+      "type": "object"
+    },
+    "HeldEnergy": {
+      "additionalProperties": false,
+      "properties": {
+        "kwh": {
+          "minimum": 1,
+          "title": "Kwh",
+          "type": "integer"
+        },
+        "service_id": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]*$",
+          "title": "Service Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "service_id",
+        "kwh"
+      ],
+      "title": "HeldEnergy",
+      "type": "object"
+    },
+    "ImportBasis": {
+      "description": "What a cell's import limit rests on. Only a ``firm`` limit is bounded by the fail-safe\nfirm limit; a non-firm or DNO-scheduled limit may exceed it while it is granted.",
+      "enum": [
+        "firm",
+        "non_firm",
+        "scheduled_dno_setpoint"
+      ],
+      "title": "ImportBasis",
+      "type": "string"
+    },
+    "IssuerRole": {
+      "description": "Who issued the document. **Neura is not an issuer role**: a claim Neura authors about\nitself or a site is an assumption or a derived record, never evidence. Neura may *verify*.",
+      "enum": [
+        "dno",
+        "idno",
+        "neso",
+        "elexon",
+        "emr_settlement",
+        "ofgem",
+        "government",
+        "supplier",
+        "aggregator",
+        "customer",
+        "host",
+        "meter_operator",
+        "oem",
+        "insurer",
+        "lender",
+        "independent_engineer",
+        "legal_adviser",
+        "certification_body",
+        "data_provider",
+        "funder",
+        "research_partner",
+        "independent_verifier"
+      ],
+      "title": "IssuerRole",
+      "type": "string"
+    },
+    "MeasurementPoint": {
+      "description": "Where a temperature limit is measured. ASHRAE classes are defined at the IT inlet.",
+      "enum": [
+        "it_inlet",
+        "supply_air"
+      ],
+      "title": "MeasurementPoint",
+      "type": "string"
+    },
+    "NamedTerms": {
+      "additionalProperties": false,
+      "properties": {
+        "terms": {
+          "$ref": "#/$defs/CellTerms"
+        },
+        "terms_id": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]*$",
+          "title": "Terms Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "terms_id",
+        "terms"
+      ],
+      "title": "NamedTerms",
+      "type": "object"
+    },
+    "NotApplicable": {
+      "additionalProperties": false,
+      "description": "A term that does not exist for this record (e.g. a LIFO position on a firm connection).\n\nDistinct from `Unknown`: \"not applicable\" is a statement about the agreement, \"unknown\" is a\nstatement about our knowledge of it. Both carry a reason.",
+      "properties": {
+        "kind": {
+          "const": "not_applicable",
+          "title": "Kind",
+          "type": "string"
+        },
+        "reason": {
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Reason",
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind",
+        "reason"
+      ],
+      "title": "NotApplicable",
+      "type": "object"
+    },
+    "OperatorCommand": {
+      "additionalProperties": false,
+      "description": "A Neura ops command to the edge, audited under IC-13 (the command id and the hash of the\naudit event that allowed it).",
+      "properties": {
+        "action": {
+          "discriminator": {
+            "mapping": {
+              "enter_fail_safe": "#/$defs/EnterFailSafe",
+              "release_trigger": "#/$defs/ReleaseTrigger"
+            },
+            "propertyName": "kind"
+          },
+          "oneOf": [
+            {
+              "$ref": "#/$defs/EnterFailSafe"
+            },
+            {
+              "$ref": "#/$defs/ReleaseTrigger"
+            }
+          ],
+          "title": "Action"
+        },
+        "audit_event_hash": {
+          "pattern": "^sha256:[0-9a-f]{64}$",
+          "title": "Audit Event Hash",
+          "type": "string"
+        },
+        "command_id": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]*$",
+          "title": "Command Id",
+          "type": "string"
+        },
+        "issued_at": {
+          "format": "date-time",
+          "title": "Issued At",
+          "type": "string"
+        },
+        "kind": {
+          "const": "operator_command",
+          "title": "Kind",
+          "type": "string"
+        },
+        "operator": {
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Operator",
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind",
+        "command_id",
+        "issued_at",
+        "action",
+        "operator",
+        "audit_event_hash"
+      ],
+      "title": "OperatorCommand",
+      "type": "object"
+    },
+    "Override": {
+      "additionalProperties": false,
+      "description": "Replaces the template's terms wholesale over ``[start, end)`` (UTC, on the grid): a\nmaintenance outage, a stress event, a dated call. Never a field-by-field merge.",
+      "properties": {
+        "end": {
+          "format": "date-time",
+          "title": "End",
+          "type": "string"
+        },
+        "override_id": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]*$",
+          "title": "Override Id",
+          "type": "string"
+        },
+        "reason": {
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Reason",
+          "type": "string"
+        },
+        "start": {
+          "format": "date-time",
+          "title": "Start",
+          "type": "string"
+        },
+        "terms_id": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]*$",
+          "title": "Terms Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "override_id",
+        "start",
+        "end",
+        "terms_id",
+        "reason"
+      ],
+      "title": "Override",
+      "type": "object"
+    },
+    "PeerHead": {
+      "additionalProperties": false,
+      "description": "The last frame the sender received from the other side: an implicit acknowledgement.",
+      "properties": {
+        "frame_hash": {
+          "pattern": "^sha256:[0-9a-f]{64}$",
+          "title": "Frame Hash",
+          "type": "string"
+        },
+        "kind": {
+          "const": "peer_head",
+          "title": "Kind",
+          "type": "string"
+        },
+        "link_epoch": {
+          "minimum": 0,
+          "title": "Link Epoch",
+          "type": "integer"
+        },
+        "seq": {
+          "minimum": 0,
+          "title": "Seq",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "kind",
+        "link_epoch",
+        "seq",
+        "frame_hash"
+      ],
+      "title": "PeerHead",
+      "type": "object"
+    },
+    "PowerPartition": {
+      "additionalProperties": false,
+      "description": "One direction's rating, partitioned: ``resilience_kw + sum(services) + merchant_kw +\nwithheld.kw`` equals the rating exactly (checked by the envelope, which holds the rating).\nA zero service slice is absence: a slice is at least 1 kW.",
+      "properties": {
+        "merchant_kw": {
+          "minimum": 0,
+          "title": "Merchant Kw",
+          "type": "integer"
+        },
+        "resilience_kw": {
+          "minimum": 0,
+          "title": "Resilience Kw",
+          "type": "integer"
+        },
+        "services": {
+          "items": {
+            "$ref": "#/$defs/ServiceSlice"
+          },
+          "title": "Services",
+          "type": "array"
+        },
+        "withheld": {
+          "discriminator": {
+            "mapping": {
+              "not_applicable": "#/$defs/NotApplicable",
+              "withheld": "#/$defs/Withheld"
+            },
+            "propertyName": "kind"
+          },
+          "oneOf": [
+            {
+              "$ref": "#/$defs/Withheld"
+            },
+            {
+              "$ref": "#/$defs/NotApplicable"
+            }
+          ],
+          "title": "Withheld"
+        }
+      },
+      "required": [
+        "resilience_kw",
+        "services",
+        "merchant_kw",
+        "withheld"
+      ],
+      "title": "PowerPartition",
+      "type": "object"
+    },
+    "Producer": {
+      "additionalProperties": false,
+      "properties": {
+        "engine": {
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Engine",
+          "type": "string"
+        },
+        "engine_version": {
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Engine Version",
+          "type": "string"
+        }
+      },
+      "required": [
+        "engine",
+        "engine_version"
+      ],
+      "title": "Producer",
+      "type": "object"
+    },
+    "QuoteBinding": {
+      "additionalProperties": false,
+      "description": "The IC-12 quote the envelope was exported from, by id and input hash. A `QuoteRecord` is\nmutable through its lifecycle, so it is not bound by content hash.",
+      "properties": {
+        "contract": {
+          "const": "IC-12",
+          "title": "Contract",
+          "type": "string"
+        },
+        "contract_version": {
+          "pattern": "^2\\.(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)$",
+          "title": "Contract Version",
+          "type": "string"
+        },
+        "kind": {
+          "const": "quote_binding",
+          "title": "Kind",
+          "type": "string"
+        },
+        "quote_id": {
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Quote Id",
+          "type": "string"
+        },
+        "quote_input_hash": {
+          "pattern": "^sha256:[0-9a-f]{64}$",
+          "title": "Quote Input Hash",
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind",
+        "contract",
+        "contract_version",
+        "quote_id",
+        "quote_input_hash"
+      ],
+      "title": "QuoteBinding",
+      "type": "object"
+    },
+    "RecordClass": {
+      "description": "What the envelope is. ``synthetic_fixture`` exactly when the site id starts ``SYNTHETIC-``;\nconsumers must refuse it outside tests. ``live`` may hold no unknown reference.",
+      "enum": [
+        "live",
+        "replayed_real_data",
+        "modelled",
+        "synthetic_fixture"
+      ],
+      "title": "RecordClass",
+      "type": "string"
+    },
+    "ReleaseTrigger": {
+      "additionalProperties": false,
+      "properties": {
+        "code": {
+          "$ref": "#/$defs/TriggerCode"
+        },
+        "kind": {
+          "const": "release_trigger",
+          "title": "Kind",
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind",
+        "code"
+      ],
+      "title": "ReleaseTrigger",
+      "type": "object"
+    },
+    "ResolvedTimeline": {
+      "additionalProperties": false,
+      "description": "IC-3 v1.0.0: an envelope compiled onto UTC half-hours (`resolve`). Step-encoded: a step\nstarts wherever the terms change. Terms are keyed by their own content hash, so the timeline\ndoes not depend on how the template named them. Read it with no clock logic\n(`timeline_terms_at`); trust it by ``content_hash() == envelope.resolved_hash``.",
+      "properties": {
+        "contract": {
+          "const": "IC-3",
+          "default": "IC-3",
+          "title": "Contract",
+          "type": "string"
+        },
+        "contract_version": {
+          "const": "1.0.0",
+          "default": "1.0.0",
+          "title": "Contract Version",
+          "type": "string"
+        },
+        "kind": {
+          "const": "resolved_timeline",
+          "title": "Kind",
+          "type": "string"
+        },
+        "n_periods": {
+          "minimum": 1,
+          "title": "N Periods",
+          "type": "integer"
+        },
+        "resolution_min": {
+          "const": 30,
+          "title": "Resolution Min",
+          "type": "integer"
+        },
+        "site_id": {
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Site Id",
+          "type": "string"
+        },
+        "steps": {
+          "items": {
+            "$ref": "#/$defs/TimelineStep"
+          },
+          "minItems": 1,
+          "title": "Steps",
+          "type": "array"
+        },
+        "terms": {
+          "items": {
+            "$ref": "#/$defs/HashedTerms"
+          },
+          "minItems": 1,
+          "title": "Terms",
+          "type": "array"
+        },
+        "valid_from": {
+          "format": "date-time",
+          "title": "Valid From",
+          "type": "string"
+        },
+        "valid_until": {
+          "format": "date-time",
+          "title": "Valid Until",
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind",
+        "site_id",
+        "valid_from",
+        "valid_until",
+        "resolution_min",
+        "n_periods",
+        "terms",
+        "steps"
+      ],
+      "title": "ResolvedTimeline",
+      "type": "object"
+    },
+    "RunPins": {
+      "additionalProperties": false,
+      "description": "The assessment run's four pins, restated so ``run_id`` can be re-derived (`derive_run_id`,\nthe `gridq.provenance` derivation).",
+      "properties": {
+        "assumption_version": {
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Assumption Version",
+          "type": "string"
+        },
+        "code_version": {
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Code Version",
+          "type": "string"
+        },
+        "run_id": {
+          "pattern": "^run_[0-9a-f]{16}$",
+          "title": "Run Id",
+          "type": "string"
+        },
+        "schema_version": {
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Schema Version",
+          "type": "string"
+        }
+      },
+      "required": [
+        "run_id",
+        "assumption_version",
+        "code_version",
+        "schema_version"
+      ],
+      "title": "RunPins",
+      "type": "object"
+    },
+    "ScenarioSetRef": {
+      "additionalProperties": false,
+      "description": "A reference to an IC-2 set by content hash (what IC-3 envelopes and run records embed).",
+      "properties": {
+        "contract": {
+          "const": "IC-2",
+          "title": "Contract",
+          "type": "string"
+        },
+        "contract_version": {
+          "pattern": "^1\\.(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)$",
+          "title": "Contract Version",
+          "type": "string"
+        },
+        "kind": {
+          "const": "scenario_set_ref",
+          "title": "Kind",
+          "type": "string"
+        },
+        "scenario_set_hash": {
+          "pattern": "^sha256:[0-9a-f]{64}$",
+          "title": "Scenario Set Hash",
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind",
+        "contract",
+        "contract_version",
+        "scenario_set_hash"
+      ],
+      "title": "ScenarioSetRef",
+      "type": "object"
+    },
+    "Season": {
+      "additionalProperties": false,
+      "description": "A set of calendar months. The envelope's seasons partition the twelve months.",
+      "properties": {
+        "months": {
+          "items": {
+            "maximum": 12,
+            "minimum": 1,
+            "type": "integer"
+          },
+          "minItems": 1,
+          "title": "Months",
+          "type": "array"
+        },
+        "season_id": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]*$",
+          "title": "Season Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "season_id",
+        "months"
+      ],
+      "title": "Season",
+      "type": "object"
+    },
+    "ServiceDelivery": {
+      "additionalProperties": false,
+      "properties": {
+        "direction": {
+          "$ref": "#/$defs/Direction"
+        },
+        "kw": {
+          "minimum": 1,
+          "title": "Kw",
+          "type": "integer"
+        },
+        "service_id": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]*$",
+          "title": "Service Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "service_id",
+        "direction",
+        "kw"
+      ],
+      "title": "ServiceDelivery",
+      "type": "object"
+    },
+    "ServiceSlice": {
+      "additionalProperties": false,
+      "properties": {
+        "kw": {
+          "minimum": 1,
+          "title": "Kw",
+          "type": "integer"
+        },
+        "service_id": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]*$",
+          "title": "Service Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "service_id",
+        "kw"
+      ],
+      "title": "ServiceSlice",
+      "type": "object"
+    },
+    "SetpointPeriod": {
+      "additionalProperties": false,
+      "description": "One period of setpoints, inside one half-hour of the grid, on whole minutes.",
+      "properties": {
+        "bess": {
+          "discriminator": {
+            "mapping": {
+              "dispatch": "#/$defs/BessDispatch",
+              "idle": "#/$defs/BessIdle"
+            },
+            "propertyName": "kind"
+          },
+          "oneOf": [
+            {
+              "$ref": "#/$defs/BessIdle"
+            },
+            {
+              "$ref": "#/$defs/BessDispatch"
+            }
+          ],
+          "title": "Bess"
+        },
+        "chiller_band": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/TemperatureRange"
+            },
+            {
+              "$ref": "#/$defs/NotApplicable"
+            }
+          ],
+          "title": "Chiller Band"
+        },
+        "end": {
+          "format": "date-time",
+          "title": "End",
+          "type": "string"
+        },
+        "expected": {
+          "$ref": "#/$defs/ExpectedOutcome"
+        },
+        "site_import_cap_kw": {
+          "minimum": 0,
+          "title": "Site Import Cap Kw",
+          "type": "integer"
+        },
+        "start": {
+          "format": "date-time",
+          "title": "Start",
+          "type": "string"
+        }
+      },
+      "required": [
+        "start",
+        "end",
+        "bess",
+        "site_import_cap_kw",
+        "chiller_band",
+        "expected"
+      ],
+      "title": "SetpointPeriod",
+      "type": "object"
+    },
+    "SetpointSchedule": {
+      "additionalProperties": false,
+      "description": "A schedule for one site, executed inside one IC-3 envelope (checked against its compiled\ntimeline, trusted by ``resolved_hash``). It names what it supersedes by content hash.",
+      "properties": {
+        "deliver_by": {
+          "format": "date-time",
+          "title": "Deliver By",
+          "type": "string"
+        },
+        "envelope": {
+          "$ref": "#/$defs/EnvelopeRef"
+        },
+        "execution": {
+          "enum": [
+            "shadow",
+            "closed_loop"
+          ],
+          "title": "Execution",
+          "type": "string"
+        },
+        "issued_at": {
+          "format": "date-time",
+          "title": "Issued At",
+          "type": "string"
+        },
+        "kind": {
+          "const": "setpoint_schedule",
+          "title": "Kind",
+          "type": "string"
+        },
+        "periods": {
+          "items": {
+            "$ref": "#/$defs/SetpointPeriod"
+          },
+          "minItems": 1,
+          "title": "Periods",
+          "type": "array"
+        },
+        "planned_against_anm": {
+          "anyOf": [
+            {
+              "pattern": "^sha256:[0-9a-f]{64}$",
+              "type": "string"
+            },
+            {
+              "$ref": "#/$defs/NotApplicable"
+            }
+          ],
+          "title": "Planned Against Anm"
+        },
+        "resolved_hash": {
+          "pattern": "^sha256:[0-9a-f]{64}$",
+          "title": "Resolved Hash",
+          "type": "string"
+        },
+        "schedule_id": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]*$",
+          "title": "Schedule Id",
+          "type": "string"
+        },
+        "site_id": {
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Site Id",
+          "type": "string"
+        },
+        "soe_start_kwh": {
+          "minimum": 0,
+          "title": "Soe Start Kwh",
+          "type": "integer"
+        },
+        "supersedes": {
+          "anyOf": [
+            {
+              "pattern": "^sha256:[0-9a-f]{64}$",
+              "type": "string"
+            },
+            {
+              "$ref": "#/$defs/NotApplicable"
+            }
+          ],
+          "title": "Supersedes"
+        }
+      },
+      "required": [
+        "kind",
+        "schedule_id",
+        "site_id",
+        "issued_at",
+        "deliver_by",
+        "envelope",
+        "resolved_hash",
+        "execution",
+        "supersedes",
+        "planned_against_anm",
+        "soe_start_kwh",
+        "periods"
+      ],
+      "title": "SetpointSchedule",
+      "type": "object"
+    },
+    "StudyBasisLabel": {
+      "additionalProperties": false,
+      "description": "The run was priced on a named study basis (D46/D55). ``label`` is that basis's banner and\nmust be shown wherever the envelope is (`basis_banner`).",
+      "properties": {
+        "basis_id": {
+          "pattern": "^[a-z][a-z0-9_]*$",
+          "title": "Basis Id",
+          "type": "string"
+        },
+        "disclosure": {
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Disclosure",
+          "type": "string"
+        },
+        "kind": {
+          "const": "study",
+          "title": "Kind",
+          "type": "string"
+        },
+        "label": {
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Label",
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind",
+        "basis_id",
+        "label",
+        "disclosure"
+      ],
+      "title": "StudyBasisLabel",
+      "type": "object"
+    },
+    "TemperatureBand": {
+      "additionalProperties": false,
+      "properties": {
+        "max_tenths_c": {
+          "maximum": 1000,
+          "minimum": -500,
+          "title": "Max Tenths C",
+          "type": "integer"
+        },
+        "min_tenths_c": {
+          "maximum": 1000,
+          "minimum": -500,
+          "title": "Min Tenths C",
+          "type": "integer"
+        },
+        "point": {
+          "$ref": "#/$defs/MeasurementPoint"
+        }
+      },
+      "required": [
+        "point",
+        "min_tenths_c",
+        "max_tenths_c"
+      ],
+      "title": "TemperatureBand",
+      "type": "object"
+    },
+    "TemperatureRange": {
+      "additionalProperties": false,
+      "description": "The lowest and highest temperature a schedule expects over a period, at a point.",
+      "properties": {
+        "high_tenths_c": {
+          "maximum": 1000,
+          "minimum": -500,
+          "title": "High Tenths C",
+          "type": "integer"
+        },
+        "low_tenths_c": {
+          "maximum": 1000,
+          "minimum": -500,
+          "title": "Low Tenths C",
+          "type": "integer"
+        },
+        "point": {
+          "enum": [
+            "it_inlet",
+            "supply_air"
+          ],
+          "title": "Point",
+          "type": "string"
+        }
+      },
+      "required": [
+        "point",
+        "low_tenths_c",
+        "high_tenths_c"
+      ],
+      "title": "TemperatureRange",
+      "type": "object"
+    },
+    "TemplateCell": {
+      "additionalProperties": false,
+      "properties": {
+        "band_id": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]*$",
+          "title": "Band Id",
+          "type": "string"
+        },
+        "day_group_id": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]*$",
+          "title": "Day Group Id",
+          "type": "string"
+        },
+        "season_id": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]*$",
+          "title": "Season Id",
+          "type": "string"
+        },
+        "terms_id": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]*$",
+          "title": "Terms Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "season_id",
+        "day_group_id",
+        "band_id",
+        "terms_id"
+      ],
+      "title": "TemplateCell",
+      "type": "object"
+    },
+    "ThermalCommitment": {
+      "additionalProperties": false,
+      "description": "A committed cooling turn-down: ``reduction_kw`` held for ``duration_min`` from any start in\nthe cell, for a declared service.",
+      "properties": {
+        "duration_min": {
+          "maximum": 1440,
+          "minimum": 1,
+          "title": "Duration Min",
+          "type": "integer"
+        },
+        "reduction_kw": {
+          "minimum": 1,
+          "title": "Reduction Kw",
+          "type": "integer"
+        },
+        "service_id": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]*$",
+          "title": "Service Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "service_id",
+        "reduction_kw",
+        "duration_min"
+      ],
+      "title": "ThermalCommitment",
+      "type": "object"
+    },
+    "ThermalEnvelope": {
+      "additionalProperties": false,
+      "description": "The site's IC-11 surface by hash, and its binding IT-safety band restated (equal to the\nsurface's ``limits.binding``: the hard limit). Each cell's band lies inside it.",
+      "properties": {
+        "binding": {
+          "$ref": "#/$defs/TemperatureBand"
+        },
+        "kind": {
+          "const": "thermal_envelope",
+          "title": "Kind",
+          "type": "string"
+        },
+        "surface": {
+          "$ref": "#/$defs/AvailabilityRef"
+        }
+      },
+      "required": [
+        "kind",
+        "surface",
+        "binding"
+      ],
+      "title": "ThermalEnvelope",
+      "type": "object"
+    },
+    "ThermalTerms": {
+      "additionalProperties": false,
+      "description": "A cell's operating band (inside the envelope's binding band, at its point) and its thermal\ncommitments. No commitment is an empty tuple, never a zero.",
+      "properties": {
+        "band": {
+          "$ref": "#/$defs/TemperatureBand"
+        },
+        "commitments": {
+          "items": {
+            "$ref": "#/$defs/ThermalCommitment"
+          },
+          "title": "Commitments",
+          "type": "array"
+        },
+        "kind": {
+          "const": "thermal_terms",
+          "title": "Kind",
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind",
+        "band",
+        "commitments"
+      ],
+      "title": "ThermalTerms",
+      "type": "object"
+    },
+    "TimeBand": {
+      "additionalProperties": false,
+      "description": "A half-open local-clock window ``[start_minute, end_minute)`` on `CLOCK`, on the 30-minute\ngrid. ``end_minute == 1440`` is midnight at the end of the day; a band never wraps midnight.",
+      "properties": {
+        "band_id": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]*$",
+          "title": "Band Id",
+          "type": "string"
+        },
+        "end_minute": {
+          "maximum": 1440,
+          "minimum": 30,
+          "title": "End Minute",
+          "type": "integer"
+        },
+        "start_minute": {
+          "maximum": 1410,
+          "minimum": 0,
+          "title": "Start Minute",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "band_id",
+        "start_minute",
+        "end_minute"
+      ],
+      "title": "TimeBand",
+      "type": "object"
+    },
+    "TimelineStep": {
+      "additionalProperties": false,
+      "description": "From half-hour ``index`` (0 is ``valid_from``) to the next step, ``terms_hash`` holds.",
+      "properties": {
+        "index": {
+          "minimum": 0,
+          "title": "Index",
+          "type": "integer"
+        },
+        "terms_hash": {
+          "pattern": "^sha256:[0-9a-f]{64}$",
+          "title": "Terms Hash",
+          "type": "string"
+        }
+      },
+      "required": [
+        "index",
+        "terms_hash"
+      ],
+      "title": "TimelineStep",
+      "type": "object"
+    },
+    "TriggerCode": {
+      "description": "Why the edge is in fail-safe. Enum order breaks ties of rank (`primary_trigger`).",
+      "enum": [
+        "host_override",
+        "operator_command",
+        "control_authority_withdrawn",
+        "no_envelope_in_force",
+        "no_envelope_held",
+        "clock_unsynchronised",
+        "chain_integrity_failure",
+        "thermal_comms_lost",
+        "dno_trip",
+        "dno_signal_lost",
+        "site_meter_lost",
+        "power_device_comms_lost",
+        "cloud_link_lost",
+        "market_link_lost",
+        "schedule_stale",
+        "schedule_exhausted",
+        "edge_restart"
+      ],
+      "title": "TriggerCode",
+      "type": "string"
+    },
+    "UnderwritingBasisLabel": {
+      "additionalProperties": false,
+      "description": "The run was priced on an underwriting basis. Accepted in shape; no underwriting basis is\nimplemented yet, so no fixture uses it. A basis id that names a study is refused here (D46).",
+      "properties": {
+        "basis_id": {
+          "pattern": "^[a-z][a-z0-9_]*$",
+          "title": "Basis Id",
+          "type": "string"
+        },
+        "kind": {
+          "const": "underwriting",
+          "title": "Kind",
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind",
+        "basis_id"
+      ],
+      "title": "UnderwritingBasisLabel",
+      "type": "object"
+    },
+    "UnderwrittenValue": {
+      "additionalProperties": false,
+      "description": "The value the assessment underwrote for a service, in whole pence a year, with its basis.\nRead by IC-15; never an input to any invariant here.",
+      "properties": {
+        "kind": {
+          "const": "underwritten_value",
+          "title": "Kind",
+          "type": "string"
+        },
+        "pence_per_year": {
+          "minimum": 0,
+          "title": "Pence Per Year",
+          "type": "integer"
+        },
+        "value_basis": {
+          "discriminator": {
+            "mapping": {
+              "assumed_approved": "#/$defs/AssumedApproved",
+              "evidenced": "#/$defs/Evidenced"
+            },
+            "propertyName": "kind"
+          },
+          "oneOf": [
+            {
+              "$ref": "#/$defs/Evidenced"
+            },
+            {
+              "$ref": "#/$defs/AssumedApproved"
+            }
+          ],
+          "title": "Value Basis"
+        }
+      },
+      "required": [
+        "kind",
+        "pence_per_year",
+        "value_basis"
+      ],
+      "title": "UnderwrittenValue",
+      "type": "object"
+    },
+    "Unknown": {
+      "additionalProperties": false,
+      "description": "A value that exists but is not known. Always explicit, always with a reason; never ``None``.\n\nSerialised as ``{\"kind\": \"unknown\", \"reason\": \"...\"}``. ``kind`` is required (no default) so\na hand-written payload that omits it is refused rather than guessed at.",
+      "properties": {
+        "kind": {
+          "const": "unknown",
+          "title": "Kind",
+          "type": "string"
+        },
+        "reason": {
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Reason",
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind",
+        "reason"
+      ],
+      "title": "Unknown",
+      "type": "object"
+    },
+    "Withheld": {
+      "additionalProperties": false,
+      "description": "Power not offered to anyone in this cell (a derating or an outage), with its reason.",
+      "properties": {
+        "kind": {
+          "const": "withheld",
+          "title": "Kind",
+          "type": "string"
+        },
+        "kw": {
+          "minimum": 1,
+          "title": "Kw",
+          "type": "integer"
+        },
+        "reason": {
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Reason",
+          "type": "string"
+        },
+        "reason_code": {
+          "$ref": "#/$defs/WithheldReason"
+        }
+      },
+      "required": [
+        "kind",
+        "kw",
+        "reason_code",
+        "reason"
+      ],
+      "title": "Withheld",
+      "type": "object"
+    },
+    "WithheldReason": {
+      "description": "Why part of the asset is not offered at all in a cell (whole-asset availability).",
+      "enum": [
+        "maintenance",
+        "plant_fault",
+        "host_restriction",
+        "network_restriction",
+        "warranty_limit",
+        "commissioning"
+      ],
+      "title": "WithheldReason",
+      "type": "string"
+    }
+  },
+  "additionalProperties": false,
+  "description": "IC-5 v1.0.0: one frame from the cloud to a site's edge.",
+  "properties": {
+    "body": {
+      "discriminator": {
+        "mapping": {
+          "cloud_heartbeat": "#/$defs/CloudHeartbeat",
+          "envelope_install": "#/$defs/EnvelopeInstall",
+          "operator_command": "#/$defs/OperatorCommand",
+          "setpoint_schedule": "#/$defs/SetpointSchedule"
+        },
+        "propertyName": "kind"
+      },
+      "oneOf": [
+        {
+          "$ref": "#/$defs/SetpointSchedule"
+        },
+        {
+          "$ref": "#/$defs/EnvelopeInstall"
+        },
+        {
+          "$ref": "#/$defs/OperatorCommand"
+        },
+        {
+          "$ref": "#/$defs/CloudHeartbeat"
+        }
+      ],
+      "title": "Body"
+    },
+    "contract": {
+      "const": "IC-5",
+      "default": "IC-5",
+      "title": "Contract",
+      "type": "string"
+    },
+    "contract_version": {
+      "const": "1.0.0",
+      "default": "1.0.0",
+      "title": "Contract Version",
+      "type": "string"
+    },
+    "direction": {
+      "const": "cloud_to_edge",
+      "title": "Direction",
+      "type": "string"
+    },
+    "link_epoch": {
+      "minimum": 0,
+      "title": "Link Epoch",
+      "type": "integer"
+    },
+    "peer_head": {
+      "discriminator": {
+        "mapping": {
+          "not_applicable": "#/$defs/NotApplicable",
+          "peer_head": "#/$defs/PeerHead"
+        },
+        "propertyName": "kind"
+      },
+      "oneOf": [
+        {
+          "$ref": "#/$defs/PeerHead"
+        },
+        {
+          "$ref": "#/$defs/NotApplicable"
+        }
+      ],
+      "title": "Peer Head"
+    },
+    "prev_hash": {
+      "pattern": "^sha256:[0-9a-f]{64}$",
+      "title": "Prev Hash",
+      "type": "string"
+    },
+    "profile_hash": {
+      "pattern": "^sha256:[0-9a-f]{64}$",
+      "title": "Profile Hash",
+      "type": "string"
+    },
+    "sender_id": {
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]*$",
+      "title": "Sender Id",
+      "type": "string"
+    },
+    "sent_at": {
+      "format": "date-time",
+      "title": "Sent At",
+      "type": "string"
+    },
+    "seq": {
+      "minimum": 0,
+      "title": "Seq",
+      "type": "integer"
+    },
+    "site_id": {
+      "minLength": 1,
+      "pattern": "\\S",
+      "title": "Site Id",
+      "type": "string"
+    }
+  },
+  "required": [
+    "direction",
+    "site_id",
+    "sender_id",
+    "sent_at",
+    "link_epoch",
+    "seq",
+    "prev_hash",
+    "profile_hash",
+    "peer_head",
+    "body"
+  ],
+  "title": "CloudToEdgeFrame",
+  "type": "object"
+}

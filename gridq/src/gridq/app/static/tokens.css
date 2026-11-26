@@ -1,0 +1,151 @@
+/* GridQ design tokens - the single source of truth for the cinematic system.
+ *
+ * Loaded BEFORE app.css on every page. Nothing outside this file may introduce a colour,
+ * font, radius, spacing, duration or easing literal: components consume tokens only.
+ * charts.js and wizard.js read this palette at runtime via getComputedStyle (see
+ * static/theme.js) - the hand-mirrored constants that drifted before D-redesign are gone.
+ *
+ * System: near-black base, elevation by hairline borders + faint gradients (never drop
+ * shadows on dark), ONE accent (electric amber - energy), semantic green/red reserved
+ * strictly for pass/fail and firm states. Every number, unit and data label renders in
+ * the monospace stack. Fonts are self-hosted (vendor/fonts) - no CDN, no render-blocking
+ * external requests.
+ *
+ * Test-pinned names kept deliberately (test_app_design_system.py): --sp-1/4/8,
+ * --dur-fast/base/slow, --ease-standard/spring/out, --ink-900, --on-dark, --on-dark-muted,
+ * --glow-accent, --glow-cool. Their VALUES now express the dark system.
+ */
+
+@font-face {
+  font-family: "Inter Variable";
+  src: url("vendor/fonts/inter-latin-wght-normal.woff2") format("woff2-variations");
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "JetBrains Mono Variable";
+  src: url("vendor/fonts/jetbrains-mono-latin-wght-normal.woff2") format("woff2-variations");
+  font-weight: 100 800;
+  font-style: normal;
+  font-display: swap;
+}
+
+:root {
+  /* ---- canvas + surfaces (near-black family, never pure black) ---- */
+  --bg: #0e0e10;
+  --bg-deep: #0a0a0c;
+  --surface-1: #131316;      /* raised card */
+  --surface-2: #18181c;      /* console header / nested */
+  --surface-3: #1e1e23;      /* hover / active */
+  --ink-900: #0e0e10;        /* pinned name: the base near-black */
+
+  /* ---- hairlines + elevation (borders, not shadows) ---- */
+  --line: rgba(255, 255, 255, 0.07);
+  --line-strong: rgba(255, 255, 255, 0.12);
+  --line-faint: rgba(255, 255, 255, 0.045);
+  --fill-soft: rgba(255, 255, 255, 0.04);   /* faint raised fill on any dark surface */
+  --grad-panel: linear-gradient(180deg, rgba(255, 255, 255, 0.035), rgba(255, 255, 255, 0) 42%);
+  --grad-hairline: linear-gradient(90deg, rgba(255, 255, 255, 0), rgba(255, 255, 255, 0.14), rgba(255, 255, 255, 0));
+
+  /* ---- text on dark ---- */
+  --text: #ececee;           /* primary prose */
+  --text-2: #a6a6ad;         /* secondary */
+  --muted: #85858e;          /* tertiary / captions (5.1:1 on --bg - AA at any size) */
+  --on-dark: #ececee;        /* pinned name */
+  --on-dark-muted: #a6a6ad;  /* pinned name */
+
+  /* ---- the ONE accent: electric amber (energy) ---- */
+  --accent: #ffb454;
+  --accent-strong: #ffc678;  /* hover / emphasised */
+  --accent-ink: #1a1104;     /* text on accent fills */
+  --accent-wash: rgba(255, 180, 84, 0.10);
+  --accent-line: rgba(255, 180, 84, 0.32);
+  --glow-accent: rgba(255, 180, 84, 0.30);  /* pinned name */
+  --glow-cool: rgba(120, 140, 255, 0.16);   /* pinned name: cool counter-glow */
+  --cool: #7d8cf8;                          /* charge/import direction in charts (never semantic) */
+
+  /* ---- semantic: reserved strictly for pass/fail + firm state ---- */
+  --ok: #4ade80;             /* pass / firm / covenant met */
+  --ok-wash: rgba(74, 222, 128, 0.10);
+  --ok-line: rgba(74, 222, 128, 0.35);
+  --err: #f87171;            /* fail / error */
+  --err-wash: rgba(248, 113, 113, 0.10);
+  --err-line: rgba(248, 113, 113, 0.35);
+  --gated: #8d8d96;          /* conditional / gated upside: neutral, NOT red (gated is
+                                conditional, not negative - deviation noted in the report) */
+  --gated-wash: rgba(141, 141, 150, 0.10);
+  --warn: #e8c468;           /* indicative / needs-review notices */
+  --warn-wash: rgba(232, 196, 104, 0.10);
+
+  /* ---- typography ---- */
+  --font-sans: "Inter Variable", Inter, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: "JetBrains Mono Variable", "JetBrains Mono", ui-monospace, "SF Mono", Menlo, monospace;
+  --sans: var(--font-sans);  /* legacy aliases consumed across app.css */
+  --serif: var(--font-sans);
+  --mono: var(--font-mono);
+  --eyebrow-tracking: 0.08em; /* uppercase micro-labels: "01 - SIZING" pattern */
+  --fs-eyebrow: 0.72rem;
+  --fs-micro: 0.78rem;
+  --fs-body: 0.95rem;
+  --fs-lead: 1.15rem;
+  --lh-body: 1.62;
+  --lh-tight: 1.15;
+
+  /* ---- spacing scale (pinned names) ---- */
+  --sp-1: 0.25rem;
+  --sp-2: 0.5rem;
+  --sp-3: 0.75rem;
+  --sp-4: 1rem;
+  --sp-5: 1.5rem;
+  --sp-6: 2.25rem;
+  --sp-7: 3.25rem;
+  --sp-8: 4.5rem;
+
+  /* ---- shape ---- */
+  --radius-sm: 6px;
+  --radius: 10px;
+  --radius-lg: 16px;
+  --radius-pill: 9999px;
+
+  /* ---- layout ---- */
+  --maxw: 1200px;
+  --maxw-narrow: 780px;
+  --sidebar-w: 232px;
+
+  /* ---- motion (pinned names; ONE spring literal repo-wide) ---- */
+  --dur-fast: 0.15s;
+  --dur-base: 0.45s;
+  --dur-slow: 0.8s;
+  --ease-standard: ease;
+  --ease-spring: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-out: cubic-bezier(0, 0, 0.2, 1);
+  --reveal-shift: 18px;      /* fade-up translate distance (12-24px band) */
+
+  /* ---- Aurora + glass: the landing front-door layer (added 2026-07-05, Olly).
+   * DECORATIVE ONLY. Amber (--accent) stays the single accent that carries MEANING;
+   * violet + teal are atmosphere, never a verdict - they may never encode pass/fail/firm.
+   * Confined to the immersive landing (body.immersive); the data console keeps the
+   * near-black instrument look. Kept here so app.css stays colour-literal-free. */
+  --aurora-violet: #8b6dff;
+  --aurora-teal: #34e2d4;
+  --glow-violet: rgba(139, 109, 255, 0.44);
+  --glow-teal: rgba(52, 226, 212, 0.34);
+
+  /* Glass surfaces: translucent fill + hairline stroke + top sheen (still no drop shadow
+   * on dark; elevation reads through blur + a bright top edge, not a cast shadow). */
+  --glass-fill: rgba(255, 255, 255, 0.045);
+  --glass-fill-strong: rgba(255, 255, 255, 0.07);
+  --glass-stroke: rgba(255, 255, 255, 0.14);
+  --glass-blur: 20px;
+  --glass-sheen: linear-gradient(180deg, rgba(255, 255, 255, 0.10), rgba(255, 255, 255, 0) 46%);
+  --glass-nav: rgba(14, 14, 16, 0.72);   /* fixed nav well: opaque enough to stay legible over content */
+
+  /* Iridescent edges: a hairline that runs violet -> amber -> teal, and a holographic
+   * text gradient for the hero headline accent. */
+  --grad-iris: linear-gradient(90deg, rgba(139, 109, 255, 0), rgba(139, 109, 255, 0.65), rgba(255, 180, 84, 0.7), rgba(52, 226, 212, 0.6), rgba(52, 226, 212, 0));
+  --grad-holo: linear-gradient(100deg, var(--aurora-violet), var(--accent-strong) 46%, var(--aurora-teal));
+
+  /* Slow ambient drift easing (sinusoidal in-out; deliberately distinct from --ease-spring). */
+  --ease-drift: cubic-bezier(0.45, 0, 0.55, 1);
+}

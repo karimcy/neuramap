@@ -1,0 +1,13 @@
+{
+  "dataset_id": "NGED distribution charging overview (WEST4754)",
+  "fetched_utc": "2026-11-26T08:21:48",
+  "fetcher": "curl -L (WP-UW-07, run by hand; the document itself is not vendored)",
+  "fetcher_args": {},
+  "last_modified": "Wed, 21 Jun 2023 14:51:00 MSK",
+  "licence": "unclear: no licence is stated in the document",
+  "record_count": 0,
+  "sha256": "ba0f7fd9e393601ad25161a2b038d59a39954c56d9f12e79ee2c3b29a516a10d",
+  "size_bytes": 402709,
+  "source_url": "https://commercial.nationalgrid.co.uk/downloads-view-reciteme/635902",
+  "used_for": "Acceptance 1 and 2 search: illustrative only, no rates for a charging year"
+}

@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <script>document.documentElement.classList.add('js')</script>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}GridQ{% endblock %}</title>
+  <meta name="referrer" content="no-referrer">
+  {# Self-contained favicon (data URI): the GridQ "G" mark on the brand accent - no network fetch. #}
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%23FFB454'/%3E%3Ctext x='16' y='22' font-family='Inter,system-ui,sans-serif' font-size='19' font-weight='800' fill='%230E0E10' text-anchor='middle'%3EG%3C/text%3E%3C/svg%3E">
+  {# Self-hosted variable fonts (no CDN); preloaded so text settles before first paint. #}
+  <link rel="preload" href="/static/vendor/fonts/inter-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="/static/vendor/fonts/jetbrains-mono-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="/static/tokens.css?v={{ static_v }}">
+  <link rel="stylesheet" href="/static/app.css?v={{ static_v }}">
+  {# theme.js is sync (tiny): charts read the live token palette and may init before DOM-ready. #}
+  <script src="/static/theme.js?v={{ static_v }}"></script>
+  <script src="/static/motion.js?v={{ static_v }}"></script>
+  {% block head %}{% endblock %}
+</head>
+{% set path = request.url.path if request else '' %}
+<body class="app">
+  <a class="skip-link" href="#main">Skip to content</a>
+  <aside class="sidebar">
+    <a class="sidebar__brand" href="/">
+      <span class="logo-mark">G</span>
+      <span class="brand-text"><strong>GridQ</strong><span>by Neura</span></span>
+    </a>
+    <nav class="sidebar__nav" aria-label="Primary">
+      <a class="nav-link {% if path == '/' %}is-active{% endif %}" href="/"><span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="7" height="9" x="3" y="3" rx="1"/><rect width="7" height="5" x="14" y="3" rx="1"/><rect width="7" height="9" x="14" y="12" rx="1"/><rect width="7" height="5" x="3" y="16" rx="1"/></svg></span> Dashboard</a>
+      <a class="nav-link {% if path.startswith('/projects') %}is-active{% endif %}" href="/projects"><span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 20a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.69-.9L9.6 3.9A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2Z"/></svg></span> Projects</a>
+      <a class="nav-link {% if path.startswith('/equipment') %}is-active{% endif %}" href="/equipment"><span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="16" height="10" x="2" y="7" rx="2" ry="2"/><line x1="22" x2="22" y1="11" y2="13"/><line x1="6" x2="6" y1="11" y2="13"/><line x1="10" x2="10" y1="11" y2="13"/></svg></span> Equipment</a>
+      <a class="nav-link {% if path.startswith('/review') %}is-active{% endif %}" href="/review"><span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" x2="4" y1="22" y2="15"/></svg></span> Review</a>
+    </nav>
+    <a class="btn-quote" href="/new-quote">New Quote</a>
+    <div class="sidebar__account">
+      {% if user and user.signed_in %}
+        <span class="account-chip" title="{{ user.email or '' }}"><span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21v-1a7 7 0 0 1 14 0v1"/></svg></span>{{ user.name or user.email }}</span>
+        <a class="account-link" href="/auth/logout">Sign out</a>
+      {% elif user and user.google_available %}
+        <a class="account-link" href="/auth/login"><span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" x2="3" y1="12" y2="12"/></svg></span> Sign in with Google</a>
+        <span class="account-note">Your runs are private to this browser until you sign in.</span>
+      {% elif user %}
+        <a class="account-link" href="/auth/login">Sign in</a>
+        <span class="account-note">Private workspace: your runs are scoped to this browser.</span>
+      {% endif %}
+    </div>
+    <div class="sidebar__foot">
+      <span class="market"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/><path d="M2 12h20"/></svg> United Kingdom</span>
+      <span>Free to use. Deterministic core.</span>
+    </div>
+  </aside>
+
+  <div class="content">
+    <header class="topbar">
+      <div class="wrap">
+        <nav class="crumbs" aria-label="Breadcrumb">
+          {% block crumbs %}
+            <a href="/">Dashboard</a>
+          {% endblock %}
+        </nav>
+        {% if nav_quote_id %}
+        <nav class="runtabs" aria-label="Run navigation">
+          <a href="/run/{{ nav_quote_id }}" {% if nav_active == 'inspect' %}aria-current="page"{% endif %}>Results</a>
+          <a href="/run/{{ nav_quote_id }}/spec" {% if nav_active == 'spec' %}aria-current="page"{% endif %}>System spec</a>
+          <a href="/run/{{ nav_quote_id }}/artifacts" {% if nav_active == 'artifacts' %}aria-current="page"{% endif %}>Proposal</a>
+          <a href="/run/{{ nav_quote_id }}/telemetry" {% if nav_active == 'telemetry' %}aria-current="page"{% endif %}>Telemetry</a>
+        </nav>
+        {% endif %}
+      </div>
+    </header>
+
+    {% block statusstrip %}{% endblock %}
+
+    <main class="main" id="main" tabindex="-1">
+      <div class="wrap">
+        {% block content %}{% endblock %}
+      </div>
+    </main>
+
+    <footer class="foot">
+      <div class="wrap">
+        Behind-the-meter BESS sizing and underwriting. Every figure on these screens is rendered
+        verbatim from the stamped <code>QuoteRecord</code> via <code>gridq.outputs</code>: the interface
+        computes nothing. Firm (priced) value is shown separately from gated upside; figures that need
+        inputs we do not have stay labelled unavailable, never invented.
+      </div>
+    </footer>
+  </div>
+  {% block scripts %}{% endblock %}
+</body>
+</html>

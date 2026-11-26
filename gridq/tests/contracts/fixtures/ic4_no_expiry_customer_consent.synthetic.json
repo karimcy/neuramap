@@ -1,0 +1,31 @@
+{
+  "contract": "IC-4",
+  "contract_version": "1.0.0",
+  "record_class": "synthetic_fixture",
+  "evidence_type": "customer_consent",
+  "title": "Synthetic customer consent with no stated expiry (schema-test fixture)",
+  "issuer": {
+    "name": "SYNTHETIC-CUSTOMER (fixture; not a real company)",
+    "role": "customer",
+    "reference": "SYNTH-CONSENT-0003"
+  },
+  "document_hash": "sha256:0c0025065d889b9aa806f5b3a002df9ec3bc9d9f1fdfc185231b6b5c41aa3b14",
+  "issued_on": "2026-11-02",
+  "effective_from": "2026-11-02",
+  "expiry": {
+    "kind": "no_expiry",
+    "reason": "synthetic fixture: the consent text states no end date"
+  },
+  "scope": {
+    "kind": "stream",
+    "stream": "LOCAL_FLEXIBILITY",
+    "site_id": "SYNTHETIC-SITE-FIRM"
+  },
+  "verification": {
+    "kind": "verified",
+    "verifier": "SYNTHETIC-VERIFIER (fixture)",
+    "verifier_role": "neura_internal",
+    "method": "document_inspection",
+    "verified_on": "2026-11-03"
+  }
+}

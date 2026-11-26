@@ -1,0 +1,30 @@
+{
+  "contract": "IC-4",
+  "contract_version": "1.0.0",
+  "record_class": "synthetic_fixture",
+  "evidence_type": "connection_offer",
+  "title": "Synthetic connection offer for the hybrid archetype (schema-test fixture)",
+  "issuer": {
+    "name": "SYNTHETIC-DNO (fixture; not a real licensee)",
+    "role": "dno",
+    "reference": "SYNTH-OFFER-0001"
+  },
+  "document_hash": "sha256:f1cb36e20b23f846bc99dacc19eb41841103ff0c7a25b955d3efd7eef42ecf7b",
+  "issued_on": "2026-10-01",
+  "effective_from": "2026-10-01",
+  "expiry": {
+    "kind": "expires_on",
+    "expires_on": "2027-10-01"
+  },
+  "scope": {
+    "kind": "site",
+    "site_id": "SYNTHETIC-SITE-HYBRID"
+  },
+  "verification": {
+    "kind": "verified",
+    "verifier": "SYNTHETIC-VERIFIER (fixture)",
+    "verifier_role": "neura_internal",
+    "method": "confirmed_with_issuer",
+    "verified_on": "2026-10-15"
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "dataset_id": "piclo_flex_uk_competitions.xlsx",
+  "fetched_utc": "2026-07-20T12:00:00",
+  "fetcher": "gridq.dev.fetch_piclo",
+  "fetcher_args": {
+    "dataset": "competitions"
+  },
+  "licence": "Piclo Data Hub open data (data.piclo.com terms)",
+  "record_count": 290321,
+  "sha256": "43594570afef9cee4cf6769adf2177029f8b109880c2c930b8ad2d75be9888c1",
+  "size_bytes": 40329181,
+  "source_url": "https://piclo-open-data.s3.eu-west-1.amazonaws.com/public-data/piclo_flex_uk_competitions.xlsx"
+}

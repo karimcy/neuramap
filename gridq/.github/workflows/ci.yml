@@ -1,0 +1,134 @@
+# GridQ CI (WP-PLAT-01, spec E-05): ruff, mypy, the fast test tier and the golden pins on every PR,
+# every push to main, and every push to a roadmap/** branch (owner's decision, 2026-11-23: "Add branch
+# trigger"), so roadmap work is checked without opening a PR.
+#
+# Branch protection: require the single check "GridQ CI / ci-gate" on main. It fails when any job
+# above it failed, was cancelled or was skipped, so a PR that breaks ruff, mypy, a fast-tier test
+# or a golden pin cannot merge. The slow and heavy modules run in the nightly full suite.
+#
+# Environment: the deployment lock (requirements.txt, the Dockerfile's exact install) with the one
+# departure in LOCK_GAPS below, plus the dev toolchain pinned to the versions the repo's .venv
+# runs, on the Dockerfile's Python (3.12) and its determinism settings (single-threaded numerics,
+# UTC, C locale). Tiers: .github/ci/run_tests.sh.
+
+name: GridQ CI
+
+on:
+  pull_request:
+  push:
+    branches: [main, 'roadmap/**']
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: gridq-ci-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  PYTHONUNBUFFERED: "1"
+  PIP_DISABLE_PIP_VERSION_CHECK: "1"
+  TZ: UTC
+  LANG: C.UTF-8
+  LC_ALL: C.UTF-8
+  OMP_NUM_THREADS: "1"
+  OPENBLAS_NUM_THREADS: "1"
+  MKL_NUM_THREADS: "1"
+  NUMEXPR_NUM_THREADS: "1"
+  POLARS_MAX_THREADS: "1"
+  # The dev toolchain, pinned. Keep in step with the repo's .venv.
+  # One departure from requirements.txt, pinned to the repo .venv's version until the owner
+  # updates the lock (measured 2026-11-16):
+  # - openpyxl: a declared runtime dependency (pyproject.toml) the lock omits; .xlsx ingestion
+  #   fails on the lock alone.
+  # highspy is no longer a departure: D63 (2026-11-22) moved the lock to 1.15.1, the version the
+  # golden pins were minted on (on the old lock pin the demo's bill.peak_import_after_kw solved
+  # to 270.306 kW against the pinned 278.407). Installing it here a second time would hide a
+  # future lock drift.
+  LOCK_GAPS: openpyxl==3.1.5
+  DEV_TOOLS: pytest==9.1.1 pytest-xdist==3.8.0 ruff==0.16.1 mypy==2.3.0 httpx==0.28.1
+
+jobs:
+  lint:
+    name: ruff + mypy
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: requirements.txt
+      - name: Install (lock + dev tools)
+        run: |
+          python -m pip install --only-binary=:all: -r requirements.txt
+          python -m pip install --only-binary=:all: $LOCK_GAPS $DEV_TOOLS
+          python -m pip install --no-deps -e .
+      - name: ruff check
+        run: ruff check .
+      - name: ruff format --check (code)
+        if: ${{ !cancelled() }}
+        run: ruff format --check src tests .github/ci
+      - name: mypy
+        if: ${{ !cancelled() }}
+        run: mypy
+
+  fast-tier:
+    name: fast tier
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: requirements.txt
+      - name: Install (lock + dev tools)
+        run: |
+          python -m pip install --only-binary=:all: -r requirements.txt
+          python -m pip install --only-binary=:all: $LOCK_GAPS $DEV_TOOLS
+          python -m pip install --no-deps -e .
+      - name: Fast tier (E-05 bound enforced by this step's 10-minute timeout)
+        timeout-minutes: 10
+        run: .github/ci/run_tests.sh fast -q --durations=25 --junitxml=fast-tier.xml
+      - name: Publish counts
+        if: ${{ !cancelled() }}
+        run: |
+          python .github/ci/junit_summary.py summary.md summary.json fast-tier.xml \
+            >> "$GITHUB_STEP_SUMMARY" || true
+
+  golden-pins:
+    # The golden pins run a full demo quote twice at import, so they run alone (see the tier script).
+    name: golden pins
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: requirements.txt
+      - name: Install (lock + dev tools)
+        run: |
+          python -m pip install --only-binary=:all: -r requirements.txt
+          python -m pip install --only-binary=:all: $LOCK_GAPS $DEV_TOOLS
+          python -m pip install --no-deps -e .
+      - name: tests/test_determinism_golden.py
+        run: .github/ci/run_tests.sh module tests/test_determinism_golden.py -q
+
+  ci-gate:
+    name: ci-gate
+    if: ${{ always() }}
+    needs: [lint, fast-tier, golden-pins]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Every required job succeeded
+        run: |
+          echo "lint=${{ needs.lint.result }} fast-tier=${{ needs.fast-tier.result }} golden-pins=${{ needs.golden-pins.result }}"
+          test "${{ needs.lint.result }}" = "success"
+          test "${{ needs.fast-tier.result }}" = "success"
+          test "${{ needs.golden-pins.result }}" = "success"

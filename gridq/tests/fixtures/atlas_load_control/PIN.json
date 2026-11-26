@@ -1,0 +1,60 @@
+{
+  "note": "Byte copies of two Atlas files (WP-GRC-16), taken with `git show <commit>:<path>` for the site eligibility engine tests (WP-UW-02, D134). They are copied into SYNTHETIC TEST FIXTURE trees as .py files; the register file, segment rule and facts brief beside them are synthetic. The sha256 values equal gridq.underwriting.eligibility_rules.ADOPTED_LOADERS.",
+  "atlas_commit": "0cc045be6971e449e70cf387094d62487a5f9800",
+  "files": {
+    "register.py.snapshot": {
+      "atlas_path": "roadmap/governance/regulatory/register.py",
+      "sha256": "sha256:ee30ac641c27ac1f8ef11311bab75f9c897651362dc465a21daa937296adb434"
+    },
+    "rule.py.snapshot": {
+      "atlas_path": "roadmap/governance/regulatory/load_control/rule.py",
+      "sha256": "sha256:e169a51262e10d31d59c000d4ae0ffde936a582719d2fc1e99ac642f00f8feb3"
+    }
+  },
+  "register_row_ids": [
+    "REG-01",
+    "REG-02",
+    "REG-03",
+    "REG-04",
+    "REG-05",
+    "REG-06",
+    "REG-07",
+    "REG-08",
+    "REG-09",
+    "REG-10",
+    "REG-11",
+    "REG-12",
+    "REG-13",
+    "REG-14",
+    "REG-15",
+    "REG-16",
+    "REG-17",
+    "REG-18",
+    "REG-19",
+    "REG-20",
+    "REG-21",
+    "REG-22",
+    "REG-23",
+    "REG-24",
+    "REG-25",
+    "REG-26",
+    "REG-27",
+    "REG-28",
+    "REG-29",
+    "REG-30",
+    "REG-31",
+    "REG-32",
+    "REG-33",
+    "REG-34",
+    "REG-35",
+    "REG-36",
+    "REG-37",
+    "REG-38",
+    "REG-39",
+    "REG-40",
+    "REG-41",
+    "REG-42",
+    "REG-43"
+  ],
+  "register_row_ids_note": "The row ids of regulatory_register.json at atlas_commit (ids only; no row content is copied)."
+}

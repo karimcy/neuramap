@@ -1,0 +1,961 @@
+{
+  "schema": "gridq.customer_data_manifest/1",
+  "work_package": "WP-GRC-05",
+  "as_of": "2026-11-26",
+  "policy": {
+    "rule": "No customer dataset is stored before its DPA evidence object exists (roadmap WP-GRC-05, acceptance criterion 3).",
+    "spec": "atlas/roadmap/governance/data_protection/gridq_dpa_guard_spec.md, sections 5 (S5) and 6.2",
+    "status_meaning": "quarantined: tracked in git before any DPA evidence object existed. The DPA guard refuses to load it unless every listed site has a valid, verified IC-4 data_processing_agreement. Nothing here is deleted and history is not rewritten: keeping the files with executed DPAs registered, or removing them from the repository and its history, is the owner's decision.",
+    "release_rule": "A dataset is released only when every site id it lists has a valid, verified DPA evidence object issued by the customer.",
+    "generated_by": "python -m gridq.governance.dpa_scan --write-manifest (datasets only; the policy sections are edited by hand)"
+  },
+  "customer_roots": [
+    "examples/real",
+    "data/sites",
+    "deliverables",
+    "graphify-out/converted"
+  ],
+  "not_customer_data": [
+    {
+      "path": "examples/real/demo_wholesale_2025.csv",
+      "reason": "Elexon market index prices laid on the demo grid; market data, no customer."
+    },
+    {
+      "path": "examples/demo_site/hh_2025.csv",
+      "reason": "The curated demo series, generated from a fixed seed (examples/demo_site/README.md). Compared on 2026-11-25 with every customer HH series tracked in git: never equal to, or a scalar multiple of, any of them (Pearson r at most 0.82, against a modelled archetype). Pinned by hash in gridq.governance.dpa_guard.DEMO_ATTESTATION."
+    },
+    {
+      "path": "graphify-out/converted/Model_v5_6636efa0.md",
+      "reason": "graphify's text conversion of Sim Work/Model_v5.xlsx, Neura's internal portfolio finance model; names no customer and holds no site metering."
+    },
+    {
+      "path": "graphify-out/converted/piclo_bids_sample_3707aaf4.md",
+      "reason": "graphify's conversion of tests/fixtures/piclo_bids_sample.xlsx, a Piclo market-data fixture; no customer."
+    },
+    {
+      "path": "graphify-out/converted/piclo_competitions_sample_60ca5bfb.md",
+      "reason": "graphify's conversion of tests/fixtures/piclo_competitions_sample.xlsx, a Piclo market-data fixture; no customer."
+    }
+  ],
+  "review_prose": [
+    {
+      "path": "docs/grundon_harwell/00_model_v5_benchmark_audit.md",
+      "note": "analysis prose quoting customer figures; derived customer data under derived_data_inherits_class, not a dataset the loaders read"
+    },
+    {
+      "path": "docs/grundon_harwell/01_data_foundation.md",
+      "note": "analysis prose quoting customer figures; derived customer data under derived_data_inherits_class, not a dataset the loaders read"
+    },
+    {
+      "path": "docs/grundon_harwell/02_data_reconciliation.md",
+      "note": "analysis prose quoting customer figures; derived customer data under derived_data_inherits_class, not a dataset the loaders read"
+    },
+    {
+      "path": "docs/grundon_harwell/04_site_models.md",
+      "note": "analysis prose quoting customer figures; derived customer data under derived_data_inherits_class, not a dataset the loaders read"
+    },
+    {
+      "path": "docs/grundon_harwell/05_load_curve_sources.md",
+      "note": "analysis prose quoting customer figures; derived customer data under derived_data_inherits_class, not a dataset the loaders read"
+    },
+    {
+      "path": "docs/grundon_harwell/05b_load_curve_search_log.md",
+      "note": "analysis prose quoting customer figures; derived customer data under derived_data_inherits_class, not a dataset the loaders read"
+    },
+    {
+      "path": "docs/grundon_harwell/06_bill_reconciliation.md",
+      "note": "analysis prose quoting customer figures; derived customer data under derived_data_inherits_class, not a dataset the loaders read"
+    },
+    {
+      "path": "docs/grundon_harwell/07_sizing_diagnosis.md",
+      "note": "analysis prose quoting customer figures; derived customer data under derived_data_inherits_class, not a dataset the loaders read"
+    },
+    {
+      "path": "graphify-out/graph.json",
+      "note": "knowledge-graph index built over the repository, including graphify-out/converted; names customers and may quote converted customer workbooks. Not read by any GridQ loader. Regenerating the graph after the converted customer files leave the repository removes them."
+    },
+    {
+      "path": "graphify-out/GRAPH_REPORT.md",
+      "note": "knowledge-graph report built over the repository; names customers. Not read by any GridQ loader."
+    },
+    {
+      "path": "src/gridq/portfolio_requirements/sites.py",
+      "note": "source module embedding the Grundon and Harwell site figures used by the portfolio-requirements register (derived customer data, not a file a loader reads). Its only writer to the run store, gridq.portfolio_requirements.register, now needs a DPA permit per site."
+    }
+  ],
+  "legacy_validation_waiver": {
+    "decided_by": "Fable 5.2, 2026-11-25 (WP-GRC-05 ruling Q3), under the owner's delegation",
+    "owner_decision_pending": "Whether these test modules keep reading the quarantined files (read-only, logged) until executed DPAs are registered or the files are removed. The list may only shrink.",
+    "scope": "Read-only. Opened only by tests/conftest.py for the modules below. Never permits a store. No environment variable or CLI flag opens it.",
+    "modules": [
+      "tests/test_agreed_capacity_reduction_priced.py",
+      "tests/test_gate_3b_wired.py",
+      "tests/test_grundon_metered_basis_wired.py",
+      "tests/test_invoice_evidence_site_boundary.py",
+      "tests/test_local_flex_owner_attested_award.py",
+      "tests/test_modelled_shape_disclosure.py",
+      "tests/test_private_wire_duos_absence_on_real_sites.py",
+      "tests/test_real_site_fixtures_declare_no_fiat_consent.py",
+      "tests/test_real_sites_milp_runs.py",
+      "tests/test_run_always_draws_the_dispatch_day.py",
+      "tests/test_site_network_charges.py",
+      "tests/test_windowed_levy_capacity_market.py"
+    ]
+  },
+  "datasets": [
+    {
+      "path": "data/sites/grundon_invoices_2025.json",
+      "sha256": "sha256:f507f41d25a05d1d753cb9f1e878971f562804f7ac0980e3e278268e98cb4421",
+      "customer": "grundon",
+      "site_ids": [
+        "grundon_bishops_cleeve_ash_plant",
+        "grundon_bishops_cleeve_mrf",
+        "grundon_colnbrook",
+        "grundon_ewelme",
+        "grundon_knowl_hill",
+        "grundon_tanhouse",
+        "harwell_campus_k16w304527"
+      ],
+      "kind": "invoice_extract",
+      "status": "quarantined"
+    },
+    {
+      "path": "data/sites/grundon_monthly.json",
+      "sha256": "sha256:c8cb98d27fb9b2a324e8f7c4605c7da973552ae2e38811f52f63d3adf79cb009",
+      "customer": "grundon",
+      "site_ids": [
+        "grundon_bishops_cleeve_ash_plant",
+        "grundon_bishops_cleeve_mrf",
+        "grundon_colnbrook",
+        "grundon_ewelme",
+        "grundon_knowl_hill",
+        "grundon_tanhouse"
+      ],
+      "kind": "invoice_extract",
+      "status": "quarantined"
+    },
+    {
+      "path": "data/sites/harwell_hh_2025.csv",
+      "sha256": "sha256:f17e5456cfb2cd0ac5329ec4bad0bb1fe85b8928f323d726288c93a8879cf643",
+      "customer": "harwell",
+      "site_ids": [
+        "harwell_campus_k16w304527"
+      ],
+      "kind": "hh_series",
+      "status": "quarantined"
+    },
+    {
+      "path": "data/sites/harwell_hh_full.csv",
+      "sha256": "sha256:656ef3447c20bbd0755a99ae33dce69e8074059969aed940da75f64f45e427b0",
+      "customer": "harwell",
+      "site_ids": [
+        "harwell_campus_k16w304527"
+      ],
+      "kind": "hh_series",
+      "status": "quarantined"
+    },
+    {
+      "path": "data/sites/harwell_summary.json",
+      "sha256": "sha256:048a896733df454799998869558ec98f566b8481426fe7782c4245ba0da3fc24",
+      "customer": "harwell",
+      "site_ids": [
+        "harwell_campus_k16w304527"
+      ],
+      "kind": "hh_summary",
+      "status": "quarantined"
+    },
+    {
+      "path": "data/sites/hh/grundon_bishops_cleeve_ash_plant_metered_20250813_20260812_bfa68b62ebd2678e.csv",
+      "sha256": "sha256:bfa68b62ebd2678ecfa680c4a4475f800be6228192824ea60c7d3d4342c7825c",
+      "customer": "grundon",
+      "site_ids": [
+        "grundon_bishops_cleeve_ash_plant"
+      ],
+      "kind": "hh_series",
+      "status": "quarantined"
+    },
+    {
+      "path": "data/sites/hh/grundon_bishops_cleeve_modelled_2025_83cca377d84c04ce.csv",
+      "sha256": "sha256:5c3517a8cc6a9f14e8289455c63913d3ce9d1600d63355ff9840836bec2eef00",
+      "customer": "grundon",
+      "site_ids": [
+        "grundon_bishops_cleeve_ash_plant",
+        "grundon_bishops_cleeve_mrf"
+      ],
+      "kind": "hh_series",
+      "status": "quarantined"
+    },
+    {
+      "path": "data/sites/hh/grundon_bishops_cleeve_mrf_metered_20250813_20260812_acdf965064ad8c1e.csv",
+      "sha256": "sha256:acdf965064ad8c1ec745f81710a70c6c8c5ee98b5057c83a4805f0edcba83d30",
+      "customer": "grundon",
+      "site_ids": [
+        "grundon_bishops_cleeve_mrf"
+      ],
+      "kind": "hh_series",
+      "status": "quarantined"
+    },
+    {
+      "path": "data/sites/hh/grundon_ewelme_invoice_anchored_20250813_20260812_587e4f006ae347f2.csv",
+      "sha256": "sha256:587e4f006ae347f230b6396db0fbbf09fa3b331149f2e35099a2b23a0c81c3ea",
+      "customer": "grundon",
+      "site_ids": [
+        "grundon_ewelme"
+      ],
+      "kind": "hh_series",
+      "status": "quarantined"
+    },
+    {
+      "path": "data/sites/hh/grundon_ewelme_metered_20250813_20260812_2f21a38ab37f9c8d.csv",
+      "sha256": "sha256:2f21a38ab37f9c8d1ef001b912acf619e1f3a57858ec55065ce890b434676475",
+      "customer": "grundon",
+      "site_ids": [
+        "grundon_ewelme"
+      ],
+      "kind": "hh_series",
+      "status": "quarantined"
+    },
+    {
+      "path": "data/sites/hh/grundon_ewelme_modelled_2025_f89997f311721b89.csv",
+      "sha256": "sha256:b58414bd262866a7f620599ad7e5cdfabfb6ec46180c90057472a3825074feab",
+      "customer": "grundon",
+      "site_ids": [
+        "grundon_ewelme"
+      ],
+      "kind": "hh_series",
+      "status": "quarantined"
+    },
+    {
+      "path": "data/sites/hh/grundon_knowl_hill_invoice_anchored_20250813_20260812_3bbbcaf72d501f07.csv",
+      "sha256": "sha256:3bbbcaf72d501f072fd655fd91148eba0495f6889d11381fb924b9dd7e9622f1",
+      "customer": "grundon",
+      "site_ids": [
+        "grundon_knowl_hill"
+      ],
+      "kind": "hh_series",
+      "status": "quarantined"
+    },
+    {
+      "path": "data/sites/hh/grundon_knowl_hill_metered_20250813_20260812_80e2ea9c456527af.csv",
+      "sha256": "sha256:80e2ea9c456527af598c428cb59a00bbc9903a65a63ba9e7b7e2f7b735498481",
+      "customer": "grundon",
+      "site_ids": [
+        "grundon_knowl_hill"
+      ],
+      "kind": "hh_series",
+      "status": "quarantined"
+    },
+    {
+      "path": "data/sites/hh/grundon_knowl_hill_modelled_2025_73f0ec23275cc93f.csv",
+      "sha256": "sha256:a6c8548d65c9a54f22188ed7ce251d4252d6f8270b4148997f3476700244c309",
+      "customer": "grundon",
+      "site_ids": [
+        "grundon_knowl_hill"
+      ],
+      "kind": "hh_series",
+      "status": "quarantined"
+    },
+    {
+      "path": "data/sites/hh/grundon_tanhouse_colnbrook_modelled_2025_02b7a5e075c5fc7c.csv",
+      "sha256": "sha256:30fbb0beec2cdef81477656b8e6a3a5ee0a5638c217bf299d11d63b1824593aa",
+      "customer": "grundon",
+      "site_ids": [
+        "grundon_colnbrook",
+        "grundon_tanhouse"
+      ],
+      "kind": "hh_series",
+      "status": "quarantined"
+    },
+    {
+      "path": "data/sites/hh/grundon_tanhouse_metered_20250813_20260812_7dc3c04092fccc7d.csv",
+      "sha256": "sha256:7dc3c04092fccc7d0baecce0b86d66061b12897d367b686e43f382d15b1a4d9a",
+      "customer": "grundon",
+      "site_ids": [
+        "grundon_tanhouse"
+      ],
+      "kind": "hh_series",
+      "status": "quarantined"
+    },
+    {
+      "path": "data/sites/hh/grundon_tanhouse_modelled_2025_138b75ff5c2c0719.csv",
+      "sha256": "sha256:10013de4c3f007368938e72033682ac0ebe2b027eb0429ad18c67c4d2fd21878",
+      "customer": "grundon",
+      "site_ids": [
+        "grundon_tanhouse"
+      ],
+      "kind": "hh_series",
+      "status": "quarantined"
+    },
+    {
+      "path": "data/sites/hh/grundon_tanhouse_modelled_2025_d386ac8376c45a37.csv",
+      "sha256": "sha256:c5a544b68fcf29c1e6a2b19f4ebd6e1601bc8d40a38dce7234e078f605e3ffbe",
+      "customer": "grundon",
+      "site_ids": [
+        "grundon_tanhouse"
+      ],
+      "kind": "hh_series",
+      "status": "quarantined"
+    },
+    {
+      "path": "data/sites/hh/manifest.json",
+      "sha256": "sha256:d5dcff4d61a805f402ac6e3bc365ae6b0076dbb1b9c55d18ac5183797c82cd09",
+      "customer": "grundon",
+      "site_ids": [
+        "grundon_bishops_cleeve_ash_plant",
+        "grundon_bishops_cleeve_mrf",
+        "grundon_colnbrook",
+        "grundon_ewelme",
+        "grundon_knowl_hill",
+        "grundon_tanhouse"
+      ],
+      "kind": "derived_profile_manifest",
+      "status": "quarantined"
+    },
+    {
+      "path": "deliverables/bishops_cleeve_ash_plant_memo.md",
+      "sha256": "sha256:c8e71610b4e2f53329b9491ea0d6eb77cbfa38004ca7042e5b9a27494806fe5b",
+      "customer": "grundon",
+      "site_ids": [
+        "grundon_bishops_cleeve_ash_plant"
+      ],
+      "kind": "derived_output",
+      "status": "quarantined"
+    },
+    {
+      "path": "deliverables/bishops_cleeve_ash_plant_proposal.md",
+      "sha256": "sha256:185b1be56e6d3a03d10883017889c6b1050326b7e28bcdfc5e287ee3cc98a51b",
+      "customer": "grundon",
+      "site_ids": [
+        "grundon_bishops_cleeve_ash_plant"
+      ],
+      "kind": "derived_output",
+      "status": "quarantined"
+    },
+    {
+      "path": "deliverables/bishops_cleeve_ash_plant_report.html",
+      "sha256": "sha256:459cd6bff48ddf29c231e2760a9894d5278812ad2471ae540623f2d1f8eb5142",
+      "customer": "grundon",
+      "site_ids": [
+        "grundon_bishops_cleeve_ash_plant"
+      ],
+      "kind": "derived_output",
+      "status": "quarantined"
+    },
+    {
+      "path": "deliverables/bishops_cleeve_ash_plant_summary.html",
+      "sha256": "sha256:bf6d2b7c0e0af03a4f838859469f4fca15fda914aeaa8ed06b1d5ef437185ab3",
+      "customer": "grundon",
+      "site_ids": [
+        "grundon_bishops_cleeve_ash_plant"
+      ],
+      "kind": "derived_output",
+      "status": "quarantined"
+    },
+    {
+      "path": "deliverables/bishops_cleeve_mrf_memo.md",
+      "sha256": "sha256:cc038db63e199aa8d00ee8b638d66a913eeb5af40293f111d22d0f738db26a00",
+      "customer": "grundon",
+      "site_ids": [
+        "grundon_bishops_cleeve_mrf"
+      ],
+      "kind": "derived_output",
+      "status": "quarantined"
+    },
+    {
+      "path": "deliverables/bishops_cleeve_mrf_proposal.md",
+      "sha256": "sha256:977c8709280455f82bb060e09924d08e102f12865593cac99b26ca80d3ab6aa1",
+      "customer": "grundon",
+      "site_ids": [
+        "grundon_bishops_cleeve_mrf"
+      ],
+      "kind": "derived_output",
+      "status": "quarantined"
+    },
+    {
+      "path": "deliverables/bishops_cleeve_mrf_report.html",
+      "sha256": "sha256:abbace28107a2c81ba08c1cbcc7e80927efd4100ce2400f8edf138edc712349d",
+      "customer": "grundon",
+      "site_ids": [
+        "grundon_bishops_cleeve_mrf"
+      ],
+      "kind": "derived_output",
+      "status": "quarantined"
+    },
+    {
+      "path": "deliverables/bishops_cleeve_mrf_summary.html",
+      "sha256": "sha256:71131a7970bd83881213481bb85b4d5ceebe13e680de1644e5cc046dd9f12eb3",
+      "customer": "grundon",
+      "site_ids": [
+        "grundon_bishops_cleeve_mrf"
+      ],
+      "kind": "derived_output",
+      "status": "quarantined"
+    },
+    {
+      "path": "deliverables/ewelme_invoice_anchored_memo.md",
+      "sha256": "sha256:311d8d74db94edc50051e6c142f4d93c28ed113902aa5ec45d54315cdb23af66",
+      "customer": "grundon",
+      "site_ids": [
+        "grundon_ewelme",
+        "harwell_campus_k16w304527"
+      ],
+      "kind": "derived_output",
+      "status": "quarantined"
+    },
+    {
+      "path": "deliverables/ewelme_invoice_anchored_proposal.md",
+      "sha256": "sha256:0393eb262705094b949fcaf9805acb4cdd765c3d2d50969a7676c096628acb54",
+      "customer": "grundon",
+      "site_ids": [
+        "grundon_ewelme",
+        "harwell_campus_k16w304527"
+      ],
+      "kind": "derived_output",
+      "status": "quarantined"
+    },
+    {
+      "path": "deliverables/ewelme_invoice_anchored_report.html",
+      "sha256": "sha256:8aee94e51833273506198d37e11b8be00602da2cb821f38de2ec3ede417d6796",
+      "customer": "grundon",
+      "site_ids": [
+        "grundon_ewelme",
+        "harwell_campus_k16w304527"
+      ],
+      "kind": "derived_output",
+      "status": "quarantined"
+    },
+    {
+      "path": "deliverables/ewelme_invoice_anchored_summary.html",
+      "sha256": "sha256:f879c2b4d5e58cecd3d80ee10ce813c81862304c016852488f2bf2aa087c5c86",
+      "customer": "grundon",
+      "site_ids": [
+        "grundon_ewelme"
+      ],
+      "kind": "derived_output",
+      "status": "quarantined"
+    },
+    {
+      "path": "deliverables/ewelme_metered_memo.md",
+      "sha256": "sha256:a10a7c027d5fd5bae8a0c7185d4e2cb554902653fe0f868b8218a252b2dac754",
+      "customer": "grundon",
+      "site_ids": [
+        "grundon_ewelme",
+        "harwell_campus_k16w304527"
+      ],
+      "kind": "derived_output",
+      "status": "quarantined"
+    },
+    {
+      "path": "deliverables/ewelme_metered_proposal.md",
+      "sha256": "sha256:d94e4244cfa7cd5765f640caf1eeeb91d556d796dd8235d83781e841f47bc6c7",
+      "customer": "grundon",
+      "site_ids": [
+        "grundon_ewelme",
+        "harwell_campus_k16w304527"
+      ],
+      "kind": "derived_output",
+      "status": "quarantined"
+    },
+    {
+      "path": "deliverables/ewelme_metered_report.html",
+      "sha256": "sha256:ffedc354ef8aee6f460d4f6d3a43169fdbd79479da99547e6e67e817ef588bf7",
+      "customer": "grundon",
+      "site_ids": [
+        "grundon_ewelme",
+        "harwell_campus_k16w304527"
+      ],
+      "kind": "derived_output",
+      "status": "quarantined"
+    },
+    {
+      "path": "deliverables/ewelme_metered_summary.html",
+      "sha256": "sha256:d73750ca04782c90ba0a4669e203ba7aaf709a1e1122a7980dee9a9710fdaa25",
+      "customer": "grundon",
+      "site_ids": [
+        "grundon_ewelme"
+      ],
+      "kind": "derived_output",
+      "status": "quarantined"
+    },
+    {
+      "path": "deliverables/grundon_feasibility_report.html",
+      "sha256": "sha256:bc240329f5c47e8d3f317d1b37deb4b311d50a642e2d99197a83617eed7d795d",
+      "customer": "grundon",
+      "site_ids": [
+        "grundon_bishops_cleeve_ash_plant",
+        "grundon_bishops_cleeve_mrf",
+        "grundon_colnbrook",
+        "grundon_ewelme",
+        "grundon_knowl_hill",
+        "grundon_tanhouse"
+      ],
+      "kind": "derived_output",
+      "status": "quarantined"
+    },
+    {
+      "path": "deliverables/harwell_feasibility_report.html",
+      "sha256": "sha256:0346908e19fd24c74ae9de71cfd1be68a30f7e016534c3ceadb2516bbbc816a2",
+      "customer": "harwell",
+      "site_ids": [
+        "harwell_campus_k16w304527"
+      ],
+      "kind": "derived_output",
+      "status": "quarantined"
+    },
+    {
+      "path": "deliverables/harwell_memo.md",
+      "sha256": "sha256:d537d2c3dc7203144db99b7c041f1d331917598744425cbd60d5e998779a65d0",
+      "customer": "harwell",
+      "site_ids": [
+        "harwell_campus_k16w304527",
+        "grundon_bishops_cleeve_ash_plant",
+        "grundon_bishops_cleeve_mrf",
+        "grundon_colnbrook",
+        "grundon_ewelme",
+        "grundon_knowl_hill",
+        "grundon_tanhouse"
+      ],
+      "kind": "derived_output",
+      "status": "quarantined"
+    },
+    {
+      "path": "deliverables/harwell_proposal.md",
+      "sha256": "sha256:9e44c9afa4862fc7de9f20838ed008ddcc15bf0fb9c31b0cb71347ae95506d7a",
+      "customer": "harwell",
+      "site_ids": [
+        "harwell_campus_k16w304527"
+      ],
+      "kind": "derived_output",
+      "status": "quarantined"
+    },
+    {
+      "path": "deliverables/harwell_report.html",
+      "sha256": "sha256:d438a024475ee6dbe4498be6225164768ada6eb6705456489284ac8a5801e55a",
+      "customer": "harwell",
+      "site_ids": [
+        "harwell_campus_k16w304527",
+        "grundon_bishops_cleeve_ash_plant",
+        "grundon_bishops_cleeve_mrf",
+        "grundon_colnbrook",
+        "grundon_ewelme",
+        "grundon_knowl_hill",
+        "grundon_tanhouse"
+      ],
+      "kind": "derived_output",
+      "status": "quarantined"
+    },
+    {
+      "path": "deliverables/harwell_summary.html",
+      "sha256": "sha256:f5502df3ebd05d1b5b746dd3d1e742a9b3ee09dff5ad3e3e2cc1a44d265503ab",
+      "customer": "harwell",
+      "site_ids": [
+        "harwell_campus_k16w304527"
+      ],
+      "kind": "derived_output",
+      "status": "quarantined"
+    },
+    {
+      "path": "deliverables/how_the_optimiser_works.html",
+      "sha256": "sha256:da53a1a9ffee4406e27a33c45daa5a2d5526ead9d26e6bbf82b761afe83051c0",
+      "customer": "harwell",
+      "site_ids": [
+        "harwell_campus_k16w304527"
+      ],
+      "kind": "derived_output",
+      "status": "quarantined"
+    },
+    {
+      "path": "deliverables/knowl_hill_invoice_anchored_memo.md",
+      "sha256": "sha256:2c6dbca8658be252c08f89064aa161bb66604de13c8048f797e66a11bed0f802",
+      "customer": "grundon",
+      "site_ids": [
+        "grundon_knowl_hill",
+        "harwell_campus_k16w304527"
+      ],
+      "kind": "derived_output",
+      "status": "quarantined"
+    },
+    {
+      "path": "deliverables/knowl_hill_invoice_anchored_proposal.md",
+      "sha256": "sha256:ea1ea05b50a27ddf0d7fcd25f4e877d2be4bbee32591ea5a657621477681843a",
+      "customer": "grundon",
+      "site_ids": [
+        "grundon_knowl_hill",
+        "harwell_campus_k16w304527"
+      ],
+      "kind": "derived_output",
+      "status": "quarantined"
+    },
+    {
+      "path": "deliverables/knowl_hill_invoice_anchored_report.html",
+      "sha256": "sha256:447f758814f0cd4fa7967ef76166a3418664a11e93c87067b9cab8d7714aa0aa",
+      "customer": "grundon",
+      "site_ids": [
+        "grundon_knowl_hill",
+        "harwell_campus_k16w304527"
+      ],
+      "kind": "derived_output",
+      "status": "quarantined"
+    },
+    {
+      "path": "deliverables/knowl_hill_invoice_anchored_summary.html",
+      "sha256": "sha256:61936bece08211719ad1ab178a9273afe5761cfe043f2ebb05669449097fad17",
+      "customer": "grundon",
+      "site_ids": [
+        "grundon_knowl_hill"
+      ],
+      "kind": "derived_output",
+      "status": "quarantined"
+    },
+    {
+      "path": "deliverables/knowl_hill_metered_memo.md",
+      "sha256": "sha256:e2fb17dd46e1d751f69f72d62713d2e4fd6a83712cb61d106d9172201a81aaf2",
+      "customer": "grundon",
+      "site_ids": [
+        "grundon_knowl_hill"
+      ],
+      "kind": "derived_output",
+      "status": "quarantined"
+    },
+    {
+      "path": "deliverables/knowl_hill_metered_proposal.md",
+      "sha256": "sha256:875085773d0429e40ec31618ea8d52c1fcbca43679eed1d6248d9926af6b7b6b",
+      "customer": "grundon",
+      "site_ids": [
+        "grundon_knowl_hill"
+      ],
+      "kind": "derived_output",
+      "status": "quarantined"
+    },
+    {
+      "path": "deliverables/knowl_hill_metered_report.html",
+      "sha256": "sha256:3e1e876ee85b0f18590f8adf791f7d9e5315e6b8b2c433440214f639393e539b",
+      "customer": "grundon",
+      "site_ids": [
+        "grundon_knowl_hill"
+      ],
+      "kind": "derived_output",
+      "status": "quarantined"
+    },
+    {
+      "path": "deliverables/knowl_hill_metered_summary.html",
+      "sha256": "sha256:d1cec92e09b4f316b224ae83a602c842b1cf4f4ea7cd5b2d2544a36dde87f848",
+      "customer": "grundon",
+      "site_ids": [
+        "grundon_knowl_hill"
+      ],
+      "kind": "derived_output",
+      "status": "quarantined"
+    },
+    {
+      "path": "deliverables/tanhouse_memo.md",
+      "sha256": "sha256:00b2ec8caef9e2940cd3872cfeb3bb935ee7b537c89adb38e4604343d33c97e3",
+      "customer": "grundon",
+      "site_ids": [
+        "grundon_tanhouse",
+        "harwell_campus_k16w304527"
+      ],
+      "kind": "derived_output",
+      "status": "quarantined"
+    },
+    {
+      "path": "deliverables/tanhouse_proposal.md",
+      "sha256": "sha256:c4ff39e78498dc990da25d36406ec092927ab6a93bf271396b2e2d32d6da5216",
+      "customer": "grundon",
+      "site_ids": [
+        "grundon_tanhouse",
+        "harwell_campus_k16w304527"
+      ],
+      "kind": "derived_output",
+      "status": "quarantined"
+    },
+    {
+      "path": "deliverables/tanhouse_report.html",
+      "sha256": "sha256:de94495c9dcca6f72e5efba3d85b7a3422ea584abb9642c0287c5c79111213de",
+      "customer": "grundon",
+      "site_ids": [
+        "grundon_tanhouse",
+        "harwell_campus_k16w304527"
+      ],
+      "kind": "derived_output",
+      "status": "quarantined"
+    },
+    {
+      "path": "deliverables/tanhouse_summary.html",
+      "sha256": "sha256:37a30d6684be4bf13677c5a86a7e1d056eb2b28d2020b6fad6a627acb34125ce",
+      "customer": "grundon",
+      "site_ids": [
+        "grundon_tanhouse"
+      ],
+      "kind": "derived_output",
+      "status": "quarantined"
+    },
+    {
+      "path": "examples/real/Grundon/Bishops Cleeve Ash Plant.csv",
+      "sha256": "sha256:283cd6c23c313cddf6a845ac66ccedbe5b95b87f64df0fbb3741665479cf2eb2",
+      "customer": "grundon",
+      "site_ids": [
+        "grundon_bishops_cleeve_ash_plant"
+      ],
+      "kind": "hh_series",
+      "status": "quarantined"
+    },
+    {
+      "path": "examples/real/Grundon/Bishops Cleeve Export.csv",
+      "sha256": "sha256:283cd6c23c313cddf6a845ac66ccedbe5b95b87f64df0fbb3741665479cf2eb2",
+      "customer": "grundon",
+      "site_ids": [
+        "grundon_bishops_cleeve_ash_plant",
+        "grundon_bishops_cleeve_mrf"
+      ],
+      "kind": "hh_series",
+      "status": "quarantined"
+    },
+    {
+      "path": "examples/real/Grundon/Bishops Cleeve Import.csv",
+      "sha256": "sha256:860b957bc5f4aa3be2fbb499254ea4efb580ca61f7908c94265f2f8e43f99e15",
+      "customer": "grundon",
+      "site_ids": [
+        "grundon_bishops_cleeve_ash_plant",
+        "grundon_bishops_cleeve_mrf"
+      ],
+      "kind": "hh_series",
+      "status": "quarantined"
+    },
+    {
+      "path": "examples/real/Grundon/Bishops Cleeve MRF.csv",
+      "sha256": "sha256:55164e2bc2ac07a3ea71f9e94312f9541856206dc7076be38f4c28e91f7ff501",
+      "customer": "grundon",
+      "site_ids": [
+        "grundon_bishops_cleeve_mrf"
+      ],
+      "kind": "hh_series",
+      "status": "quarantined"
+    },
+    {
+      "path": "examples/real/Grundon/Ewelme MRF.csv",
+      "sha256": "sha256:c19b160bd8d4107c8e56dbc0975e6f3ca3413c680d701e1ade12fa36dcacd7ef",
+      "customer": "grundon",
+      "site_ids": [
+        "grundon_ewelme"
+      ],
+      "kind": "hh_series",
+      "status": "quarantined"
+    },
+    {
+      "path": "examples/real/Grundon/Knowl Hill Export.csv",
+      "sha256": "sha256:296e8d44b3b0f17a056b391cd71c5b38ac7d66dec8bff92e2c4dfc76223fbd87",
+      "customer": "grundon",
+      "site_ids": [
+        "grundon_knowl_hill"
+      ],
+      "kind": "hh_series",
+      "status": "quarantined"
+    },
+    {
+      "path": "examples/real/Grundon/Knowl Hill Import.csv",
+      "sha256": "sha256:296e8d44b3b0f17a056b391cd71c5b38ac7d66dec8bff92e2c4dfc76223fbd87",
+      "customer": "grundon",
+      "site_ids": [
+        "grundon_knowl_hill"
+      ],
+      "kind": "hh_series",
+      "status": "quarantined"
+    },
+    {
+      "path": "examples/real/Grundon/NEW Electricity Usage and Costs.xlsx",
+      "sha256": "sha256:0d70f24ab42184f1edbbcb6081e8ca62527fab74e6e647cfb7261d04d1df194a",
+      "customer": "grundon",
+      "site_ids": [
+        "grundon_bishops_cleeve_ash_plant",
+        "grundon_bishops_cleeve_mrf",
+        "grundon_colnbrook",
+        "grundon_ewelme",
+        "grundon_knowl_hill",
+        "grundon_tanhouse"
+      ],
+      "kind": "meter_or_invoice_workbook",
+      "status": "quarantined"
+    },
+    {
+      "path": "examples/real/Grundon/Tanhouse PW.csv",
+      "sha256": "sha256:752467a91c0b038feed68e35716afac2c28a8f1d3ee90d3fe9c7f0c93d453594",
+      "customer": "grundon",
+      "site_ids": [
+        "grundon_tanhouse"
+      ],
+      "kind": "hh_series",
+      "status": "quarantined"
+    },
+    {
+      "path": "examples/real/Harwell/Meter_Data_Interval_Meter_K16W304527.XLSX",
+      "sha256": "sha256:7b2636ea232a89e80222f85024a7aa1d8ef7a2f14910924346e4e30df86ef3b6",
+      "customer": "harwell",
+      "site_ids": [
+        "harwell_campus_k16w304527"
+      ],
+      "kind": "meter_or_invoice_workbook",
+      "status": "quarantined"
+    },
+    {
+      "path": "examples/real/Harwell/POWEN_UK_Harwell.pdf",
+      "sha256": "sha256:91bf735724d7d46cbf25c71e76fe9d548c65dfe02faff2e81f37993ceae2f473",
+      "customer": "harwell",
+      "site_ids": [
+        "harwell_campus_k16w304527"
+      ],
+      "kind": "supplier_document",
+      "status": "quarantined"
+    },
+    {
+      "path": "examples/real/Robert Thomas Farms/robert_thomas_haywood_oaks_HH.csv",
+      "sha256": "sha256:281c41be4586e95570a3a67a4f9a965ea56ff245e3979e6fcf49bb2b16606e7d",
+      "customer": "robert_thomas_farms",
+      "site_ids": [
+        "robert_thomas_haywood_oaks"
+      ],
+      "kind": "hh_series",
+      "status": "quarantined"
+    },
+    {
+      "path": "examples/real/Robert Thomas Farms/robert_thomas_sitemodel.json",
+      "sha256": "sha256:55351eca6d3c3df9fa76e3fc30942ecc6c8271e96aa12fb98ca77b1071cdcec7",
+      "customer": "robert_thomas_farms",
+      "site_ids": [
+        "robert_thomas_haywood_oaks"
+      ],
+      "kind": "site_facts",
+      "status": "quarantined"
+    },
+    {
+      "path": "examples/real/sites/bishops_cleeve_ash_plant.json",
+      "sha256": "sha256:4f8ef79bac79d59614bf7d3d763ababe4c0fa3cab248a97e0569f9a8c1e14b8c",
+      "customer": "grundon",
+      "site_ids": [
+        "grundon_bishops_cleeve_ash_plant",
+        "harwell_campus_k16w304527"
+      ],
+      "kind": "site_facts",
+      "status": "quarantined"
+    },
+    {
+      "path": "examples/real/sites/bishops_cleeve_mrf.json",
+      "sha256": "sha256:c63e2ff55e0303ebc0f63e9eba8d108b80a15c61c0e356185ce97a5fa915ed39",
+      "customer": "grundon",
+      "site_ids": [
+        "grundon_bishops_cleeve_mrf",
+        "harwell_campus_k16w304527"
+      ],
+      "kind": "site_facts",
+      "status": "quarantined"
+    },
+    {
+      "path": "examples/real/sites/colnbrook.json",
+      "sha256": "sha256:6811788f65c8b13e8bc7abdf6187ced76a6a5557823fd53864feff50f0576cf0",
+      "customer": "grundon",
+      "site_ids": [
+        "grundon_colnbrook",
+        "harwell_campus_k16w304527"
+      ],
+      "kind": "site_facts",
+      "status": "quarantined"
+    },
+    {
+      "path": "examples/real/sites/ewelme.json",
+      "sha256": "sha256:550df73e190d1a3a522d27418f43870ac02b8690d60ab19c51a06050c414844e",
+      "customer": "grundon",
+      "site_ids": [
+        "grundon_ewelme",
+        "harwell_campus_k16w304527"
+      ],
+      "kind": "site_facts",
+      "status": "quarantined"
+    },
+    {
+      "path": "examples/real/sites/ewelme_invoice_anchored.json",
+      "sha256": "sha256:96b26b88060a01edbf6f99b90734840fbc7fce368c6e7fcc878696d95c8ba4ec",
+      "customer": "grundon",
+      "site_ids": [
+        "grundon_ewelme",
+        "harwell_campus_k16w304527"
+      ],
+      "kind": "site_facts",
+      "status": "quarantined"
+    },
+    {
+      "path": "examples/real/sites/harwell.json",
+      "sha256": "sha256:fcb292844e5f716531b0e53fe79e356dd703328f32a4a0e0a2f49f93041d5920",
+      "customer": "harwell",
+      "site_ids": [
+        "harwell_campus_k16w304527",
+        "grundon_bishops_cleeve_ash_plant",
+        "grundon_bishops_cleeve_mrf",
+        "grundon_colnbrook",
+        "grundon_ewelme",
+        "grundon_knowl_hill",
+        "grundon_tanhouse"
+      ],
+      "kind": "site_facts",
+      "status": "quarantined"
+    },
+    {
+      "path": "examples/real/sites/knowl_hill.json",
+      "sha256": "sha256:a1f74d52394f70fe353b918d26dcd8ac50808cc7bccfe54fcc0ab6e80389b8b5",
+      "customer": "grundon",
+      "site_ids": [
+        "grundon_knowl_hill",
+        "harwell_campus_k16w304527"
+      ],
+      "kind": "site_facts",
+      "status": "quarantined"
+    },
+    {
+      "path": "examples/real/sites/knowl_hill_invoice_anchored.json",
+      "sha256": "sha256:8349bd9dedd0011f1ca28b7554847e6ca6c8fb108da3ab25a97d332b7c26e6ca",
+      "customer": "grundon",
+      "site_ids": [
+        "grundon_knowl_hill",
+        "harwell_campus_k16w304527"
+      ],
+      "kind": "site_facts",
+      "status": "quarantined"
+    },
+    {
+      "path": "examples/real/sites/tanhouse.json",
+      "sha256": "sha256:f7f462ae9e55fe60ff75db00c46b8cb51fb27088e825ef71ef23aa62f9f87aac",
+      "customer": "grundon",
+      "site_ids": [
+        "grundon_tanhouse",
+        "harwell_campus_k16w304527"
+      ],
+      "kind": "site_facts",
+      "status": "quarantined"
+    },
+    {
+      "path": "graphify-out/converted/Meter_Data_Interval_Meter_K16W304527_064c0656.md",
+      "sha256": "sha256:65116694751dc84932f4501474619ef9cacb56e5caebe1afa3343f6544bfcd17",
+      "customer": "harwell",
+      "site_ids": [
+        "harwell_campus_k16w304527"
+      ],
+      "kind": "hh_series",
+      "status": "quarantined"
+    },
+    {
+      "path": "graphify-out/converted/NEW Electricity Usage and Costs_89343720.md",
+      "sha256": "sha256:65f40d7c2c7d1c5c36c55fa1c383b9c3cbd0f11f4535b86f034d91e9e2762d23",
+      "customer": "grundon",
+      "site_ids": [
+        "grundon_bishops_cleeve_ash_plant",
+        "grundon_bishops_cleeve_mrf",
+        "grundon_colnbrook",
+        "grundon_ewelme",
+        "grundon_knowl_hill",
+        "grundon_tanhouse"
+      ],
+      "kind": "hh_series",
+      "status": "quarantined"
+    }
+  ],
+  "dataset_count": 78
+}

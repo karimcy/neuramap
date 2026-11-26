@@ -1,0 +1,39 @@
+# Fly.io config for the GridQ public web app (W5-3, primary recommended host). See docs/deployment.md.
+#
+# TODO[Olly] before go-live (the agent must NOT do these — they create accounts / accept terms / push live):
+#   1. `fly launch --no-deploy` (or set `app` below to a name you reserve with `fly apps create`).
+#   2. Pick `primary_region`.
+#   3. If gating the URL: `fly secrets set GRIDQ_BASIC_AUTH="user:strongpassword"` (NEVER commit it here).
+#   4. `fly deploy`.
+
+app = "gridq-demo"          # TODO[Olly]: replace with your reserved Fly app name
+primary_region = "lhr"      # London. TODO[Olly]: choose your region
+
+[build]
+  dockerfile = "Dockerfile"
+
+[http_service]
+  internal_port = 8000      # matches the Dockerfile CMD default; Fly does not inject $PORT
+  force_https = true        # HTTPS for the public URL
+  auto_stop_machines = "stop"
+  auto_start_machines = true
+  min_machines_running = 0
+
+  # Health check the load balancer polls — hits the unauthenticated /healthz (open even when gated).
+  [[http_service.checks]]
+    method = "get"
+    path = "/healthz"
+    interval = "30s"
+    timeout = "5s"
+    grace_period = "20s"
+
+[[vm]]
+  size = "shared-cpu-1x"
+  memory = "1gb"            # headroom for the solver stack; bump to 2gb if a real MILP solve OOMs
+
+# Optional DURABLE run store. Default (commented out) = ephemeral: user runs vanish on redeploy,
+# which is the privacy-aligned default (real uploads don't persist). To let users revisit runs,
+# `fly volumes create gridq_data --size 1 --region <region>` then uncomment:
+# [[mounts]]
+#   source = "gridq_data"
+#   destination = "/data"

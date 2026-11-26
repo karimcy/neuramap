@@ -1,0 +1,39 @@
+{# Feature visual: the three artifacts - system spec, underwriting pack, customer proposal. Illustrative. #}
+<div class="lp-viz">
+  <div class="lp-viz__cap"><b>Three artifacts</b><span class="lp-viz__tag">One run record</span></div>
+  <svg viewBox="0 0 460 250" role="img" aria-label="Three generated documents from one run record">
+    {# back document #}
+    <g transform="translate(40 30)" opacity="0.55">
+      <rect width="200" height="200" rx="12" fill="rgba(255,255,255,0.06)" stroke="rgba(255,255,255,0.14)"/>
+    </g>
+    {# middle document #}
+    <g transform="translate(70 18)" opacity="0.8">
+      <rect width="200" height="210" rx="12" fill="rgba(255,255,255,0.08)" stroke="rgba(255,255,255,0.16)"/>
+    </g>
+    {# front document - the proposal #}
+    <g transform="translate(120 8)">
+      <rect width="230" height="232" rx="14" fill="#11131f" stroke="rgba(255,255,255,0.18)"/>
+      <rect x="18" y="18" width="6" height="22" rx="2" fill="var(--accent)"/>
+      <text x="34" y="35" fill="#fff" font-size="13" font-weight="800">GridQ - Site report</text>
+      <rect x="18" y="56" width="120" height="8" rx="4" fill="rgba(255,255,255,0.22)"/>
+      <rect x="18" y="72" width="194" height="6" rx="3" fill="rgba(255,255,255,0.12)"/>
+      <rect x="18" y="84" width="180" height="6" rx="3" fill="rgba(255,255,255,0.12)"/>
+      {# mini metric row #}
+      <g transform="translate(18 104)">
+        <rect width="58" height="40" rx="6" fill="rgba(255,255,255,0.05)"/><text x="10" y="22" fill="#fff" font-size="12" font-weight="800">16.0%</text><text x="10" y="34" fill="rgba(255,255,255,0.5)" font-size="7">IRR</text>
+        <rect x="66" width="58" height="40" rx="6" fill="rgba(255,255,255,0.05)"/><text x="76" y="22" fill="#fff" font-size="12" font-weight="800">6.8 yr</text><text x="76" y="34" fill="rgba(255,255,255,0.5)" font-size="7">PAYBACK</text>
+        <rect x="132" width="62" height="40" rx="6" fill="rgba(255,255,255,0.05)"/><text x="142" y="22" fill="#fff" font-size="12" font-weight="800">1.45×</text><text x="142" y="34" fill="rgba(255,255,255,0.5)" font-size="7">DSCR</text>
+      </g>
+      {# mini chart #}
+      <g transform="translate(18 158)" fill="var(--ok)">
+        <rect x="0"   y="34" width="14" height="20"/><rect x="20" y="28" width="14" height="26"/>
+        <rect x="40"  y="22" width="14" height="32"/><rect x="60" y="16" width="14" height="38"/>
+        <rect x="80"  y="20" width="14" height="34"/><rect x="100" y="12" width="14" height="42"/>
+      </g>
+      <g transform="translate(150 168)">
+        <rect width="62" height="20" rx="10" fill="var(--ok-wash)" stroke="var(--ok-line)"/>
+        <text x="31" y="14" fill="#4ade80" font-size="9" font-weight="700" text-anchor="middle">BANKABLE</text>
+      </g>
+    </g>
+  </svg>
+</div>

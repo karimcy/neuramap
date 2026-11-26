@@ -1,0 +1,173 @@
+\chapter{Platform overview and architecture}
+\label{ch:overview}
+
+This chapter shows the whole platform at once. Read it before any module chapter: it explains the shape of the pipeline, the principle that holds it together, and the vocabulary the rest of the manual relies on. Every later chapter zooms into one box of the master diagram presented here.
+
+\section{The job: three documents that cannot disagree}
+
+The platform exists to turn one commercial site into three documents:
+
+\begin{enumerate}
+  \item \textbf{A system specification} -- the recommended battery, described by three numbers: its power (how fast it can charge or discharge, in kilowatts), its energy (how much it can store, in kilowatt-hours), and its duration (energy divided by power, in hours).
+  \item \textbf{An underwriting pack} -- the document a lender reads. It states how much cash the project produces in a normal year and in a bad year, whether that cash comfortably covers the loan repayments, which income is contracted versus speculative, the customer's credit standing, and the price the project must charge to hit its target return.
+  \item \textbf{A customer proposal} -- the document the site owner reads. It shows the electricity bill before and after the battery, the saving, the contract length, and the commercial structure, all in plain language.
+\end{enumerate}
+
+The defining requirement is that these three documents are \emph{consistent by construction}. They are never written independently and reconciled later. They are all rendered from a single, frozen calculation record, so the battery size in the proposal is by definition the same battery size the lender underwrote.
+
+\section{Two zones with a hard wall between them}
+
+The platform is split into two zones, and the boundary between them is the single most important design decision in the system.
+
+\begin{description}
+  \item[The deterministic core.] This is the pricing path: the chain of pure numerical code that turns a validated site into priced numbers. It contains no artificial intelligence and no randomness that is not explicitly controlled. Given the same inputs, the same versioned assumptions, and the same software version, it produces byte-for-byte the same answer every time.
+  \item[The agentic perimeter.] This is where human effort and AI assistance live: cleaning up messy installer data on the way in, researching a customer's credit, and drafting the readable prose of the two documents. Everything here is assisted by AI but checked against a strict data shape and confirmed by a person, and it is structurally unable to write or change a single figure. Numbers are injected into the prose from the calculation record; the AI only writes the words around them.
+\end{description}
+
+\begin{keyidea}[Why the wall matters]
+A lender must be able to trust that no figure in the pack was hallucinated or quietly edited. By forbidding AI and uncontrolled randomness anywhere on the pricing path, and by feeding every number in the documents from one frozen record, the platform makes that trust a property of the architecture rather than a matter of discipline. The recurring rule throughout this manual is: \emph{prose is drafted, numbers are computed, and the two never cross.}
+\end{keyidea}
+
+\section{The pipeline at a glance}
+
+Figure~\ref{fig:master} is the master map of the platform. Data enters at the top, flows down the central spine through the pipeline stages, and the three documents plus a usage log emerge at the bottom. The boxes on the sides are \emph{cross-cutting}: they feed or stamp several stages rather than sitting at one point in the flow. Each later chapter of this manual expands exactly one of these boxes.
+
+\begin{figure}[H]
+\centering
+\resizebox{\textwidth}{!}{%
+\begin{tikzpicture}[node distance=8mm and 18mm]
+  % ---- central spine ----
+  \node[io] (data) {Site data\\\scriptsize installer files, half-hourly meter CSV};
+  \node[ext, below=of data] (ingest) {\textbf{M0 Ingestion}\\\scriptsize validate, grade tier T0--T2,\\\scriptsize rank the missing-data asks};
+  \node[store, below=of ingest] (sitemodel) {\textbf{SiteModel} (M1)\\\scriptsize the canonical validated site};
+  \node[proc, below=of sitemodel, minimum width=58mm, text width=56mm] (engine)
+     {\textbf{Optimisation engine}\\\scriptsize M2 value stack \textperiodcentered{} M3 half-hourly dispatch MILP\\\scriptsize M4 sizing search (one engine, called many times)};
+  \node[io, below=of engine] (optresult) {\textbf{OptimisationResult}\\\scriptsize chosen size + half-hourly dispatch\\\scriptsize + value by income stream};
+  \node[proc, below=of optresult, minimum width=58mm, text width=56mm] (finance)
+     {\textbf{Financial model} (M5)\\\scriptsize P50/P90 cashflows \textperiodcentered{} DSCR \textperiodcentered{} cost lines\\\scriptsize price-to-target return};
+  \node[store, below=of finance] (quote) {\textbf{QuoteRecord} (X.2)\\\scriptsize immutable, hashed, version-stamped};
+  \node[proc, below=of quote, minimum width=58mm, text width=56mm] (outputs)
+     {\textbf{Outputs} (M8)\\\scriptsize numbers injected from the record, prose drafted};
+  \node[store, below=of outputs, minimum width=70mm, text width=68mm] (artifacts)
+     {\textbf{Three artifacts} + \textbf{Telemetry} (X.3)\\\scriptsize specification \textperiodcentered{} underwriting pack \textperiodcentered{} proposal \textperiodcentered{} usage log};
+
+  % spine arrows
+  \draw[flow] (data) -- (ingest);
+  \draw[flow] (ingest) -- (sitemodel);
+  \draw[flow] (sitemodel) -- (engine);
+  \draw[flow] (engine) -- (optresult);
+  \draw[flow] (optresult) -- (finance);
+  \draw[flow] (finance) -- (quote);
+  \draw[flow] (quote) -- (outputs);
+  \draw[flow] (outputs) -- (artifacts);
+
+  % ---- left cross-cutting: assumptions + scenarios ----
+  \node[store, left=of engine, yshift=10mm, fill=gridqGreenBg, draw=nodeStoreBd, text width=30mm,
+        minimum width=32mm] (assum)
+     {\textbf{Assumption library} (X.1)\\\scriptsize every number, versioned};
+  \node[proc, below=of assum, draw=nodeProcessBd, text width=30mm, minimum width=32mm] (scen)
+     {\textbf{Scenario engine} (M6)\\\scriptsize Low / Central / High cases};
+  \draw[flow] (assum.east) -- (engine.west);
+  \draw[flow] (assum.south) to[out=-90,in=180] (finance.west);
+  \draw[flow] (scen.east) to[out=0,in=180] ([yshift=3mm]finance.west);
+
+  % ---- right cross-cutting: credit + provenance ----
+  \node[ext, right=of finance, yshift=8mm, text width=30mm, minimum width=32mm] (credit)
+     {\textbf{Counterparty credit} (M9)\\\scriptsize score $\rightarrow$ rate \& tenor};
+  \node[proc, below=of credit, draw=nodeProcessBd, text width=30mm, minimum width=32mm] (prov)
+     {\textbf{Provenance} (X.2)\\\scriptsize hashes + version stamps};
+  \draw[flow] (credit.west) -- (finance.east);
+  \draw[flow] (prov.west) to[out=180,in=0] (quote.east);
+
+  % ---- zone backdrops ----
+  \begin{scope}[on background layer]
+    \node[groupbox, fit=(sitemodel)(engine)(optresult)(finance)(quote)(assum)(scen)(prov),
+          inner sep=7pt, label={[note,rotate=90,anchor=south]west:DETERMINISTIC CORE}] {};
+    \node[groupbox, draw=nodeExtBd, fill=gridqVioletBg, fit=(ingest), inner sep=5pt] {};
+    \node[groupbox, draw=nodeExtBd, fill=gridqVioletBg, fit=(credit), inner sep=5pt] {};
+    \node[groupbox, draw=nodeExtBd, fill=gridqVioletBg, fit=(outputs), inner sep=5pt] {};
+  \end{scope}
+\end{tikzpicture}}
+\caption{The master pipeline. The central spine is the deterministic pricing path; the violet (dashed) boxes are the AI-assisted perimeter; the green and blue side boxes are cross-cutting concerns that feed or stamp several stages. Each box is expanded in its own chapter.}
+\label{fig:master}
+\end{figure}
+
+\section{The five guarantees}
+
+Everything in the architecture serves five promises. They recur in every chapter, so they are stated once here.
+
+\begin{enumerate}
+  \item \textbf{Determinism.} The output is a pure function of the input, the assumption version, the code version, the engine version, and the random seed. There is no wall-clock time in the maths, all randomness is seeded, and floats are combined in a fixed order. Re-running an identical request on the same machine reproduces an identical result. (Chapter~\ref{ch:provenance}.)
+  \item \textbf{Traceability.} Every number can be traced to the inputs, assumptions, and code that produced it, because each saved record carries a hash of its inputs, a hash of its outputs, and the versions of everything involved. (Chapter~\ref{ch:provenance}.)
+  \item \textbf{Numbers are never authored by AI.} The two documents are drafted by a language model, but every figure is injected from the calculation record. Automated tests assert that no number appears in a document that is not also in the record. (Chapter~\ref{ch:outputs}.)
+  \item \textbf{One versioned source for every assumption.} No piece of code contains a private constant. Every price, rate, cost, and threshold lives in a single versioned library, and each quote records the version it used. Change a value and the version changes, so any shift in the answer is attributable. (Chapter~\ref{ch:assumptions}.)
+  \item \textbf{Telemetry from the first quote.} Every run logs how it was produced -- the data quality at intake, the human minutes spent, the outcome -- so the claim that the platform is faster and cheaper than manual quoting is measurable rather than asserted. (Chapter~\ref{ch:telemetry}.)
+\end{enumerate}
+
+\section{Data quality tiers and honest degradation}
+
+The platform never refuses to answer, but it never pretends to know more than the data supports. At intake every site is graded into one of three \emph{data tiers}:
+
+\begin{table}[H]
+\centering
+\caption{The three data tiers assigned at intake.}
+\label{tab:tiers}
+\small\sffamily
+\begin{tabularx}{\textwidth}{@{}l l L@{}}
+\toprule
+\textbf{Tier} & \textbf{Roughly means} & \textbf{What is present} \\
+\midrule
+\textbf{T0} & Coarse & Annual energy total, tariff, and postcode, but no detailed meter trace. \\
+\textbf{T1} & Partial & Some genuine half-hourly meter data, but less than twelve validated months. \\
+\textbf{T2} & Full & At least twelve months of half-hourly data that pass completeness and plausibility checks. \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\begin{keyidea}[Degrade honestly, never silently]
+When inputs are too thin to underwrite, the platform still produces a quote, but marks it not bankable and attaches a \emph{ranked list of the data that would most improve it}. It never invents a system to fill a gap. This ``honest degradation'' is visible at every stage and is the reason a run never simply fails.
+\end{keyidea}
+
+A second, related label travels with every quote: its \textbf{bankable status}. On the current placeholder assumption set, every quote is deliberately marked \emph{not bankable}, because the figures are stand-ins rather than market-calibrated values. This is a safety property, not a bug: the platform will not present a placeholder number as a bankable one.
+
+\section{The quote lifecycle}
+
+A quote is a long-lived object, not a one-off printout. It moves through a fixed sequence of states as a deal matures, and each state is a frozen snapshot:
+
+\begin{center}\sffamily\small
+draft $\;\rightarrow\;$ indicative $\;\rightarrow\;$ underwritten $\;\rightarrow\;$ contracted $\;\rightarrow\;$ operating
+\end{center}
+
+A quote is only ever valid against the assumption version that produced it. If a material assumption changes beyond a tolerance, the correct response is to \emph{reprice} (produce a new snapshot), never to silently edit the old one. The lifecycle is covered in Chapter~\ref{ch:quotes}.
+
+\section{A map of this manual}
+
+Table~\ref{tab:map} lists every module chapter in pipeline order, with the module identifier used in the codebase and the folder that implements it. Reading the chapters in this order walks the data from raw meter file to finished documents.
+
+\begin{table}[H]
+\centering
+\caption{The modules of the pipeline, in the order data flows through them.}
+\label{tab:map}
+\small\sffamily
+\begin{tabularx}{\textwidth}{@{}c l l L@{}}
+\toprule
+\textbf{Ch.} & \textbf{Module} & \textbf{Folder} & \textbf{What it does} \\
+\midrule
+\ref{ch:contracts} & M1 & \fpath{schemas/} & Defines every data shape, above all the SiteModel. \\
+\ref{ch:ingestion} & M0 & \fpath{ingestion/} & Validates and grades a site; ranks missing data. \\
+\ref{ch:assumptions} & X.1 & \fpath{assumptions/} & The single versioned source of every number. \\
+\ref{ch:provenance} & X.2 & \fpath{provenance/} & Hashing, versioning, deterministic run identity. \\
+\ref{ch:engine} & -- & \fpath{engine/} & The interface the optimiser must satisfy; the mock. \\
+\ref{ch:valuestack} & M2 & \fpath{value\_stack/} & Income streams and gates as composable functions. \\
+\ref{ch:dispatch} & M3 & \fpath{optimisation/} & The half-hourly dispatch optimiser (the MILP). \\
+\ref{ch:sizing} & M4 & \fpath{sizing/} & Searches battery sizes for the bankable best. \\
+\ref{ch:scenarios} & M6 & \fpath{scenarios/} & Low/Central/High price and policy cases. \\
+\ref{ch:finance} & M5/M9 & \fpath{finance/} & Cashflows, debt cover, credit, price-to-target. \\
+\ref{ch:quotes} & X.2 & \fpath{quotes/} & Assembles and stamps the immutable QuoteRecord. \\
+\ref{ch:telemetry} & X.3 & \fpath{telemetry/} & Logs each run; holds the manual benchmark. \\
+\ref{ch:outputs} & M8 & \fpath{outputs/} & Renders the memo, proposal, and report. \\
+\ref{ch:app} & -- & \fpath{app/} & The web application and demo flow. \\
+\ref{ch:cli} & -- & \fpath{cli.py} & The command-line tool that runs it end to end. \\
+\bottomrule
+\end{tabularx}
+\end{table}

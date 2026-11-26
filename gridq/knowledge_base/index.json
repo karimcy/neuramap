@@ -1,0 +1,147 @@
+{
+  "adrs": {
+    "ADR-D1": {
+      "chosen_option": "d",
+      "status": "decided",
+      "title": "Company model"
+    },
+    "ADR-D10": {
+      "chosen_option": "b",
+      "status": "decided",
+      "title": "Neura-authored records as evidence"
+    },
+    "ADR-D2": {
+      "chosen_option": "d",
+      "status": "decided",
+      "title": "Ops boundary"
+    },
+    "ADR-D3": {
+      "chosen_option": "b",
+      "status": "decided",
+      "title": "Underwriting basis"
+    },
+    "ADR-D4": {
+      "chosen_option": "d",
+      "status": "decided",
+      "title": "Host fit, and who owns and finances the demonstrator BESS"
+    },
+    "ADR-D5": {
+      "chosen_option": "e",
+      "status": "decided",
+      "title": "Primary market route"
+    },
+    "ADR-D6": {
+      "chosen_option": "a",
+      "status": "decided",
+      "title": "Grant status branch"
+    },
+    "ADR-D7": {
+      "chosen_option": "c",
+      "status": "decided",
+      "title": "Cyprus IP"
+    },
+    "ADR-D8": {
+      "chosen_option": "e",
+      "status": "decided",
+      "title": "Beachhead segment"
+    },
+    "ADR-D9": {
+      "chosen_option": "d",
+      "status": "decided",
+      "title": "External audience for the Atlas"
+    },
+    "ADR-S14-1": {
+      "chosen_option": "d",
+      "status": "decided",
+      "title": "Build scope choice: capacity versus the demo cut (spec \u00a714.1)"
+    }
+  },
+  "releases": {
+    "gb_v0_1": {
+      "adrs": [],
+      "changelog_heading": "2026-11-26 \u2014 WP-GRC-14: knowledge_base index; changelog entries backfilled for five assumption releases",
+      "file": "assumptions/gb_v0_1.yaml",
+      "released": "2026-06-17"
+    },
+    "gb_v1_0": {
+      "adrs": [],
+      "changelog_heading": "2026-06-24",
+      "file": "assumptions/gb_v1_0.yaml",
+      "released": "2026-06-24"
+    },
+    "gb_v1_1": {
+      "adrs": [],
+      "changelog_heading": "2026-06-28",
+      "file": "assumptions/gb_v1_1.yaml",
+      "released": "2026-07-02"
+    },
+    "gb_v1_10": {
+      "adrs": [],
+      "changelog_heading": "2026-11-26 \u2014 WP-GRC-14: knowledge_base index; changelog entries backfilled for five assumption releases",
+      "file": "assumptions/gb_v1_10.yaml",
+      "released": "2026-08-16"
+    },
+    "gb_v1_11": {
+      "adrs": [],
+      "changelog_heading": "2026-08-17 \u2014 gb_v1_11: the two unsourced flat costs are refuted, the capex that cancels them is corrected, and the private-wire DUoS absence finally reaches the branch that reads it",
+      "file": "assumptions/gb_v1_11.yaml",
+      "released": "2026-08-17"
+    },
+    "gb_v1_12": {
+      "adrs": [
+        "ADR-D3"
+      ],
+      "changelog_heading": "2026-08-18 \u2014 D55: every revenue stream gets a sourced price and a dispatchable HH shape, on a named all-streams study basis",
+      "file": "assumptions/gb_v1_12.yaml",
+      "released": "2026-08-18"
+    },
+    "gb_v1_2": {
+      "adrs": [],
+      "changelog_heading": "2026-07-02",
+      "file": "assumptions/gb_v1_2.yaml",
+      "released": "2026-07-02"
+    },
+    "gb_v1_3": {
+      "adrs": [],
+      "changelog_heading": "2026-07-03",
+      "file": "assumptions/gb_v1_3.yaml",
+      "released": "2026-07-03"
+    },
+    "gb_v1_4": {
+      "adrs": [],
+      "changelog_heading": "2026-07-08",
+      "file": "assumptions/gb_v1_4.yaml",
+      "released": "2026-07-08"
+    },
+    "gb_v1_5": {
+      "adrs": [],
+      "changelog_heading": "2026-07-17",
+      "file": "assumptions/gb_v1_5.yaml",
+      "released": "2026-07-17"
+    },
+    "gb_v1_6": {
+      "adrs": [],
+      "changelog_heading": "2026-07-20",
+      "file": "assumptions/gb_v1_6.yaml",
+      "released": "2026-07-20"
+    },
+    "gb_v1_7": {
+      "adrs": [],
+      "changelog_heading": "2026-11-26 \u2014 WP-GRC-14: knowledge_base index; changelog entries backfilled for five assumption releases",
+      "file": "assumptions/gb_v1_7.yaml",
+      "released": "2026-08-12"
+    },
+    "gb_v1_8": {
+      "adrs": [],
+      "changelog_heading": "2026-11-26 \u2014 WP-GRC-14: knowledge_base index; changelog entries backfilled for five assumption releases",
+      "file": "assumptions/gb_v1_8.yaml",
+      "released": "2026-08-12"
+    },
+    "gb_v1_9": {
+      "adrs": [],
+      "changelog_heading": "2026-11-26 \u2014 WP-GRC-14: knowledge_base index; changelog entries backfilled for five assumption releases",
+      "file": "assumptions/gb_v1_9.yaml",
+      "released": "2026-08-15"
+    }
+  }
+}

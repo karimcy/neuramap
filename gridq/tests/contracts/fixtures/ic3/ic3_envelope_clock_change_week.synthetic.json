@@ -1,0 +1,234 @@
+{
+ "contract": "IC-3",
+ "contract_version": "1.0.0",
+ "envelope_id": "ic3-synthetic-firm-clock-change-week",
+ "site_id": "SYNTHETIC-SITE-FIRM",
+ "record_class": "synthetic_fixture",
+ "source": {
+  "input_hash": "sha256:92b1f930fb7d04ee96f3ce2777b68d59c82e66f136a2c498849ff3a2554dadd6",
+  "run": {
+   "run_id": "run_889248e0995ac77d",
+   "assumption_version": "synthetic-fixture",
+   "code_version": "0.0.0-synthetic",
+   "schema_version": "0.1.0"
+  },
+  "producer": {
+   "engine": "gridq",
+   "engine_version": "0.0.0-synthetic"
+  },
+  "basis": {
+   "kind": "study",
+   "basis_id": "all_streams_enabled_study_v1",
+   "label": "STUDY BASIS (D55) — EVERY REVENUE STREAM PRICED IN THE PRICED FLOOR, EVERY AWARD ASSUMED — NOT AN UNDERWRITING OUTPUT",
+   "disclosure": "synthetic fixture: schema-test data, not a priced run; the banner is the named study basis's own"
+  },
+  "constraint_library": {
+   "kind": "unknown",
+   "reason": "synthetic fixture: the constraint library is not yet published (WP-SIZE-02)"
+  },
+  "assessment": {
+   "kind": "quote_binding",
+   "contract": "IC-12",
+   "contract_version": "2.0.0",
+   "quote_id": "quote_run_889248e0995ac77d",
+   "quote_input_hash": "sha256:92b1f930fb7d04ee96f3ce2777b68d59c82e66f136a2c498849ff3a2554dadd6"
+  },
+  "connection_agreement": {
+   "kind": "connection_agreement_ref",
+   "contract": "IC-1",
+   "contract_version": "1.0.0",
+   "agreement_hash": "sha256:93f1919f8179e71eec8628e85b60a2095a395e0221fc4b188bf42f31847306cc"
+  },
+  "scenario_set": {
+   "kind": "not_applicable",
+   "reason": "synthetic fixture: a firm connection has no curtailment scenarios"
+  }
+ },
+ "supersedes": {
+  "kind": "not_applicable",
+  "reason": "synthetic fixture: the first envelope for this site"
+ },
+ "valid_from": "2027-03-25T00:00:00Z",
+ "valid_until": "2027-04-01T00:00:00Z",
+ "rated_discharge_kw": 2000,
+ "rated_charge_kw": 2000,
+ "usable_energy_kwh": 4000,
+ "fail_safe": {
+  "firm_import_limit_kw": 20000,
+  "resilience_floor_kwh": 800,
+  "markets": "declared_unavailable"
+ },
+ "services": [
+  {
+   "service_id": "svc-capacity-market",
+   "stream": "CAPACITY_MARKET",
+   "sustain_min": 60,
+   "counterparty_role": "emr_settlement",
+   "reference": {
+    "kind": "unknown",
+    "reason": "synthetic fixture: no counterparty reference exists"
+   },
+   "basis": {
+    "kind": "unknown",
+    "reason": "synthetic fixture: no capacity agreement exists"
+   },
+   "underwritten": {
+    "kind": "unknown",
+    "reason": "synthetic fixture: no underwritten value is stated"
+   }
+  }
+ ],
+ "thermal": {
+  "kind": "not_applicable",
+  "reason": "synthetic fixture: no controllable cooling plant at this site"
+ },
+ "seasons": [
+  {
+   "season_id": "all-year",
+   "months": [
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12
+   ]
+  }
+ ],
+ "day_groups": [
+  {
+   "day_group_id": "all-week",
+   "iso_weekdays": [
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7
+   ]
+  }
+ ],
+ "bands": [
+  {
+   "band_id": "night",
+   "start_minute": 0,
+   "end_minute": 420
+  },
+  {
+   "band_id": "day",
+   "start_minute": 420,
+   "end_minute": 1440
+  }
+ ],
+ "cells": [
+  {
+   "season_id": "all-year",
+   "day_group_id": "all-week",
+   "band_id": "night",
+   "terms_id": "night"
+  },
+  {
+   "season_id": "all-year",
+   "day_group_id": "all-week",
+   "band_id": "day",
+   "terms_id": "day-cm"
+  }
+ ],
+ "terms": [
+  {
+   "terms_id": "day-cm",
+   "terms": {
+    "import_limit_kw": 20000,
+    "export_limit_kw": 2000,
+    "import_basis": "firm",
+    "discharge": {
+     "resilience_kw": 200,
+     "services": [
+      {
+       "service_id": "svc-capacity-market",
+       "kw": 1000
+      }
+     ],
+     "merchant_kw": 800,
+     "withheld": {
+      "kind": "not_applicable",
+      "reason": "synthetic fixture: nothing is withheld"
+     }
+    },
+    "charge": {
+     "resilience_kw": 0,
+     "services": [],
+     "merchant_kw": 2000,
+     "withheld": {
+      "kind": "not_applicable",
+      "reason": "synthetic fixture: nothing is withheld"
+     }
+    },
+    "energy": {
+     "resilience_floor_kwh": 800,
+     "held_up": [
+      {
+       "service_id": "svc-capacity-market",
+       "kwh": 1000
+      }
+     ],
+     "merchant_kwh": 2200,
+     "held_down": [],
+     "withheld_kwh": 0
+    },
+    "thermal": {
+     "kind": "not_applicable",
+     "reason": "synthetic fixture: no controllable cooling plant"
+    }
+   }
+  },
+  {
+   "terms_id": "night",
+   "terms": {
+    "import_limit_kw": 20000,
+    "export_limit_kw": 2000,
+    "import_basis": "firm",
+    "discharge": {
+     "resilience_kw": 200,
+     "services": [],
+     "merchant_kw": 1800,
+     "withheld": {
+      "kind": "not_applicable",
+      "reason": "synthetic fixture: nothing is withheld"
+     }
+    },
+    "charge": {
+     "resilience_kw": 0,
+     "services": [],
+     "merchant_kw": 2000,
+     "withheld": {
+      "kind": "not_applicable",
+      "reason": "synthetic fixture: nothing is withheld"
+     }
+    },
+    "energy": {
+     "resilience_floor_kwh": 800,
+     "held_up": [],
+     "merchant_kwh": 3200,
+     "held_down": [],
+     "withheld_kwh": 0
+    },
+    "thermal": {
+     "kind": "not_applicable",
+     "reason": "synthetic fixture: no controllable cooling plant"
+    }
+   }
+  }
+ ],
+ "overrides": [],
+ "clock": "Europe/London",
+ "resolution_min": 30,
+ "resolved_hash": "sha256:0c3a3dc0a14d9b1cf366bfdc052e128c2510347a418d0e141faf611e13334453"
+}

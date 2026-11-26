@@ -1,0 +1,266 @@
+\chapter{Provenance, determinism and run identity}
+\label{ch:provenance}
+\modtag{X.2}{Provenance and determinism}{Cross-cutting}
+
+A lender about to lend against a battery project asks one blunt question of every number in the pack: where did this come from, and would I get the same figure if I ran it again? This module is the platform's answer. It is the machinery that makes every priced number \emph{reproducible} (run it again on the same inputs and you get the identical figure) and \emph{traceable} (you can name exactly which inputs, which assumptions and which version of the code produced it). Without that, ``consistent by construction'' and ``bankable'' are just claims; with it, they are properties you can re-derive and audit.
+
+Provenance is a \emph{cross-cutting} concern, not a stage in the pipeline. It does not sit at one point between two boxes; it stamps the pricing path wherever a run begins and seals the record at the end. So this chapter is short on geography and long on guarantees: it explains the determinism rule the whole core obeys, the canonical hashing that turns any object into a stable fingerprint, and the deterministic run identity that ties a finished quote back to everything that made it.
+
+\begin{plainnote}
+Think of a laboratory notebook. A good scientist does not just write down the result; they write down the exact reagents, their batch numbers, the protocol version, and the settings on the instrument, so a colleague can repeat the experiment and get the same answer. Provenance is GridQ's lab notebook for numbers: every priced figure is stamped with the precise ingredients that produced it, and those ingredients alone determine the result.
+\end{plainnote}
+
+\pipelinepos{Wraps the deterministic core. At the start of a run it fingerprints the input and pins the versions in force; at the end its stamps are folded into the immutable \texttt{QuoteRecord} (Chapter~\ref{ch:quotes}). The assumption version it records is the release issued by the assumption library (Chapter~\ref{ch:assumptions}).}
+
+\begin{contract}
+\textbf{In.} The run's \textbf{input object} (the validated \texttt{SiteModel} plus the optimisation request that drives the run); the \textbf{assumption version} in force (Chapter~\ref{ch:assumptions}); the \textbf{schema version} the contracts were built against; and -- captured from the environment, not passed in -- the \textbf{code version} (the repository's git commit). The engine's own \textbf{model version} and the \textbf{seed} ride alongside in the optimisation request and result.\\
+\textbf{Out.} A small \texttt{RunContext} stamp carrying a deterministic \textbf{run identity} (a \code{run\_id} derived from the pins, never from the clock), the \textbf{input hash}, and the pinned \textbf{assumption / code / schema versions}, plus any non-fatal warnings and a wall-clock timestamp held strictly as metadata. Downstream, the assembled record also carries an \textbf{output hash} that a re-run must reproduce. Two primitive utilities are exposed for everyone to use: canonical JSON serialisation, and a hash of any object or file.
+\end{contract}
+
+\section{The determinism rule}
+
+Everything in this module exists to uphold one equation. The output of the pricing core is a pure function of five pinned inputs and nothing else:
+
+\begin{center}\sffamily
+output $= f($\,input,\; assumption version,\; code version,\; model version,\; seed\,$)$
+\end{center}
+
+Read literally, this says: if those five things are fixed, the answer is fixed. Anything that could vary the output but is \emph{not} on that list, the time of day, the order keys happen to sit in a dictionary, an unseeded random draw, a thread-scheduling accident, is a leak that would break reproducibility, and the platform is built to close every such leak. The five inputs are deliberately chosen and orthogonal:
+
+\begin{table}[H]
+\centering
+\caption{The five pinned inputs that, together, fully determine a priced output.}
+\label{tab:pins}
+\small\sffamily
+\begin{tabularx}{\textwidth}{@{}l L@{}}
+\toprule
+\textbf{Pinned input} & \textbf{What it captures} \\
+\midrule
+\textbf{Input} & The validated \texttt{SiteModel} and the optimisation request: the site's own data and what was asked of it. \\
+\textbf{Assumption version} & The exact release of the assumption library (e.g. \code{gb\_v0\_1}): every price, rate, cost and threshold used (Chapter~\ref{ch:assumptions}). \\
+\textbf{Code version} & The git commit of the software that ran: the algorithms, formulas and glue. \\
+\textbf{Model version} & The optimisation engine's \emph{own} mathematical identity (e.g. \code{mock}, or a named solver-plus-formulation): changes when the maths or solver change. \\
+\textbf{Seed} & The single explicit number that pins any randomised step, recorded with the run. \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+Three habits make the equation hold in practice, and they recur in every core module.
+
+\textbf{No wall-clock in the maths.} A timestamp is recorded with each run, but only as a note of when it happened; it is never read back into a calculation. The moment a figure depended on ``now'', re-running it tomorrow would give a different answer, and the equation above would be a lie. Time is metadata, never an input.
+
+\textbf{All randomness is seeded.} The core contains no unseeded random draws. Wherever a step could in principle make a random choice, it draws from a generator initialised with the explicit \emph{seed} carried by the run. Same seed, same draws, same answer. The seed is recorded alongside the result so the draw can be reproduced exactly.
+
+\textbf{No private constants.} No number is hard-coded anywhere on the pricing path. Every figure comes from the versioned assumption library, so the \emph{assumption version} alone accounts for every domain number in play. Change a value and the version changes, which is what makes any shift in the answer attributable rather than mysterious (Chapter~\ref{ch:assumptions}).
+
+\begin{keyidea}
+Determinism here is a tested property, not a hope. The rule is exact: fix the five pins and the output is fixed. Everything else, the clock, dictionary ordering, unseeded randomness, is treated as a leak to be sealed. A golden ``repro'' test re-runs an identical request and asserts the output fingerprint is unchanged; if it ever differs, an unpinned influence has crept onto the pricing path and must be found and removed.
+\end{keyidea}
+
+\section{Canonical serialisation: a stable fingerprint for any object}
+
+To say ``the same input gives the same answer'', you first need a way to ask whether two inputs are the same. Comparing rich objects directly is fragile: the same site can be represented by dictionaries whose keys sit in a different order, by a date written as an object or as text, by a number stored as a high-precision decimal or a plain float. None of those differences change the \emph{meaning}, but all of them change the raw bytes, and a naive hash would call two equal sites different.
+
+Canonical serialisation removes that ambiguity. Any object is rendered to JSON under one fixed set of rules, so that two objects which are equal \emph{by value} always produce the identical string, regardless of how they were built. The rules are:
+
+\begin{itemize}
+  \item \textbf{Keys are sorted.} Every object's keys are written in a fixed (alphabetical) order, so dictionary insertion order cannot affect the output.
+  \item \textbf{Whitespace is fixed.} The output is compact, with no incidental spaces or line breaks to vary between machines.
+  \item \textbf{Rich values render one way.} Dates and times are written in one standard text form; enumerated choices render as their stable value; decimals render as their exact text; sets are sorted before they are written; nested schema objects are expanded the same way every time. Anything the rules cannot render is a hard error rather than a silent fudge, so an un-handled type is caught, not quietly skipped.
+\end{itemize}
+
+Two hashing primitives are built on top of this canonical form, and they are the only fingerprinting tools the rest of the platform uses:
+
+\begin{table}[H]
+\centering
+\caption{The provenance utilities, used everywhere a fingerprint or version is needed.}
+\label{tab:utils}
+\small\sffamily
+\begin{tabularx}{\textwidth}{@{}l L@{}}
+\toprule
+\textbf{Utility} & \textbf{What it does} \\
+\midrule
+Canonical JSON dump & Serialises any object to the one canonical string described above. Equal-by-value objects serialise identically. \\
+Hash of an object & The canonical string put through SHA-256, returned as \code{sha256:<hex>}. This is the input-hash / output-hash primitive. \\
+Hash of a file & SHA-256 of a file's raw bytes, streamed so large files cost no extra memory. Used to fingerprint an uploaded half-hourly meter file. \\
+Code version & The current git commit, rendered \code{git:<short-sha>}; if the code is not a git checkout it falls back to \code{pkg:<package-version>}, and it never raises. \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\subsection{Fixed reduction order for totals}
+
+Hashing is not the only place ordering can leak. Floating-point addition is not perfectly associative: summing the same numbers in a different order can change the last bit of the total. So wherever the core reduces a collection of floats into one figure, the most visible case being the sum of value-by-income-stream into a single total value, it iterates the collection in canonical (sorted-key) order before accumulating. The total is then a function of the values alone, not of the order they happened to be stored in. Combined with sorted-key hashing, this is what keeps both the totals \emph{and} their fingerprints stable across runs.
+
+\begin{caution}[Why a hash is brittle on purpose]
+A fingerprint is meant to change whenever the meaning changes and never otherwise. That cuts both ways. The canonical rules above are what stop \emph{spurious} changes (reordering, formatting). But a hash is also unforgiving of \emph{real} ones: alter a single reading in the meter trace, or bump the assumption version, and the input hash changes completely, as it should, because the run is genuinely different and must be re-priced rather than silently reused. Treat any hash change as a real change until proven cosmetic.
+\end{caution}
+
+\section{Deriving the run identity from the pins, not the clock}
+
+Each run on the pricing path is wrapped in a small provenance stamp: the \texttt{RunContext}. It records the run's identity and everything needed to reproduce and trace it. The fields are deliberately few:
+
+\begin{table}[H]
+\centering
+\caption{The \texttt{RunContext} stamp attached to every engine, finance and quote run.}
+\label{tab:runcontext}
+\small\sffamily
+\begin{tabularx}{\textwidth}{@{}l L@{}}
+\toprule
+\textbf{Field} & \textbf{Meaning} \\
+\midrule
+\code{run\_id} & The deterministic run identity, derived from the pins (below). Same pins, same id. \\
+\code{input\_hash} & Canonical hash of the run's input object: the fingerprint of the site and request. \\
+\code{assumption\_version} & The assumption-library release used (e.g. \code{gb\_v0\_1}). \\
+\code{code\_version} & The git commit (or package fallback) of the code that ran. \\
+\code{schema\_version} & The version of the data contracts the run was built against. \\
+\code{created\_at} & Wall-clock time of assembly. Metadata only: it never feeds a calculation and never feeds the id. \\
+\code{warnings} & Non-fatal notes carried with the run (e.g. a thin-data caveat). \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+The crucial design choice is how the \code{run\_id} is made. The obvious, and wrong, way would be to use a timestamp or a freshly minted random token: that would make every run unique, but it would also make two identical runs look like different events, which defeats the whole point. Instead the run identity is \emph{derived} from the very things that determine the answer.
+
+Building a context is a short, fixed sequence. First the input object is hashed to give the input hash. Then the code version is read from the environment. Those, together with the assumption version and the schema version, are gathered into one small object and hashed in canonical form; the resulting digest is the run's seed value. The \code{run\_id} is simply a short, readable prefix of that digest (rendered \code{run\_}\,followed by the first part of the hex). The timestamp is attached afterwards, purely as a label.
+
+The consequence is exactly what reproducibility demands: identical pins yield an identical \code{run\_id}. Re-submitting the same site, against the same assumption and schema versions, with the same code, lands on the same identity, so writing the run record is \emph{idempotent}: re-running overwrites identically rather than spawning a confusing duplicate. The same derivation gives the downstream \code{quote\_id} its stability too (Chapter~\ref{ch:quotes}).
+
+\begin{figure}[H]
+\centering
+\resizebox{\textwidth}{!}{%
+\begin{tikzpicture}[node distance=9mm and 16mm]
+  % inputs feeding the hash
+  \node[io] (input) {\textbf{Input object}\\\scriptsize SiteModel + request};
+  \node[io, below=of input] (assum) {\textbf{Assumption version}\\\scriptsize e.g.\ gb\_v0\_1};
+  \node[io, below=of assum] (schema) {\textbf{Schema version}\\\scriptsize contracts built against};
+  \node[io, below=of schema] (code) {\textbf{Code version}\\\scriptsize git commit (read from env)};
+
+  % canonical hashing stage
+  \node[proc, right=24mm of assum, yshift=-6mm, minimum width=40mm, text width=38mm] (canon)
+    {\textbf{Canonical hash}\\\scriptsize sorted keys, fixed floats\\\scriptsize $\rightarrow$ \code{sha256:\ldots}};
+
+  \node[proc, right=of canon, minimum width=40mm, text width=38mm] (derive)
+    {\textbf{Derive run identity}\\\scriptsize hash the four pins\\\scriptsize $\rightarrow$ \code{run\_id}};
+
+  % seed + model side note
+  \node[io, above=12mm of derive, xshift=-2mm] (seed) {\textbf{Seed} + \textbf{model version}\\\scriptsize ride with request/result};
+
+  % run context store
+  \node[store, right=of derive, minimum width=34mm, text width=32mm] (ctx)
+    {\textbf{RunContext}\\\scriptsize run\_id, input\_hash,\\\scriptsize versions, warnings};
+
+  % core run + quote record
+  \node[proc, below=14mm of ctx, minimum width=40mm, text width=38mm] (core)
+    {\textbf{Deterministic core}\\\scriptsize optimise $\rightarrow$ finance};
+  \node[store, below=of core, minimum width=40mm, text width=38mm] (quote)
+    {\textbf{QuoteRecord}\\\scriptsize input hash + versions\\\scriptsize + \textbf{output hash}};
+
+  % arrows: inputs to canonical hash
+  \draw[flow] (input.east) to[out=0,in=180] (canon.west);
+  \draw[flow] (assum.east) -- (canon.west);
+  \draw[flow] (schema.east) to[out=0,in=180] (canon.west);
+  \draw[flow] (code.east) to[out=0,in=200] (canon.west);
+
+  \draw[flow] (canon) -- (derive);
+  \draw[flow] (seed) -- (derive);
+  \draw[flow] (derive) -- (ctx);
+  \draw[flow] (ctx) -- (core);
+  \draw[flow] (core) -- (quote);
+
+  % the timestamp is NOT an input
+  \node[note, below=2mm of code, text width=46mm] {timestamp recorded as metadata only --\\ never feeds the id or the maths};
+
+  % zone backdrop
+  \begin{scope}[on background layer]
+    \node[groupbox, fit=(canon)(derive)(ctx), inner sep=8pt,
+          label={[note]north:PROVENANCE STAMP}] {};
+  \end{scope}
+\end{tikzpicture}}
+\caption{How a run identity is made. The input is fingerprinted; the four pinned identifiers (input hash, assumption, code and schema versions) are hashed to derive a deterministic \code{run\_id}; the seed and engine model version ride alongside. The resulting \texttt{RunContext} stamps the deterministic core, whose output is sealed into the immutable \texttt{QuoteRecord} with an output hash. The wall-clock time is recorded but never feeds either the identity or the maths.}
+\label{fig:provenance-identity}
+\end{figure}
+
+\section{Input hash and output hash: two fingerprints, two jobs}
+
+A finished run carries two hashes, and it is worth being precise about which does which job, because they are easy to confuse.
+
+The \textbf{input hash} is a fingerprint of everything fed in: the canonical hash of the site and request. It is a \emph{determinant}, one of the things that pins the answer. Change the input and this hash changes, and so, legitimately, may the result.
+
+The \textbf{output hash} is a fingerprint of what came out: the canonical hash of the produced optimisation result and financial case. It is \emph{not} a determinant; nothing downstream is computed from it. Its job is to be a \emph{verifier}. The promise of determinism is that a re-run from the same pins reproduces the same output hash. So the output hash is the value a repro test checks: it is how you confirm, after the fact, that a re-run genuinely reproduced the original, rather than something that fed into producing it.
+
+\begin{plainnote}
+The input hash is the question's fingerprint; the output hash is the answer's fingerprint. The platform's guarantee is that the same question, asked the same way, always yields an answer with the same fingerprint. You verify a re-run by checking the answer's fingerprint, not by re-deriving it from the answer.
+\end{plainnote}
+
+Figure~\ref{fig:provenance-rerun} shows the verification in motion: the same five pins run a second time, on the same platform, and the output hash is compared against the one stored on the original record. A match is the determinism guarantee, demonstrated rather than asserted.
+
+\begin{figure}[H]
+\centering
+\resizebox{0.92\textwidth}{!}{%
+\begin{tikzpicture}[node distance=8mm and 16mm]
+  \node[store] (orig) {\textbf{Original}\\\textbf{QuoteRecord}\\\scriptsize stored output hash $H_0$};
+  \node[io, below=14mm of orig] (pins) {\textbf{Same five pins}\\\scriptsize input, assumption, code,\\\scriptsize model, seed};
+  \node[proc, right=of pins, minimum width=40mm, text width=38mm] (rerun)
+    {\textbf{Re-run core}\\\scriptsize same platform \&\\\scriptsize thread config};
+  \node[proc, right=of rerun, minimum width=34mm, text width=32mm] (rehash)
+    {\textbf{Canonical hash}\\\scriptsize of new output $\rightarrow H_1$};
+  \node[decide, right=of rehash] (cmp) {$H_1 = H_0$?};
+  \node[term, above=11mm of cmp, text width=30mm, minimum width=32mm] (ok)
+    {\textbf{Reproduced}\\\scriptsize byte-identical};
+  \node[term, below=11mm of cmp, draw=nodeDecisionBd, fill=nodeDecision, text width=34mm, minimum width=36mm] (bad)
+    {\textbf{Leak / drift}\\\scriptsize an unpinned influence};
+
+  \draw[flow] (orig) -- (pins);
+  \draw[flow] (pins) -- (rerun);
+  \draw[flow] (rerun) -- (rehash);
+  \draw[flow] (rehash) -- (cmp);
+  \draw[flow] (cmp) -- node[flowlabel]{yes} (ok);
+  \draw[flow] (cmp) -- node[flowlabel]{no} (bad);
+  \draw[flowback] (orig.east) to[out=0,in=120] node[flowlabel,pos=0.6]{compare $H_0$} (cmp.north east);
+\end{tikzpicture}}
+\caption{Reproduction as a test. The same five pins are re-run on the same platform; the new output is canonically hashed and compared with the hash stored on the original record. A match demonstrates determinism; a mismatch on the same platform means an unpinned influence (a leak) has reached the pricing path and must be removed.}
+\label{fig:provenance-rerun}
+\end{figure}
+
+\section{Code version and model version stay orthogonal}
+
+Two of the five pins both describe ``the software'', and keeping them separate is a deliberate and useful distinction.
+
+\textbf{Code version} is the identity of the \emph{repository}: the git commit (or, failing a checkout, the package version) of everything that ran, the glue, the finance maths, the schema definitions. It moves whenever anyone commits a change.
+
+\textbf{Model version} is the identity of the \emph{optimisation engine's own mathematics}: the name of the solver and the formulation it implements (for the integration-only baseline this is simply \code{mock}; a real engine would name its solver and formulation). It moves only when the engine's maths or solver actually change, even if a hundred unrelated commits land in between.
+
+Holding the two on separate axes makes one question answerable that would otherwise be a guess: \emph{which change moved the number?} If a figure shifts and only the code version changed, the cause is somewhere in the surrounding software, not the optimiser; if only the model version changed, the optimiser's maths moved. Collapse the two into one ``version'' and you lose the ability to tell them apart, and with it the ability to attribute a change.
+
+\begin{caution}[Same platform: byte-identical; across platforms: tolerance-equal]
+Reproducibility has a sharp boundary that must be stated honestly. On the \emph{same} platform, the same five pins reproduce a \emph{byte-identical} output hash, and that is what the repro test asserts. \emph{Across} platforms the bar is weaker: floating-point results from BLAS-backed numerics and from the MILP solver can differ in their last bits with a different CPU architecture, thread count, or library build, so byte-identity is not promised across hosts. The guarantee there is numerical equality within a documented tolerance. To keep a cross-host mismatch diagnosable rather than alarming, each record also carries a \emph{reproduction-environment} tag (platform, architecture and solver mode), and the solver is pinned to deterministic, single-thread operation. The honest summary: byte-identical on the same platform, tolerance-equal across platforms.
+\end{caution}
+
+\section{Why the record must show the pins}
+
+The reason every output, the underwriting memo, the proposal, and the quote record itself, must carry the assumption version and the input hash follows directly from the two guarantees:
+
+\begin{itemize}
+  \item \textbf{Reproducible.} With the input hash, the assumption version, the code and model versions and the seed, a lender's figure can be \emph{re-derived} on the same platform rather than taken on trust. A number that cannot be regenerated is not bankable.
+  \item \textbf{Traceable.} The assumption version ties every figure to the exact values that produced it (and their recorded source, status and confidence, Chapter~\ref{ch:assumptions}); the input hash ties it to the exact site and request. Together they answer ``where did this come from'' precisely.
+  \item \textbf{Valid only against its version.} A quote is valid only against the assumption version that produced it. If assumptions move beyond tolerance, the run reprices (a fresh, fully stamped snapshot) rather than drifting silently. This is the lifecycle rule made enforceable (Chapter~\ref{ch:quotes}).
+\end{itemize}
+
+\begin{rebuild}
+To re-implement provenance from scratch, build the primitives first, then the stamp.
+\begin{enumerate}
+  \item \textbf{Canonical serialisation.} Write one function that renders any object to JSON deterministically: sort all keys, emit compact whitespace, and give every rich type one fixed rendering (dates and times to standard text; enumerated values to their stable value; decimals to exact text; sets sorted before writing; nested schema objects expanded the same way). Make an unhandled type a hard error, never a silent skip. \emph{Invariant:} two objects equal by value serialise to the identical string.
+  \item \textbf{Hashing.} On top of that, expose an object hash (\code{sha256:} of the canonical string) and a file hash (\code{sha256:} of streamed bytes). Use these as the only fingerprinting tools anywhere.
+  \item \textbf{Code version.} Read the git commit (short form, prefixed \code{git:}); fall back to the package version (\code{pkg:}) if there is no checkout. It must never raise.
+  \item \textbf{Run context.} Given the input object, the assumption version and the schema version: hash the input; read the code version; hash the small object \{input hash, assumption version, code version, schema version\} in canonical form; take a short prefix of that digest as the \code{run\_id} (prefix it \code{run\_}). Attach the timestamp and warnings as metadata. \emph{Invariant:} the same pins always yield the same \code{run\_id}; the timestamp never feeds the id.
+  \item \textbf{Fixed reduction order.} Anywhere floats are summed over a map (e.g. value-by-stream into a total), iterate in sorted-key order before accumulating, so the total is stable.
+  \item \textbf{Output hash.} When the run completes, canonically hash the produced result and financial case; store it on the record as a verifier (never compute anything from it).
+  \item \textbf{Keep code and model versions orthogonal.} Record both; let the engine name its own model version; never collapse them.
+  \item \textbf{What to test.} A golden ``repro'' test: run an identical request twice on the same platform and assert the output hash is byte-identical. A canonical-form test: shuffle dictionary key order and confirm the hash is unchanged. A change-detection test: alter one input field and confirm the input hash changes. A clock-independence test: run at two different wall-clock times and confirm the \code{run\_id} and output hash are unchanged. Across platforms, assert numerical equality within the documented tolerance, not byte-identity.
+\end{enumerate}
+\end{rebuild}
+
+\begin{keyidea}
+Provenance turns trust into arithmetic. The output is a pure function of five pinned inputs; canonical serialisation and fixed reduction order make both hashes and totals stable; the run identity is derived from the pins, not the clock, so identical runs share an identity and re-runs are idempotent. The pins on the record let any number be re-derived and traced, which is precisely what makes it bankable.
+\end{keyidea}

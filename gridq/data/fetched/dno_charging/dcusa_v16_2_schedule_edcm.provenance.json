@@ -1,0 +1,13 @@
+{
+  "dataset_id": "DCUSA v16.2 (online document; EDCM schedules)",
+  "fetched_utc": "2026-11-26T08:23:59",
+  "fetcher": "curl -L (WP-UW-07, run by hand; the document itself is not vendored)",
+  "fetcher_args": {},
+  "last_modified": null,
+  "licence": "unclear: DCUSA Ltd publication, no licence stated",
+  "record_count": 0,
+  "sha256": "6a9a29e33960eb77fc9f49949fa17b6ef3f9d743013cef6243bb7ac868a57288",
+  "size_bytes": 11653350,
+  "source_url": "https://document.dcusa.co.uk/dcusa-document/132/526828",
+  "used_for": "Acceptance 1 search: methodology text, no worked EDCM bill"
+}

@@ -1,0 +1,90 @@
+# GridQ — pinned runtime + [app] closure for the reproducible public deployment (W5-3).
+#
+# This is the EXACT, fully-pinned transitive closure the production web app needs, generated from
+# the green test environment so the deployed image reproduces the tested behaviour bit-for-bit. It
+# deliberately EXCLUDES the dev/agent toolchain (pytest, ruff, mypy, httpx, graphify, tree-sitter…)
+# — those are not in the image.
+#
+# Why pinned: the solver stack (linopy / highspy / xarray, and their numeric deps numpy / scipy /
+# pandas) is part of the deterministic-reproduction contract (docs/decisions.md D18 / D22). Exact
+# pins keep the MILP byte-reproducible across rebuilds. The container additionally pins BLAS/OpenMP
+# threads + TZ/locale (see Dockerfile) so determinism holds on any host CPU.
+#
+# The linopy "iceberg": linopy is pure-Python but `import linopy` eagerly imports linopy.remote,
+# which top-level-imports requests + google-cloud-storage — so those (and polars / polars-runtime-32,
+# dask, fsspec, numexpr, Bottleneck …) are REQUIRED for import, not optional. Do not prune them
+# without re-checking `import linopy` in a clean env.
+#
+# Regenerate (when pyproject deps change): resolve the runtime+[app] closure and re-pin to the
+# tested versions —
+#   python -m venv /tmp/lockenv && /tmp/lockenv/bin/pip install --only-binary=:all: ".[app]"
+#   /tmp/lockenv/bin/pip freeze --exclude-editable   # then reconcile against the test env
+# (gridq itself is installed separately in the image via `pip install --no-deps .`.)
+#
+# Install (CI / image): pip install --only-binary=:all: -r requirements.txt
+# `--only-binary=:all:` makes a missing wheel fail loudly instead of silently compiling from source.
+
+annotated-doc==0.0.4
+annotated-types==0.7.0
+anyio==4.14.0
+Bottleneck==1.6.0
+certifi==2026.6.17
+cffi==2.0.0
+charset-normalizer==3.4.7
+click==8.4.1
+cloudpickle==3.1.2
+cryptography==49.0.0
+dask==2026.6.0
+deprecation==2.1.0
+authlib==1.7.2
+fastapi==0.138.0
+fsspec==2026.6.0
+google-api-core==2.31.0
+google-auth==2.55.0
+google-cloud-core==2.6.0
+google-cloud-storage==3.12.0
+google-crc32c==1.8.0
+google-resumable-media==2.10.0
+googleapis-common-protos==1.75.0
+h11==0.16.0
+highspy==1.15.1
+idna==3.18
+itsdangerous==2.2.0
+Jinja2==3.1.6
+linopy==0.5.8
+locket==1.0.0
+markdown-it-py==4.2.0
+MarkupSafe==3.0.3
+mdurl==0.1.2
+numexpr==2.14.1
+numpy==2.4.6
+packaging==26.2
+pandas==3.0.3
+partd==1.4.2
+polars==1.42.0
+polars-runtime-32==1.42.0
+proto-plus==1.28.0
+protobuf==7.35.1
+pyasn1==0.6.3
+pyasn1_modules==0.4.2
+pycparser==3.0
+pydantic==2.13.4
+pydantic_core==2.46.4
+Pygments==2.20.0
+python-dateutil==2.9.0.post0
+python-multipart==0.0.32
+PyYAML==6.0.3
+requests==2.34.2
+rich==15.0.0
+scipy==1.18.0
+shellingham==1.5.4
+six==1.17.0
+starlette==1.3.1
+toolz==1.1.0
+tqdm==4.68.3
+typer==0.26.7
+typing_extensions==4.15.0
+typing-inspection==0.4.2
+urllib3==2.7.0
+uvicorn==0.49.0
+xarray==2024.10.0

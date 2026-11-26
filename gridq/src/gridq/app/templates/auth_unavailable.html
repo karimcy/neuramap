@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% block title %}Sign-in unavailable - GridQ{% endblock %}
+{% block content %}
+<h1>Google sign-in is not configured on this deployment</h1>
+<div class="card" style="max-width:60ch">
+  <p>This install has no Google OAuth client credentials
+    (<code>GRIDQ_GOOGLE_CLIENT_ID</code> / <code>GRIDQ_GOOGLE_CLIENT_SECRET</code>), so Google
+    sign-in cannot run. That is a deployment constraint, stated plainly rather than worked
+    around.</p>
+  <p><strong>Your projects are still private.</strong> Every browser gets its own workspace:
+    runs you start here are scoped to this browser's signed session cookie, and other visitors
+    cannot list or open them. The trade-off: the workspace is not portable across devices and
+    is lost if you clear cookies (the underlying run data survives on the server; ask the
+    operator to reassign it).</p>
+  <p class="muted">To enable Google sign-in, the operator creates an OAuth <em>Web application</em>
+    client in Google Cloud Console, sets the two environment variables plus
+    <code>GRIDQ_OAUTH_REDIRECT_BASE</code> (the public URL), adds
+    <code>&lt;public URL&gt;/auth/callback</code> as the authorised redirect URI, and restarts the
+    service. Runs claimed by signed-in accounts then follow the account across devices.</p>
+  <p><a class="btn" href="/">Back to the dashboard</a></p>
+</div>
+{% endblock %}

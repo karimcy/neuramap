@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="en">
+<head>
+  {# Mark JS as available before paint so scroll-reveals can hide safely (see .js gate in app.css);
+     with JS off, html:not(.js) keeps all content visible. #}
+  <script>document.documentElement.classList.add('js')</script>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}GridQ{% endblock %}</title>
+  <meta name="referrer" content="no-referrer">
+  {# Self-contained favicon (data URI): the GridQ "G" mark on the brand accent - no network fetch. #}
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%23FFB454'/%3E%3Ctext x='16' y='22' font-family='Inter,system-ui,sans-serif' font-size='19' font-weight='800' fill='%230E0E10' text-anchor='middle'%3EG%3C/text%3E%3C/svg%3E">
+  {# Self-hosted variable fonts (no CDN); preloaded so text settles before first paint. #}
+  <link rel="preload" href="/static/vendor/fonts/inter-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="/static/vendor/fonts/jetbrains-mono-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="/static/tokens.css?v={{ static_v }}">
+  <link rel="stylesheet" href="/static/app.css?v={{ static_v }}">
+  <script src="/static/theme.js?v={{ static_v }}"></script>
+  <script src="/static/motion.js?v={{ static_v }}"></script>
+  {% block head %}{% endblock %}
+</head>
+<body class="immersive">
+  <a class="skip-link" href="#main">Skip to content</a>
+  <main id="main" tabindex="-1">
+    {% block content %}{% endblock %}
+  </main>
+  {% block scripts %}{% endblock %}
+</body>
+</html>

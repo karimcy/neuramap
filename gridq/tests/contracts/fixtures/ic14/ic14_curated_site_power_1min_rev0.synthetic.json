@@ -1,0 +1,319 @@
+{
+ "tenant": {
+  "kind": "tenant_key",
+  "org_id": "SYNTHETIC-ORG-HYBRID",
+  "org_kind": "customer",
+  "site_id": "SYNTHETIC-SITE-HYBRID"
+ },
+ "site_id": "SYNTHETIC-SITE-HYBRID",
+ "series_id": "SYNTHETIC-ORG-HYBRID/SYNTHETIC-SITE-HYBRID/site_boundary.main.active_power.revenue_meter.whole",
+ "data_class": "customer_commercial",
+ "record_class": "synthetic_fixture",
+ "contract": "IC-14",
+ "contract_version": "1.0.0",
+ "kind": "curated_series",
+ "descriptor_hash": "sha256:619d6b108074d3e1b1940bcb8ae6156566044e42334c6504df40494bf98390f3",
+ "origin": "2027-01-04T16:00:00Z",
+ "resolution": "standard_1min",
+ "source_resolution": "operational_1s",
+ "method": {
+  "kind": "curation_method",
+  "method_id": "SYNTHETIC-METHOD-MEAN-1MIN",
+  "aggregation": "mean",
+  "min_usable_ms": 45000,
+  "usable": [
+   "good",
+   "local_override",
+   "inaccurate"
+  ],
+  "applied_findings": [
+   "flatline"
+  ],
+  "rounding": "half_even"
+ },
+ "inputs": [
+  {
+   "kind": "raw_span",
+   "series_id": "SYNTHETIC-ORG-HYBRID/SYNTHETIC-SITE-HYBRID/site_boundary.main.active_power.revenue_meter.whole",
+   "sender_id": "SYNTHETIC-EDGE-HYBRID-01",
+   "stream_epoch": 0,
+   "first_seq": 0,
+   "last_seq": 18,
+   "first_prev_hash": "sha256:0000000000000000000000000000000000000000000000000000000000000000",
+   "last_batch_hash": "sha256:6da1d19387f42f2f66c355eaac554b7a2eb8452576e95083adc955032e9796b3",
+   "start": "2027-01-04T16:00:00Z",
+   "end": "2027-01-04T16:19:00Z"
+  }
+ ],
+ "annotations": [
+  "sha256:1bfa7fd717217b285924e4bfb425c7aeb47010150ad4bc35d57922a4bd742cb2"
+ ],
+ "intervals": [
+  {
+   "kind": "aggregate",
+   "slot": 0,
+   "value": -1499905,
+   "quality": "good",
+   "usable_ms": 60000,
+   "rejected_ms": 0,
+   "gap_ms": 0
+  },
+  {
+   "kind": "aggregate",
+   "slot": 1,
+   "value": -1499986,
+   "quality": "good",
+   "usable_ms": 60000,
+   "rejected_ms": 0,
+   "gap_ms": 0
+  },
+  {
+   "kind": "aggregate",
+   "slot": 2,
+   "value": -1500067,
+   "quality": "good",
+   "usable_ms": 60000,
+   "rejected_ms": 0,
+   "gap_ms": 0
+  },
+  {
+   "kind": "aggregate",
+   "slot": 3,
+   "value": -1500148,
+   "quality": "good",
+   "usable_ms": 60000,
+   "rejected_ms": 0,
+   "gap_ms": 0
+  },
+  {
+   "kind": "aggregate",
+   "slot": 4,
+   "value": -1500229,
+   "quality": "good",
+   "usable_ms": 60000,
+   "rejected_ms": 0,
+   "gap_ms": 0
+  },
+  {
+   "kind": "aggregate",
+   "slot": 5,
+   "value": -1498904,
+   "quality": "good",
+   "usable_ms": 50000,
+   "rejected_ms": 10000,
+   "gap_ms": 0
+  },
+  {
+   "kind": "aggregate",
+   "slot": 6,
+   "value": -1500392,
+   "quality": "good",
+   "usable_ms": 60000,
+   "rejected_ms": 0,
+   "gap_ms": 0
+  },
+  {
+   "kind": "gap",
+   "slot": 7,
+   "reason": "insufficient_coverage",
+   "usable_ms": 40000,
+   "rejected_ms": 0,
+   "gap_ms": 20000
+  },
+  {
+   "kind": "aggregate",
+   "slot": 8,
+   "value": -1500554,
+   "quality": "good",
+   "usable_ms": 60000,
+   "rejected_ms": 0,
+   "gap_ms": 0
+  },
+  {
+   "kind": "aggregate",
+   "slot": 9,
+   "value": -1499969,
+   "quality": "good",
+   "usable_ms": 60000,
+   "rejected_ms": 0,
+   "gap_ms": 0
+  },
+  {
+   "kind": "aggregate",
+   "slot": 10,
+   "value": -1499383,
+   "quality": "inaccurate",
+   "usable_ms": 60000,
+   "rejected_ms": 0,
+   "gap_ms": 0
+  },
+  {
+   "kind": "aggregate",
+   "slot": 11,
+   "value": -1500131,
+   "quality": "good",
+   "usable_ms": 60000,
+   "rejected_ms": 0,
+   "gap_ms": 0
+  },
+  {
+   "kind": "aggregate",
+   "slot": 12,
+   "value": -1499546,
+   "quality": "good",
+   "usable_ms": 60000,
+   "rejected_ms": 0,
+   "gap_ms": 0
+  },
+  {
+   "kind": "aggregate",
+   "slot": 13,
+   "value": -1500293,
+   "quality": "good",
+   "usable_ms": 60000,
+   "rejected_ms": 0,
+   "gap_ms": 0
+  },
+  {
+   "kind": "aggregate",
+   "slot": 14,
+   "value": -1500375,
+   "quality": "good",
+   "usable_ms": 60000,
+   "rejected_ms": 0,
+   "gap_ms": 0
+  },
+  {
+   "kind": "gap",
+   "slot": 15,
+   "reason": "insufficient_coverage",
+   "usable_ms": 0,
+   "rejected_ms": 60000,
+   "gap_ms": 0
+  },
+  {
+   "kind": "aggregate",
+   "slot": 16,
+   "value": -1500537,
+   "quality": "good",
+   "usable_ms": 60000,
+   "rejected_ms": 0,
+   "gap_ms": 0
+  },
+  {
+   "kind": "aggregate",
+   "slot": 17,
+   "value": -1499952,
+   "quality": "good",
+   "usable_ms": 60000,
+   "rejected_ms": 0,
+   "gap_ms": 0
+  },
+  {
+   "kind": "aggregate",
+   "slot": 18,
+   "value": -1500033,
+   "quality": "good",
+   "usable_ms": 60000,
+   "rejected_ms": 0,
+   "gap_ms": 0
+  },
+  {
+   "kind": "gap",
+   "slot": 19,
+   "reason": "not_recorded",
+   "usable_ms": 0,
+   "rejected_ms": 0,
+   "gap_ms": 60000
+  },
+  {
+   "kind": "gap",
+   "slot": 20,
+   "reason": "not_recorded",
+   "usable_ms": 0,
+   "rejected_ms": 0,
+   "gap_ms": 60000
+  },
+  {
+   "kind": "gap",
+   "slot": 21,
+   "reason": "not_recorded",
+   "usable_ms": 0,
+   "rejected_ms": 0,
+   "gap_ms": 60000
+  },
+  {
+   "kind": "gap",
+   "slot": 22,
+   "reason": "not_recorded",
+   "usable_ms": 0,
+   "rejected_ms": 0,
+   "gap_ms": 60000
+  },
+  {
+   "kind": "gap",
+   "slot": 23,
+   "reason": "not_recorded",
+   "usable_ms": 0,
+   "rejected_ms": 0,
+   "gap_ms": 60000
+  },
+  {
+   "kind": "gap",
+   "slot": 24,
+   "reason": "not_recorded",
+   "usable_ms": 0,
+   "rejected_ms": 0,
+   "gap_ms": 60000
+  },
+  {
+   "kind": "gap",
+   "slot": 25,
+   "reason": "not_recorded",
+   "usable_ms": 0,
+   "rejected_ms": 0,
+   "gap_ms": 60000
+  },
+  {
+   "kind": "gap",
+   "slot": 26,
+   "reason": "not_recorded",
+   "usable_ms": 0,
+   "rejected_ms": 0,
+   "gap_ms": 60000
+  },
+  {
+   "kind": "gap",
+   "slot": 27,
+   "reason": "not_recorded",
+   "usable_ms": 0,
+   "rejected_ms": 0,
+   "gap_ms": 60000
+  },
+  {
+   "kind": "gap",
+   "slot": 28,
+   "reason": "not_recorded",
+   "usable_ms": 0,
+   "rejected_ms": 0,
+   "gap_ms": 60000
+  },
+  {
+   "kind": "gap",
+   "slot": 29,
+   "reason": "not_recorded",
+   "usable_ms": 0,
+   "rejected_ms": 0,
+   "gap_ms": 60000
+  }
+ ],
+ "revision": 0,
+ "supersedes": {
+  "kind": "not_applicable",
+  "reason": "first revision"
+ },
+ "supersede_reason": {
+  "kind": "not_applicable",
+  "reason": "first revision"
+ }
+}

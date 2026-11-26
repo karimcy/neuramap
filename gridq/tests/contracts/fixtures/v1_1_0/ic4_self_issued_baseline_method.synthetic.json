@@ -1,0 +1,27 @@
+{
+  "contract": "IC-4",
+  "contract_version": "1.1.0",
+  "record_class": "synthetic_fixture",
+  "evidence_type": "baseline_method",
+  "title": "Synthetic cooling baseline method, registered before the trial (schema-test fixture)",
+  "issuer": {
+    "name": "SYNTHETIC-NEURA (fixture; a self-issued pre-registration record)",
+    "role": "neura_self_issued",
+    "reference": "SYNTH-BASELINE-0001"
+  },
+  "document_hash": "sha256:acbfc660e1a852f3392c819dde8a0fcfe2844579308117d407f6f0bfc9d11cef",
+  "issued_on": "2026-06-01",
+  "effective_from": "2026-06-01",
+  "expiry": {
+    "kind": "no_expiry",
+    "reason": "synthetic fixture: a registered method does not lapse"
+  },
+  "scope": {
+    "kind": "site",
+    "site_id": "SYNTHETIC-DC-CHILLED-WATER"
+  },
+  "verification": {
+    "kind": "unverified",
+    "reason": "synthetic fixture: self-issued and not countersigned"
+  }
+}

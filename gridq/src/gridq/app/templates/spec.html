@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+{% block title %}System spec · {{ quote.quote_id }} - GridQ{% endblock %}
+{% block statusstrip %}{% include "_statusbar.html" %}{% endblock %}
+{% block content %}
+<h1>System specification</h1>
+<p class="lede">The sized behind-the-meter battery and the dispatch that earns its value - Output 1 of
+  three.</p>
+
+<div class="card">
+  <h2>Specification</h2>
+  <div class="grid grid-3">
+    <div class="metric"><span class="figure">{{ fmt_opt(vm.spec.selected_power_kw, fmt_kw) }}</span><span class="label">Rated power</span></div>
+    <div class="metric"><span class="figure">{{ fmt_opt(vm.spec.selected_energy_kwh, fmt_kwh) }}</span><span class="label">Usable energy</span></div>
+    <div class="metric"><span class="figure">{{ fmt_opt(vm.spec.duration_hours, fmt_hours) }}</span><span class="label">Duration</span></div>
+  </div>
+  <dl class="kv" style="margin-top:1rem">
+    <dt>Implementation level</dt><dd>{{ vm.spec.implementation_level or ' - ' }}</dd>
+    <dt>Solver status</dt><dd>{{ vm.spec.solver_status or ' - ' }}</dd>
+    {% if quote.optimisation_result and quote.optimisation_result.dispatch_schedule_ref %}
+      <dt>Dispatch schedule</dt><dd><code>{{ quote.optimisation_result.dispatch_schedule_ref }}</code></dd>
+    {% endif %}
+  </dl>
+</div>
+
+{% if quote.optimisation_result and quote.optimisation_result.constraints_binding %}
+<div class="card">
+  <h3>Binding constraints</h3>
+  <ul>{% for c in quote.optimisation_result.constraints_binding %}<li>{{ c }}</li>{% endfor %}</ul>
+</div>
+{% endif %}
+
+{% include "_warnings.html" %}
+{% include "_provenance.html" %}
+{% endblock %}

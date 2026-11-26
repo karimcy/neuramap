@@ -1,0 +1,16 @@
+{
+  "success": true,
+  "result": {
+    "records": [
+      {"_id": 1, "Auction Name": "2028-29 (T-4) Four Year Ahead Capacity Auction", "Primary Fuel Type": "Storage", "Generating Technology Class": "Storage (Duration 1h)", "De-Rating Factor": 0.1006},
+      {"_id": 2, "Auction Name": "2028-29 (T-4) Four Year Ahead Capacity Auction", "Primary Fuel Type": "Storage", "Generating Technology Class": "Storage (Duration 2h)", "De-Rating Factor": 0.2012},
+      {"_id": 3, "Auction Name": "2028-29 (T-4) Four Year Ahead Capacity Auction", "Primary Fuel Type": "Storage", "Generating Technology Class": "Storage (Duration 4h)", "De-Rating Factor": 0.4023},
+      {"_id": 4, "Auction Name": "2029-30 (T-4) Four Year Ahead Capacity Auction", "Primary Fuel Type": "Storage", "Generating Technology Class": "Storage (Duration 1h)", "De-Rating Factor": 0.1099},
+      {"_id": 5, "Auction Name": "2029-30 (T-4) Four Year Ahead Capacity Auction", "Primary Fuel Type": "Storage", "Generating Technology Class": "Storage (Duration 2h)", "De-Rating Factor": 0.2198},
+      {"_id": 6, "Auction Name": "2029-30 (T-4) Four Year Ahead Capacity Auction", "Primary Fuel Type": "Storage", "Generating Technology Class": "Storage (Duration 4h)", "De-Rating Factor": 0.4396},
+      {"_id": 7, "Auction Name": "2029-30 (T-4) Four Year Ahead Capacity Auction", "Primary Fuel Type": "Storage", "Generating Technology Class": "Storage (Duration 8h)", "De-Rating Factor": 0.8777},
+      {"_id": 8, "Auction Name": "2029-30 (T-4) Four Year Ahead Capacity Auction", "Primary Fuel Type": "DSR", "Generating Technology Class": "DSR", "De-Rating Factor": 0.8600},
+      {"_id": 9, "Auction Name": "2026-27 (T-1) One Year Ahead Capacity Auction", "Primary Fuel Type": "Storage", "Generating Technology Class": "Storage (Duration 2h)", "De-Rating Factor": 0.2100}
+    ]
+  }
+}

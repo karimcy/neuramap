@@ -1,0 +1,197 @@
+{
+  "$defs": {
+    "AvailabilityRef": {
+      "additionalProperties": false,
+      "description": "A reference to an IC-11 availability surface by content hash.",
+      "properties": {
+        "availability_hash": {
+          "pattern": "^sha256:[0-9a-f]{64}$",
+          "title": "Availability Hash",
+          "type": "string"
+        },
+        "contract": {
+          "const": "IC-11",
+          "title": "Contract",
+          "type": "string"
+        },
+        "contract_version": {
+          "const": "1.0.0",
+          "title": "Contract Version",
+          "type": "string"
+        },
+        "kind": {
+          "const": "thermal_flex_availability_ref",
+          "title": "Kind",
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind",
+        "contract",
+        "contract_version",
+        "availability_hash"
+      ],
+      "title": "AvailabilityRef",
+      "type": "object"
+    },
+    "InstructionIssuer": {
+      "description": "Who issued a flex instruction to ThermaFlex.\n\nIC-4 `IssuerRole` deliberately has no Neura member (Neura cannot issue *evidence*), but the\nnormal issuer of a flex instruction is Neura's B2 dispatch (TF-04). So the issuer has its own\nenum, and the upstream party the instruction serves is an IC-4 `IssuerRole`\n(``FlexInstruction.on_behalf_of``).",
+      "enum": [
+        "neura_dispatch",
+        "neura_operator"
+      ],
+      "title": "InstructionIssuer",
+      "type": "string"
+    },
+    "IssuerRole": {
+      "description": "Who issued the document. **Neura is not an issuer role**: a claim Neura authors about\nitself or a site is an assumption or a derived record, never evidence. Neura may *verify*.",
+      "enum": [
+        "dno",
+        "idno",
+        "neso",
+        "elexon",
+        "emr_settlement",
+        "ofgem",
+        "government",
+        "supplier",
+        "aggregator",
+        "customer",
+        "host",
+        "meter_operator",
+        "oem",
+        "insurer",
+        "lender",
+        "independent_engineer"
+      ],
+      "title": "IssuerRole",
+      "type": "string"
+    },
+    "NotApplicable": {
+      "additionalProperties": false,
+      "description": "A term that does not exist for this record (e.g. a LIFO position on a firm connection).\n\nDistinct from `Unknown`: \"not applicable\" is a statement about the agreement, \"unknown\" is a\nstatement about our knowledge of it. Both carry a reason.",
+      "properties": {
+        "kind": {
+          "const": "not_applicable",
+          "title": "Kind",
+          "type": "string"
+        },
+        "reason": {
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Reason",
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind",
+        "reason"
+      ],
+      "title": "NotApplicable",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "description": "IC-11 v1.0.0: a request to ThermaFlex to reduce cooling demand.\n\n``start`` is on a whole minute; the reduction is held for ``duration_min`` minutes from\n``start`` (the declared ramp is inside that). ``ack_deadline`` lies in ``(issued_at, start]``.\nAll instants are UTC.",
+  "properties": {
+    "ack_deadline": {
+      "format": "date-time",
+      "title": "Ack Deadline",
+      "type": "string"
+    },
+    "availability": {
+      "$ref": "#/$defs/AvailabilityRef"
+    },
+    "contract": {
+      "const": "IC-11",
+      "default": "IC-11",
+      "title": "Contract",
+      "type": "string"
+    },
+    "contract_version": {
+      "const": "1.0.0",
+      "default": "1.0.0",
+      "title": "Contract Version",
+      "type": "string"
+    },
+    "duration_min": {
+      "maximum": 1440,
+      "minimum": 1,
+      "title": "Duration Min",
+      "type": "integer"
+    },
+    "instruction_id": {
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]*$",
+      "title": "Instruction Id",
+      "type": "string"
+    },
+    "issued_at": {
+      "format": "date-time",
+      "title": "Issued At",
+      "type": "string"
+    },
+    "issuer_id": {
+      "minLength": 1,
+      "pattern": "\\S",
+      "title": "Issuer Id",
+      "type": "string"
+    },
+    "issuer_role": {
+      "$ref": "#/$defs/InstructionIssuer"
+    },
+    "on_behalf_of": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/IssuerRole"
+        },
+        {
+          "$ref": "#/$defs/NotApplicable"
+        }
+      ],
+      "title": "On Behalf Of"
+    },
+    "reduction_kw": {
+      "minimum": 1,
+      "title": "Reduction Kw",
+      "type": "integer"
+    },
+    "site_id": {
+      "minLength": 1,
+      "pattern": "\\S",
+      "title": "Site Id",
+      "type": "string"
+    },
+    "start": {
+      "format": "date-time",
+      "title": "Start",
+      "type": "string"
+    },
+    "stream": {
+      "anyOf": [
+        {
+          "pattern": "^[A-Z][A-Z0-9_]*$",
+          "type": "string"
+        },
+        {
+          "$ref": "#/$defs/NotApplicable"
+        }
+      ],
+      "title": "Stream"
+    }
+  },
+  "required": [
+    "instruction_id",
+    "site_id",
+    "availability",
+    "issued_at",
+    "issuer_role",
+    "issuer_id",
+    "on_behalf_of",
+    "stream",
+    "reduction_kw",
+    "start",
+    "duration_min",
+    "ack_deadline"
+  ],
+  "title": "FlexInstruction",
+  "type": "object"
+}

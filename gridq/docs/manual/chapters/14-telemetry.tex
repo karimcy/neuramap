@@ -1,0 +1,237 @@
+\chapter{Telemetry and the cost-compression benchmark}
+\label{ch:telemetry}
+\modtag{X.3}{Telemetry and benchmark}{Cross-cutting}
+
+The platform is built on a claim: that it produces a quote faster and cheaper than a person can build one by hand, without losing trust. A claim like that is worth nothing unless it can be checked with numbers. This module is the part of the system that makes the claim \emph{measurable rather than asserted}. Every run leaves a small, structured record of how it was produced -- the quality of the data it started from, the human time it cost, the back-and-forth it took, and how the deal eventually turned out. Those records accumulate into one dataset that can be summarised and, in principle, disproved.
+
+There are two kinds of row in that dataset. The first is the ordinary one: a record emitted by the system every time it makes a quote. The second is the \emph{control group}: a small set of measurements of what a quote costs \emph{today}, built by hand, captured before the system makes hand-building a thing of the past. Without that ``before'' picture there is nothing to compress against. This chapter covers both, the analytics that compare them, and the reason the measurement has to ship with the very first quote rather than being added later.
+
+\pipelinepos{reads the assembled \code{QuoteRecord} and the populated \code{SiteModel} produced by the lifecycle module (Ch.~\ref{ch:quotes}), which carries the data tier graded at intake (Ch.~\ref{ch:ingestion}); emits one telemetry event per run into an append-only store, alongside the manual benchmark, and feeds the whole store to the analytics summary.}
+
+\begin{contract}[Inputs and outputs]
+\textbf{In (per system run):} the assembled \code{QuoteRecord} (its quote identifier, its data tier, and -- by reference -- its version stamps); the populated \code{SiteModel} (whose outstanding data asks give the missing-data count); and optional \emph{measured} inputs supplied by the caller: the contributor, human minutes, installer iterations, the commercial outcome and its reason, and a realised-vs-underwritten percentage once known. \\[3pt]
+\textbf{In (the benchmark, captured once per hand-built quote):} a manual benchmark record -- site, contributor, date, data tier, measured human minutes, iteration count, the categories of missing data chased, the artifact type, and the outcome. \\[3pt]
+\textbf{Out:} one append-only \textbf{telemetry event} per run, and a converted event per benchmark, living in \emph{one} dataset; and a \textbf{telemetry summary} aggregating that dataset into the cost-compression metrics. No number here ever feeds a price.
+\end{contract}
+
+\section{The telemetry event: one row per run}
+
+The unit of the dataset is a single \emph{telemetry event}: a flat, append-only record describing one moment in a quote's life. It is deliberately small and deliberately separate from the priced numbers. It records \emph{how} a quote was produced, never \emph{what} it priced. Table~\ref{tab:event} lists its fields.
+
+\begin{table}[H]
+\centering
+\caption{The fields of a telemetry event. Every field except the identifiers and the event type is optional, because honest measurement means leaving a value blank until it is genuinely known rather than guessing it.}
+\label{tab:event}
+\small\sffamily
+\begin{tabularx}{\textwidth}{@{}l l L@{}}
+\toprule
+\textbf{Field} & \textbf{Type} & \textbf{Meaning} \\
+\midrule
+event id & string & Stable identifier for this row, by default the quote id joined to the event type. \\
+quote id & string & Which quote this event belongs to. For a system run it is the \code{QuoteRecord} id; for a benchmark it is the linked system quote if one exists, else a stable \code{manual:<id>}. \\
+event type & string & The discriminator. \code{quote\_created} for a system run, \code{manual\_benchmark} for a hand-built baseline. \\
+data tier & T0--T2 / none & The data quality at intake (Ch.~\ref{ch:ingestion}), copied off the quote. The axis the hit-rate is broken down by. \\
+human minutes & number $\ge 0$ / none & Total wall-clock effort across all people. Left blank on a system run until measured; required and positive on a benchmark. \\
+contributor & string / none & Who did the work. \\
+installer iterations & integer $\ge 0$ / none & Rounds of back-and-forth with the installer or customer to get usable data. \\
+missing data count & integer $\ge 0$ / none & How many ranked data asks were still outstanding at quote time, read off the populated site. \\
+outcome & enum & The commercial result: pending, sent, won, lost, abandoned. Defaults to \emph{pending}, because a fresh quote has no result yet. \\
+outcome reason & string / none & Free text explaining a win or a loss. Blank until known. \\
+realised vs underwritten \% & number / none & Realised performance as a percentage of the underwritten figure. Blank until measurement and verification supplies a real number. \\
+notes & string / none & Free-text context. \\
+created at & timestamp & When the event was recorded. Metadata only; it never enters a computed number. \\
+schema version & string & The shape version stamped on every record in the system. \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+A few fields carry the weight of the chapter and deserve explaining.
+
+\textbf{Data tier} is the link to the quality of the inputs. It is graded at intake (T0 coarse, T1 partial, T2 a full validated year; see Ch.~\ref{ch:ingestion}) and simply copied onto the event. It is the axis the analytics slice the hit-rate by, so the platform can ask whether thin-data quotes win at a different rate than full-data ones.
+
+\textbf{Human minutes} is the headline cost number. It is the \emph{total} wall-clock effort across everyone who touched the quote, not one person's time. On a system run it is optional, left blank until someone actually measures it, never invented. On a benchmark it is required and must be positive: a benchmark with no recorded effort is not a benchmark.
+
+\textbf{Missing data count} is taken from the \emph{populated} site, after ingestion has attached its ranked list of the data that would most improve the quote (Ch.~\ref{ch:ingestion}). It records how many asks were still outstanding when the quote was made, so a thin quote and a complete one are distinguishable in the data.
+
+\textbf{Outcome} and its \textbf{reason} are the hit-rate axis. A fresh quote is \emph{pending}; it becomes won or lost only when the deal resolves, at which point the reason explains why. \textbf{Realised vs underwritten} closes the loop much later: after the system is built and operating, measurement and verification reports what the battery actually earned, expressed as a percentage of what was underwritten. It stays blank -- never zero, never a guess -- until a real figure exists.
+
+\paragraph{Version stamps live on the record, not the event.} The event itself carries only its own shape version. The full set of stamps that pin a run -- the assumption-set version, the code version, the engine version, the input hash -- lives on the \code{QuoteRecord} the event names by its quote id (Ch.~\ref{ch:quotes} and Ch.~\ref{ch:provenance}). The event references the record rather than copying those stamps, so every metric in the analytics can still be traced back to the exact versions that produced it, while the telemetry row stays small and append-only.
+
+\begin{keyidea}[The event records how, never what]
+A telemetry event is pure perimeter measurement. It carries the cost and the outcome of a run; it never carries, and never feeds, a priced number. This is the same hard wall that runs through the whole platform: prose is drafted, numbers are computed, and measurement sits to one side of both.
+\end{keyidea}
+
+\subsection{Where the event comes from}
+
+When the lifecycle module finishes assembling a quote (Ch.~\ref{ch:quotes}), it emits exactly one telemetry event for the run. The emitter reads the data tier straight off the quote, counts the still-outstanding asks off the populated site, and copies through any measured inputs the caller passed (contributor, human minutes, iterations). It does not compute anything: it is a faithful snapshot of the run as it happened. The result is a \code{quote\_created} event, ready to append to the store.
+
+\section{The manual benchmark: the control group}
+
+Before the system existed, every quote was built by hand. The cost of \emph{that} -- the human hours, the rounds of chasing an installer for a meter file, the tariff stack rebuilt from a paper bill -- is the baseline the whole cost-compression thesis is measured against. The manual benchmark is the deliberate capture of that baseline.
+
+A \emph{manual benchmark record} is one hand-built quote, measured. Its fields are listed in Table~\ref{tab:benchmark}. Crucially, it records only \emph{real} effort on a \emph{real} quote: over-counting the minutes is acceptable, guessing is not, and any illustrative example must be labelled as such and never treated as a real input.
+
+\begin{table}[H]
+\centering
+\caption{The fields of a manual benchmark record. It is a strict schema: an unknown or mistyped field is a validation error, and the human-minutes value must be present and positive.}
+\label{tab:benchmark}
+\small\sffamily
+\begin{tabularx}{\textwidth}{@{}l L@{}}
+\toprule
+\textbf{Field} & \textbf{Meaning} \\
+\midrule
+benchmark id & Stable identifier for this row. \\
+site name & The site label, often with its postcode area. \\
+contributor & Who built the quote; minutes are summed across everyone. \\
+date & When the hand-built quote was produced. Required, so every row is placeable in time. \\
+data tier & The data quality the quote was built from (T0--T2). Required, so every row is placeable by data quality. \\
+human minutes & \textbf{Required, positive.} Total wall-clock effort across all people. \\
+iterations & Rounds of back-and-forth with the installer or customer. \\
+missing data categories & The kinds of data that had to be chased or assumed. \\
+source & Provenance of the benchmark; defaults to ``manual quote''. \\
+quote type & The artifact the hand-built quote produced (see the caution below). \\
+quote outcome & The commercial outcome, drawn from the same vocabulary as a system quote. \\
+notes & What explains the time: messy data, manual reconstruction, the tooling used. \\
+linked quote id & The system quote this baseline pairs with, once one exists. \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+A benchmark does not live in its own separate world. It is \emph{converted} into the same telemetry-event shape as a system run, marked with the event type \code{manual\_benchmark}, so the manual baseline and the system quotes sit in one dataset and can be compared apples to apples. The conversion carries across the measured fields -- human minutes, the iteration count (as installer iterations), the count of missing-data categories, the data tier, the contributor, and the outcome -- and derives the event timestamp deterministically from the benchmark date, so the same record always yields the same event. The records can also be rendered as a Markdown table, which is how the running log is kept readable by hand alongside the validated objects.
+
+\begin{caution}[Two words that look the same and are not]
+The word \emph{indicative} (and likewise \emph{underwritten}) appears in two unrelated places, and confusing them corrupts the dataset.
+\begin{itemize}
+  \item A \textbf{quote lifecycle state} (\code{QuoteMode}: draft, indicative, underwritten, contracted, operating, lapsed) describes \emph{how mature a deal is}. It belongs to the \code{QuoteRecord} and travels through the lifecycle (Ch.~\ref{ch:quotes}).
+  \item A \textbf{manual-benchmark artifact type} (\code{ManualQuoteType}: indicative, underwritten, proposal, other) describes \emph{what kind of document a single hand-built quote produced}. It belongs only to a benchmark row.
+\end{itemize}
+They share spellings but are different fields on different objects with different value sets. A benchmark's ``underwritten'' is the type of document a person produced by hand; a quote's ``underwritten'' is a stage in a live deal's life. Never map one onto the other, and never let a benchmark's artifact type be read as a lifecycle state.
+\end{caution}
+
+\section{The analytics: what the dataset must answer}
+
+The whole point of collecting events is to summarise them. The summary aggregates a collection of events -- system quotes and benchmarks together -- into the cost-compression metrics. It is pure aggregation: no clock, no randomness, deterministic, so the same dataset always produces the same summary.
+
+The platform is honest about which metrics it can compute today and which it cannot. Two of the four target metrics are computable from the data captured now; two require inputs that do not exist yet, and those are returned as named \emph{unavailable} notes rather than fabricated.
+
+\begin{table}[H]
+\centering
+\caption{The four target metrics of the cost-compression dataset, and whether they can be computed from what is captured today.}
+\label{tab:metrics}
+\small\sffamily
+\begin{tabularx}{\textwidth}{@{}l c L@{}}
+\toprule
+\textbf{Metric} & \textbf{Today} & \textbf{How / why not} \\
+\midrule
+Time-to-quote vs the manual benchmark & yes & The mean human minutes of system runs against the mean of the benchmarks, expressed as a ratio. \\
+Hit-rate by data tier & yes & Wins divided by resolved deals, broken down by the data tier at intake. \\
+Marginal cost per quote & no & Needs a per-quote cost input that is not captured yet. Returned as an honest unavailable note. \\
+Underwriting error by stream & no & Needs realised-vs-underwritten broken down \emph{by income stream}; only a whole-quote realised figure exists, populated after the operation date. \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\subsection{Time-to-quote and the compression ratio}
+
+The headline figure is how much faster the system is than a person. The summary takes the mean human minutes across all system runs that have a measured value, and the mean across all benchmarks that have one. The \textbf{compression ratio} is the benchmark mean divided by the system mean:
+\[
+\text{compression ratio} \;=\; \frac{\text{mean benchmark human minutes}}{\text{mean system human minutes}}.
+\]
+A ratio above one means the system is faster; a ratio of, say, ten means a system quote costs a tenth of the human time of a hand-built one. The ratio is reported only when both means exist and the system mean is positive; otherwise it is left undefined rather than divided by a missing or zero value.
+
+\begin{plainnote}
+The ratio is deliberately a \emph{proxy} for time-to-quote, built from measured human minutes rather than from wall-clock duration. The event shape can also support a true time-to-quote, the gap between an intake event and the quote-created event for the same quote, once both events are routinely logged. Until then the human-minutes proxy is the honest, available measure, and it is labelled as such.
+\end{plainnote}
+
+\subsection{Hit-rate by data tier}
+
+The second computable metric asks whether the quality of the input data changes how often a quote is won. The summary looks only at events whose deal has \emph{resolved} -- that is, whose outcome is won or lost; pending, sent and abandoned rows are still in flight and are excluded. For each data tier it counts the wins and the resolved total, and reports
+\[
+\text{hit-rate}(\text{tier}) \;=\; \frac{\text{wins in tier}}{\text{resolved deals in tier}}.
+\]
+This is what turns the data-tier label into evidence: it lets the platform see whether T2 (full-data) quotes convert better than T0 (coarse) ones, which is exactly the kind of question the honest-degradation design (Ch.~\ref{ch:ingestion}) needs answered over time.
+
+\subsection{Realised vs underwritten, after the operation date}
+
+The slowest loop to close is the most important one for a lender's trust: did the battery actually earn what was underwritten? That figure cannot exist at quote time. It arrives only after the system is built and running, once measurement and verification reports real performance after the commercial operation date. The event reserves a field for it -- realised performance as a percentage of the underwritten figure -- and leaves it blank until a real number is supplied. The platform is explicit that the finer-grained version of this metric, error broken down \emph{by income stream}, is not yet computable, because only a whole-quote realised figure is captured; it is named as unavailable rather than approximated.
+
+\section{The flow: from each run to the cost-compression metrics}
+
+Figure~\ref{fig:telemetry} draws the whole module. Each system run emits one event; each hand-built quote is captured as a benchmark and converted into the same shape; both land in one append-only store; and the analytics read the store to produce the cost-compression and hit-rate-by-tier figures.
+
+\begin{figure}[H]
+\centering
+\resizebox{\textwidth}{!}{%
+\begin{tikzpicture}[node distance=9mm and 18mm]
+  % system side
+  \node[store] (quote) {\textbf{QuoteRecord}\\\scriptsize tier, version stamps\\\scriptsize (Ch.~\ref{ch:quotes})};
+  \node[proc, below=of quote] (emit) {\textbf{Emit event}\\\scriptsize read tier, count asks,\\\scriptsize copy measured inputs};
+  \node[io, below=of emit] (sysev) {\textbf{Telemetry event}\\\scriptsize \code{quote\_created}};
+
+  % benchmark side
+  \node[ext, right=42mm of quote] (manual) {\textbf{Hand-built quote}\\\scriptsize measured human effort,\\\scriptsize captured before erased};
+  \node[proc, below=of manual] (bench) {\textbf{Benchmark record}\\\scriptsize strict, positive minutes};
+  \node[proc, below=of bench] (conv) {\textbf{Convert}\\\scriptsize same event shape,\\\scriptsize type \code{manual\_benchmark}};
+  \node[io, below=of conv] (benev) {\textbf{Telemetry event}\\\scriptsize \code{manual\_benchmark}};
+
+  % store
+  \node[store, below=33mm of $(sysev)!0.5!(benev)$, minimum width=52mm, text width=50mm] (storeev)
+     {\textbf{One telemetry dataset}\\\scriptsize append-only, system + benchmark rows together};
+
+  % analytics
+  \node[proc, below=of storeev, minimum width=52mm, text width=50mm] (agg)
+     {\textbf{Summarise} (deterministic)\\\scriptsize aggregate, no clock};
+  \node[io, below=of agg, xshift=-30mm, text width=34mm] (cc)
+     {\textbf{Cost compression}\\\scriptsize benchmark $\div$ system minutes};
+  \node[io, below=of agg, xshift=30mm, text width=34mm] (hr)
+     {\textbf{Hit-rate by tier}\\\scriptsize wins $\div$ resolved, per T0--T2};
+  \node[decide, right=20mm of agg] (un) {\textbf{Inputs\\exist?}};
+  \node[note, right=2mm of un, text width=30mm] (note)
+     {if not: named \emph{unavailable} (cost-per-quote; error by stream), never guessed};
+
+  % arrows
+  \draw[flow] (quote) -- (emit);
+  \draw[flow] (emit) -- (sysev);
+  \draw[flow] (manual) -- (bench);
+  \draw[flow] (bench) -- (conv);
+  \draw[flow] (conv) -- (benev);
+  \draw[flow] (sysev) to[out=-90,in=150] (storeev.north);
+  \draw[flow] (benev) to[out=-90,in=30] (storeev.north);
+  \draw[flow] (storeev) -- (agg);
+  \draw[flow] (agg) -- (cc);
+  \draw[flow] (agg) -- (hr);
+  \draw[flow] (agg) -- (un);
+
+  % backdrops
+  \begin{scope}[on background layer]
+    \node[groupbox, draw=nodeExtBd, fill=gridqVioletBg, fit=(manual)(bench)(conv)(benev), inner sep=6pt,
+          label={[note,anchor=south]north:PERIMETER: the control group}] {};
+  \end{scope}
+\end{tikzpicture}}
+\caption{The telemetry module. System runs (left) and hand-built quotes (right, the perimeter control group) become events of one shape in one append-only store. The deterministic summary turns the store into the cost-compression ratio and the hit-rate by data tier; metrics whose inputs do not yet exist are returned as honest unavailable notes rather than guessed.}
+\label{fig:telemetry}
+\end{figure}
+
+\section{Why telemetry must ship with the first quote}
+
+The single most important property of this module is timing. The benchmark is a \emph{before} picture, and there is exactly one chance to take it: before the system is in use. Retrofitted, the data is worthless as evidence. Nobody can reliably remember, a year on, how many hours a particular hand-built quote took or how many times they chased the installer; and once the system is doing the work, there are no more hand-built quotes to measure. The first hand-built quotes are the control group for the whole thesis, and a control group cannot be reconstructed after the experiment has begun.
+
+The same logic applies, more softly, to the system events. If telemetry is bolted on after the platform has been running for months, the earliest and most informative runs -- the ones that show the system finding its feet -- are simply missing from the dataset, and the win/loss outcomes that resolve slowly can never be tied back to quotes that were never logged. This is why ``telemetry from the first quote'' is one of the platform's five standing guarantees (Ch.~\ref{ch:overview}): not a feature to add when convenient, but a precondition for the central claim being checkable at all.
+
+\begin{keyidea}[Measure the baseline before the system erases it]
+The manual benchmark is a primary fundraising artifact, not housekeeping. The cost-compression claim is falsifiable only against a real ``before'', and that ``before'' can be captured only once, at the start, honestly. Capture it late and it is gone.
+\end{keyidea}
+
+\begin{rebuild}[How to rebuild this module]
+\begin{enumerate}
+  \item \textbf{Define the event shape.} A flat, append-only record with: an event id, a quote id, an event type, the data tier, optional human minutes (non-negative), optional contributor, optional installer iterations (non-negative), optional missing-data count (non-negative), a commercial outcome (defaulting to pending), an optional outcome reason, an optional realised-vs-underwritten percentage, free-text notes, a timestamp, and a schema version. Forbid unknown fields so a typo is an error. The event records how a run was produced, never a priced number.
+  \item \textbf{Write the system emitter.} Given an assembled quote record and the populated site, build one event: copy the data tier off the quote, set the missing-data count to the number of outstanding ranked asks on the site, copy through any measured caller inputs (contributor, human minutes, iterations), set the outcome to pending and the realised field to blank, and mark the event type \code{quote\_created}. Compute nothing; it is a snapshot.
+  \item \textbf{Define the benchmark record.} A strict schema with required site, contributor, date and data tier; a required, positive human-minutes; an iteration count; a list of missing-data categories; an artifact type (indicative, underwritten, proposal, other) distinct from the lifecycle state; a commercial outcome from the shared vocabulary; and an optional link to a system quote. Reject a record with missing, zero or negative minutes.
+  \item \textbf{Convert a benchmark to an event.} Map it onto the event shape with event type \code{manual\_benchmark}; carry across minutes, iterations (as installer iterations), the count of missing-data categories, the tier, the contributor and the outcome; set the quote id to the linked quote if present else a stable \code{manual:<id>}; and derive the timestamp deterministically from the benchmark date.
+  \item \textbf{Write the deterministic summary.} Over a collection of events: split by event type; compute the mean human minutes for system runs and for benchmarks; report the compression ratio as benchmark mean over system mean, only when both exist and the system mean is positive; and compute hit-rate by data tier as wins over resolved (won plus lost) deals per tier, ignoring unresolved rows. Use no clock and no randomness.
+  \item \textbf{Be honest about gaps.} For metrics whose inputs do not yet exist -- marginal cost per quote, and underwriting error broken down by income stream -- return named unavailable notes, never a guessed value.
+  \item \textbf{Test.} Assert: a benchmark with non-positive minutes is rejected; conversion preserves the measured fields and the deterministic timestamp; the compression ratio is undefined when a mean is missing or the system mean is zero, and correct otherwise; hit-rate counts only resolved deals and groups correctly by tier; the summary is identical on re-run over the same dataset; and no priced number ever leaks into an event.
+\end{enumerate}
+\end{rebuild}
+
+This module is the conscience of the platform. Everything upstream produces a quote; this module records what that quote cost to produce and how it fared, and keeps the one ``before'' picture against which the whole cost-compression promise stands or falls.

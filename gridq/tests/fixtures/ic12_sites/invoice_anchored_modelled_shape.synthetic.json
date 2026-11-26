@@ -1,0 +1,57 @@
+{
+  "site_id": "SYNTHETIC-ic12-invoice-anchored",
+  "site_name": "SYNTHETIC invoice-anchored site on a modelled shape (not a real site)",
+  "postcode": "ZZ2 2AA",
+  "data_tier": "T1_PARTIAL_HALF_HOURLY",
+  "load_data": {
+    "annual_kwh": 45700.0,
+    "half_hourly_file_ref": "examples/demo_site/hh_2025.csv",
+    "half_hourly_rows": 17520,
+    "start_date": "2025-01-01",
+    "end_date": "2025-12-31",
+    "missing_intervals": 0,
+    "max_import_kw": 21.4,
+    "half_hourly_basis": "modelled",
+    "half_hourly_reference_profile": "SYNTHETIC flat industrial archetype",
+    "half_hourly_scaled_to": "SYNTHETIC invoiced annual kWh",
+    "validation_warnings": [
+      "SYNTHETIC: shape is modelled, scaled to the invoiced total",
+      "SYNTHETIC: no metered half-hours"
+    ]
+  },
+  "annual_consumption_kwh": 45700.0,
+  "tariff_stack": {
+    "supplier": "SYNTHETIC Energy Supply Co",
+    "import_rates": {"single": 0.2789},
+    "levies": {},
+    "source": "SYNTHETIC invoice",
+    "confidence": "low",
+    "basis": {
+      "schema_version": "0.1.0",
+      "vat": "excluded",
+      "vat_attestation": "stated_by_record",
+      "levies": "itemised",
+      "network_charges": "itemised",
+      "vat_rate_fraction": null
+    },
+    "provenance": {
+      "schema_version": "0.1.0",
+      "commodity": "assumed",
+      "network": "assumed",
+      "levies": "assumed"
+    }
+  },
+  "connection": {"mic_kw": 69.0},
+  "consents": {},
+  "physical_gates": {"notes": "SYNTHETIC: no survey"},
+  "counterparty": {"legal_name": "SYNTHETIC Operator B Ltd (not a real company)"},
+  "provisioning_requirements": null,
+  "export_arrangement": null,
+  "stream_consents": [],
+  "local_flex_awards": [],
+  "derived_assumptions": [],
+  "missing_data": [
+    "SYNTHETIC: metered half-hourly data",
+    "SYNTHETIC: the agreed import capacity"
+  ]
+}

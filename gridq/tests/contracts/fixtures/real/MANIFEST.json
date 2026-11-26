@@ -1,0 +1,75 @@
+{
+  "_note": "Committed. Hashes and provenance of the git-ignored real-data IC-2 fixtures in this folder; no data rows and no figure derived from them. See README.md.",
+  "gate": "Eyes-only (Neura Constraint Atlas, research/DATA_REQUESTS.md 'Gate', DR-01/DR-03; atlas/curated/data_authorisations.json status not_recorded): Huwise's written authorisation for automated retrieval is not recorded. Test fixture, internal; kept out of git; not to be shown to anyone but the user until the authorisation is recorded.",
+  "responses": {
+    "ukpn_events": {
+      "file": "ukpn_der4_june_events.response.json",
+      "url": "https://ukpowernetworks.opendatasoft.com/api/explore/v2.1/catalog/datasets/ukpn-curtailment-events-site-specific/exports/json?where=der_name+%3D+%22DER4%22+AND+%28%28start_time_utc+%3C+date%272023-06-15T00%3A00%3A00Z%27+AND+end_time_utc+%3E+date%272023-06-11T00%3A00%3A00Z%27%29+OR+%28start_time_utc+%3C+date%272024-06-15T00%3A00%3A00Z%27+AND+end_time_utc+%3E+date%272024-06-11T00%3A00%3A00Z%27%29+OR+%28start_time_utc+%3C+date%272025-06-15T00%3A00%3A00Z%27+AND+end_time_utc+%3E+date%272025-06-11T00%3A00%3A00Z%27%29+OR+%28start_time_utc+%3C+date%272026-06-15T00%3A00%3A00Z%27+AND+end_time_utc+%3E+date%272026-06-11T00%3A00%3A00Z%27%29%29&order_by=start_time_utc",
+      "retrieved_at": "2026-11-17T00:22:07Z",
+      "sha256": "sha256:c9aba27eb0b61e3838306cf9568ff97c4c0e3cb5a4e6e25e5e7f60bf91d9d336",
+      "bytes": 7922,
+      "http_status": 200
+    },
+    "ukpn_years": {
+      "file": "ukpn_der4_years.response.json",
+      "url": "https://ukpowernetworks.opendatasoft.com/api/explore/v2.1/catalog/datasets/ukpn-curtailment-events-site-specific/records?select=year%28start_time_utc%29+as+year%2C+count%28%2A%29+as+events&where=der_name+%3D+%22DER4%22&group_by=year%28start_time_utc%29&order_by=year%28start_time_utc%29&limit=100",
+      "retrieved_at": "2026-11-17T00:22:07Z",
+      "sha256": "sha256:7b0352a97ca906bc1d3e1a31148a4a767cce756803b2745d5d94da62496633c2",
+      "bytes": 271,
+      "http_status": 200
+    },
+    "ukpn_meta": {
+      "file": "ukpn_dataset_meta.response.json",
+      "url": "https://ukpowernetworks.opendatasoft.com/api/explore/v2.1/catalog/datasets/ukpn-curtailment-events-site-specific",
+      "retrieved_at": "2026-11-17T00:22:08Z",
+      "sha256": "sha256:e87f432a51df6fb9bb0cf4231783f42f6e355ae8ef603e21b44ac15f0a33ffba",
+      "bytes": 24070,
+      "http_status": 200
+    },
+    "npg_events": {
+      "file": "npg_der0000099_events.response.json",
+      "url": "https://northernpowergrid.opendatasoft.com/api/explore/v2.1/catalog/datasets/curtailment-events-site-specific/exports/json?where=customer_unique_identifier+%3D+%22DER-0000099%22&order_by=start_time_utc",
+      "retrieved_at": "2026-11-17T00:22:08Z",
+      "sha256": "sha256:49d3c99d15ed37127e8e16e73bef8ba776210948eba7f5f82ba0f9125a4c7018",
+      "bytes": 145119,
+      "http_status": 200
+    },
+    "npg_meta": {
+      "file": "npg_dataset_meta.response.json",
+      "url": "https://northernpowergrid.opendatasoft.com/api/explore/v2.1/catalog/datasets/curtailment-events-site-specific",
+      "retrieved_at": "2026-11-17T00:22:09Z",
+      "sha256": "sha256:7894b2190865fd3a0c98367a888d1205eef0ae73c5ef031e4164980a9b52c88b",
+      "bytes": 11504,
+      "http_status": 200
+    }
+  },
+  "sets": {
+    "ukpn": {
+      "file": "ic2_ukpn_der4_norwich_june.real.json",
+      "file_sha256": "sha256:3d7ad3cce0771ec3562f918ce3e774491339e38a4879321b30c77072519485ff",
+      "content_hash": "sha256:cf2d151ea6ae85ab812c17528c024e7e8878c83a92788026bf1f31f7b1a073b1",
+      "scenarios": 4,
+      "weights": [
+        "1/4",
+        "1/4",
+        "1/4",
+        "1/4"
+      ],
+      "licence": "CC BY 4.0",
+      "attribution": "UK Power Networks Open Data Portal (CC BY 4.0)"
+    },
+    "npg": {
+      "file": "ic2_npg_der0000099_norton_events.real.json",
+      "file_sha256": "sha256:2e2b7cd9d6e8b833ea4483d32ad3a27dce7051ef19a849f243cf80c67f46a1cb",
+      "content_hash": "sha256:76821ee2d6d968b5fd96ebab05a1b929ba6280d1ab0d6439045b0c6e116ea07a",
+      "scenarios": 3,
+      "weights": [
+        "1/3",
+        "1/3",
+        "1/3"
+      ],
+      "licence": "Northern Powergrid Open Data Licence v1.0",
+      "attribution": "Northern Powergrid Open Data"
+    }
+  }
+}

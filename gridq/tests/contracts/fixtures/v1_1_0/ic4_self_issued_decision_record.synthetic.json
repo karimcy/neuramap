@@ -1,0 +1,27 @@
+{
+  "contract": "IC-4",
+  "contract_version": "1.1.0",
+  "record_class": "synthetic_fixture",
+  "evidence_type": "decision_record",
+  "title": "Synthetic Neura decision record, an ADR (schema-test fixture)",
+  "issuer": {
+    "name": "SYNTHETIC-NEURA (fixture; a self-issued decision record)",
+    "role": "neura_self_issued",
+    "reference": "SYNTH-ADR-0001"
+  },
+  "document_hash": "sha256:d99c51f5d01a859558af7c2878765b795589c9a0ebcfa08ff941c83034504617",
+  "issued_on": "2026-11-02",
+  "effective_from": "2026-11-09",
+  "expiry": {
+    "kind": "no_expiry",
+    "reason": "synthetic fixture: the decision stands until superseded"
+  },
+  "scope": {
+    "kind": "site",
+    "site_id": "SYNTHETIC-SITE-HYBRID"
+  },
+  "verification": {
+    "kind": "unverified",
+    "reason": "synthetic fixture: self-issued and not countersigned"
+  }
+}

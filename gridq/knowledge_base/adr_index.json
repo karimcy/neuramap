@@ -1,0 +1,57 @@
+{
+  "ADR-D1": {
+    "chosen_option": "d",
+    "status": "decided",
+    "title": "Company model"
+  },
+  "ADR-D10": {
+    "chosen_option": "b",
+    "status": "decided",
+    "title": "Neura-authored records as evidence"
+  },
+  "ADR-D2": {
+    "chosen_option": "d",
+    "status": "decided",
+    "title": "Ops boundary"
+  },
+  "ADR-D3": {
+    "chosen_option": "b",
+    "status": "decided",
+    "title": "Underwriting basis"
+  },
+  "ADR-D4": {
+    "chosen_option": "d",
+    "status": "decided",
+    "title": "Host fit, and who owns and finances the demonstrator BESS"
+  },
+  "ADR-D5": {
+    "chosen_option": "e",
+    "status": "decided",
+    "title": "Primary market route"
+  },
+  "ADR-D6": {
+    "chosen_option": "a",
+    "status": "decided",
+    "title": "Grant status branch"
+  },
+  "ADR-D7": {
+    "chosen_option": "c",
+    "status": "decided",
+    "title": "Cyprus IP"
+  },
+  "ADR-D8": {
+    "chosen_option": "e",
+    "status": "decided",
+    "title": "Beachhead segment"
+  },
+  "ADR-D9": {
+    "chosen_option": "d",
+    "status": "decided",
+    "title": "External audience for the Atlas"
+  },
+  "ADR-S14-1": {
+    "chosen_option": "d",
+    "status": "decided",
+    "title": "Build scope choice: capacity versus the demo cut (spec \u00a714.1)"
+  }
+}

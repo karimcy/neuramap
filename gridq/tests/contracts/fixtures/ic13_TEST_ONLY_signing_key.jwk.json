@@ -1,0 +1,15 @@
+{
+  "_WARNING": "TEST-ONLY FIXTURE KEY. Generated 2026-11-17 for the IC-13 conformance tests and committed on purpose. It is public knowledge: never use it to sign or trust a real token. gridq.contracts.identity.validate_token refuses any kid starting TEST-ONLY- unless allow_fixture_keys=True.",
+  "kty": "RSA",
+  "use": "sig",
+  "alg": "RS256",
+  "kid": "TEST-ONLY-ic13-fixture-key-1",
+  "n": "q7pNPJ9RD7-N9tY4PFmqkmaRMp__UW3EqBVTNEC6Xc_yZoAH4UB6xVJxdWii1gA_5Cpov1uyjOVIfsGCwzzyVpfY_OeBbWsbK2zktjs0ro8h0CRDm0cnjTrK1l0YV6WEVydG_nCwfODo5iOEBHw_W1sjDd0MEewZ6tBPkAnzTHNgOv4l3foS09RBN6OQ8M699EE1UnolsvTXqowPRrii-J8QxfHiNd-s9s2T2wvdaIksMPEK3LDHaPu6CVnMmbS99l61v-6FvJ9UEAsh8lRYZWxmqPBK-JeTPF2RC4DDB7JKFYsWuBYEU5o61es7nc2YNK278uZx2xkFyydCm9bG7w",
+  "e": "AQAB",
+  "d": "AWbg8IjAaad_qi8vgFafDNjngIlL1UdXHqQl7LxGiTOEYA_VgKI9HlVA9dtn0OVpoBw0hLNj7sCEafx8a8mYlNpifBYLuW_xZdZau54aHP6wIPnaz26yRPXg6AUUiMqiHPAGJVeYKTzQyegqULsO7Vj-HUPbsF3EDGWs8JkUMmCPUNXiDpDdY2WXYmW6qKiGETmfxT0wv5yZslfBAXO5m1YvosQCWGc61-xQtfIt2YCkJCFFoXCaaa3r5-pjWALiBOFz3sNZI8r0fnP4GV93a8vzhm2K9MuraDgbBda8_DEdlanXRN2wJOyOFUnryn13BT-fsS8ngiIr2Ieo_irp6Q",
+  "p": "16rL64FYce5PAGQg8PfR8PC49TExe7mrVOI5Xfj1IyttA-tKId5eawklQlTco5uhQ2mcwf2DwDQzJmaCr3WM7WZ4sGdHqaYRLg1Z1AjteoPGaWz63tGJe31jK36Egr3uffzhM8S7VErkqXqlL49shL9xhquFOOo8rMp_DBab-Ps",
+  "q": "y9fgdIZMegMyk5zoCn5nKQHEENLT6jAl9Dce2OvMkAqLELSLd2lpsVjEPzdIry-4tTWqh7GbJ5v7BKQil-0E3o1HwUugr4ULYSZb3ccoR_vJuRrozCuKaDAjbqs-2PbvcrjCUpUb_6bCe-YJt6SB2TetpGI_380gTiPTBzsbL50",
+  "dp": "USCZtwygBbOcmkwQLDU9D0KugOWxdJZigfrbk6MMK9-xEZFYAKeSovb8whgEK7NmlWJMKplAD3RTbXWQYYp5qfArJEilp4al3cn96Yo2MykQ4SWytVDjQ8XmIT1lgX0LEu-mk3_E7C-EFtDhBKQSMVmGzh8FbWSH0IQYCKcUozM",
+  "dq": "Xmr72H1sZwecIauH_3RVLDVZL8G3zr3GlrwBWdC-y-lWSMKX5xO4lSDcpbthu2OLVsQo3PlzOIGTX673Jw_uNXeTSQFSyHoDr1gpLSzWh6Ek6syAEDIKxf-mKdjAH5chii3yNHZEpcIES4dd8OYODyMvFvk7RNqqoAcP9EV4bjE",
+  "qi": "D9i7Xl_k9b0O_UctS_mwYcXfyn_3Vj1UlWslB7BmgPJVRj9rGnjw7OJoqm4A6nDDI-OSelKCG53UGm-SaSPRvtUHDKEX-jnAgT73FiNDH0otokmqVHFq1qEhrB3u4oSSisxOCtSoOc_W-aESfv6nPgQdrLCT1LFEUvEHGbi61wo"
+}

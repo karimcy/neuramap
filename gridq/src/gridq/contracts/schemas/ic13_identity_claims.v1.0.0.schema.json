@@ -1,0 +1,214 @@
+{
+  "$defs": {
+    "Action": {
+      "enum": [
+        "read",
+        "write",
+        "control_write"
+      ],
+      "title": "Action",
+      "type": "string"
+    },
+    "AuthMethod": {
+      "description": "RFC 8176 authentication method reference values accepted in ``amr``.",
+      "enum": [
+        "pwd",
+        "otp",
+        "hwk",
+        "swk",
+        "sc",
+        "pin",
+        "fpt",
+        "face",
+        "mfa"
+      ],
+      "title": "AuthMethod",
+      "type": "string"
+    },
+    "OrgKind": {
+      "enum": [
+        "neura",
+        "customer",
+        "lender",
+        "verifier"
+      ],
+      "title": "OrgKind",
+      "type": "string"
+    },
+    "Organisation": {
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "$ref": "#/$defs/OrgKind"
+        },
+        "org_id": {
+          "maxLength": 200,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:@/-]*$",
+          "title": "Org Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "org_id",
+        "kind"
+      ],
+      "title": "Organisation",
+      "type": "object"
+    },
+    "ResourceKind": {
+      "enum": [
+        "site",
+        "customer_data",
+        "telemetry",
+        "ledger",
+        "evidence",
+        "scenario_set",
+        "pack",
+        "method",
+        "device"
+      ],
+      "title": "ResourceKind",
+      "type": "string"
+    },
+    "Role": {
+      "description": "Spec E-04: Neura ops / customer / lender read-only / verifier.",
+      "enum": [
+        "neura_ops",
+        "customer",
+        "lender_readonly",
+        "verifier"
+      ],
+      "title": "Role",
+      "type": "string"
+    },
+    "ScopeGrant": {
+      "additionalProperties": false,
+      "description": "Permission for ``actions`` on resources of ``resource`` kind, owned by ``org_id``.\n\n``org_id`` / ``resource_id`` may be ``\"*\"`` (all). Actions are sorted and unique.",
+      "properties": {
+        "actions": {
+          "items": {
+            "$ref": "#/$defs/Action"
+          },
+          "minItems": 1,
+          "title": "Actions",
+          "type": "array"
+        },
+        "org_id": {
+          "maxLength": 200,
+          "pattern": "^(\\*|[A-Za-z0-9][A-Za-z0-9._:@/-]*)$",
+          "title": "Org Id",
+          "type": "string"
+        },
+        "resource": {
+          "$ref": "#/$defs/ResourceKind"
+        },
+        "resource_id": {
+          "maxLength": 200,
+          "pattern": "^(\\*|[A-Za-z0-9][A-Za-z0-9._:@/-]*)$",
+          "title": "Resource Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "resource",
+        "org_id",
+        "resource_id",
+        "actions"
+      ],
+      "title": "ScopeGrant",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "description": "IC-13 v1.0.0 claims: the JWT payload of a Neura access token.\n\nRegistered claims (RFC 7519 §4.1): ``iss``, ``sub``, ``aud``, ``iat``, ``nbf``, ``exp``,\n``jti``. Neura claims: ``org``, ``role``, ``scopes``, ``amr`` (RFC 8176), plus the contract\nid and version so a token of another contract version is refused, not misread.",
+  "properties": {
+    "amr": {
+      "items": {
+        "$ref": "#/$defs/AuthMethod"
+      },
+      "minItems": 1,
+      "title": "Amr",
+      "type": "array"
+    },
+    "aud": {
+      "minLength": 1,
+      "pattern": "\\S",
+      "title": "Aud",
+      "type": "string"
+    },
+    "contract": {
+      "const": "IC-13",
+      "default": "IC-13",
+      "title": "Contract",
+      "type": "string"
+    },
+    "contract_version": {
+      "const": "1.0.0",
+      "default": "1.0.0",
+      "title": "Contract Version",
+      "type": "string"
+    },
+    "exp": {
+      "minimum": 0,
+      "title": "Exp",
+      "type": "integer"
+    },
+    "iat": {
+      "minimum": 0,
+      "title": "Iat",
+      "type": "integer"
+    },
+    "iss": {
+      "minLength": 1,
+      "pattern": "\\S",
+      "title": "Iss",
+      "type": "string"
+    },
+    "jti": {
+      "maxLength": 200,
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:@/-]*$",
+      "title": "Jti",
+      "type": "string"
+    },
+    "nbf": {
+      "minimum": 0,
+      "title": "Nbf",
+      "type": "integer"
+    },
+    "org": {
+      "$ref": "#/$defs/Organisation"
+    },
+    "role": {
+      "$ref": "#/$defs/Role"
+    },
+    "scopes": {
+      "items": {
+        "$ref": "#/$defs/ScopeGrant"
+      },
+      "minItems": 1,
+      "title": "Scopes",
+      "type": "array"
+    },
+    "sub": {
+      "maxLength": 200,
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:@/-]*$",
+      "title": "Sub",
+      "type": "string"
+    }
+  },
+  "required": [
+    "iss",
+    "sub",
+    "aud",
+    "iat",
+    "nbf",
+    "exp",
+    "jti",
+    "org",
+    "role",
+    "scopes",
+    "amr"
+  ],
+  "title": "IdentityClaims",
+  "type": "object"
+}

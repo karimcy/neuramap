@@ -1,0 +1,77 @@
+{
+  "site_id": "SYNTHETIC-ic12-constrained",
+  "postcode": "ZZ4 4AA",
+  "data_tier": "T2_VALIDATED_12_MONTH_HALF_HOURLY",
+  "load_data": {
+    "annual_kwh": 396000.0,
+    "half_hourly_file_ref": "examples/demo_site/hh_2025.csv",
+    "half_hourly_rows": 17472,
+    "start_date": "2025-01-01",
+    "end_date": "2025-12-31",
+    "missing_intervals": 48,
+    "max_import_kw": 154.0
+  },
+  "tariff_stack": {
+    "import_rates": {"red": 0.3120, "amber": 0.2010, "green": 0.1650},
+    "duos_red_rate": 0.1550,
+    "levies": {"fit": 0.0101},
+    "basis": {
+      "schema_version": "0.1.0",
+      "vat": "excluded",
+      "vat_attestation": "stated_by_record",
+      "levies": "itemised",
+      "network_charges": "itemised",
+      "vat_rate_fraction": null
+    },
+    "provenance": {
+      "schema_version": "0.1.0",
+      "commodity": "assumed",
+      "network": "assumed",
+      "levies": "assumed"
+    }
+  },
+  "connection": {
+    "mic_kw": 160.0,
+    "asc_kw": 160.0,
+    "voltage_level": "EHV",
+    "dno_region": "NGED_WM",
+    "import_headroom_kw": 0.0,
+    "export_headroom_kw": null,
+    "anm_or_curtailment_notes": "SYNTHETIC DATA-BLOCKED: headroom not confirmed by the DNO"
+  },
+  "consents": {"g99": "applied", "dno_application_state": "applied", "notes": "SYNTHETIC"},
+  "physical_gates": {"footprint_available": false},
+  "counterparty": {
+    "legal_name": "SYNTHETIC Farm Partnership (not a real business)",
+    "legal_entity_type": "partnership",
+    "credit_status": "weak"
+  },
+  "confidentiality": {"nda_status": "not_required", "personal_data_override": true},
+  "stream_consents": [
+    {"stream": "CAPACITY_MARKET", "consented": false},
+    {
+      "stream": "AGREED_CAPACITY_REDUCTION",
+      "consented": true,
+      "agreed_rate_gbp": 1200.0,
+      "agreed_rate_unit": "gbp_per_year",
+      "notes": "SYNTHETIC"
+    }
+  ],
+  "derived_assumptions": [
+    {
+      "kind": "derived_input",
+      "key": "load_data.max_import_kw",
+      "missing_input": "SYNTHETIC: peak import",
+      "value": "154 kW (SYNTHETIC)",
+      "basis": "SYNTHETIC: maximum of the recorded half-hours",
+      "derivation_method": "sourced_default",
+      "derived_by": "tests.fixtures.ic12_sites",
+      "confidence_ceiling": "low",
+      "confirmation_ask": "SYNTHETIC: confirm the peak import"
+    }
+  ],
+  "missing_data": [
+    "SYNTHETIC BLOCKING: DNO confirmation of import headroom",
+    "SYNTHETIC: export MPAN"
+  ]
+}

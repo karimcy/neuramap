@@ -1,0 +1,458 @@
+{
+ "contract": "IC-11",
+ "contract_version": "1.0.0",
+ "surface_id": "ic11-synthetic-chilled-water-modelled",
+ "site_id": "SYNTHETIC-DC-CHILLED-WATER",
+ "record_class": "synthetic_fixture",
+ "topology": [
+  "crah_crac",
+  "water_cooled_chillers_with_towers"
+ ],
+ "cooling_electrical_capacity_kw": 1800,
+ "issued_at": "2026-11-20T09:00:00Z",
+ "valid_from": "2027-01-01T00:00:00Z",
+ "valid_until": "2028-01-01T00:00:00Z",
+ "clock": "Europe/London",
+ "evidence_class": "modelled",
+ "evidence": {
+  "kind": "modelled",
+  "model": "thermal_plant_model",
+  "model_version": "0.0.0-synthetic",
+  "input_hash": "sha256:fb7a7b0c42c9482246b0bb00f23ab0792c7903952054466dd55a5580ebb1d597",
+  "calibration_evidence": []
+ },
+ "limits": {
+  "ashrae": {
+   "ashrae_class": "A1",
+   "envelope": "recommended",
+   "temperature": {
+    "point": "it_inlet",
+    "min_tenths_c": 180,
+    "max_tenths_c": 270
+   },
+   "humidity": {
+    "kind": "humidity_limit",
+    "min_dew_point_tenths_c": -90,
+    "max_dew_point_tenths_c": 150,
+    "max_relative_humidity_percent": 60
+   },
+   "max_rate_of_change_tenths_c_per_hour": 200,
+   "source": "synthetic fixture: envelope as commonly cited for ASHRAE TC9.9 Thermal Guidelines for Data Processing Environments; edition not stated; figures unverified against the standard"
+  },
+  "customer_sla": {
+   "kind": "unknown",
+   "reason": "synthetic: the host's SLA has not been received"
+  },
+  "binding": {
+   "point": "it_inlet",
+   "min_tenths_c": 180,
+   "max_tenths_c": 250
+  },
+  "binding_source": "operator_margin",
+  "chiller_min_run_min": 15,
+  "chiller_min_off_min": 10
+ },
+ "response": {
+  "kind": "response_terms",
+  "min_notice_min": 5,
+  "ramp_min": 5
+ },
+ "seasons": [
+  {
+   "season_id": "winter",
+   "months": [
+    1,
+    2,
+    3,
+    11,
+    12
+   ]
+  },
+  {
+   "season_id": "shoulder",
+   "months": [
+    4,
+    5,
+    9,
+    10
+   ]
+  },
+  {
+   "season_id": "summer",
+   "months": [
+    6,
+    7,
+    8
+   ]
+  }
+ ],
+ "bands": [
+  {
+   "band_id": "night",
+   "start_minute": 0,
+   "end_minute": 360
+  },
+  {
+   "band_id": "morning",
+   "start_minute": 360,
+   "end_minute": 720
+  },
+  {
+   "band_id": "afternoon",
+   "start_minute": 720,
+   "end_minute": 960
+  },
+  {
+   "band_id": "peak",
+   "start_minute": 960,
+   "end_minute": 1140
+  },
+  {
+   "band_id": "evening",
+   "start_minute": 1140,
+   "end_minute": 1440
+  }
+ ],
+ "cells": [
+  {
+   "season_id": "winter",
+   "band_id": "night",
+   "availability": {
+    "kind": "flex",
+    "curve": [
+     {
+      "duration_min": 30,
+      "reduction_kw": 900,
+      "rebound": {
+       "energy_kwh": 360,
+       "peak_kw": 540,
+       "recovery_min": 50
+      }
+     },
+     {
+      "duration_min": 120,
+      "reduction_kw": 600,
+      "rebound": {
+       "energy_kwh": 960,
+       "peak_kw": 360,
+       "recovery_min": 170
+      }
+     },
+     {
+      "duration_min": 408,
+      "reduction_kw": 250,
+      "rebound": {
+       "energy_kwh": 1360,
+       "peak_kw": 150,
+       "recovery_min": 554
+      }
+     }
+    ]
+   }
+  },
+  {
+   "season_id": "winter",
+   "band_id": "morning",
+   "availability": {
+    "kind": "flex",
+    "curve": [
+     {
+      "duration_min": 30,
+      "reduction_kw": 700,
+      "rebound": {
+       "energy_kwh": 280,
+       "peak_kw": 420,
+       "recovery_min": 50
+      }
+     },
+     {
+      "duration_min": 90,
+      "reduction_kw": 400,
+      "rebound": {
+       "energy_kwh": 480,
+       "peak_kw": 240,
+       "recovery_min": 130
+      }
+     }
+    ]
+   }
+  },
+  {
+   "season_id": "winter",
+   "band_id": "afternoon",
+   "availability": {
+    "kind": "flex",
+    "curve": [
+     {
+      "duration_min": 30,
+      "reduction_kw": 500,
+      "rebound": {
+       "energy_kwh": 200,
+       "peak_kw": 300,
+       "recovery_min": 50
+      }
+     },
+     {
+      "duration_min": 60,
+      "reduction_kw": 250,
+      "rebound": {
+       "energy_kwh": 200,
+       "peak_kw": 150,
+       "recovery_min": 90
+      }
+     }
+    ]
+   }
+  },
+  {
+   "season_id": "winter",
+   "band_id": "peak",
+   "availability": {
+    "kind": "flex",
+    "curve": [
+     {
+      "duration_min": 12,
+      "reduction_kw": 300,
+      "rebound": {
+       "energy_kwh": 48,
+       "peak_kw": 180,
+       "recovery_min": 26
+      }
+     }
+    ]
+   }
+  },
+  {
+   "season_id": "winter",
+   "band_id": "evening",
+   "availability": {
+    "kind": "flex",
+    "curve": [
+     {
+      "duration_min": 60,
+      "reduction_kw": 600,
+      "rebound": {
+       "energy_kwh": 480,
+       "peak_kw": 360,
+       "recovery_min": 90
+      }
+     },
+     {
+      "duration_min": 240,
+      "reduction_kw": 300,
+      "rebound": {
+       "energy_kwh": 960,
+       "peak_kw": 180,
+       "recovery_min": 330
+      }
+     }
+    ]
+   }
+  },
+  {
+   "season_id": "shoulder",
+   "band_id": "night",
+   "availability": {
+    "kind": "flex",
+    "curve": [
+     {
+      "duration_min": 30,
+      "reduction_kw": 700,
+      "rebound": {
+       "energy_kwh": 280,
+       "peak_kw": 420,
+       "recovery_min": 50
+      }
+     },
+     {
+      "duration_min": 120,
+      "reduction_kw": 450,
+      "rebound": {
+       "energy_kwh": 720,
+       "peak_kw": 270,
+       "recovery_min": 170
+      }
+     },
+     {
+      "duration_min": 300,
+      "reduction_kw": 150,
+      "rebound": {
+       "energy_kwh": 600,
+       "peak_kw": 90,
+       "recovery_min": 410
+      }
+     }
+    ]
+   }
+  },
+  {
+   "season_id": "shoulder",
+   "band_id": "morning",
+   "availability": {
+    "kind": "flex",
+    "curve": [
+     {
+      "duration_min": 30,
+      "reduction_kw": 500,
+      "rebound": {
+       "energy_kwh": 200,
+       "peak_kw": 300,
+       "recovery_min": 50
+      }
+     },
+     {
+      "duration_min": 60,
+      "reduction_kw": 300,
+      "rebound": {
+       "energy_kwh": 240,
+       "peak_kw": 180,
+       "recovery_min": 90
+      }
+     }
+    ]
+   }
+  },
+  {
+   "season_id": "shoulder",
+   "band_id": "afternoon",
+   "availability": {
+    "kind": "flex",
+    "curve": [
+     {
+      "duration_min": 30,
+      "reduction_kw": 300,
+      "rebound": {
+       "energy_kwh": 120,
+       "peak_kw": 180,
+       "recovery_min": 50
+      }
+     }
+    ]
+   }
+  },
+  {
+   "season_id": "shoulder",
+   "band_id": "peak",
+   "availability": {
+    "kind": "flex",
+    "curve": [
+     {
+      "duration_min": 10,
+      "reduction_kw": 150,
+      "rebound": {
+       "energy_kwh": 20,
+       "peak_kw": 90,
+       "recovery_min": 24
+      }
+     }
+    ]
+   }
+  },
+  {
+   "season_id": "shoulder",
+   "band_id": "evening",
+   "availability": {
+    "kind": "flex",
+    "curve": [
+     {
+      "duration_min": 60,
+      "reduction_kw": 400,
+      "rebound": {
+       "energy_kwh": 320,
+       "peak_kw": 240,
+       "recovery_min": 90
+      }
+     },
+     {
+      "duration_min": 180,
+      "reduction_kw": 200,
+      "rebound": {
+       "energy_kwh": 480,
+       "peak_kw": 120,
+       "recovery_min": 250
+      }
+     }
+    ]
+   }
+  },
+  {
+   "season_id": "summer",
+   "band_id": "night",
+   "availability": {
+    "kind": "flex",
+    "curve": [
+     {
+      "duration_min": 30,
+      "reduction_kw": 400,
+      "rebound": {
+       "energy_kwh": 160,
+       "peak_kw": 240,
+       "recovery_min": 50
+      }
+     },
+     {
+      "duration_min": 60,
+      "reduction_kw": 250,
+      "rebound": {
+       "energy_kwh": 200,
+       "peak_kw": 150,
+       "recovery_min": 90
+      }
+     }
+    ]
+   }
+  },
+  {
+   "season_id": "summer",
+   "band_id": "morning",
+   "availability": {
+    "kind": "flex",
+    "curve": [
+     {
+      "duration_min": 30,
+      "reduction_kw": 200,
+      "rebound": {
+       "energy_kwh": 80,
+       "peak_kw": 120,
+       "recovery_min": 50
+      }
+     }
+    ]
+   }
+  },
+  {
+   "season_id": "summer",
+   "band_id": "afternoon",
+   "availability": {
+    "kind": "zero_flex",
+    "reason": "synthetic: chillers at full load on the summer afternoon; no headroom below the binding inlet limit"
+   }
+  },
+  {
+   "season_id": "summer",
+   "band_id": "peak",
+   "availability": {
+    "kind": "zero_flex",
+    "reason": "synthetic: chillers at full load on the summer afternoon; no headroom below the binding inlet limit"
+   }
+  },
+  {
+   "season_id": "summer",
+   "band_id": "evening",
+   "availability": {
+    "kind": "flex",
+    "curve": [
+     {
+      "duration_min": 30,
+      "reduction_kw": 150,
+      "rebound": {
+       "energy_kwh": 60,
+       "peak_kw": 90,
+       "recovery_min": 50
+      }
+     }
+    ]
+   }
+  }
+ ]
+}

@@ -1,0 +1,48 @@
+# Keep the build context small, the image lean, and real/private data OUT of the image.
+# The Dockerfile COPYs only specific paths, but this is defence-in-depth (and shrinks the context).
+
+# Real data & user submissions — NEVER ship (privacy: docs/wave5_scope.md §5, docs/deployment.md)
+runs/
+data/
+*.parquet
+
+# Secrets & per-machine config
+.env
+.env.local
+*.local
+.claude/
+deploy/.env.example
+
+# VCS
+.git/
+.gitignore
+.dockerignore
+
+# Dev/agent tooling, tests & caches (not needed at runtime)
+tests/
+.venv/
+.venv-1/
+.mypy_cache/
+.ruff_cache/
+.pytest_cache/
+__pycache__/
+**/__pycache__/
+*.py[cod]
+*.egg-info/
+.coverage
+htmlcov/
+
+# Knowledge-graph dump (internal, large)
+graphify-out/
+
+# Working docs / sources not needed at runtime (assumptions/ + examples/ ARE copied by the Dockerfile)
+docs/
+source_docs/
+skills/
+CHANGELOG.md
+
+# OS / editor
+.DS_Store
+.idea/
+.vscode/
+*.swp

@@ -1,0 +1,377 @@
+{
+  "_comment": "Small published extract for WP-UW-07 acceptance 2 (a published CDCM example reproduces to the penny). Every value was read from the cell named beside it by openpyxl (data_only=True, i.e. the values Excel cached when ENWL saved the workbook); nothing is typed in. Formulas are quoted from the same cells (data_only=False).",
+  "document": "CDCM charging model, release for charge setting v11, 2026/27 ('CDCM FY27' on ENWL's current charging information page)",
+  "licence": "unclear: no licence is stated on the ENWL page or in the workbook; published by the DNO under its charging-statement obligations. Kept as a small extract for test reproduction only.",
+  "named_constants": {
+    "days_in_year": {
+      "cell": "'General inputs'!H97",
+      "value": 365
+    },
+    "hundred": {
+      "cell": "'Fixed inputs'!H17",
+      "value": 100
+    },
+    "thousand": {
+      "cell": "'Fixed inputs'!H18",
+      "value": 1000
+    }
+  },
+  "publisher": "Electricity North West Limited",
+  "retrieved_utc": "2026-11-26T08:24:38",
+  "sha256": "77e23bcd95101b7516eed76587e24378f388c560aa79c1890abc9b3a7c37ad52",
+  "sheet": "Net revenue summary",
+  "sheet_title_cells": {
+    "A2": "Electricity North West Limited - Final Model v1",
+    "A3": "CDCM charging model - Release for charge setting v11 - 2026/27"
+  },
+  "size_bytes": 916643,
+  "source_url": "https://www.enwl.co.uk/globalassets/about-us/regulatory-information/documents/current-charging-information/26-27/cdcm_v11_20241025.xlsx",
+  "tariffs": {
+    "HV Site Specific Band 1": {
+      "column": "AC",
+      "net_revenue_gbp": {
+        "capacity_charge": {
+          "cell": "'Net revenue summary'!AC99",
+          "formula": "= AC26 * AC59 * days_in_year / hundred",
+          "row_label": null,
+          "unit": null,
+          "value": 6964157.1830449365
+        },
+        "exceeded_capacity_charge": {
+          "cell": "'Net revenue summary'!AC100",
+          "formula": "= AC27 * AC60 * days_in_year / hundred",
+          "row_label": null,
+          "unit": null,
+          "value": 209223.18878700238
+        },
+        "fixed_charge": {
+          "cell": "'Net revenue summary'!AC98",
+          "formula": "= AC25 * AC58 * days_in_year / hundred",
+          "row_label": null,
+          "unit": null,
+          "value": 0
+        },
+        "reactive_power_charge": {
+          "cell": "'Net revenue summary'!AC101",
+          "formula": "=AC28 * thousand * AC61 / hundred",
+          "row_label": null,
+          "unit": null,
+          "value": 32599.061393367454
+        },
+        "total": {
+          "cell": "'Net revenue summary'!AC102",
+          "formula": "=SUM(AC95:AC101)",
+          "row_label": null,
+          "unit": null,
+          "value": 7889823.2197422385
+        },
+        "unit_rate_1": {
+          "cell": "'Net revenue summary'!AC95",
+          "formula": "=AC22 * thousand * AC55 / hundred",
+          "row_label": null,
+          "unit": null,
+          "value": 683843.7865169331
+        },
+        "unit_rate_2": {
+          "cell": "'Net revenue summary'!AC96",
+          "formula": "=AC23 * thousand * AC56 / hundred",
+          "row_label": null,
+          "unit": null,
+          "value": 0
+        },
+        "unit_rate_3": {
+          "cell": "'Net revenue summary'!AC97",
+          "formula": "=AC24 * thousand * AC57 / hundred",
+          "row_label": null,
+          "unit": null,
+          "value": 0
+        }
+      },
+      "tariff": {
+        "capacity_charge_p_per_kva_day": {
+          "cell": "'Net revenue summary'!AC59",
+          "formula": "=Rounding!AC154",
+          "row_label": null,
+          "unit": null,
+          "value": 7.79
+        },
+        "exceeded_capacity_charge_p_per_kva_day": {
+          "cell": "'Net revenue summary'!AC60",
+          "formula": "=Rounding!AC155",
+          "row_label": null,
+          "unit": null,
+          "value": 7.79
+        },
+        "fixed_charge_p_per_mpan_day": {
+          "cell": "'Net revenue summary'!AC58",
+          "formula": "=Rounding!AC153",
+          "row_label": null,
+          "unit": null,
+          "value": 0
+        },
+        "reactive_power_charge_p_per_kvarh": {
+          "cell": "'Net revenue summary'!AC61",
+          "formula": "=Rounding!AC156",
+          "row_label": null,
+          "unit": null,
+          "value": 0.072
+        },
+        "unit_rate_1_p_per_kwh": {
+          "cell": "'Net revenue summary'!AC55",
+          "formula": "=Rounding!AC150",
+          "row_label": null,
+          "unit": null,
+          "value": 1.998
+        },
+        "unit_rate_2_p_per_kwh": {
+          "cell": "'Net revenue summary'!AC56",
+          "formula": "=Rounding!AC151",
+          "row_label": null,
+          "unit": null,
+          "value": 0
+        },
+        "unit_rate_3_p_per_kwh": {
+          "cell": "'Net revenue summary'!AC57",
+          "formula": "=Rounding!AC152",
+          "row_label": null,
+          "unit": null,
+          "value": 0
+        }
+      },
+      "tariff_name_cell": "'Net revenue summary'!AC5",
+      "typical_bill_gbp_per_mpan": {
+        "all_the_way": {
+          "cell": "'Net revenue summary'!AC140",
+          "formula": "= IF( AC25 <> 0, AC102 / AC25, 0)",
+          "row_label": null,
+          "unit": null,
+          "value": 9705.686919979125
+        }
+      },
+      "volumes": {
+        "exceeded_capacity_kva": {
+          "cell": "'Net revenue summary'!AC27",
+          "formula": "=INDEX('Volume adjustments'!$J$527:$Y$567,AC$17 + 1 + $H27*$H$28, AC$15)",
+          "row_label": null,
+          "unit": null,
+          "value": 7358.333964759962
+        },
+        "import_capacity_kva": {
+          "cell": "'Net revenue summary'!AC26",
+          "formula": "=INDEX('Volume adjustments'!$J$527:$Y$567,AC$17 + 1 + $H26*$H$28, AC$15)",
+          "row_label": null,
+          "unit": null,
+          "value": 244927.89079940695
+        },
+        "mpans": {
+          "cell": "'Net revenue summary'!AC25",
+          "formula": "=INDEX('Volume adjustments'!$J$527:$Y$567,AC$17 + 1 + $H25*$H$28, AC$15)",
+          "row_label": null,
+          "unit": null,
+          "value": 812.9072454934707
+        },
+        "rate_1_units_mwh": {
+          "cell": "'Net revenue summary'!AC22",
+          "formula": "=INDEX('Volume adjustments'!$J$527:$Y$567,AC$17 + 1 + $H22*$H$28, AC$15)",
+          "row_label": null,
+          "unit": null,
+          "value": 34226.415741588244
+        },
+        "rate_2_units_mwh": {
+          "cell": "'Net revenue summary'!AC23",
+          "formula": "=INDEX('Volume adjustments'!$J$527:$Y$567,AC$17 + 1 + $H23*$H$28, AC$15)",
+          "row_label": null,
+          "unit": null,
+          "value": 126806.98648137235
+        },
+        "rate_3_units_mwh": {
+          "cell": "'Net revenue summary'!AC24",
+          "formula": "=INDEX('Volume adjustments'!$J$527:$Y$567,AC$17 + 1 + $H24*$H$28, AC$15)",
+          "row_label": null,
+          "unit": null,
+          "value": 189977.15941118836
+        },
+        "reactive_power_units_mvarh": {
+          "cell": "'Net revenue summary'!AC28",
+          "formula": "=INDEX('Volume adjustments'!$J$527:$Y$567,AC$17 + 1 + $H28*$H$28, AC$15)",
+          "row_label": null,
+          "unit": null,
+          "value": 45276.474157454795
+        }
+      }
+    },
+    "LV Site Specific Band 1": {
+      "column": "S",
+      "net_revenue_gbp": {
+        "capacity_charge": {
+          "cell": "'Net revenue summary'!S99",
+          "formula": "= S26 * S59 * days_in_year / hundred",
+          "row_label": null,
+          "unit": null,
+          "value": 8410228.092972737
+        },
+        "exceeded_capacity_charge": {
+          "cell": "'Net revenue summary'!S100",
+          "formula": "= S27 * S60 * days_in_year / hundred",
+          "row_label": null,
+          "unit": null,
+          "value": 579779.774561775
+        },
+        "fixed_charge": {
+          "cell": "'Net revenue summary'!S98",
+          "formula": "= S25 * S58 * days_in_year / hundred",
+          "row_label": null,
+          "unit": null,
+          "value": 0
+        },
+        "reactive_power_charge": {
+          "cell": "'Net revenue summary'!S101",
+          "formula": "=S28 * thousand * S61 / hundred",
+          "row_label": null,
+          "unit": null,
+          "value": 73113.85161835869
+        },
+        "total": {
+          "cell": "'Net revenue summary'!S102",
+          "formula": "=SUM(S95:S101)",
+          "row_label": null,
+          "unit": null,
+          "value": 13749369.407345656
+        },
+        "unit_rate_1": {
+          "cell": "'Net revenue summary'!S95",
+          "formula": "=S22 * thousand * S55 / hundred",
+          "row_label": null,
+          "unit": null,
+          "value": 3854366.592051066
+        },
+        "unit_rate_2": {
+          "cell": "'Net revenue summary'!S96",
+          "formula": "=S23 * thousand * S56 / hundred",
+          "row_label": null,
+          "unit": null,
+          "value": 773481.3680713213
+        },
+        "unit_rate_3": {
+          "cell": "'Net revenue summary'!S97",
+          "formula": "=S24 * thousand * S57 / hundred",
+          "row_label": null,
+          "unit": null,
+          "value": 58399.728070396755
+        }
+      },
+      "tariff": {
+        "capacity_charge_p_per_kva_day": {
+          "cell": "'Net revenue summary'!S59",
+          "formula": "=Rounding!S154",
+          "row_label": null,
+          "unit": null,
+          "value": 6.92
+        },
+        "exceeded_capacity_charge_p_per_kva_day": {
+          "cell": "'Net revenue summary'!S60",
+          "formula": "=Rounding!S155",
+          "row_label": null,
+          "unit": null,
+          "value": 6.92
+        },
+        "fixed_charge_p_per_mpan_day": {
+          "cell": "'Net revenue summary'!S58",
+          "formula": "=Rounding!S153",
+          "row_label": null,
+          "unit": null,
+          "value": 0
+        },
+        "reactive_power_charge_p_per_kvarh": {
+          "cell": "'Net revenue summary'!S61",
+          "formula": "=Rounding!S156",
+          "row_label": null,
+          "unit": null,
+          "value": 0.173
+        },
+        "unit_rate_1_p_per_kwh": {
+          "cell": "'Net revenue summary'!S55",
+          "formula": "=Rounding!S150",
+          "row_label": null,
+          "unit": null,
+          "value": 7.832
+        },
+        "unit_rate_2_p_per_kwh": {
+          "cell": "'Net revenue summary'!S56",
+          "formula": "=Rounding!S151",
+          "row_label": null,
+          "unit": null,
+          "value": 0.425
+        },
+        "unit_rate_3_p_per_kwh": {
+          "cell": "'Net revenue summary'!S57",
+          "formula": "=Rounding!S152",
+          "row_label": null,
+          "unit": null,
+          "value": 0.024
+        }
+      },
+      "tariff_name_cell": "'Net revenue summary'!S5",
+      "typical_bill_gbp_per_mpan": {
+        "all_the_way": {
+          "cell": "'Net revenue summary'!S140",
+          "formula": "= IF( S25 <> 0, S102 / S25, 0)",
+          "row_label": null,
+          "unit": null,
+          "value": 2286.30615733364
+        }
+      },
+      "volumes": {
+        "exceeded_capacity_kva": {
+          "cell": "'Net revenue summary'!S27",
+          "formula": "=INDEX('Volume adjustments'!$J$527:$Y$567,S$17 + 1 + $H27*$H$28, S$15)",
+          "row_label": null,
+          "unit": null,
+          "value": 22954.302579846983
+        },
+        "import_capacity_kva": {
+          "cell": "'Net revenue summary'!S26",
+          "formula": "=INDEX('Volume adjustments'!$J$527:$Y$567,S$17 + 1 + $H26*$H$28, S$15)",
+          "row_label": null,
+          "unit": null,
+          "value": 332972.8439691479
+        },
+        "mpans": {
+          "cell": "'Net revenue summary'!S25",
+          "formula": "=INDEX('Volume adjustments'!$J$527:$Y$567,S$17 + 1 + $H25*$H$28, S$15)",
+          "row_label": null,
+          "unit": null,
+          "value": 6013.7918813902825
+        },
+        "rate_1_units_mwh": {
+          "cell": "'Net revenue summary'!S22",
+          "formula": "=INDEX('Volume adjustments'!$J$527:$Y$567,S$17 + 1 + $H22*$H$28, S$15)",
+          "row_label": null,
+          "unit": null,
+          "value": 49213.05658900748
+        },
+        "rate_2_units_mwh": {
+          "cell": "'Net revenue summary'!S23",
+          "formula": "=INDEX('Volume adjustments'!$J$527:$Y$567,S$17 + 1 + $H23*$H$28, S$15)",
+          "row_label": null,
+          "unit": null,
+          "value": 181995.61601678148
+        },
+        "rate_3_units_mwh": {
+          "cell": "'Net revenue summary'!S24",
+          "formula": "=INDEX('Volume adjustments'!$J$527:$Y$567,S$17 + 1 + $H24*$H$28, S$15)",
+          "row_label": null,
+          "unit": null,
+          "value": 243332.2002933198
+        },
+        "reactive_power_units_mvarh": {
+          "cell": "'Net revenue summary'!S28",
+          "formula": "=INDEX('Volume adjustments'!$J$527:$Y$567,S$17 + 1 + $H28*$H$28, S$15)",
+          "row_label": null,
+          "unit": null,
+          "value": 42262.34197592988
+        }
+      }
+    }
+  }
+}

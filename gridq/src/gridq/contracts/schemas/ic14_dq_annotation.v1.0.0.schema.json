@@ -1,0 +1,293 @@
+{
+  "$defs": {
+    "FindingKind": {
+      "description": "What a data-quality monitor found (WP-TEL-03).",
+      "enum": [
+        "gap",
+        "flatline",
+        "clock_drift",
+        "unit_mismatch",
+        "meter_scada_divergence"
+      ],
+      "title": "FindingKind",
+      "type": "string"
+    },
+    "NotApplicable": {
+      "additionalProperties": false,
+      "description": "A term that does not exist for this record (e.g. a LIFO position on a firm connection).\n\nDistinct from `Unknown`: \"not applicable\" is a statement about the agreement, \"unknown\" is a\nstatement about our knowledge of it. Both carry a reason.",
+      "properties": {
+        "kind": {
+          "const": "not_applicable",
+          "title": "Kind",
+          "type": "string"
+        },
+        "reason": {
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Reason",
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind",
+        "reason"
+      ],
+      "title": "NotApplicable",
+      "type": "object"
+    },
+    "RawSpan": {
+      "additionalProperties": false,
+      "description": "A contiguous run of one raw chain, committed by its first prev hash and its head hash.",
+      "properties": {
+        "end": {
+          "format": "date-time",
+          "title": "End",
+          "type": "string"
+        },
+        "first_prev_hash": {
+          "pattern": "^sha256:[0-9a-f]{64}$",
+          "title": "First Prev Hash",
+          "type": "string"
+        },
+        "first_seq": {
+          "minimum": 0,
+          "title": "First Seq",
+          "type": "integer"
+        },
+        "kind": {
+          "const": "raw_span",
+          "title": "Kind",
+          "type": "string"
+        },
+        "last_batch_hash": {
+          "pattern": "^sha256:[0-9a-f]{64}$",
+          "title": "Last Batch Hash",
+          "type": "string"
+        },
+        "last_seq": {
+          "minimum": 0,
+          "title": "Last Seq",
+          "type": "integer"
+        },
+        "sender_id": {
+          "maxLength": 120,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]*$",
+          "title": "Sender Id",
+          "type": "string"
+        },
+        "series_id": {
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Series Id",
+          "type": "string"
+        },
+        "start": {
+          "format": "date-time",
+          "title": "Start",
+          "type": "string"
+        },
+        "stream_epoch": {
+          "minimum": 0,
+          "title": "Stream Epoch",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "kind",
+        "series_id",
+        "sender_id",
+        "stream_epoch",
+        "first_seq",
+        "last_seq",
+        "first_prev_hash",
+        "last_batch_hash",
+        "start",
+        "end"
+      ],
+      "title": "RawSpan",
+      "type": "object"
+    },
+    "TenantKey": {
+      "additionalProperties": false,
+      "description": "The data owner (an IC-13 organisation) and the site. Lender and verifier organisations\nnever own telemetry; they read it through IC-13 scopes.",
+      "properties": {
+        "kind": {
+          "const": "tenant_key",
+          "title": "Kind",
+          "type": "string"
+        },
+        "org_id": {
+          "maxLength": 80,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:@-]*$",
+          "title": "Org Id",
+          "type": "string"
+        },
+        "org_kind": {
+          "enum": [
+            "customer",
+            "neura"
+          ],
+          "title": "Org Kind",
+          "type": "string"
+        },
+        "site_id": {
+          "maxLength": 80,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:@-]*$",
+          "title": "Site Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind",
+        "org_id",
+        "org_kind",
+        "site_id"
+      ],
+      "title": "TenantKey",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "description": "IC-14 v1.0.0: a data-quality monitor's finding on a series over ``[start, end)``, citing\nthe raw it read. Raw is never rewritten; a curated record counts a finding only through its\nmethod's ``applied_findings``. A withdrawal supersedes the annotation it withdraws.",
+  "properties": {
+    "annotation_id": {
+      "maxLength": 120,
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]*$",
+      "title": "Annotation Id",
+      "type": "string"
+    },
+    "contract": {
+      "const": "IC-14",
+      "default": "IC-14",
+      "title": "Contract",
+      "type": "string"
+    },
+    "contract_version": {
+      "const": "1.0.0",
+      "default": "1.0.0",
+      "title": "Contract Version",
+      "type": "string"
+    },
+    "data_class": {
+      "enum": [
+        "neura_operational",
+        "customer_commercial",
+        "customer_personal"
+      ],
+      "title": "Data Class",
+      "type": "string"
+    },
+    "detector_hash": {
+      "pattern": "^sha256:[0-9a-f]{64}$",
+      "title": "Detector Hash",
+      "type": "string"
+    },
+    "disposition": {
+      "enum": [
+        "asserted",
+        "withdrawn"
+      ],
+      "title": "Disposition",
+      "type": "string"
+    },
+    "end": {
+      "format": "date-time",
+      "title": "End",
+      "type": "string"
+    },
+    "evidence": {
+      "items": {
+        "$ref": "#/$defs/RawSpan"
+      },
+      "minItems": 1,
+      "title": "Evidence",
+      "type": "array"
+    },
+    "finding": {
+      "$ref": "#/$defs/FindingKind"
+    },
+    "issued_at": {
+      "format": "date-time",
+      "title": "Issued At",
+      "type": "string"
+    },
+    "kind": {
+      "const": "dq_annotation",
+      "title": "Kind",
+      "type": "string"
+    },
+    "monitor_id": {
+      "maxLength": 120,
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]*$",
+      "title": "Monitor Id",
+      "type": "string"
+    },
+    "monitor_version": {
+      "minLength": 1,
+      "pattern": "\\S",
+      "title": "Monitor Version",
+      "type": "string"
+    },
+    "record_class": {
+      "enum": [
+        "live",
+        "synthetic_fixture"
+      ],
+      "title": "Record Class",
+      "type": "string"
+    },
+    "series_id": {
+      "minLength": 1,
+      "pattern": "\\S",
+      "title": "Series Id",
+      "type": "string"
+    },
+    "site_id": {
+      "maxLength": 80,
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:@-]*$",
+      "title": "Site Id",
+      "type": "string"
+    },
+    "start": {
+      "format": "date-time",
+      "title": "Start",
+      "type": "string"
+    },
+    "supersedes": {
+      "anyOf": [
+        {
+          "pattern": "^sha256:[0-9a-f]{64}$",
+          "type": "string"
+        },
+        {
+          "$ref": "#/$defs/NotApplicable"
+        }
+      ],
+      "title": "Supersedes"
+    },
+    "tenant": {
+      "$ref": "#/$defs/TenantKey"
+    }
+  },
+  "required": [
+    "tenant",
+    "site_id",
+    "series_id",
+    "data_class",
+    "record_class",
+    "kind",
+    "annotation_id",
+    "monitor_id",
+    "monitor_version",
+    "detector_hash",
+    "finding",
+    "disposition",
+    "start",
+    "end",
+    "evidence",
+    "supersedes",
+    "issued_at"
+  ],
+  "title": "DqAnnotation",
+  "type": "object"
+}

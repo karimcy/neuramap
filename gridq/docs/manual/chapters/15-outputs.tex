@@ -1,0 +1,268 @@
+\chapter{Outputs: memo, proposal and report}
+\label{ch:outputs}
+\modtag{M8}{Outputs}{Agentic perimeter}
+
+This is the stage where the platform finally speaks. Everything before it has been numbers in a frozen record: a chosen battery size, a set of cashflows, a debt-cover ratio, a recommended price. This module turns that one record into three documents a person actually reads: an underwriting pack for a lender, a proposal for the site owner, and a single self-contained web page that shows both. The documents are written in ordinary language, but the figures in them are not written at all -- they are lifted, unchanged, from the record.
+
+The defining promise of the platform is that these three documents \emph{cannot disagree}. The battery size the lender underwrites is, by construction, the same battery size the customer is offered, because both are printed from the same frozen calculation. This chapter explains exactly how that guarantee is built, and why the outputs sit on the agentic perimeter: the prose around the numbers may be drafted by an AI, but no figure ever originates in language-model text.
+
+\begin{plainnote}
+Think of the record as a spreadsheet that has been locked and signed. This module is the mail-merge that drops its cells into three letter templates. The wording of the letters can be edited; the cells cannot. If two letters quote different savings, that is impossible here -- they read the same cell.
+\end{plainnote}
+
+\pipelinepos{Receives the immutable \emph{QuoteRecord} from the quote assembly stage (Chapter~\ref{ch:quotes}), built on the financial numbers (Chapter~\ref{ch:finance}); hands the rendered HTML report to the web application (Chapter~\ref{ch:app}) and writes all three documents to disk via the CLI (Chapter~\ref{ch:cli}).}
+
+\begin{contract}[Inputs and outputs]
+\textbf{Inputs}
+\begin{itemize}
+  \item A stamped \textbf{QuoteRecord}: the single source of every figure (system size, cashflows, DSCR, price, returns, value streams, provenance hashes and versions, warnings, lifecycle mode, data tier, bankable status).
+  \item Optionally the \textbf{SiteModel} for that site (the record stores only a \code{site\_id}). It supplies counterparty identity and credit, consent states and physical-gate status. Without it those sections render as \emph{site context not supplied}, never invented.
+  \item Optionally a set of \textbf{scenario sensitivity rows} (Low / Central / High), and optionally an alternative \textbf{prose drafter}. Both default safely: no rows means a labelled-pending slot; no drafter means the built-in number-free one.
+\end{itemize}
+\textbf{Outputs} -- three documents from one record:
+\begin{itemize}
+  \item \textbf{Underwriting memo} (Markdown, capital-facing).
+  \item \textbf{Customer proposal} (Markdown, plain language).
+  \item \textbf{HTML report} (one self-contained page combining both).
+\end{itemize}
+\textbf{Invariant:} every number in all three appears in the record; nothing is computed here except turning a stored value into its display string.
+\end{contract}
+
+\section{The one rule everything serves}
+
+The whole module exists to enforce a single rule, stated in the overview as the third of the five guarantees (Chapter~\ref{ch:overview}): \emph{numbers are never authored by an AI, and never invented anywhere}. A lender reading the pack must be able to trust that no figure was hallucinated by a language model or quietly filled in to make a page look complete.
+
+The module makes this true not by careful discipline but by structure. There are four moving parts, and they are deliberately separated so that no single part can both produce a number and produce prose:
+
+\begin{enumerate}
+  \item \textbf{The view model} reads the record once, classifies and aggregates the values already on it, and exposes them as typed, render-ready fields. It is the \emph{only} part that touches the raw record.
+  \item \textbf{The formatting helpers} are the only place a number becomes a string. A value like a debt ratio of \code{1.32} becomes the text \code{1.32\(\times\)} here, and nowhere else.
+  \item \textbf{The prose drafter} writes the connective narrative -- the framing sentences, the plain-language explanations, the next steps. It is handed \emph{categorical facts only} (true/false flags and short labels), never a pound figure, so it is structurally incapable of carrying a number.
+  \item \textbf{The three renderers} (memo, proposal, report) place formatted values and drafted prose side by side. They contain no arithmetic and read no record fields directly.
+\end{enumerate}
+
+\begin{keyidea}[Prose is drafted, numbers are injected, and the two never cross]
+The separation is the guarantee. Numbers flow record \(\rightarrow\) view model \(\rightarrow\) formatter \(\rightarrow\) renderer. Prose flows drafter \(\rightarrow\) renderer. The drafter never sees a number; the renderer never computes one. Because these are different code paths that meet only at the final string join, a figure cannot leak out of language-model prose, and prose cannot alter a figure. Tests assert both directions (Section~\ref{sec:outputs-tests}).
+\end{keyidea}
+
+\section{Extract once: the view model}
+
+The record is rich and slightly awkward to read directly: some pieces may be absent (a quote with no priced system has no cashflows), some need light classification (which income is firm enough to bank), and a few totals are sums of fields that already exist. Doing this work inline inside each of three renderers would invite drift -- one document rounding differently from another, or one classifying a stream that another excludes. So it is done exactly once, into a single typed structure all three documents share.
+
+This extraction step is the only code in the module that reads the record. It does two honest things and refuses a third:
+
+\begin{itemize}
+  \item \textbf{Classify} what the record already states. Each income stream's \emph{firmness} (how reliable the revenue is) decides where it sits: firm and contracted streams form the \emph{priced floor}; conditional and gated-upside streams (wholesale, balancing mechanism, ancillary services) are \emph{merchant upside}; explicitly priced-out streams are \emph{excluded}. The optimisation result's bankable flag decides which banner the documents wear.
+  \item \textbf{Aggregate values that already exist.} The floor total is the sum of the firm and contracted streams' own annual revenues; the upside total is the sum of the merchant streams' own revenues. These are sums of record values, not new figures, and tests pin them to that.
+  \item \textbf{Never author.} A figure the record does not carry becomes \emph{absent} (an empty value), which downstream renders as an explicit \emph{unavailable} label naming the reason. It is never replaced by a zero or a guess.
+\end{itemize}
+
+\begin{caution}[A claimed-bankable record with a missing deliverable is downgraded]
+A document may never present as bankable unless the three mandatory deliverables are all present: the P50 and P90 cashflows and a measured minimum DSCR. If a record \emph{claims} bankable but one of these is absent, the view model does not fabricate the missing figure to keep the badge -- it downgrades the document to an honest \emph{not bankable} and adds a warning saying so. Point estimates alone are not deliverables.
+\end{caution}
+
+Table~\ref{tab:vm-fields} lists the main groups the view model exposes. Each group carries an \emph{availability} flag so the renderers can branch on ``do we have this?'' without ever inspecting the raw record.
+
+\begin{table}[H]
+\centering
+\caption{The render-ready groups the view model exposes from one record.}
+\label{tab:vm-fields}
+\small\sffamily
+\begin{tabularx}{\textwidth}{@{}l L@{}}
+\toprule
+\textbf{Group} & \textbf{What it holds (all values lifted or summed from the record)} \\
+\midrule
+System spec & Chosen power (kW), energy (kWh), duration (h); the engine implementation level and solver status. \\
+Cashflows & The P50 and P90 free-cashflow series passed through verbatim; year~0 is capex; operating-year count. \\
+DSCR & Minimum debt-cover ratio, the by-year trajectory, basis (P90), covenant value and pass/fail verdict. \\
+Contracted vs merchant split & Floor streams, upside streams, excluded streams, and the two summed totals. \\
+Price \& returns & Commercial structure, price to target (\(\pounds\)/kWh), whether it hits the target return, project IRR, payback. \\
+Debt & Per-site gearing, interest rate, tenor, sculpting basis (all absent in v1 -- see below). \\
+Counterparty & Legal name, company number, sector, credit standing, expected tenure (needs the SiteModel). \\
+Consents \& gates & Connection-consent states (G98/G99/G100, DNO, supplier) and physical-gate readings (needs the SiteModel). \\
+Bill savings & Bill before/after and annual saving (a labelled-pending seam in v1 -- no bill model yet). \\
+Provenance & Quote id, lifecycle mode, site id, data tier, input hash, assumption/code/schema versions, expiry, the record's stamp time. \\
+Warnings & Every recorded warning, surfaced verbatim. \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\begin{plainnote}[Why so many ``unavailable'' fields are normal]
+On the current placeholder assumption set, and with the integration-only engine, most rich figures genuinely do not exist yet. The honest answer is to say so by name. Debt terms are absent because the per-site gearing, rate and tenor come from a counterparty-credit mapping that is still unresolved; price-to-target is absent without a dispatch energy volume from the optimiser; the before/after bill is absent because v1 has no customer-bill model. Each is shown as a labelled seam with the reason and, where useful, the data that would fill it -- never an estimate.
+\end{plainnote}
+
+\section{Format once: turning values into strings}
+
+A second small module is the \emph{only} place a number becomes text. Keeping all numeric-to-string conversion in one file is what lets the platform prove the renderers do no arithmetic: if the only way to print a figure is to call a formatter, and the formatters are the only functions allowed to scale or round, then a renderer that prints a number must have called one.
+
+The formatters are deliberately dull. Each takes a value that already exists on the record and returns its display string, in a fixed house style, or an explicit \emph{unavailable} label when the value is absent. Table~\ref{tab:fmt} shows the conventions.
+
+\begin{table}[H]
+\centering
+\caption{The display conventions, all applied in the single formatting module.}
+\label{tab:fmt}
+\small\sffamily
+\begin{tabularx}{\textwidth}{@{}l l L@{}}
+\toprule
+\textbf{Quantity} & \textbf{Style} & \textbf{Notes} \\
+\midrule
+Sterling & \code{\(\pounds\)1,234.56} & Thousands separator, two decimals; a minus sign sits outside the \(\pounds\). \\
+Compact sterling & \code{\(\pounds\)1.2m / \(\pounds\)21.0k} & For headlines; the scaling by 1000 is a formatting operation, not a new figure. \\
+Price & \code{\(\pounds\)0.1234/kWh} & The unit the price recommendation is stated in (four decimals). \\
+Percentage & \code{12.5\%} & Value is already a percentage, shown to one decimal. \\
+Coverage ratio & \code{1.32\(\times\)} & DSCR-style ratio to two decimals. \\
+Power / energy & \code{500.0 kW / 1000.0 kWh} & One decimal. \\
+Duration / years & \code{2.0 h / 15.0 yr} & One decimal. \\
+Verdict & \code{PASS / FAIL} & A covenant verdict; an unevaluated verdict is shown as \emph{not evaluated}, never silently a pass. \\
+Unavailable & \code{-- unavailable (reason)} & The sentinel for an absent value, always paired with a reason. \\
+Placeholder & \code{value [placeholder -- not bankable]} & Tags a value that comes from a stand-in assumption. \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+The formatters also hold the readable labels for the closed enumerations -- so a stream code prints as ``DUoS red-band avoidance'' and a price structure as ``Fixed \(\pounds\)/kWh'', keeping the market acronyms intact rather than mangling them. These mappings carry no logic and no number; an unrecognised value falls back to a simple title-case so nothing ever breaks.
+
+\begin{keyidea}[Formatting may scale; it may not compute]
+A formatter is allowed to divide by 1000 to print ``\(\pounds\)21.0k'' because that is presentation of an existing value. It is \emph{not} allowed to add two cashflows, subtract a bill, or sum a list -- those would be new figures. New figures are only ever produced upstream, in the deterministic finance core (Chapter~\ref{ch:finance}), and arrive on the record. This line is what the no-arithmetic test polices.
+\end{keyidea}
+
+\section{Draft the words: the prose seam}
+
+Every document needs connective tissue: an opening that frames what the reader is looking at, a plain-language explanation of the contracted-versus-merchant split, a short ``next steps'' note. This is the one place where, in a future version, a language model could help -- richer phrasing tuned to the reader. It is therefore the agentic perimeter of this module, and it is fenced so the model can never touch a figure.
+
+The fence is the \emph{shape} of the drafter's interface. Every method accepts only \emph{categorical} inputs: booleans such as ``is this bankable?'', and short enum-ish strings such as the lifecycle mode (\code{indicative}, \code{underwritten}) or the data tier (\code{T0}--\code{T2}). No method accepts a cashflow, a DSCR, a price, or any \(\pounds\)/\%/ratio. Because a drafter is never \emph{given} a number, its output cannot \emph{contain} a record number; the renderers inject every figure separately. The methods are: the bankability banner caption, the memo's opening framing, the firm-versus-conditional explainer, the proposal's plain-language opening, and the next-steps note.
+
+Version~1 ships a fixed, deterministic drafter: audited copy keyed off those categorical facts, with no language model anywhere on the path. This keeps the entire pipeline reproducible and AI-free by default. The interface is the seam: a perimeter language-model drafter -- schema-checked and human-signed -- can be substituted later for warmer wording \emph{without ever being handed a number}.
+
+\begin{plainnote}
+The banner is a good example. The drafter is asked only ``bankable: yes or no?'' and returns either ``BANKABLE CANDIDATE -- fit for a lender's review'' or ``NOT BANKABLE -- do not present to capital as bankable''. It is never told the DSCR, so it cannot accidentally quote one. The actual ratio, if present, is placed next to the banner by the renderer, from the formatter.
+\end{plainnote}
+
+\section{The number/prose separation, in one picture}
+
+Figure~\ref{fig:outputs-flow} shows the two flows that never cross. The record fans out through the single view model and the single formatter on the number path (solid), while the prose drafter feeds the same three renderers on the words path (dashed, from the perimeter). They meet only inside each renderer, at the point where a formatted string is dropped next to a drafted sentence.
+
+\begin{figure}[H]
+\centering
+\resizebox{\textwidth}{!}{%
+\begin{tikzpicture}[node distance=9mm and 18mm]
+  % source record
+  \node[store] (rec) {\textbf{QuoteRecord}\\\scriptsize immutable, hashed, version-stamped\\\scriptsize(+ optional SiteModel)};
+
+  % number path
+  \node[proc, below=of rec] (vm) {\textbf{View model}\\\scriptsize the only reader of the record:\\\scriptsize classify + aggregate existing values};
+  \node[proc, below=of vm] (fmt) {\textbf{Formatting}\\\scriptsize the only place a number\\\scriptsize becomes a string};
+
+  % prose path (perimeter, to the side)
+  \node[ext, right=34mm of vm] (prose) {\textbf{Prose drafter}\\\scriptsize categorical facts only\\\scriptsize (never a figure) \textperiodcentered{} LLM-free in v1};
+
+  % renderers
+  \node[proc, below=14mm of fmt] (memo) {\textbf{Underwriting memo}\\\scriptsize Markdown, capital-facing};
+  \node[proc, right=of memo] (prop) {\textbf{Customer proposal}\\\scriptsize Markdown, plain language};
+  \node[proc, right=of prop] (html) {\textbf{HTML report}\\\scriptsize one self-contained page};
+
+  % outputs
+  \node[io, below=of memo] (omemo) {memo.md};
+  \node[io, below=of prop] (oprop) {proposal.md};
+  \node[io, below=of html] (ohtml) {report.html};
+
+  % number flow (solid)
+  \draw[flow] (rec) -- (vm);
+  \draw[flow] (vm) -- (fmt);
+  \draw[flow] (fmt) -- (memo);
+  \draw[flow] (fmt.south) to[out=-90,in=120] (prop.north);
+  \draw[flow] (fmt.south) to[out=-90,in=120] (html.north);
+
+  % prose flow (dashed, from perimeter)
+  \draw[flowback] (prose.south) to[out=-90,in=0] (memo.east);
+  \draw[flowback] (prose.south) to[out=-90,in=90] (prop.north);
+  \draw[flowback] (prose.east) to[out=0,in=60] (html.north);
+
+  % renderers to outputs
+  \draw[flow] (memo) -- (omemo);
+  \draw[flow] (prop) -- (oprop);
+  \draw[flow] (html) -- (ohtml);
+
+  % labels
+  \node[note, left=2mm of fmt] {numbers};
+
+  % zone backdrops
+  \begin{scope}[on background layer]
+    \node[groupbox, fit=(vm)(fmt), inner sep=6pt,
+          label={[note,rotate=90,anchor=south]west:NUMBER PATH (deterministic)}] {};
+    \node[groupbox, draw=nodeExtBd, fill=gridqVioletBg, fit=(prose), inner sep=5pt] {};
+  \end{scope}
+\end{tikzpicture}}
+\caption{From one record to three documents. The solid path carries numbers (record $\rightarrow$ view model $\rightarrow$ formatter $\rightarrow$ renderer); the dashed path carries drafted prose from the agentic perimeter. They meet only inside each renderer. The drafter is never handed a figure, so no number can originate in prose.}
+\label{fig:outputs-flow}
+\end{figure}
+
+\section{The underwriting memo: capital-facing}
+
+The memo is the document a lender reads, and it is assembled section by section, each placing values from the view model and turning them into strings via the formatters. The order is deliberate: a reader can stop after the banner and summary and know whether to keep going.
+
+\begin{itemize}
+  \item \textbf{Banner and summary.} A bankable / not-bankable banner (with the status as recorded), then the drafter's framing paragraph that states, in words, that every figure is injected from the stamped record and tied to the noted versions.
+  \item \textbf{System specification.} Power, energy, duration; the engine level and solver status. Each prints its value or an \emph{unavailable (no sizing on the result)} label.
+  \item \textbf{P50/P90 cashflows.} A year-by-year table of free cashflow in a normal year (P50) and a downside year (P90), with year~0 as installed capex. A note explains that P90 is the bankable basis -- the cautious figure a lender leans on.
+  \item \textbf{DSCR and covenant.} The minimum debt-cover ratio (how comfortably cash covers loan repayments), its by-year trajectory, the covenant threshold and a pass/fail verdict. If DSCR is unmeasured the section says why; a placeholder covenant value is shown honestly and flagged not bankable.
+  \item \textbf{Contracted vs merchant split.} The firmness explainer, then a firm/contracted floor table with a total, a merchant-upside table with a total (each row carrying its firmness, gate status and unlock condition), and any excluded streams named. The upside is never folded into the floor.
+  \item \textbf{Price to target and returns.} The commercial structure, the price needed to hit the target return, whether it does, the project IRR and the simple payback.
+  \item \textbf{Debt assumptions, counterparty credit, consents and gates.} Per-site debt terms (absent in v1, with the reason); counterparty identity and credit standing and consent/gate status (from the SiteModel, or marked not-supplied).
+  \item \textbf{Provenance and warnings.} The full traceability spine -- quote id, hashes, assumption/code/schema versions, expiry, stamp time -- with the line that an identical record regenerates identical figures, then every warning verbatim.
+\end{itemize}
+
+Crucially, the firm-versus-conditional stream table is what lets a lender separate income they can rely on from income that is merely possible. Gated-upside streams (wholesale and similar) are only ever cited on the firm lifecycle stages (underwritten and later); the fast indicative path never lists them, matching the rule that an indicative quote never cites gated streams.
+
+\section{The customer proposal: plain language}
+
+The proposal is the document the site owner reads, sold through the installer channel. It carries the same figures as the memo -- because it reads the same view model -- but frames them for a non-specialist: your system, your offer, your bill before and after, what is secured versus what is upside, and next steps.
+
+Two honesty rules shape it. First, if the quote is not yet bankable, the proposal opens with an explicit ``indicative -- not yet a firm offer'' note. Second, the before/after bill has no model in v1, so rather than estimate it the proposal surfaces a labelled seam: ``not yet computed'', the reason, and a clear statement of the data the customer would need to supply for it to be computed. Contractual terms that are only fixed at signature -- indexation, the buyout schedule -- are named as ``set with the commercial terms at signature'', never invented. The modelled term is labelled as a modelling horizon, not a contracted length. And conditional upside is always shown separately and kept out of the headline saving, so the customer is never sold possibility as certainty.
+
+\section{The HTML report: the visual layer}
+
+The HTML report is one self-contained page -- inline styling, no external assets -- that shows the memo and the proposal essentials together under a colour-coded bankability banner. It is what the web application embeds (Chapter~\ref{ch:app}) and what the command-line tool writes alongside the saved record (Chapter~\ref{ch:cli}). Because all of its styling is inline, it renders identically offline, under a strict content-security policy, and when printed.
+
+The report is held to the strictest version of the rule: \textbf{the HTML generator does no arithmetic at all}. It only reads already-extracted view-model values and turns them into strings via the formatters, assembling markup with string templates and joins -- never a numeric add, subtract, multiply or divide, and never a sum or a round. Every figure was computed upstream in the deterministic core and is merely placed here. All free text is escaped before it is written, so a stray character in, say, a counterparty name cannot break the page.
+
+\begin{caution}[The no-arithmetic rule on the report is machine-checked]
+A test parses the HTML generator's source and walks its syntax tree, failing the build if it finds any arithmetic operator or any aggregation call. Even the harmless-looking ``\(\pounds\)k'' scaling is forbidden here -- it must live in the formatter. This is what makes ``the report contains no figure of its own'' a property the compiler can see, not a convention a reviewer must remember.
+\end{caution}
+
+\section{One record in, identical documents out}
+
+Because nothing in this module reads a wall clock and nothing computes, regenerating the documents from the same record reproduces them byte for byte. The only time-like value that appears -- when the record was stamped -- comes from the record itself, not from the moment of rendering. This is what lets the platform store just the record and re-derive the documents on demand, confident the re-derived pack matches the one a lender first saw.
+
+\subsection{What the tests assert}
+\label{sec:outputs-tests}
+
+The guarantees are not aspirations; they are enforced by automated tests that read across the chapter's modules:
+
+\begin{itemize}
+  \item \textbf{Document numbers equal record numbers.} Every figure rendered into a document is checked to also appear on the record. No figure may exist in a document that is not in the record.
+  \item \textbf{No record figure leaks into prose.} The drafter's output is checked to contain none of the record's figures, confirming the categorical-only fence holds.
+  \item \textbf{The HTML contains no arithmetic.} The syntax-tree scan described above forbids any computation in the report generator.
+  \item \textbf{Regeneration is byte-identical.} Rendering twice from one record yields identical bytes.
+  \item \textbf{No invented values; placeholders are labelled.} A missing figure renders as a reasoned \emph{unavailable} label; a placeholder-driven figure is tagged not bankable; baseline runs carry the not-bankable banner.
+  \item \textbf{Provenance is present.} Input hash and the assumption, code and schema versions appear in every artifact.
+\end{itemize}
+
+These run against three cases: a real baseline pipeline quote, a deliberately minimal record (no optimisation result, no finance -- the renderers must degrade rather than crash), and a clearly-labelled synthetic illustrative quote whose populated financial case lets the full pack be checked field by field against record-derived numbers.
+
+\begin{keyidea}[Why outputs are the agentic perimeter, not the core]
+Generating documents is the one stage where AI assistance is welcome -- but only over the words. The numbers are already frozen, hashed and version-stamped by the deterministic core. So this module sits on the perimeter: it may draft prose with a model in future, yet by construction it cannot write or change a figure. The wall between the two zones (Chapter~\ref{ch:overview}) runs straight through this module, between the prose drafter and everything else.
+\end{keyidea}
+
+\begin{rebuild}[How to rebuild this step]
+To re-implement the outputs module from scratch:
+\begin{enumerate}
+  \item \textbf{Build the view model first.} Write one extractor that takes the record (and an optional SiteModel) and returns a typed, render-ready structure. It is the only code that reads the record. It must: pass cashflow series through verbatim; classify each income stream by firmness into priced floor, merchant upside or excluded; compute the floor and upside totals as plain sums of the rows' own revenues (and nothing else); set every group's value to \emph{absent} when the record lacks it; and downgrade a claimed-bankable record to not-bankable (with a warning) if any of the P50, P90 or minimum DSCR is missing.
+  \item \textbf{Build the formatter second.} One module, the only place a value becomes a string. House styles for sterling, price, percentage, ratio, power, energy, duration, years, dates, pass/fail. An \emph{unavailable(reason)} sentinel and a \emph{placeholder} tag. Readable labels for the stream and structure enumerations. It may scale for presentation (\(\pounds\)k); it may never compute a new figure.
+  \item \textbf{Build the prose drafter third.} An interface whose every method takes \emph{only} categorical inputs (booleans, short enum strings) and returns prose. Ship a fixed deterministic implementation (no LLM). The shape is the guarantee: a method must not be able to receive a figure.
+  \item \textbf{Build the three renderers.} Each places formatted values next to drafted prose; none reads the record directly and none does arithmetic. The HTML renderer must escape all free text and assemble markup by string templating only.
+  \item \textbf{Add a one-call generator.} Build the view model once, then render all three documents from it, so they are consistent by construction. Accept an optional drafter and optional sensitivity rows.
+  \item \textbf{Hold the invariants.} Numbers come only from the record; absent figures render as reasoned \emph{unavailable} labels, never zeros or guesses; the report generator does no arithmetic; the drafter never carries a number; regeneration from one record is byte-identical (no wall clock).
+  \item \textbf{Test all of it.} Assert: every document number is on the record; no record figure appears in prose; the report's syntax tree contains no arithmetic; double-render is byte-identical; missing values are labelled and placeholders flagged; provenance appears in every artifact. Exercise a real baseline quote, a minimal record, and a synthetic fully-populated one.
+\end{enumerate}
+\end{rebuild}

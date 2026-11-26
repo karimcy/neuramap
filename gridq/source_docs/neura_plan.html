@@ -1,0 +1,594 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Neura — Distributed Energy, Then Distributed Compute</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#F5F5F0;
+    --ink:#171D1B;
+    --ink-soft:#3D4441;
+    --line:#D9D9CF;
+    --line-soft:#E6E6DE;
+    --copper:#B4540F;
+    --copper-soft:#C9762F;
+    --label:#70756F;
+    --card:#FDFDFB;
+    --rail-x: 40px;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{
+    background:var(--paper);
+    color:var(--ink);
+    font-family:'Source Serif 4', Georgia, serif;
+    font-size:17.5px;
+    line-height:1.65;
+    -webkit-font-smoothing:antialiased;
+  }
+  ::selection{background:var(--copper);color:#fff;}
+
+  .frame{
+    max-width:980px;
+    margin:0 auto;
+    padding:0 32px;
+    position:relative;
+  }
+  /* ——— the bus rail: a single-line diagram running through the document ——— */
+  .rail{
+    position:absolute;
+    left:var(--rail-x);
+    top:0;bottom:0;
+    width:2px;
+    background:var(--line);
+  }
+  .content{
+    margin-left:110px;
+    max-width:720px;
+    padding:0 0 40px;
+  }
+
+  /* ——— typography ——— */
+  .eyebrow{
+    font-family:'IBM Plex Mono',monospace;
+    font-size:11.5px;
+    letter-spacing:0.14em;
+    text-transform:uppercase;
+    color:var(--label);
+    font-weight:500;
+  }
+  .eyebrow .accent{color:var(--copper);}
+  h1{
+    font-family:'Archivo',sans-serif;
+    font-weight:700;
+    font-size:clamp(34px,5vw,52px);
+    line-height:1.06;
+    letter-spacing:-0.025em;
+    margin:18px 0 22px;
+  }
+  h2{
+    font-family:'Archivo',sans-serif;
+    font-weight:650;
+    font-size:clamp(23px,3vw,29px);
+    line-height:1.15;
+    letter-spacing:-0.018em;
+    margin:14px 0 18px;
+  }
+  h3{
+    font-family:'Archivo',sans-serif;
+    font-weight:600;
+    font-size:17px;
+    letter-spacing:-0.01em;
+    margin:30px 0 8px;
+  }
+  p{margin-bottom:16px;color:var(--ink-soft);}
+  p strong{color:var(--ink);font-weight:600;}
+  em{font-style:italic;}
+  .lede{
+    font-size:20px;
+    line-height:1.55;
+    color:var(--ink);
+  }
+
+  /* ——— section node markers on the rail ——— */
+  section{position:relative;padding:64px 0 26px;}
+  section::before{
+    content:'';
+    position:absolute;
+    left:calc(-110px + var(--rail-x) - var(--rail-x) - 0px);
+  }
+  .node{
+    position:absolute;
+    left:-78px;
+    top:72px;
+    width:18px;height:18px;
+    border-radius:50%;
+    background:var(--paper);
+    border:2px solid var(--ink);
+    transform:translateX(-50%);
+  }
+  .node.live{background:var(--copper);border-color:var(--copper);}
+  .node.open{border-style:dashed;border-color:var(--label);}
+  .node-label{
+    position:absolute;
+    left:-78px;
+    top:96px;
+    transform:translateX(-50%) rotate(0deg);
+    font-family:'IBM Plex Mono',monospace;
+    font-size:10px;
+    letter-spacing:0.1em;
+    color:var(--label);
+    writing-mode:vertical-rl;
+    text-transform:uppercase;
+  }
+
+  /* ——— header ——— */
+  header{padding:64px 0 18px;position:relative;}
+  .masthead{
+    display:flex;
+    justify-content:space-between;
+    align-items:baseline;
+    border-bottom:2px solid var(--ink);
+    padding-bottom:14px;
+    margin-bottom:46px;
+    font-family:'IBM Plex Mono',monospace;
+    font-size:11.5px;
+    letter-spacing:0.14em;
+    text-transform:uppercase;
+  }
+  .masthead .wordmark{
+    font-family:'Archivo',sans-serif;
+    font-weight:700;
+    font-size:19px;
+    letter-spacing:0.22em;
+  }
+  .masthead .meta{color:var(--label);}
+
+  /* ——— hero diagram: same connection, two loads ——— */
+  .arc{
+    margin:38px 0 8px;
+    border:1px solid var(--line);
+    background:var(--card);
+    padding:30px 30px 24px;
+  }
+  .arc-row{
+    display:grid;
+    grid-template-columns:1fr 56px 1fr;
+    gap:0;
+    align-items:stretch;
+  }
+  .arc-stage{
+    padding:4px 2px;
+  }
+  .arc-stage .tag{
+    font-family:'IBM Plex Mono',monospace;
+    font-size:10.5px;
+    letter-spacing:0.12em;
+    text-transform:uppercase;
+    color:var(--copper);
+    font-weight:500;
+    display:block;
+    margin-bottom:8px;
+  }
+  .arc-stage h4{
+    font-family:'Archivo',sans-serif;
+    font-weight:650;
+    font-size:18px;
+    letter-spacing:-0.01em;
+    margin-bottom:8px;
+  }
+  .arc-stage p{font-size:14.5px;line-height:1.55;margin:0;}
+  .arc-link{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+  }
+  .arc-link svg{display:block;}
+  .arc-base{
+    margin-top:24px;
+    padding-top:16px;
+    border-top:1px dashed var(--line);
+    font-family:'IBM Plex Mono',monospace;
+    font-size:11.5px;
+    letter-spacing:0.06em;
+    color:var(--label);
+    text-align:center;
+  }
+  .arc-base b{color:var(--ink);font-weight:500;}
+
+  /* ——— general components ——— */
+  .rule{height:1px;background:var(--line);margin:34px 0;}
+  .figure{
+    border:1px solid var(--line);
+    background:var(--card);
+    padding:24px 26px 20px;
+    margin:26px 0;
+  }
+  .figure .fig-label{
+    font-family:'IBM Plex Mono',monospace;
+    font-size:10.5px;
+    letter-spacing:0.12em;
+    text-transform:uppercase;
+    color:var(--label);
+    margin-bottom:14px;
+  }
+  .figure p:last-child{margin-bottom:0;}
+
+  ul.tight{
+    list-style:none;
+    margin:6px 0 20px;
+  }
+  ul.tight li{
+    position:relative;
+    padding:9px 0 9px 26px;
+    border-bottom:1px solid var(--line-soft);
+    color:var(--ink-soft);
+    font-size:16.5px;
+  }
+  ul.tight li:last-child{border-bottom:none;}
+  ul.tight li::before{
+    content:'—';
+    position:absolute;
+    left:0;
+    color:var(--copper);
+    font-family:'IBM Plex Mono',monospace;
+  }
+  ul.tight li b{color:var(--ink);font-weight:600;}
+
+  /* drivers grid */
+  .drivers{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:1px;
+    background:var(--line);
+    border:1px solid var(--line);
+    margin:24px 0;
+  }
+  .driver{
+    background:var(--card);
+    padding:18px 20px;
+  }
+  .driver .d-tag{
+    font-family:'IBM Plex Mono',monospace;
+    font-size:10.5px;
+    letter-spacing:0.1em;
+    text-transform:uppercase;
+    color:var(--copper);
+    display:block;
+    margin-bottom:6px;
+  }
+  .driver p{font-size:14.5px;line-height:1.55;margin:0;}
+
+  /* economics walk-through */
+  .econ{
+    border:1px solid var(--ink);
+    background:var(--card);
+    margin:28px 0;
+  }
+  .econ-head{
+    padding:16px 26px;
+    border-bottom:1px solid var(--line);
+    display:flex;
+    justify-content:space-between;
+    align-items:baseline;
+  }
+  .econ-head .fig-label{margin:0;}
+  .econ-body{padding:22px 26px 8px;}
+  .econ-row{
+    display:grid;
+    grid-template-columns:150px 1fr;
+    gap:18px;
+    padding:13px 0;
+    border-bottom:1px solid var(--line-soft);
+    align-items:baseline;
+  }
+  .econ-row:last-child{border-bottom:none;}
+  .econ-row .num{
+    font-family:'IBM Plex Mono',monospace;
+    font-size:15px;
+    font-weight:500;
+    color:var(--ink);
+  }
+  .econ-row .num span{color:var(--copper);}
+  .econ-row p{font-size:15px;line-height:1.55;margin:0;}
+  .econ-foot{
+    padding:16px 26px 18px;
+    border-top:1px solid var(--line);
+    background:var(--paper);
+    font-size:15px;
+    color:var(--ink-soft);
+  }
+  .econ-foot p{font-size:15px;margin:0;}
+
+  /* ladder */
+  .ladder{margin:26px 0;}
+  .rung{
+    display:grid;
+    grid-template-columns:58px 1fr;
+    gap:18px;
+    padding:15px 0;
+    border-bottom:1px solid var(--line-soft);
+  }
+  .rung:last-child{border-bottom:none;}
+  .rung .r-num{
+    font-family:'IBM Plex Mono',monospace;
+    font-size:12px;
+    color:var(--copper);
+    letter-spacing:0.06em;
+    padding-top:3px;
+  }
+  .rung p{font-size:15.5px;margin:0;}
+  .rung p b{color:var(--ink);font-weight:600;}
+
+  /* pull quote / principle */
+  .principle{
+    border-left:3px solid var(--copper);
+    padding:6px 0 6px 22px;
+    margin:28px 0;
+  }
+  .principle p{
+    font-size:19px;
+    line-height:1.5;
+    color:var(--ink);
+    margin:0;
+    font-style:italic;
+  }
+
+  /* vendor strip */
+  .vendors{
+    display:flex;
+    flex-wrap:wrap;
+    gap:10px;
+    margin:14px 0 22px;
+  }
+  .vendor{
+    font-family:'IBM Plex Mono',monospace;
+    font-size:12px;
+    letter-spacing:0.05em;
+    border:1px solid var(--line);
+    background:var(--card);
+    padding:7px 13px;
+    color:var(--ink-soft);
+  }
+
+  /* footer */
+  footer{
+    border-top:2px solid var(--ink);
+    margin-top:30px;
+    padding:22px 0 70px;
+    font-family:'IBM Plex Mono',monospace;
+    font-size:11.5px;
+    letter-spacing:0.1em;
+    text-transform:uppercase;
+    color:var(--label);
+    display:flex;
+    justify-content:space-between;
+    flex-wrap:wrap;
+    gap:10px;
+  }
+
+  @media (max-width:760px){
+    .rail{display:none;}
+    .node,.node-label{display:none;}
+    .content{margin-left:0;}
+    .arc-row{grid-template-columns:1fr;}
+    .arc-link{padding:14px 0;transform:rotate(90deg);}
+    .drivers{grid-template-columns:1fr;}
+    .econ-row{grid-template-columns:1fr;gap:4px;}
+    body{font-size:16.5px;}
+  }
+  @media (prefers-reduced-motion:no-preference){
+    section{animation:none;}
+  }
+</style>
+</head>
+<body>
+
+<div class="frame">
+  <div class="rail" aria-hidden="true"></div>
+  <div class="content">
+
+    <header>
+      <div class="masthead">
+        <span class="wordmark">NEURA</span>
+        <span class="meta">Business Plan · June 2026 · Internal</span>
+      </div>
+      <div class="eyebrow"><span class="accent">Technology-facilitated development</span> · Two stages, one platform</div>
+      <h1>Distributed energy,<br>then distributed compute.</h1>
+      <p class="lede">Neura develops and operates distributed energy infrastructure. Stage one is a portfolio of behind-the-meter batteries at commercial sites. Stage two uses the same engine, the same discipline and the same grid relationships to convert stranded grid connections into powered shells for AI compute. Both stages are the same craft: using technology to compress the cost of developing and underwriting infrastructure that was previously too fiddly to finance — and then systematically stripping risk out of it.</p>
+
+      <div class="arc">
+        <div class="arc-row">
+          <div class="arc-stage">
+            <span class="tag">Stage 1 · Now</span>
+            <h4>Behind-the-meter batteries</h4>
+            <p>Own and operate BESS at commercial &amp; industrial sites, sold as a fully managed service through installers. Contracted savings plus grid revenues.</p>
+          </div>
+          <div class="arc-link" aria-hidden="true">
+            <svg width="40" height="40" viewBox="0 0 40 40" fill="none">
+              <line x1="2" y1="20" x2="32" y2="20" stroke="#B4540F" stroke-width="2"/>
+              <path d="M30 13 L38 20 L30 27" stroke="#B4540F" stroke-width="2" fill="none"/>
+            </svg>
+          </div>
+          <div class="arc-stage">
+            <span class="tag">Stage 2 · Next</span>
+            <h4>Grid-smart compute shells</h4>
+            <p>Option under-used connections across the distribution grid, firm them with batteries, and lease the result as powered shells to compute operators.</p>
+          </div>
+        </div>
+        <div class="arc-base">Shared base — <b>one underwriting &amp; dispatch engine · grid &amp; DNO capability · a de-risking ladder capital can climb</b></div>
+      </div>
+    </header>
+
+    <!-- ============ STAGE 1 ============ -->
+    <section id="stage1">
+      <div class="node live" aria-hidden="true"></div>
+      <div class="node-label">Stage 1</div>
+      <div class="eyebrow">Stage 1 · <span class="accent">Behind-the-meter batteries</span></div>
+      <h2>A simple, proven business — done at a cost nobody else can match</h2>
+
+      <p>The model is effectively an independent power producer. We install, own and operate battery systems on commercial customers' premises and sell the result as a managed service: the customer pays nothing upfront, gets lower and more predictable energy costs, and we keep the spread between what the asset earns and what it costs to run. Nothing about owning energy assets is novel. The innovation is in how cheaply and consistently we can originate, underwrite and operate each one.</p>
+
+      <h3>Why this works now</h3>
+      <div class="drivers">
+        <div class="driver"><span class="d-tag">Markets</span><p>Routes to value behind the meter keep widening: wholesale access for small assets (P415), a liquid secondary market in capacity contracts, and local flexibility markets that utility-scale sites can't reach.</p></div>
+        <div class="driver"><span class="d-tag">Power, not energy</span><p>The main value driver is power. Batteries ease site power constraints directly through peak shaving, and indirectly through tariffs and flex markets that reward flatter consumption.</p></div>
+        <div class="driver"><span class="d-tag">Capacity squeeze</span><p>New utility-scale capacity is centrally planned and slow. Behind the meter is the one part of the market that can still add meaningful capacity at market speed.</p></div>
+        <div class="driver"><span class="d-tag">Rising prices &amp; ready supply chains</span><p>Electricity prices keep climbing as businesses electrify, while battery capex has fallen and installers now have real experience. Customers are motivated; the ecosystem can deliver.</p></div>
+      </div>
+
+      <p>Capital sees all of this too. Infrastructure funds want exposure to distributed energy and largely can't get it — which is the opportunity, and also the question: why isn't this big already?</p>
+
+      <h3>Why it isn't big already</h3>
+      <ul class="tight">
+        <li><b>Transaction costs are too high.</b> Every site is unique — its own load profile, tariff, connection limits and revenue mix. Utility-scale underwriting procedures don't stretch down to a 500&nbsp;kW site, so each deal costs more to assess than it's worth.</li>
+        <li><b>Portfolios beat single sites.</b> Diversified counterparty risk and revenue streams only accessible to aggregated capacity mean the portfolio is worth more than the sum of its parts. That makes starting hard — and rewards whoever solves the start.</li>
+        <li><b>The value drivers are recent.</b> The market simply hasn't had time to organise around them.</li>
+      </ul>
+
+      <p>This is where the technology earns its keep. GridQ, our underwriting and dispatch engine, takes a site's own half-hourly data and produces three consistent artifacts from a single run: the system specification, the bankable underwriting pack, and the customer proposal. The pricing path is deterministic — no language model touches a number a lender relies on. AI works the perimeter, where the human hours actually are: turning messy installer data into a validated site model, researching counterparty credit, drafting documents. Each quote that used to take days of analyst back-and-forth becomes hours, then minutes. That cost compression is the moat — it's what makes small sites underwriteable at all.</p>
+
+      <h3>The installer channel</h3>
+      <p>We don't build a sales force; we contract installers and offer financed solutions through them. They keep their customer relationships and grow their order books. End customers get a fully managed system with no major upfront cost. We get what we need — deployed, distributed capacity — without owning the most fragile, lowest-margin part of the chain.</p>
+
+      <h3>The economics, walked through honestly</h3>
+      <div class="econ">
+        <div class="econ-head">
+          <div class="fig-label">Worked example · indicative, deliberately conservative</div>
+        </div>
+        <div class="econ-body">
+          <div class="econ-row"><div class="num">50 MW</div><p>Say we deploy 50&nbsp;MW of capacity over the first couple of years, at an average installed cost of roughly £500k per MW — about <b>£25m of assets</b>.</p></div>
+          <div class="econ-row"><div class="num">~£85k <span>/MW/yr</span></div><p>Each MW earns around £85k a year across the customer contract and grid revenues. That's roughly a <b>17% gross cash yield</b> on the capital deployed.</p></div>
+          <div class="econ-row"><div class="num">13% → 11%</div><p>Today, investors in an unproven asset class demand a high return — call it 13%+. As the portfolio builds an operating record and the asset class matures, the return capital requires falls. This is the well-trodden path every new infrastructure class has walked.</p></div>
+          <div class="econ-row"><div class="num">~1.5×</div><p>Here's the value creation: <b>the same cash flows become worth more as required returns fall.</b> £4.25m a year, valued at an 11% required return, is worth roughly £39m — against £25m deployed. Around 1.5× on capital before any leverage, fee income or revenue growth.</p></div>
+        </div>
+        <div class="econ-foot">
+          <p>The business is the spread. If we can deploy at 17% while investors need 12–13%, we earn the right to retain a meaningful equity slice while funding deployment mostly with other people's capital — and we participate disproportionately in the uplift as hurdle rates compress. These numbers are deliberately watered down from the bull case; even so, the shape holds. The first 5&nbsp;MW will be as hard as going from 25 to 50. The structure, once proven, copy-pastes anywhere.</p>
+        </div>
+      </div>
+
+      <h3>De-risking is the actual product</h3>
+      <p>The goal of this business — and of everything that follows — is to reduce risk, deliberately and visibly, until the assets are financeable at the cheapest possible capital. Every step we take should make the next investor's decision easier than the last one's.</p>
+      <p>The clearest accelerant is de-risking the revenue itself. A <strong>tolling structure or centralised offtake</strong> — a single creditworthy counterparty, such as a major utility, an aggregator, or a hyperscaler-class energy buyer, paying a fixed fee for rights over the fleet's capacity — converts merchant exposure into contracted income. Contracted income from a strong counterparty is exactly what infrastructure capital is built to price: hurdle rates fall, leverage capacity rises, and the spread we capture widens without us deploying a single extra megawatt. We will underwrite every site to stand on its own merchant floor, then pursue centralised offtake as the lever that re-rates the whole portfolio.</p>
+
+      <h3>How stage one gets off the ground</h3>
+      <div class="ladder">
+        <div class="rung"><div class="r-num">01</div><p><b>Underwriting MVP.</b> GridQ working end to end across all GB revenue streams — not autonomous, just trustworthy enough that we'd put our own name on its numbers.</p></div>
+        <div class="rung"><div class="r-num">02</div><p><b>Sales materials &amp; site.</b> Enough to hold credible conversations with installers, funders and banks.</p></div>
+        <div class="rung"><div class="r-num">03</div><p><b>One UK pilot.</b> A single real site whose data and learnings anchor everything we say to capital afterwards.</p></div>
+        <div class="rung"><div class="r-num">04</div><p><b>Installer MOUs, then option agreements.</b> First understanding, then agreements with legal weight we can take into funding conversations.</p></div>
+        <div class="rung"><div class="r-num">05</div><p><b>Credit assessment system.</b> Fast internal counterparty scoring (Creditsafe plus a research agent), wired directly into the pricing the engine produces.</p></div>
+        <div class="rung"><div class="r-num">06</div><p><b>Infrastructure funding conversations.</b> Likely a credit line plus a warrant over the asset vehicle to begin with, rather than a bank. The management company earns development and asset-management fees and retains equity in the vehicle.</p></div>
+      </div>
+    </section>
+
+    <!-- ============ THE BRIDGE ============ -->
+    <section id="bridge">
+      <div class="node" aria-hidden="true"></div>
+      <div class="node-label">Bridge</div>
+      <div class="eyebrow">The bridge · <span class="accent">What carries over</span></div>
+      <h2>One engine, pointed at a new load</h2>
+      <p>Stage two is not a pivot. It's the same company doing the same thing — technology-facilitated infrastructure development — against a bigger version of the same mispricing. By the time stage one is operating, we will hold, as a matter of course, exactly the capabilities the second stage requires:</p>
+      <ul class="tight">
+        <li><b>The underwriting engine.</b> GridQ already prices the value of connection headroom where a site's import limit binds — the precise primitive stage two scales up. Adding a compute pod is a new load class inside an engine built to take one, not a new system.</li>
+        <li><b>Grid and DNO capability.</b> Connection applications, consent tracking, energised-site operations — held as structured process, not tribal knowledge. A party already operating compliant plant negotiates an import modification from a categorically stronger position than a developer arriving with renders.</li>
+        <li><b>An evidence base capital trusts.</b> Every quote and every operating site logged: underwritten versus realised, from day one. Deterministic, versioned, reproducible numbers are the credibility layer infrastructure investors actually buy.</li>
+      </ul>
+      <div class="principle"><p>Both stages are one discipline: find infrastructure the market prices badly because it's awkward to underwrite, build the machine that underwrites it cheaply, then de-risk it until the cheapest capital in the world wants to own it.</p></div>
+    </section>
+
+    <!-- ============ STAGE 2 ============ -->
+    <section id="stage2">
+      <div class="node open" aria-hidden="true"></div>
+      <div class="node-label">Stage 2</div>
+      <div class="eyebrow">Stage 2 · <span class="accent">Grid-smart compute shells</span></div>
+      <h2>Connection arbitrage, delivered as compute</h2>
+
+      <p>AI compute is now power-limited, not chip-limited. Power access has overtaken land as the binding constraint on data-centre delivery; operators report taking delivery of GPUs they cannot energise, and an unpowered chip isn't free — it depreciates daily. Demand for grid access from compute is enormous and unusually price-insensitive.</p>
+
+      <p>At the same moment, the distribution grid is full of connections that are paid for, built, energised — and barely used. Smaller, more distributed projects rarely connect at the transmission level; they sit on distribution networks, behind agreements sized for a peak that almost never occurs. Industrial sites that downsized, generation sites whose economics have moved on, connections held by owners whose original business case has deteriorated: the bays, transformers and protection are already there, idle most of the day, while a new applicant for the same capacity would join a years-long queue.</p>
+
+      <p>Solar sites are possibly the most interesting subset of these. A utility-scale solar farm runs at a very low capacity factor — around 11–12% in GB — so its connection sits idle the vast majority of the time. And critically, the capacity it does use is on <em>export</em>: the import side of the connection is essentially untouched. The owner prices the whole arrangement against collapsing capture rates and deteriorating cash flows. A power-starved compute buyer would price the same headroom against the cost of silicon they can't switch on.</p>
+
+      <div class="figure">
+        <div class="fig-label">The thesis in one line</div>
+        <p style="font-size:18px;color:var(--ink);">The scarce, mispriced asset is neither the power, the compute, nor the land. It is the <strong>existing connection on the distribution grid</strong> and the headroom around it. The business is buying that headroom at the prices its current owners put on it and selling it at compute prices — as a powered shell.</p>
+      </div>
+
+      <p>The transaction sequence: option an under-used distribution connection → modify it to add import capacity (the enabling event — this is the project, not paperwork) → firm it with batteries to compute-grade availability → lease the result on multi-year contracts to compute operators. We are an infrastructure landlord. Tenants own and operate their compute; we own the connection rights, the power infrastructure and the shell.</p>
+
+      <h3>Powered shells, not pod manufacturing</h3>
+      <p>We will not manufacture the compute modules. The market already supplies them: <strong>Vertiv</strong> and <strong>Schneider Electric</strong> ship prefabricated, containerised power-and-IT modules at scale; <strong>Dell</strong> and other OEMs offer modular data-centre products; and a layer of specialist integrators delivers containerised GPU systems built to Nvidia reference designs. Our job is the part none of them can do — securing firm, deliverable grid capacity at a structurally low cost base and presenting it to the network as a well-behaved, dispatch-aware load. Vertical integration into the hardware (the slowest-moving constraint is power conversion — transformers in particular) is a real option for later rounds, once volume justifies it. It is deliberately not the price of entry.</p>
+
+      <h3>How the battery business buys the entry</h3>
+      <p>Stage one isn't just the foundation in spirit — it's the land-acquisition motion. We deploy batteries, underwritten as batteries on battery economics, at sites that have first passed the compute-siting screen. Each such deployment quietly buys four things:</p>
+      <ul class="tight">
+        <li><b>Site control before repricing.</b> A battery lease at a screened site secures land rights, an amended connection agreement and an owner relationship — an option on the connection — at battery prices, before advisers start repricing under-used distribution connections as compute-bearing assets. That window is open and will close.</li>
+        <li><b>A proven stack on real iron.</b> Every site runs our dispatch engine in production against a live grid connection. By the first compute deployment, the orchestration layer is an operating system with a track record, not a claim.</li>
+        <li><b>Standing with the networks.</b> The import modification is negotiated by a party already operating compliant plant on that network.</li>
+        <li><b>Cash yield while offtake is secured.</b> The battery earns from day one, so the equity story is never binary.</li>
+      </ul>
+
+      <h3>The honest risks</h3>
+      <ul class="tight">
+        <li><b>Offtake is the binding constraint.</b> Everything else is solvable engineering or finance. The first commercial objective of stage two is a committed pilot-scale hosting contract with a scale-up option. Most compute buyers can't post investment-grade paper, so the contract will be engineered — prepayment, equipment security, collateralised commitments — to be financeable anyway. This is the same counterparty-credit problem the battery business solves daily, scaled up.</li>
+        <li><b>The sourcing window can close.</b> The moment under-used connections trade on compute comparables instead of power comparables, our entry price rises toward our exit price. Speed of optioning is strategy, not logistics.</li>
+        <li><b>It may not clear.</b> Stage two could amount to nothing — and the staging is built precisely so that, in that case, what remains is a profitable, contracted battery platform rather than a hole in the ground.</li>
+      </ul>
+    </section>
+
+    <!-- ============ RISK PHILOSOPHY ============ -->
+    <section id="risk">
+      <div class="node" aria-hidden="true"></div>
+      <div class="node-label">Capital</div>
+      <div class="eyebrow">Capital · <span class="accent">The de-risking ladder</span></div>
+      <h2>Every rung financeable on its own evidence</h2>
+      <p>The goal of both businesses is the same: reduce risk until the cheapest capital wants in. In batteries, that means standing on a conservative merchant floor, then converting it to contracted income through tolling or a centralised offtake with a strong counterparty — each step inviting lower hurdle rates and cheaper leverage. In compute, it means never asking anyone to fund the whole vision at once. The pre-revenue, binary pitch becomes a sequence:</p>
+      <div class="ladder">
+        <div class="rung"><div class="r-num">R1</div><p><b>Operating battery portfolio</b> — real cash flows, real operating data, underwritten on its own merits.</p></div>
+        <div class="rung"><div class="r-num">R2</div><p><b>An options book on under-used distribution connections</b> — secured at battery prices, marked against a closing window.</p></div>
+        <div class="rung"><div class="r-num">R3</div><p><b>A contracted pilot shell against a signed hosting floor</b> — the binding constraint, cleared once, in public.</p></div>
+        <div class="rung"><div class="r-num">R4</div><p><b>Fleet replication on project finance</b> — contracted capacity, standard designs, bought-in modules, repeatable everywhere.</p></div>
+      </div>
+      <p>Equity funds the early rungs; project finance takes over as contracts replace assumptions. Management collects development and asset-management fees to fund operations and retains an equity stake in the asset vehicles — the structure through which the team participates in the value created as risk comes out.</p>
+    </section>
+
+    <!-- ============ HOW WE WORK ============ -->
+    <section id="team">
+      <div class="node" aria-hidden="true"></div>
+      <div class="node-label">Team</div>
+      <div class="eyebrow">Operating model · <span class="accent">How we work</span></div>
+      <h2>A small team built around an intelligence layer</h2>
+      <p>The company is designed around a simple observation: hierarchies exist to move information between many humans, and we don't need many humans. Every artifact the company produces — quotes, models, contracts, telemetry — feeds one shared intelligence layer that anyone can query in real time. One person, properly augmented, now does what a team of ten used to; the durable human skills are judgment, taste and ownership of outcomes.</p>
+      <ul class="tight">
+        <li><b>Wide ownership over narrow roles.</b> Individuals own whole workflows end to end. It reduces latency and only works with motivated, resourceful people — which is the hiring bar.</li>
+        <li><b>Prototypes over decks.</b> Meetings happen around working models with real or simulated data that can be modified live. The cost of exploring a wrong path is near zero, so we go wide first and commit late.</li>
+        <li><b>An emergent roadmap.</b> Customers and counterparties pull the product forward; gaps the system can't yet compose are the roadmap, surfaced by the work itself rather than guessed in advance.</li>
+        <li><b>Everything instrumented from day one.</b> Every quote logged: data quality at intake, human minutes spent, iterations, outcome, realised versus underwritten. The efficiency claim stays falsifiable — and becomes the dataset competitors can't buy.</li>
+      </ul>
+      <p>The supporting cast is real: an experienced engineering team across software and ML, an advisor who helped build one of Europe's largest solar developers, and renewables-experienced legal and accounting support in the UK for when things get serious. The area is ripe for partnership — a model aligned with installers and OEMs opens far more doors than it closes.</p>
+    </section>
+
+    <!-- ============ CLOSE ============ -->
+    <section id="close">
+      <div class="node live" aria-hidden="true"></div>
+      <div class="node-label">Next</div>
+      <div class="eyebrow">Closing · <span class="accent">What happens next</span></div>
+      <h2>Staged so the downside is a good business</h2>
+      <p>There is a version of this that amounts to nothing — that's true of anything worth doing. The promise is in the staging: each step is cheap, each produces an artifact that makes the next step cheaper, and the riskiest assumptions are tested first. If stage two never clears, we own a contracted, cash-generating battery platform. If it does, the same engine, the same sites and the same discipline make us one of the more interesting infrastructure platforms in European energy — positioned exactly where capital rotating out of tech and into hard assets wants to land.</p>
+      <p>Next steps: break the workstreams down in detail, agree who owns what based on the involvement each person actually wants, settle preliminary commercial terms plainly and upfront, and begin. Honesty about appetite now is what prevents misaligned expectations later — any level of involvement works, provided it's clear from the start.</p>
+    </section>
+
+    <footer>
+      <span>Neura · Working draft</span>
+      <span>Revise before any external use</span>
+    </footer>
+
+  </div>
+</div>
+</body>
+</html>

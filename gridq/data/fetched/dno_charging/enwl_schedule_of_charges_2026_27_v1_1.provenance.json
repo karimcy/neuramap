@@ -1,0 +1,13 @@
+{
+  "dataset_id": "ENWL schedule of charges and other tables 2026-27 v1.1 final",
+  "fetched_utc": "2026-11-26T08:24:39",
+  "fetcher": "curl -L (WP-UW-07, run by hand; the document itself is not vendored)",
+  "fetcher_args": {},
+  "last_modified": "Thu, 12 Mar 2026 13:58:59 GMT",
+  "licence": "unclear: no licence is stated on the publisher's page or in the document",
+  "record_count": 4,
+  "sha256": "f6371ee82cf93e32e025de3299c38aabdf283bb1af6449cdcb35b021bf5c2fe9",
+  "size_bytes": 251888,
+  "source_url": "https://www.enwl.co.uk/globalassets/about-us/regulatory-information/documents/current-charging-information/26-27/enwl---schedule-of-charges-and-other-tables--2026-27-v1_1-final.xlsx",
+  "used_for": "Annex 1 LV/HV time bands and Site Specific Band 1 rows; Annex 2 EDCM super red band and Tariff 2 / Tariff 146 rows; Charge Calculator formulas; extracts at tests/fixtures/dno_charging/enwl_schedule_2026_27_annex1_extract.json and enwl_schedule_2026_27_annex2_edcm_extract.json"
+}

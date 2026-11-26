@@ -1,0 +1,149 @@
+{
+ "contract": "IC-9",
+ "contract_version": "1.0.0",
+ "kind": "resolved_timeline",
+ "site_id": "SYNTHETIC-DC-GPU-CLOCK",
+ "declaration_id": "ic9-synthetic-clock-spring-2027",
+ "valid_from": "2027-03-25T00:00:00Z",
+ "valid_until": "2027-04-01T00:00:00Z",
+ "resolution_min": 30,
+ "n_periods": 336,
+ "steps": [
+  {
+   "start": "2027-03-25T00:00:00Z",
+   "origin": "template",
+   "state": {
+    "kind": "offered",
+    "envelope_ids": [
+     "env-overnight"
+    ]
+   }
+  },
+  {
+   "start": "2027-03-25T07:00:00Z",
+   "origin": "template",
+   "state": {
+    "kind": "unavailable",
+    "reason_code": "workload_protected"
+   }
+  },
+  {
+   "start": "2027-03-26T00:00:00Z",
+   "origin": "template",
+   "state": {
+    "kind": "offered",
+    "envelope_ids": [
+     "env-overnight"
+    ]
+   }
+  },
+  {
+   "start": "2027-03-26T07:00:00Z",
+   "origin": "template",
+   "state": {
+    "kind": "unavailable",
+    "reason_code": "workload_protected"
+   }
+  },
+  {
+   "start": "2027-03-27T00:00:00Z",
+   "origin": "template",
+   "state": {
+    "kind": "offered",
+    "envelope_ids": [
+     "env-overnight"
+    ]
+   }
+  },
+  {
+   "start": "2027-03-27T07:00:00Z",
+   "origin": "template",
+   "state": {
+    "kind": "unavailable",
+    "reason_code": "workload_protected"
+   }
+  },
+  {
+   "start": "2027-03-28T00:00:00Z",
+   "origin": "template",
+   "state": {
+    "kind": "offered",
+    "envelope_ids": [
+     "env-overnight"
+    ]
+   }
+  },
+  {
+   "start": "2027-03-28T06:00:00Z",
+   "origin": "template",
+   "state": {
+    "kind": "unavailable",
+    "reason_code": "workload_protected"
+   }
+  },
+  {
+   "start": "2027-03-28T23:00:00Z",
+   "origin": "template",
+   "state": {
+    "kind": "offered",
+    "envelope_ids": [
+     "env-overnight"
+    ]
+   }
+  },
+  {
+   "start": "2027-03-29T06:00:00Z",
+   "origin": "template",
+   "state": {
+    "kind": "unavailable",
+    "reason_code": "workload_protected"
+   }
+  },
+  {
+   "start": "2027-03-29T23:00:00Z",
+   "origin": "template",
+   "state": {
+    "kind": "offered",
+    "envelope_ids": [
+     "env-overnight"
+    ]
+   }
+  },
+  {
+   "start": "2027-03-30T06:00:00Z",
+   "origin": "template",
+   "state": {
+    "kind": "unavailable",
+    "reason_code": "workload_protected"
+   }
+  },
+  {
+   "start": "2027-03-30T23:00:00Z",
+   "origin": "template",
+   "state": {
+    "kind": "offered",
+    "envelope_ids": [
+     "env-overnight"
+    ]
+   }
+  },
+  {
+   "start": "2027-03-31T06:00:00Z",
+   "origin": "template",
+   "state": {
+    "kind": "unavailable",
+    "reason_code": "workload_protected"
+   }
+  },
+  {
+   "start": "2027-03-31T23:00:00Z",
+   "origin": "template",
+   "state": {
+    "kind": "offered",
+    "envelope_ids": [
+     "env-overnight"
+    ]
+   }
+  }
+ ]
+}

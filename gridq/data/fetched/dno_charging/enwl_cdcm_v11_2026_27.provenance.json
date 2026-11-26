@@ -1,0 +1,13 @@
+{
+  "dataset_id": "ENWL CDCM charging model, release for charge setting v11, 2026/27",
+  "fetched_utc": "2026-11-26T08:24:38",
+  "fetcher": "curl -L (WP-UW-07, run by hand; the document itself is not vendored)",
+  "fetcher_args": {},
+  "last_modified": "Mon, 03 Feb 2025 11:06:43 GMT",
+  "licence": "unclear: no licence is stated on the publisher's page or in the document",
+  "record_count": 18,
+  "sha256": "77e23bcd95101b7516eed76587e24378f388c560aa79c1890abc9b3a7c37ad52",
+  "size_bytes": 916643,
+  "source_url": "https://www.enwl.co.uk/globalassets/about-us/regulatory-information/documents/current-charging-information/26-27/cdcm_v11_20241025.xlsx",
+  "used_for": "Acceptance 2: 'Net revenue summary' columns S (LV Site Specific Band 1) and AC (HV Site Specific Band 1), rows 22-28, 55-61, 95-102 and 140; extract at tests/fixtures/dno_charging/enwl_cdcm_2026_27_site_specific.json"
+}

@@ -1,0 +1,157 @@
+{% extends "base.html" %}
+{% block title %}Inspect · {{ quote.quote_id }} - GridQ{% endblock %}
+{% block statusstrip %}{% include "_statusbar.html" %}{% endblock %}
+{% block content %}
+
+<div class="stack-lg">
+{% if is_demo %}
+<div class="demobanner">
+  <span class="badge badge-demo">DEMO</span>
+  <span>Illustrative run on synthetic data with illustrative debt terms - the real engine and real
+    maths, but <strong>not a real site and not bankable</strong>. Numbers are derived, never invented.</span>
+</div>
+{% endif %}
+
+<h1 style="margin-top:1rem">Run inspection</h1>
+<p class="lede">The immutable, traceable run record: what was sized, the value it earns, the finance,
+  and exactly where each number came from.</p>
+
+{# ---- System specification (sized system) ---- #}
+{% if vm.spec.selection_status == 'no_viable_configuration' %}
+<div class="card" data-reveal>
+  <div class="console-head">
+    <h2>Verdict: no viable configuration</h2>
+    <span class="console-status"><span class="status-dot"></span>engine · solved, none viable</span>
+  </div>
+  <p style="margin-top:0.4rem">
+    <strong>No battery system is recommended for this site as it stands.</strong>
+    The engine sized and dispatched candidate systems across the search space and priced each
+    one; none produces a positive return on the priced value floor. Rather than present the
+    least-bad candidate as an optimum, the honest verdict is: do not proceed on the current
+    tariff and evidence.
+  </p>
+  <p class="muted">
+    {{ vm.spec.selection_verdict_reason or 'Every candidate evaluated economically unviable; no system is recommended.' }}
+  </p>
+  <p class="muted">
+    What could change this: a tariff with time-of-use or DUoS band exposure, export consents
+    (G99) opening market revenue, or the outstanding data asks below sharpening the picture.
+    The evaluated sizing surface is preserved as evidence.
+  </p>
+</div>
+{% else %}
+<div class="card" data-reveal>
+  <div class="console-head">
+    <h2>Sized system</h2>
+    <span class="console-status"><span class="status-dot"></span>engine · solved</span>
+  </div>
+  {# Count-ups animate TOWARD the record value only (raw value in data-count; the formatted
+     string is the no-JS / reduced-motion fallback). The UI never computes a figure. #}
+  <div class="grid grid-3">
+    <div class="metric"><span class="figure"{% if vm.spec.selected_power_kw is not none %} data-count="{{ vm.spec.selected_power_kw }}" data-dec="1" data-suffix=" kW" data-count-exact{% endif %}>{{ fmt_opt(vm.spec.selected_power_kw, fmt_kw) }}</span><span class="label">Power</span></div>
+    <div class="metric"><span class="figure"{% if vm.spec.selected_energy_kwh is not none %} data-count="{{ vm.spec.selected_energy_kwh }}" data-dec="1" data-suffix=" kWh" data-count-exact{% endif %}>{{ fmt_opt(vm.spec.selected_energy_kwh, fmt_kwh) }}</span><span class="label">Energy</span></div>
+    <div class="metric"><span class="figure"{% if vm.spec.duration_hours is not none %} data-count="{{ vm.spec.duration_hours }}" data-dec="1" data-suffix=" h" data-count-exact{% endif %}>{{ fmt_opt(vm.spec.duration_hours, fmt_hours) }}</span><span class="label">Duration</span></div>
+  </div>
+  <p class="muted" style="margin-top:0.8rem">
+    Engine: <code>{{ vm.spec.implementation_level or ' - ' }}</code> ·
+    solver <code>{{ vm.spec.solver_status or ' - ' }}</code>.
+    {% if vm.spec.selected_power_kw is none %}No spec was selected - see the warnings and data asks below.{% endif %}
+  </p>
+</div>
+{% endif %}
+
+{% include "_system_diagram.html" %}
+{% include "_surface.html" %}
+{% include "_dispatch.html" %}
+{% include "_utilisation.html" %}
+{% include "_value_streams.html" %}
+{% include "_finance.html" %}
+
+{# ---- Counterparty + consents/gates (needs the site) ---- #}
+{% if vm.counterparty.available or vm.consents_gates.available %}
+<div class="grid grid-2">
+  <div class="card">
+    <h3>Counterparty &amp; credit</h3>
+    {% if vm.counterparty.available %}
+    <dl class="kv">
+      <dt>Legal name</dt><dd>{{ vm.counterparty.legal_name or ' - ' }}</dd>
+      <dt>Company no.</dt><dd>{{ vm.counterparty.company_number or ' - ' }}</dd>
+      <dt>Sector</dt><dd>{{ vm.counterparty.sector or ' - ' }}</dd>
+      <dt>Credit status</dt><dd>{{ fmt_titleise(vm.counterparty.credit_status) if vm.counterparty.credit_status else ' - ' }}</dd>
+      <dt>Expected tenure</dt><dd>{{ fmt_opt(vm.counterparty.expected_tenure_years, fmt_years) }}</dd>
+    </dl>
+    <p class="muted"><small>{{ vm.counterparty.rate_tenor_note }}</small></p>
+    {% else %}
+    <p class="unavail">{{ fmt_unavailable("site context not supplied") }}</p>
+    {% endif %}
+  </div>
+  <div class="card">
+    <h3>Consents &amp; physical gates</h3>
+    {% if vm.consents_gates.available %}
+    <dl class="kv">
+      {% for label, status in vm.consents_gates.consents %}<dt>{{ label }}</dt><dd>{{ fmt_titleise(status) }}</dd>{% endfor %}
+      {% for label, status in vm.consents_gates.gates %}<dt>{{ label }}</dt><dd>{{ fmt_titleise(status) }}</dd>{% endfor %}
+    </dl>
+    {% if vm.consents_gates.gate_notes %}<p class="muted"><small>{{ vm.consents_gates.gate_notes }}</small></p>{% endif %}
+    {% else %}
+    <p class="unavail">{{ fmt_unavailable("site context not supplied") }}</p>
+    {% endif %}
+  </div>
+</div>
+{% endif %}
+
+{% include "_data_asks.html" %}
+{% include "_improve.html" %}
+{% include "_warnings.html" %}
+{% include "_provenance.html" %}
+
+<p class="muted" style="margin-top:1.5rem">
+  Next: the <a href="/run/{{ nav_quote_id }}/artifacts">underwriting pack &amp; customer proposal</a>,
+  the <a href="/run/{{ nav_quote_id }}/spec">system specification</a>, or the
+  <a href="/run/{{ nav_quote_id }}/telemetry">run telemetry</a>.
+</p>
+</div>{# /.stack-lg #}
+
+{# ---- Data islands for the client charts (record values + pre-formatted labels only) ---- #}
+<script id="surface-data" type="application/json">{{ surface | tojson }}</script>
+<script id="finance-data" type="application/json">{{ finance | tojson }}</script>
+<script id="dispatch-data" type="application/json">{{ dispatch | tojson }}</script>
+<script id="utilisation-data" type="application/json">{{ utilisation | tojson }}</script>
+<script id="valuestack-data" type="application/json">{{ value_stack | tojson }}</script>
+{% endblock %}
+
+{% block scripts %}
+{# Plotly is vendored (no CDN) so the charts render offline / under a strict CSP. #}
+<script src="/static/plotly.min.js"></script>
+<script src="/static/charts.js?v={{ static_v }}"></script>
+<script src="/static/run_progress.js?v={{ static_v }}"></script>
+{# Shared motion: count-ups on the sized-system figures animate toward the record values
+   (the pinned-scrollytelling / parallax branches no-op without their landing elements). #}
+<script src="/static/dashboard.js?v={{ static_v }}"></script>
+<script>
+  GridQCharts.init({
+    surface: JSON.parse(document.getElementById('surface-data').textContent),
+    finance: JSON.parse(document.getElementById('finance-data').textContent),
+    dispatch: JSON.parse(document.getElementById('dispatch-data').textContent),
+    utilisation: JSON.parse(document.getElementById('utilisation-data').textContent),
+    value_stack: JSON.parse(document.getElementById('valuestack-data').textContent),
+  });
+  // Improve-this-quote: enable on file pick, then recalculate via the shared run-progress overlay.
+  (function () {
+    var f = document.getElementById('improve-form');
+    if (!f) return;
+    var file = document.getElementById('improve-hh');
+    var btn = document.getElementById('improve-run');
+    var note = document.getElementById('improve-file');
+    file.addEventListener('change', function () {
+      var has = file.files && file.files[0];
+      btn.disabled = !has;
+      note.textContent = has ? 'Ready: ' + file.files[0].name : 'Select a meter file to enable recalculation.';
+    });
+    f.addEventListener('submit', function (ev) {
+      ev.preventDefault();
+      if (file.files && file.files[0] && window.GridQRun) window.GridQRun.run(new FormData(f));
+    });
+  })();
+</script>
+{% endblock %}

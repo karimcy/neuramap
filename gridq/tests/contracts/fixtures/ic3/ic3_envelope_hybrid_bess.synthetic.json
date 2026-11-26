@@ -1,0 +1,504 @@
+{
+ "contract": "IC-3",
+ "contract_version": "1.0.0",
+ "envelope_id": "ic3-synthetic-hybrid-bess-2027",
+ "site_id": "SYNTHETIC-SITE-HYBRID",
+ "record_class": "synthetic_fixture",
+ "source": {
+  "input_hash": "sha256:dce51cb82f86ce5fa2ede78f4c89e02eee0b5093186c371f91bd9ac4b4a2b795",
+  "run": {
+   "run_id": "run_14e466da9e906e58",
+   "assumption_version": "synthetic-fixture",
+   "code_version": "0.0.0-synthetic",
+   "schema_version": "0.1.0"
+  },
+  "producer": {
+   "engine": "gridq",
+   "engine_version": "0.0.0-synthetic"
+  },
+  "basis": {
+   "kind": "study",
+   "basis_id": "all_streams_enabled_study_v1",
+   "label": "STUDY BASIS (D55) — EVERY REVENUE STREAM PRICED IN THE PRICED FLOOR, EVERY AWARD ASSUMED — NOT AN UNDERWRITING OUTPUT",
+   "disclosure": "synthetic fixture: schema-test data, not a priced run; the banner is the named study basis's own"
+  },
+  "constraint_library": {
+   "kind": "unknown",
+   "reason": "synthetic fixture: the constraint library is not yet published (WP-SIZE-02)"
+  },
+  "assessment": {
+   "kind": "quote_binding",
+   "contract": "IC-12",
+   "contract_version": "2.0.0",
+   "quote_id": "quote_run_14e466da9e906e58",
+   "quote_input_hash": "sha256:dce51cb82f86ce5fa2ede78f4c89e02eee0b5093186c371f91bd9ac4b4a2b795"
+  },
+  "connection_agreement": {
+   "kind": "connection_agreement_ref",
+   "contract": "IC-1",
+   "contract_version": "1.1.0",
+   "agreement_hash": "sha256:122618785497c4f998cbdb76b49746be63415bf56cc09c4a6187a333c3d7c6b1"
+  },
+  "scenario_set": {
+   "kind": "scenario_set_ref",
+   "contract": "IC-2",
+   "contract_version": "1.1.0",
+   "scenario_set_hash": "sha256:69acdae915c6b4c0c6e6610bddea1a04b6f83b9300c6216b0935eaead2f51ddf"
+  }
+ },
+ "supersedes": {
+  "kind": "not_applicable",
+  "reason": "synthetic fixture: the first envelope for this site"
+ },
+ "valid_from": "2027-01-01T00:00:00Z",
+ "valid_until": "2028-01-01T00:00:00Z",
+ "rated_discharge_kw": 5000,
+ "rated_charge_kw": 5000,
+ "usable_energy_kwh": 10000,
+ "fail_safe": {
+  "firm_import_limit_kw": 10000,
+  "resilience_floor_kwh": 1000,
+  "markets": "declared_unavailable"
+ },
+ "services": [
+  {
+   "service_id": "svc-capacity-market",
+   "stream": "CAPACITY_MARKET",
+   "sustain_min": 60,
+   "counterparty_role": "emr_settlement",
+   "reference": {
+    "kind": "unknown",
+    "reason": "synthetic fixture: no counterparty reference exists"
+   },
+   "basis": {
+    "kind": "evidenced",
+    "evidence": {
+     "kind": "evidence_ref",
+     "contract": "IC-4",
+     "contract_version": "1.1.0",
+     "evidence_hash": "sha256:e335880ee08677dbd6b48d0b6e86b487e014b6b2bfb7809e98eb2887da958d32"
+    }
+   },
+   "underwritten": {
+    "kind": "unknown",
+    "reason": "synthetic fixture: no underwritten value is stated"
+   }
+  },
+  {
+   "service_id": "svc-local-flex-winter-peak",
+   "stream": "LOCAL_FLEX_PICLO",
+   "sustain_min": 120,
+   "counterparty_role": "dno",
+   "reference": {
+    "kind": "unknown",
+    "reason": "synthetic fixture: no counterparty reference exists"
+   },
+   "basis": {
+    "kind": "assumed_approved",
+    "confirmation_ask": "synthetic fixture: confirm a DNO flexibility award covering winter weekday peaks"
+   },
+   "underwritten": {
+    "kind": "not_applicable",
+    "reason": "synthetic fixture: the local-flex service is not underwritten in this fixture"
+   }
+  }
+ ],
+ "thermal": {
+  "kind": "not_applicable",
+  "reason": "synthetic fixture: no controllable cooling plant at this site"
+ },
+ "seasons": [
+  {
+   "season_id": "winter",
+   "months": [
+    1,
+    2,
+    3,
+    10,
+    11,
+    12
+   ]
+  },
+  {
+   "season_id": "summer",
+   "months": [
+    4,
+    5,
+    6,
+    7,
+    8,
+    9
+   ]
+  }
+ ],
+ "day_groups": [
+  {
+   "day_group_id": "weekday",
+   "iso_weekdays": [
+    1,
+    2,
+    3,
+    4,
+    5
+   ]
+  },
+  {
+   "day_group_id": "weekend",
+   "iso_weekdays": [
+    6,
+    7
+   ]
+  }
+ ],
+ "bands": [
+  {
+   "band_id": "night",
+   "start_minute": 0,
+   "end_minute": 420
+  },
+  {
+   "band_id": "day",
+   "start_minute": 420,
+   "end_minute": 960
+  },
+  {
+   "band_id": "peak",
+   "start_minute": 960,
+   "end_minute": 1140
+  },
+  {
+   "band_id": "evening",
+   "start_minute": 1140,
+   "end_minute": 1440
+  }
+ ],
+ "cells": [
+  {
+   "season_id": "winter",
+   "day_group_id": "weekday",
+   "band_id": "night",
+   "terms_id": "night-non-firm"
+  },
+  {
+   "season_id": "winter",
+   "day_group_id": "weekday",
+   "band_id": "day",
+   "terms_id": "cm-day"
+  },
+  {
+   "season_id": "winter",
+   "day_group_id": "weekday",
+   "band_id": "peak",
+   "terms_id": "cm-flex-peak"
+  },
+  {
+   "season_id": "winter",
+   "day_group_id": "weekday",
+   "band_id": "evening",
+   "terms_id": "cm-day"
+  },
+  {
+   "season_id": "winter",
+   "day_group_id": "weekend",
+   "band_id": "night",
+   "terms_id": "night-non-firm"
+  },
+  {
+   "season_id": "winter",
+   "day_group_id": "weekend",
+   "band_id": "day",
+   "terms_id": "base"
+  },
+  {
+   "season_id": "winter",
+   "day_group_id": "weekend",
+   "band_id": "peak",
+   "terms_id": "base"
+  },
+  {
+   "season_id": "winter",
+   "day_group_id": "weekend",
+   "band_id": "evening",
+   "terms_id": "base"
+  },
+  {
+   "season_id": "summer",
+   "day_group_id": "weekday",
+   "band_id": "night",
+   "terms_id": "night-non-firm"
+  },
+  {
+   "season_id": "summer",
+   "day_group_id": "weekday",
+   "band_id": "day",
+   "terms_id": "base"
+  },
+  {
+   "season_id": "summer",
+   "day_group_id": "weekday",
+   "band_id": "peak",
+   "terms_id": "base"
+  },
+  {
+   "season_id": "summer",
+   "day_group_id": "weekday",
+   "band_id": "evening",
+   "terms_id": "base"
+  },
+  {
+   "season_id": "summer",
+   "day_group_id": "weekend",
+   "band_id": "night",
+   "terms_id": "night-non-firm"
+  },
+  {
+   "season_id": "summer",
+   "day_group_id": "weekend",
+   "band_id": "day",
+   "terms_id": "base"
+  },
+  {
+   "season_id": "summer",
+   "day_group_id": "weekend",
+   "band_id": "peak",
+   "terms_id": "base"
+  },
+  {
+   "season_id": "summer",
+   "day_group_id": "weekend",
+   "band_id": "evening",
+   "terms_id": "base"
+  }
+ ],
+ "terms": [
+  {
+   "terms_id": "base",
+   "terms": {
+    "import_limit_kw": 10000,
+    "export_limit_kw": 5000,
+    "import_basis": "firm",
+    "discharge": {
+     "resilience_kw": 500,
+     "services": [],
+     "merchant_kw": 4500,
+     "withheld": {
+      "kind": "not_applicable",
+      "reason": "synthetic fixture: nothing is withheld"
+     }
+    },
+    "charge": {
+     "resilience_kw": 0,
+     "services": [],
+     "merchant_kw": 5000,
+     "withheld": {
+      "kind": "not_applicable",
+      "reason": "synthetic fixture: nothing is withheld"
+     }
+    },
+    "energy": {
+     "resilience_floor_kwh": 1000,
+     "held_up": [],
+     "merchant_kwh": 9000,
+     "held_down": [],
+     "withheld_kwh": 0
+    },
+    "thermal": {
+     "kind": "not_applicable",
+     "reason": "synthetic fixture: no controllable cooling plant"
+    }
+   }
+  },
+  {
+   "terms_id": "cm-day",
+   "terms": {
+    "import_limit_kw": 10000,
+    "export_limit_kw": 5000,
+    "import_basis": "firm",
+    "discharge": {
+     "resilience_kw": 500,
+     "services": [
+      {
+       "service_id": "svc-capacity-market",
+       "kw": 1000
+      }
+     ],
+     "merchant_kw": 3500,
+     "withheld": {
+      "kind": "not_applicable",
+      "reason": "synthetic fixture: nothing is withheld"
+     }
+    },
+    "charge": {
+     "resilience_kw": 0,
+     "services": [],
+     "merchant_kw": 5000,
+     "withheld": {
+      "kind": "not_applicable",
+      "reason": "synthetic fixture: nothing is withheld"
+     }
+    },
+    "energy": {
+     "resilience_floor_kwh": 1000,
+     "held_up": [
+      {
+       "service_id": "svc-capacity-market",
+       "kwh": 1000
+      }
+     ],
+     "merchant_kwh": 8000,
+     "held_down": [],
+     "withheld_kwh": 0
+    },
+    "thermal": {
+     "kind": "not_applicable",
+     "reason": "synthetic fixture: no controllable cooling plant"
+    }
+   }
+  },
+  {
+   "terms_id": "cm-flex-peak",
+   "terms": {
+    "import_limit_kw": 10000,
+    "export_limit_kw": 5000,
+    "import_basis": "firm",
+    "discharge": {
+     "resilience_kw": 500,
+     "services": [
+      {
+       "service_id": "svc-capacity-market",
+       "kw": 1000
+      },
+      {
+       "service_id": "svc-local-flex-winter-peak",
+       "kw": 2000
+      }
+     ],
+     "merchant_kw": 1500,
+     "withheld": {
+      "kind": "not_applicable",
+      "reason": "synthetic fixture: nothing is withheld"
+     }
+    },
+    "charge": {
+     "resilience_kw": 0,
+     "services": [],
+     "merchant_kw": 5000,
+     "withheld": {
+      "kind": "not_applicable",
+      "reason": "synthetic fixture: nothing is withheld"
+     }
+    },
+    "energy": {
+     "resilience_floor_kwh": 1000,
+     "held_up": [
+      {
+       "service_id": "svc-capacity-market",
+       "kwh": 1000
+      },
+      {
+       "service_id": "svc-local-flex-winter-peak",
+       "kwh": 4000
+      }
+     ],
+     "merchant_kwh": 4000,
+     "held_down": [],
+     "withheld_kwh": 0
+    },
+    "thermal": {
+     "kind": "not_applicable",
+     "reason": "synthetic fixture: no controllable cooling plant"
+    }
+   }
+  },
+  {
+   "terms_id": "maintenance",
+   "terms": {
+    "import_limit_kw": 10000,
+    "export_limit_kw": 5000,
+    "import_basis": "firm",
+    "discharge": {
+     "resilience_kw": 500,
+     "services": [],
+     "merchant_kw": 2000,
+     "withheld": {
+      "kind": "withheld",
+      "kw": 2500,
+      "reason_code": "maintenance",
+      "reason": "synthetic fixture: one of two inverter blocks out for planned maintenance"
+     }
+    },
+    "charge": {
+     "resilience_kw": 0,
+     "services": [],
+     "merchant_kw": 2500,
+     "withheld": {
+      "kind": "withheld",
+      "kw": 2500,
+      "reason_code": "maintenance",
+      "reason": "synthetic fixture: one of two inverter blocks out for planned maintenance"
+     }
+    },
+    "energy": {
+     "resilience_floor_kwh": 1000,
+     "held_up": [],
+     "merchant_kwh": 4000,
+     "held_down": [],
+     "withheld_kwh": 5000
+    },
+    "thermal": {
+     "kind": "not_applicable",
+     "reason": "synthetic fixture: no controllable cooling plant"
+    }
+   }
+  },
+  {
+   "terms_id": "night-non-firm",
+   "terms": {
+    "import_limit_kw": 25000,
+    "export_limit_kw": 5000,
+    "import_basis": "non_firm",
+    "discharge": {
+     "resilience_kw": 500,
+     "services": [],
+     "merchant_kw": 4500,
+     "withheld": {
+      "kind": "not_applicable",
+      "reason": "synthetic fixture: nothing is withheld"
+     }
+    },
+    "charge": {
+     "resilience_kw": 0,
+     "services": [],
+     "merchant_kw": 5000,
+     "withheld": {
+      "kind": "not_applicable",
+      "reason": "synthetic fixture: nothing is withheld"
+     }
+    },
+    "energy": {
+     "resilience_floor_kwh": 1000,
+     "held_up": [],
+     "merchant_kwh": 9000,
+     "held_down": [],
+     "withheld_kwh": 0
+    },
+    "thermal": {
+     "kind": "not_applicable",
+     "reason": "synthetic fixture: no controllable cooling plant"
+    }
+   }
+  }
+ ],
+ "overrides": [
+  {
+   "override_id": "ovr-maintenance-2027-07-06",
+   "start": "2027-07-06T07:00:00Z",
+   "end": "2027-07-06T15:00:00Z",
+   "terms_id": "maintenance",
+   "reason": "synthetic fixture: planned maintenance of one inverter block"
+  }
+ ],
+ "clock": "Europe/London",
+ "resolution_min": 30,
+ "resolved_hash": "sha256:3eae4df19f91b73af60bcbc939946d7d7a0519e1014deeee947a74a9bf2869ec"
+}

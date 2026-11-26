@@ -1,0 +1,294 @@
+! WHOLE-TREE MODE: no baseline. Expect hundreds of findings, most of them long-standing design choices rather than new defects. This mode is the periodic advisory sweep, never the pre-merge gate.
+GRIDQ — CALL-PATH AUDIT
+SUSPICIONS, NOT VERDICTS — each finding is a prompt to name a production call site
+========================================================================================
+
+CHECK B — a defaulted parameter / model field that no production call site supplies  (202)
+  [not in tests]  assumptions.loader:53 latest_version(base_dir=)  <func>
+  [also in tests] assumptions.loader:68 load_assumptions(base_dir=)  <func>
+  [not in tests]  assumptions.models:132 AssumptionLibrary(availability=)  <model_field>
+  [not in tests]  assumptions.models:135 AssumptionLibrary(bill_products=)  <model_field>
+  [not in tests]  assumptions.models:133 AssumptionLibrary(penalties=)  <model_field>
+  [not in tests]  assumptions.models:134 AssumptionLibrary(tnuos=)  <model_field>
+  [not in tests]  assumptions.models:52 AssumptionMetadata(currency=)  <model_field>
+  [not in tests]  assumptions.models:53 AssumptionMetadata(notes=)  <model_field>
+  [not in tests]  contracts.__main__:37 main(argv=)  <func>
+  [also in tests] finance.credit:190 build_debt_terms_from_credit(gearing_override=)  <func>
+  [not in tests]  ingestion.access_log:43 record_hh_access(accessed_at=)  <func>
+  [not in tests]  ingestion.access_log:43 record_hh_access(action=)  <func>
+  [also in tests] ingestion.hh_data:243 load_half_hourly_csv(actor=)  <func>
+  [not in tests]  ingestion.hh_data:243 load_half_hourly_csv(expected_interval_minutes=)  <func>
+  [also in tests] ingestion.hh_data:413 summarise_half_hourly_data(allow_negative=)  <func>
+  [not in tests]  ingestion.hh_data:413 summarise_half_hourly_data(expected_interval_minutes=)  <func>
+  [not in tests]  ingestion.hh_synthesis:511 derive_half_hourly(profile=)  <func>
+  [not in tests]  ingestion.hh_synthesis:511 derive_half_hourly(year=)  <func>
+  [not in tests]  ingestion.hh_synthesis:359 synthesise_half_hourly(monthly_kwh=)  <func>
+  [not in tests]  ingestion.loaders:33 load_site_model_json(run_cross_checks=)  <func>
+  [not in tests]  ingestion.market_forecasts:105 MarketForecast(content_hash=)  <model_field>
+  [not in tests]  ingestion.market_forecasts:107 MarketForecast(report=)  <model_field>
+  [not in tests]  ingestion.validators:77 ValidationReport(issues=)  <model_field>
+  [also in tests] optimisation.engine:671 MilpEngine.__init__(export_feasibility_override=)  <func>
+  [not in tests]  optimisation.engine:671 MilpEngine.__init__(mpc_settings=)  <func>
+  [not in tests]  optimisation.engine:671 MilpEngine.__init__(registry=)  <func>
+  [not in tests]  optimisation.engine:671 MilpEngine.__init__(seed=)  <func>
+  [also in tests] optimisation.engine:671 MilpEngine.__init__(sizing_solver=)  <func>
+  [also in tests] optimisation.engine:671 MilpEngine.__init__(study_basis=)  <func>
+  [also in tests] optimisation.engine:671 MilpEngine.__init__(use_mpc=)  <func>
+  [also in tests] optimisation.engine:671 MilpEngine.__init__(use_two_stage_search=)  <func>
+  [not in tests]  optimisation.milp_solver:1053 MilpDispatchSolver.solve_window(weights=)  <func>
+  [also in tests] optimisation.mpc_solver:74 MpcDispatchSolver.__init__(battery_model=)  <func>
+  [not in tests]  optimisation.two_stage:241 provisioning_cover_pairs(steps=)  <func>
+  [not in tests]  optimisation.two_stage:319 two_stage_sizing(finance_runner=)  <func>
+  [not in tests]  optimisation.two_stage:319 two_stage_sizing(horizon_years=)  <func>
+  [not in tests]  optimisation.two_stage:319 two_stage_sizing(scenario=)  <func>
+  [also in tests] optimisation.valuation:1675 build_value_streams(cm_derating_basis_acknowledgement=)  <func>
+  [also in tests] optimisation.valuation:1908 wholesale_contracted_stream_result(cannibalised_floor_gbp=)  <func>
+  [also in tests] outputs.consulting_report:227 ConfidenceView.from_assessment(ceiling=)  <func>
+  [also in tests] outputs.consulting_report:2684 render_report_for_quote(confidence=)  <func>
+  [also in tests] outputs.generate:50 generate_artifacts(require_persisted=)  <func>
+  [not in tests]  outputs.generate:137 generate_for_run(prose_drafter=)  <func>
+  [not in tests]  outputs.generate:137 generate_for_run(sensitivities=)  <func>
+  [not in tests]  outputs.report_charts:372 _notes(fill=)  <func>
+  [not in tests]  outputs.report_charts:222 _polygon(opacity=)  <func>
+  [not in tests]  outputs.report_charts:174 _rect(opacity=)  <func>
+  [not in tests]  portfolio_requirements.generate:232 main(argv=)  <func>
+  [not in tests]  portfolio_requirements.kernel:30 irr(hi=)  <func>
+  [not in tests]  portfolio_requirements.kernel:30 irr(lo=)  <func>
+  [not in tests]  portfolio_requirements.register:371 main(argv=)  <func>
+  [not in tests]  portfolio_requirements.report:133 _fmt_pct(dp=)  <func>
+  [not in tests]  portfolio_requirements.report:338 build_report(archetypes=)  <func>
+  [not in tests]  portfolio_requirements.report:338 build_report(assumptions=)  <func>
+  [not in tests]  portfolio_requirements.report:338 build_report(target=)  <func>
+  [not in tests]  portfolio_requirements.report:172 frontier_svg(fleet_mw=)  <func>
+  [not in tests]  portfolio_requirements.report:172 frontier_svg(g=)  <func>
+  [not in tests]  portfolio_requirements.report:172 frontier_svg(n_sites=)  <func>
+  [not in tests]  portfolio_requirements.report:172 frontier_svg(opex_per_mw=)  <func>
+  [not in tests]  portfolio_requirements.report:172 frontier_svg(tier=)  <func>
+  [not in tests]  portfolio_requirements.site_report:208 build_info_pack(data_notes=)  <func>
+  [not in tests]  portfolio_requirements.sites:227 _c(proposed=)  <func>
+  [not in tests]  portfolio_requirements.solver:78 frontier(capex_hi=)  <func>
+  [not in tests]  portfolio_requirements.solver:78 frontier(capex_lo=)  <func>
+  [not in tests]  portfolio_requirements.solver:78 frontier(capex_steps=)  <func>
+  [not in tests]  portfolio_requirements.solver:78 frontier(rev_hi=)  <func>
+  [not in tests]  portfolio_requirements.solver:78 frontier(rev_lo=)  <func>
+  [not in tests]  portfolio_requirements.solver:78 frontier(rev_steps=)  <func>
+  [not in tests]  portfolio_requirements.solver:150 required_revenue_for_target(search_hi=)  <func>
+  [not in tests]  provenance.claims:105 PublicationReceipt(claim_version=)  <model_field>
+  [also in tests] provenance.claims:113 publication_claim(run_dir_label=)  <func>
+  [not in tests]  provenance.run_context:36 build_run_context(created_at=)  <func>
+  [not in tests]  quotes.assembly:288 assemble_quote_record(confidence_band=)  <func>
+  [not in tests]  quotes.assembly:288 assemble_quote_record(confidence_binding_factors=)  <func>
+  [also in tests] quotes.assembly:288 assemble_quote_record(scenario_id=)  <func>
+  [also in tests] quotes.confidence:669 assess_confidence(reconciles=)  <func>
+  [also in tests] quotes.sensitivities:114 compute_scenario_sensitivities(scenario_set=)  <func>
+  [not in tests]  quotes.telemetry:21 emit_quote_telemetry(event_id=)  <func>
+  [also in tests] quotes.telemetry:21 emit_quote_telemetry(event_type=)  <func>
+  [also in tests] quotes.telemetry:21 emit_quote_telemetry(notes=)  <func>
+  [also in tests] quotes.telemetry:21 emit_quote_telemetry(outcome=)  <func>
+  [also in tests] quotes.telemetry:21 emit_quote_telemetry(outcome_reason=)  <func>
+  [also in tests] quotes.telemetry:21 emit_quote_telemetry(realised_vs_underwritten_pct=)  <func>
+  [also in tests] scenarios.forecast_reference:131 forecast_reference_from_market_forecast(created_at=)  <func>
+  [also in tests] scenarios.forecast_reference:131 forecast_reference_from_market_forecast(forecast_version=)  <func>
+  [also in tests] scenarios.forecast_reference:131 forecast_reference_from_market_forecast(source=)  <func>
+  [also in tests] scenarios.models:55 Scenario(cod_delay_months=)  <model_field>
+  [not in tests]  scenarios.models:65 Scenario(notes=)  <model_field>
+  [not in tests]  scenarios.weights:34 normalise_weights(tol=)  <func>
+  [also in tests] schemas.commitment:151 AvailabilityCommitment(basis=)  <model_field>
+  [also in tests] schemas.commitment:109 AvailabilityCommitment(commitment_id=)  <model_field>
+  [also in tests] schemas.commitment:146 AvailabilityCommitment(confirmed_by=)  <model_field>
+  [also in tests] schemas.commitment:129 AvailabilityCommitment(counterparty=)  <model_field>
+  [also in tests] schemas.commitment:114 AvailabilityCommitment(held_energy_kwh=)  <model_field>
+  [also in tests] schemas.commitment:132 AvailabilityCommitment(reference=)  <model_field>
+  [also in tests] schemas.commitment:110 AvailabilityCommitment(stream=)  <model_field>
+  [also in tests] schemas.commitment:123 AvailabilityCommitment(tenor_years=)  <model_field>
+  [also in tests] schemas.commitment:120 AvailabilityCommitment(windows=)  <model_field>
+  [also in tests] schemas.commitment:48 AvailabilityWindow(days_of_week=)  <model_field>
+  [also in tests] schemas.commitment:53 AvailabilityWindow(end_time=)  <model_field>
+  [also in tests] schemas.commitment:41 AvailabilityWindow(label=)  <model_field>
+  [also in tests] schemas.commitment:44 AvailabilityWindow(months=)  <model_field>
+  [also in tests] schemas.commitment:52 AvailabilityWindow(start_time=)  <model_field>
+  [also in tests] schemas.confidentiality:21 Confidentiality(nda_reference=)  <model_field>
+  [also in tests] schemas.confidentiality:19 Confidentiality(nda_status=)  <model_field>
+  [also in tests] schemas.confidentiality:24 Confidentiality(personal_data_override=)  <model_field>
+  [also in tests] schemas.connection:29 ConnectionDetails(export_headroom_kw=)  <model_field>
+  [also in tests] schemas.connection:26 ConnectionDetails(import_headroom_kw=)  <model_field>
+  [not in tests]  schemas.counterparty:20 Counterparty(legal_entity_type=)  <model_field>
+  [also in tests] schemas.export_arrangement:58 ExportArrangement(notes=)  <model_field>
+  [not in tests]  schemas.optimisation:47 OptimisationRequest(created_at=)  <model_field>
+  [not in tests]  schemas.optimisation:72 OptimisationResult(created_at=)  <model_field>
+  [not in tests]  schemas.optimisation:35 SolverMetadata(reproduction_env=)  <model_field>
+  [not in tests]  schemas.optimisation:34 SolverMetadata(solve_seconds=)  <model_field>
+  [not in tests]  schemas.provenance:43 GridQModel(schema_version=)  <model_field>
+  [also in tests] schemas.provisioning:53 ProvisioningRequirement(additional_load_kw=)  <model_field>
+  [also in tests] schemas.provisioning:59 ProvisioningRequirement(additional_load_profile_daily_kw=)  <model_field>
+  [also in tests] schemas.provisioning:98 ProvisioningRequirement(counterfactual_basis=)  <model_field>
+  [also in tests] schemas.provisioning:83 ProvisioningRequirement(counterparty=)  <model_field>
+  [also in tests] schemas.provisioning:91 ProvisioningRequirement(declared_counterfactual_gbp_per_year=)  <model_field>
+  [also in tests] schemas.provisioning:71 ProvisioningRequirement(import_cap_kw=)  <model_field>
+  [also in tests] schemas.provisioning:86 ProvisioningRequirement(reference=)  <model_field>
+  [also in tests] schemas.provisioning:49 ProvisioningRequirement(requirement_id=)  <model_field>
+  [also in tests] schemas.provisioning:66 ProvisioningRequirement(serve_metered_shortfall=)  <model_field>
+  [also in tests] schemas.provisioning:77 ProvisioningRequirement(tenor_years=)  <model_field>
+  [also in tests] schemas.provisioning:50 ProvisioningRequirement(windows=)  <model_field>
+  [not in tests]  schemas.quote:149 QuoteRecord(basis_override_note=)  <model_field>
+  [not in tests]  schemas.quote:154 QuoteRecord(created_at=)  <model_field>
+  [not in tests]  schemas.site:70 PhysicalGateStatus(planning_or_landlord_issue=)  <model_field>
+  [not in tests]  schemas.site:97 SiteModel(confidentiality=)  <model_field>
+  [not in tests]  schemas.site:159 SiteModel(created_at=)  <model_field>
+  [also in tests] schemas.site:141 SiteModel(local_flex_awards=)  <model_field>
+  [not in tests]  schemas.sizing:202 SizingGrid(schema_version=)  <model_field>
+  [not in tests]  schemas.sizing:159 SizingGridPoint(schema_version=)  <model_field>
+  [not in tests]  schemas.sizing:75 SizingGridStreamRevenue(schema_version=)  <model_field>
+  [also in tests] schemas.stream_consent:72 RevenueStreamConsent(notes=)  <model_field>
+  [not in tests]  schemas.study:74 StudyBasis(ACKNOWLEDGEMENT=)  <model_field>
+  [not in tests]  schemas.study:80 StudyBasis(BASIS_ID=)  <model_field>
+  [not in tests]  schemas.study:91 StudyBasis(CONSENT_KEY=)  <model_field>
+  [not in tests]  schemas.study:90 StudyBasis(EXPORT_LIMIT_KEY=)  <model_field>
+  [not in tests]  schemas.study:82 StudyBasis(LABEL=)  <model_field>
+  [not in tests]  schemas.study:86 StudyBasis(SOLVER_SUFFIX=)  <model_field>
+  [not in tests]  schemas.study:89 StudyBasis(TARIFF_KEY=)  <model_field>
+  [not in tests]  schemas.study:96 StudyBasis(authorised_by=)  <model_field>
+  [not in tests]  schemas.study:112 StudyBasis(confidence_ceiling=)  <model_field>
+  [not in tests]  schemas.study:102 StudyBasis(export_limit_kw=)  <model_field>
+  [not in tests]  schemas.study:104 StudyBasis(export_tariff_gbp_per_kwh=)  <model_field>
+  [not in tests]  schemas.study:98 StudyBasis(justification=)  <model_field>
+  [also in tests] schemas.supply:22 SupplyBoundary(behind_the_meter=)  <model_field>
+  [also in tests] schemas.supply:24 SupplyBoundary(metering_point=)  <model_field>
+  [also in tests] schemas.supply:25 SupplyBoundary(notes=)  <model_field>
+  [also in tests] schemas.tariff:147 TariffStack(windowed_levies=)  <model_field>
+  [not in tests]  schemas.tariff:103 WindowedLevy(basis=)  <model_field>
+  [not in tests]  schemas.tariff:105 WindowedLevy(confidence=)  <model_field>
+  [not in tests]  schemas.tariff:102 WindowedLevy(excluded_dates=)  <model_field>
+  [not in tests]  schemas.tariff:96 WindowedLevy(months=)  <model_field>
+  [not in tests]  schemas.tariff:94 WindowedLevy(rate_gbp_per_kwh=)  <model_field>
+  [not in tests]  schemas.tariff:104 WindowedLevy(source=)  <model_field>
+  [not in tests]  schemas.tariff:99 WindowedLevy(weekday_windows=)  <model_field>
+  [not in tests]  schemas.tariff:100 WindowedLevy(weekend_windows=)  <model_field>
+  [not in tests]  sizing.domain:86 SizingDomain.from_site(duration_band_h=)  <func>
+  [also in tests] sizing.domain:86 SizingDomain.from_site(power_fraction_range=)  <func>
+  [also in tests] sizing.evaluator:103 ContinuousSizingEvaluator.__init__(debt_terms=)  <func>
+  [not in tests]  sizing.evaluator:103 ContinuousSizingEvaluator.__init__(extra_constraints=)  <func>
+  [not in tests]  sizing.evaluator:103 ContinuousSizingEvaluator.__init__(finance_runner=)  <func>
+  [not in tests]  sizing.evaluator:103 ContinuousSizingEvaluator.__init__(horizon_years=)  <func>
+  [not in tests]  sizing.evaluator:103 ContinuousSizingEvaluator.__init__(registry=)  <func>
+  [not in tests]  sizing.evaluator:103 ContinuousSizingEvaluator.__init__(requested_streams=)  <func>
+  [not in tests]  sizing.evaluator:103 ContinuousSizingEvaluator.__init__(scenario=)  <func>
+  [not in tests]  sizing.provisioning:117 SearchFloors.admits(tol=)  <func>
+  [also in tests] sizing.provisioning:302 exceedance_levels(basis=)  <func>
+  [not in tests]  sizing.provisioning:330 recharge_scan(initial_soe_kwh=)  <func>
+  [not in tests]  sizing.refine:43 refine_sizing(crossover=)  <func>
+  [also in tests] sizing.refine:43 refine_sizing(max_generations=)  <func>
+  [not in tests]  sizing.refine:43 refine_sizing(mutation=)  <func>
+  [also in tests] sizing.refine:43 refine_sizing(pop_size=)  <func>
+  [not in tests]  sizing.refine:43 refine_sizing(stall_generations=)  <func>
+  [also in tests] sizing.sizer:502 enumerate_sizing(extra_constraints=)  <func>
+  [not in tests]  sizing.sizer:502 enumerate_sizing(finance_runner=)  <func>
+  [not in tests]  sizing.sizer:502 enumerate_sizing(horizon_years=)  <func>
+  [also in tests] sizing.sizer:502 enumerate_sizing(scenario=)  <func>
+  [not in tests]  sizing.typical_periods:35 select_typical_days(min_days=)  <func>
+  [also in tests] value_stack.gb_streams:2218 eac_response_value(toll_reference=)  <func>
+  [also in tests] value_stack.gb_streams:2523 local_flex_availability_value(utilisation_performance_ratio=)  <func>
+  [not in tests]  value_stack.gb_streams:4158 mid_half_hourly_export_price_series(repo_root=)  <func>
+  [not in tests]  value_stack.gb_streams:2492 payable_delivery_fraction(grace=)  <func>
+  [not in tests]  value_stack.gb_streams:2492 payable_delivery_fraction(multiplier=)  <func>
+  [not in tests]  value_stack.gb_streams:2492 payable_delivery_fraction(payable_over_delivery=)  <func>
+  [also in tests] value_stack.interface:265 ValueStream.value_function(context=)  <func>
+  [not in tests]  value_stack.streams:142 BaseValueStream.__init__(assumption_keys=)  <func>
+  [not in tests]  value_stack.streams:142 BaseValueStream.__init__(constraints=)  <func>
+  [also in tests] value_stack.streams:228 BaseValueStream.value_function(assumptions=)  <func>
+  [also in tests] value_stack.streams:228 BaseValueStream.value_function(context=)  <func>
+  [also in tests] value_stack.streams:228 BaseValueStream.value_function(dispatch_schedule=)  <func>
+  [not in tests]  value_stack.streams:228 BaseValueStream.value_function(scenario=)  <func>
+  [also in tests] value_stack.streams:228 BaseValueStream.value_function(site_model=)  <func>
+  [not in tests]  value_stack.streams:348 ContractedStream.__init__(assumption_keys=)  <func>
+  [not in tests]  value_stack.streams:348 ContractedStream.__init__(constraints=)  <func>
+  [not in tests]  value_stack.streams:326 FloorStream.__init__(assumption_keys=)  <func>
+  [not in tests]  value_stack.streams:326 FloorStream.__init__(constraints=)  <func>
+  [not in tests]  value_stack.streams:377 GatedUpsideStream.__init__(assumption_keys=)  <func>
+  [not in tests]  value_stack.streams:377 GatedUpsideStream.__init__(constraints=)  <func>
+
+CHECK A — a public symbol referenced nowhere else in src/  (48)
+  [not in tests]  app.store:152 delete_run  <symbol>
+  [not in tests]  app.upside:67 build_upside_project  <symbol>
+  [also in tests] assumptions.reprice:194 assess_quote_reprice  <symbol>
+  [also in tests] contracts._base:127 not_applicable  <symbol>
+  [also in tests] contracts.evidence:439 assess  <symbol>
+  [also in tests] contracts.evidence:376 evidence_ref  <symbol>
+  [also in tests] contracts.evidence:385 serialise_evidence  <symbol>
+  [also in tests] dispatch.simple_solver:39 SimpleSolver  <symbol>
+  [also in tests] engine.conformance:542 assert_conformant  <symbol>
+  [also in tests] finance.financial_model:326 build_financial_case  <symbol>
+  [also in tests] ingestion.access_log:85 clear_access_log  <symbol>
+  [also in tests] ingestion.access_log:80 get_access_log  <symbol>
+  [not in tests]  ingestion.data_tier:93 classify_site_data_tier  <symbol>
+  [not in tests]  ingestion.improvement_asks:76 format_data_asks  <symbol>
+  [also in tests] ingestion.market_forecasts:445 summarise_market_forecast  <symbol>
+  [also in tests] optimisation.tariff_calendar:724 duos_rate_series  <symbol>
+  [also in tests] optimisation.valuation:2010 derive_flat_export_tariff  <symbol>
+  [also in tests] outputs.consulting_report:2731 render_publishable_pack  <symbol>
+  [also in tests] portfolio_requirements.sites:801 evaluate_all  <symbol>
+  [not in tests]  portfolio_requirements.solver:349 worst_tag_across  <symbol>
+  [not in tests]  quotes.lifecycle:150 current_mode  <symbol>
+  [also in tests] quotes.lifecycle:155 history_modes  <symbol>
+  [also in tests] quotes.lifecycle:160 transition_quote  <symbol>
+  [also in tests] quotes.persistence:235 is_persisted  <symbol>
+  [also in tests] quotes.persistence:279 publish_run  <symbol>
+  [also in tests] scenarios.engine:226 ScenarioEvaluator  <symbol>
+  [also in tests] scenarios.engine:418 build_forecast_backed_scenario_set  <symbol>
+  [also in tests] scenarios.forecast_prices:198 price_series_for_set  <symbol>
+  [also in tests] scenarios.forecast_reference:237 build_forecast_reference  <symbol>
+  [not in tests]  scenarios.forecast_reference:308 require_forecast_reference  <symbol>
+  [also in tests] scenarios.forecast_reference:271 verify_forecast_reference  <symbol>
+  [also in tests] scenarios.weights:29 weights_sum_ok  <symbol>
+  [not in tests]  schemas.provenance:46 Provenance  <symbol>
+  [also in tests] sizing.parallel:90 benchmark_parallel_evaluation  <symbol>
+  [also in tests] sizing.provisioning:374 assess_provisioning  <symbol>
+  [also in tests] sizing.search:219 adaptive_refine_search  <symbol>
+  [also in tests] sizing.search:86 dense_grid_search  <symbol>
+  [also in tests] sizing.search:375 pso_search  <symbol>
+  [also in tests] sizing.search:137 search_result_to_sizing_grid  <symbol>
+  [also in tests] sizing.underwrite:94 financial_fingerprint  <symbol>
+  [also in tests] sizing.underwrite:46 underwrite_spec  <symbol>
+  [also in tests] telemetry.analytics:47 summarise_telemetry  <symbol>
+  [also in tests] telemetry.manual_benchmark:190 convert_benchmark_to_telemetry_event  <symbol>
+  [also in tests] telemetry.manual_benchmark:76 create_manual_benchmark_record  <symbol>
+  [also in tests] telemetry.manual_benchmark:166 render_manual_benchmark_markdown  <symbol>
+  [not in tests]  value_stack.dispatch:35 DispatchScheduleLike  <symbol>
+  [also in tests] value_stack.gb_streams:3535 dfs_performance_factor  <symbol>
+  [also in tests] value_stack.gb_streams:3613 dfs_settlement_value_gbp  <symbol>
+
+COVERAGE — what was examined, and what was not
+  tree ......................... /Users/oliverpugh/Desktop/1 - Neura UK/Neura GitHub/uk
+  core modules parsed .......... 152
+  core files SKIPPED ........... 0
+  test files parsed ............ 233
+  baseline ..................... NONE — whole-tree mode
+  baseline modules parsed ...... 0
+  checks run ................... A, B
+  checks NOT run ............... C
+  suppressed (each is a finding you are NOT being shown):
+      pre-existing in baseline . 0
+      arity unknown (*/**) ..... 15 call target(s); their parameters can never be flagged
+      deduped into A/C ......... 83 parameter(s) of functions already reported as unreachable
+      entry-point signatures ... 7 parameter(s) of declared entry points, whose callers live outside src/
+      closure parameters ....... 1 parameter(s) of functions nested inside functions; their callers cannot be resolved by name
+      allowlisted .............. 0
+  allowlist .................... no entries (no docs/dormant_code.toml)
+  allowlist staleness .......... checked
+  display limit ................ 400 (0 finding(s) hidden from this listing — use --json)
+
+HOW TO READ THIS
+  A finding means: open the file and name the production call site, or record the
+  dormancy in docs/dormant_code.toml. It does NOT mean a defect is proven. Measured
+  on the tree this audit was calibrated against, ~25% of findings (6 of 24, all in
+  check B) were false positives with a legitimate reason already in the source.
+  '[also in tests]' is the strongest signal: tested, and never exercised in
+  production, is this repo's failure mode stated verbatim.
+
+  THE LIMIT: this proves a CALL PATH EXISTS. It never proves a VALUE FLOWS. Two of
+  the eight historical instances had a call path and were inert anyway — one because
+  nothing populated the field, one because the precondition is never met on a real
+  site. A clean run here is necessary, and sufficient for nothing. The evidence that
+  work landed is still: the production call site, plus the test that goes red when
+  that call site is deleted.
+  (250 finding(s) in 1.98s)

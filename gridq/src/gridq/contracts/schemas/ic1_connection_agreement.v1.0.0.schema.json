@@ -1,0 +1,872 @@
+{
+  "$defs": {
+    "Citation": {
+      "additionalProperties": false,
+      "properties": {
+        "title": {
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Title",
+          "type": "string"
+        },
+        "url": {
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Url",
+          "type": "string"
+        },
+        "used_for": {
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Used For",
+          "type": "string"
+        }
+      },
+      "required": [
+        "title",
+        "url",
+        "used_for"
+      ],
+      "title": "Citation",
+      "type": "object"
+    },
+    "ConnectionArchetype": {
+      "description": "Spec A1-01 \"data-centre archetype\".",
+      "enum": [
+        "firm",
+        "hybrid",
+        "fully_non_firm"
+      ],
+      "title": "ConnectionArchetype",
+      "type": "string"
+    },
+    "ConstraintCause": {
+      "description": "Spec A1-01 \"cause (distribution vs transmission / Technical Limits)\".",
+      "enum": [
+        "distribution",
+        "transmission",
+        "transmission_technical_limits"
+      ],
+      "title": "ConstraintCause",
+      "type": "string"
+    },
+    "CurtailmentLimit": {
+      "additionalProperties": false,
+      "description": "Spec A1-01 \"Curtailment Limit (hours or % per year, Access SCR / DCUSA DCP404/405)\".",
+      "properties": {
+        "basis": {
+          "enum": [
+            "hours_per_year",
+            "percent_of_hours_per_year",
+            "percent_of_energy_per_year"
+          ],
+          "title": "Basis",
+          "type": "string"
+        },
+        "kind": {
+          "const": "curtailment_limit",
+          "title": "Kind",
+          "type": "string"
+        },
+        "value": {
+          "minimum": 0,
+          "title": "Value",
+          "type": "number"
+        }
+      },
+      "required": [
+        "kind",
+        "basis",
+        "value"
+      ],
+      "title": "CurtailmentLimit",
+      "type": "object"
+    },
+    "CurtailmentPrice": {
+      "additionalProperties": false,
+      "description": "Spec A1-01 \"exceeded-curtailment price\": paid for curtailment beyond the limit.",
+      "properties": {
+        "gbp_per_mwh": {
+          "minimum": 0,
+          "title": "Gbp Per Mwh",
+          "type": "number"
+        },
+        "kind": {
+          "const": "curtailment_price",
+          "title": "Kind",
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind",
+        "gbp_per_mwh"
+      ],
+      "title": "CurtailmentPrice",
+      "type": "object"
+    },
+    "EvidenceBacked": {
+      "additionalProperties": false,
+      "description": "Transcribed from a registered IC-4 evidence object (the signed offer or agreement).",
+      "properties": {
+        "evidence": {
+          "$ref": "#/$defs/EvidenceRef"
+        },
+        "kind": {
+          "const": "evidence_backed",
+          "title": "Kind",
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind",
+        "evidence"
+      ],
+      "title": "EvidenceBacked",
+      "type": "object"
+    },
+    "EvidenceRef": {
+      "additionalProperties": false,
+      "description": "A reference to an IC-4 instance by its content hash (what IC-1 and others embed).",
+      "properties": {
+        "contract": {
+          "const": "IC-4",
+          "title": "Contract",
+          "type": "string"
+        },
+        "contract_version": {
+          "const": "1.0.0",
+          "title": "Contract Version",
+          "type": "string"
+        },
+        "evidence_hash": {
+          "pattern": "^sha256:[0-9a-f]{64}$",
+          "title": "Evidence Hash",
+          "type": "string"
+        },
+        "kind": {
+          "const": "evidence_ref",
+          "title": "Kind",
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind",
+        "contract",
+        "contract_version",
+        "evidence_hash"
+      ],
+      "title": "EvidenceRef",
+      "type": "object"
+    },
+    "ImportProfile": {
+      "additionalProperties": false,
+      "description": "Spec A1-01 \"profiled import (time-varying max import, UKPN 'Profiled')\".",
+      "properties": {
+        "blocks": {
+          "items": {
+            "$ref": "#/$defs/ProfileBlock"
+          },
+          "minItems": 1,
+          "title": "Blocks",
+          "type": "array"
+        },
+        "kind": {
+          "const": "import_profile",
+          "title": "Kind",
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind",
+        "blocks"
+      ],
+      "title": "ImportProfile",
+      "type": "object"
+    },
+    "LifoPosition": {
+      "additionalProperties": false,
+      "description": "Spec A1-01 \"LIFO position\", one per constraint (NGED's LIFO stack is per constraint).",
+      "properties": {
+        "constraint_ref": {
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Constraint Ref",
+          "type": "string"
+        },
+        "position": {
+          "minimum": 1,
+          "title": "Position",
+          "type": "integer"
+        },
+        "queue_length": {
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "$ref": "#/$defs/Unknown"
+            }
+          ],
+          "title": "Queue Length"
+        }
+      },
+      "required": [
+        "constraint_ref",
+        "position",
+        "queue_length"
+      ],
+      "title": "LifoPosition",
+      "type": "object"
+    },
+    "NetworkOperator": {
+      "description": "The licensee that issued the offer: the six GB DNO groups, an IDNO, or NESO.",
+      "enum": [
+        "ukpn",
+        "nged",
+        "ssen",
+        "spen",
+        "enwl",
+        "npg",
+        "idno",
+        "neso"
+      ],
+      "title": "NetworkOperator",
+      "type": "string"
+    },
+    "NotApplicable": {
+      "additionalProperties": false,
+      "description": "A term that does not exist for this record (e.g. a LIFO position on a firm connection).\n\nDistinct from `Unknown`: \"not applicable\" is a statement about the agreement, \"unknown\" is a\nstatement about our knowledge of it. Both carry a reason.",
+      "properties": {
+        "kind": {
+          "const": "not_applicable",
+          "title": "Kind",
+          "type": "string"
+        },
+        "reason": {
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Reason",
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind",
+        "reason"
+      ],
+      "title": "NotApplicable",
+      "type": "object"
+    },
+    "PccTerms": {
+      "additionalProperties": false,
+      "description": "Spec A1-01 \"PCC terms\": the point of common coupling.",
+      "properties": {
+        "description": {
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Description",
+          "type": "string"
+        },
+        "kind": {
+          "const": "pcc_terms",
+          "title": "Kind",
+          "type": "string"
+        },
+        "voltage_kv": {
+          "exclusiveMinimum": 0,
+          "title": "Voltage Kv",
+          "type": "number"
+        }
+      },
+      "required": [
+        "kind",
+        "voltage_kv",
+        "description"
+      ],
+      "title": "PccTerms",
+      "type": "object"
+    },
+    "PowerFactorTerms": {
+      "additionalProperties": false,
+      "description": "Spec A1-01 \"power-factor\" terms.",
+      "properties": {
+        "kind": {
+          "const": "power_factor_terms",
+          "title": "Kind",
+          "type": "string"
+        },
+        "min_power_factor": {
+          "exclusiveMinimum": 0,
+          "maximum": 1,
+          "title": "Min Power Factor",
+          "type": "number"
+        },
+        "reactive_direction": {
+          "enum": [
+            "lagging",
+            "leading",
+            "lagging_or_leading"
+          ],
+          "title": "Reactive Direction",
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind",
+        "min_power_factor",
+        "reactive_direction"
+      ],
+      "title": "PowerFactorTerms",
+      "type": "object"
+    },
+    "ProfileBlock": {
+      "additionalProperties": false,
+      "description": "One block of a profiled (time-varying) maximum import.\n\nTimes are GB settlement periods, 1–48, inclusive at both ends (period 1 = 00:00–00:30).",
+      "properties": {
+        "day_type": {
+          "enum": [
+            "all",
+            "weekday",
+            "weekend"
+          ],
+          "title": "Day Type",
+          "type": "string"
+        },
+        "end_period": {
+          "maximum": 48,
+          "minimum": 1,
+          "title": "End Period",
+          "type": "integer"
+        },
+        "max_import_mw": {
+          "minimum": 0,
+          "title": "Max Import Mw",
+          "type": "number"
+        },
+        "months": {
+          "items": {
+            "maximum": 12,
+            "minimum": 1,
+            "type": "integer"
+          },
+          "minItems": 1,
+          "title": "Months",
+          "type": "array"
+        },
+        "start_period": {
+          "maximum": 48,
+          "minimum": 1,
+          "title": "Start Period",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "months",
+        "day_type",
+        "start_period",
+        "end_period",
+        "max_import_mw"
+      ],
+      "title": "ProfileBlock",
+      "type": "object"
+    },
+    "RampTerms": {
+      "additionalProperties": false,
+      "description": "Spec A1-01 \"ramp\" terms on import changes.",
+      "properties": {
+        "kind": {
+          "const": "ramp_terms",
+          "title": "Kind",
+          "type": "string"
+        },
+        "max_ramp_down_mw_per_min": {
+          "exclusiveMinimum": 0,
+          "title": "Max Ramp Down Mw Per Min",
+          "type": "number"
+        },
+        "max_ramp_up_mw_per_min": {
+          "exclusiveMinimum": 0,
+          "title": "Max Ramp Up Mw Per Min",
+          "type": "number"
+        }
+      },
+      "required": [
+        "kind",
+        "max_ramp_up_mw_per_min",
+        "max_ramp_down_mw_per_min"
+      ],
+      "title": "RampTerms",
+      "type": "object"
+    },
+    "SignalProtocol": {
+      "description": "IC-1 \"signal protocol\": how the DNO ANM / RTU instruction reaches site (spec §6, B1-03).",
+      "enum": [
+        "hardwired_contact",
+        "dnp3",
+        "iec_60870_5_104",
+        "iec_61850",
+        "modbus_tcp"
+      ],
+      "title": "SignalProtocol",
+      "type": "string"
+    },
+    "SyntheticArchetype": {
+      "additionalProperties": false,
+      "description": "Schema-test data, not an agreement anyone holds. Consumers must refuse it outside tests.",
+      "properties": {
+        "based_on": {
+          "items": {
+            "$ref": "#/$defs/Citation"
+          },
+          "minItems": 1,
+          "title": "Based On",
+          "type": "array"
+        },
+        "kind": {
+          "const": "synthetic_archetype",
+          "title": "Kind",
+          "type": "string"
+        },
+        "statement": {
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Statement",
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind",
+        "statement",
+        "based_on"
+      ],
+      "title": "SyntheticArchetype",
+      "type": "object"
+    },
+    "Unknown": {
+      "additionalProperties": false,
+      "description": "A value that exists but is not known. Always explicit, always with a reason; never ``None``.\n\nSerialised as ``{\"kind\": \"unknown\", \"reason\": \"...\"}``. ``kind`` is required (no default) so\na hand-written payload that omits it is refused rather than guessed at.",
+      "properties": {
+        "kind": {
+          "const": "unknown",
+          "title": "Kind",
+          "type": "string"
+        },
+        "reason": {
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Reason",
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind",
+        "reason"
+      ],
+      "title": "Unknown",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "description": "IC-1 v1.0.0: all A1-01 terms, plus ANM response time and signal protocol.",
+  "properties": {
+    "agreement_ref": {
+      "minLength": 1,
+      "pattern": "\\S",
+      "title": "Agreement Ref",
+      "type": "string"
+    },
+    "anm_response_time_s": {
+      "anyOf": [
+        {
+          "exclusiveMinimum": 0,
+          "type": "number"
+        },
+        {
+          "$ref": "#/$defs/NotApplicable"
+        },
+        {
+          "$ref": "#/$defs/Unknown"
+        }
+      ],
+      "title": "Anm Response Time S"
+    },
+    "archetype": {
+      "$ref": "#/$defs/ConnectionArchetype"
+    },
+    "constraint_causes": {
+      "anyOf": [
+        {
+          "items": {
+            "$ref": "#/$defs/ConstraintCause"
+          },
+          "minItems": 1,
+          "type": "array"
+        },
+        {
+          "$ref": "#/$defs/NotApplicable"
+        },
+        {
+          "$ref": "#/$defs/Unknown"
+        }
+      ],
+      "title": "Constraint Causes"
+    },
+    "contract": {
+      "const": "IC-1",
+      "default": "IC-1",
+      "title": "Contract",
+      "type": "string"
+    },
+    "contract_version": {
+      "const": "1.0.0",
+      "default": "1.0.0",
+      "title": "Contract Version",
+      "type": "string"
+    },
+    "curtailment_limit": {
+      "discriminator": {
+        "mapping": {
+          "curtailment_limit": "#/$defs/CurtailmentLimit",
+          "not_applicable": "#/$defs/NotApplicable",
+          "unknown": "#/$defs/Unknown"
+        },
+        "propertyName": "kind"
+      },
+      "oneOf": [
+        {
+          "$ref": "#/$defs/CurtailmentLimit"
+        },
+        {
+          "$ref": "#/$defs/NotApplicable"
+        },
+        {
+          "$ref": "#/$defs/Unknown"
+        }
+      ],
+      "title": "Curtailment Limit"
+    },
+    "exceeded_curtailment_price": {
+      "discriminator": {
+        "mapping": {
+          "curtailment_price": "#/$defs/CurtailmentPrice",
+          "not_applicable": "#/$defs/NotApplicable",
+          "unknown": "#/$defs/Unknown"
+        },
+        "propertyName": "kind"
+      },
+      "oneOf": [
+        {
+          "$ref": "#/$defs/CurtailmentPrice"
+        },
+        {
+          "$ref": "#/$defs/NotApplicable"
+        },
+        {
+          "$ref": "#/$defs/Unknown"
+        }
+      ],
+      "title": "Exceeded Curtailment Price"
+    },
+    "firm_by_date": {
+      "anyOf": [
+        {
+          "format": "date",
+          "type": "string"
+        },
+        {
+          "$ref": "#/$defs/NotApplicable"
+        },
+        {
+          "$ref": "#/$defs/Unknown"
+        }
+      ],
+      "title": "Firm By Date"
+    },
+    "firm_import_mw": {
+      "anyOf": [
+        {
+          "minimum": 0,
+          "type": "number"
+        },
+        {
+          "$ref": "#/$defs/Unknown"
+        }
+      ],
+      "title": "Firm Import Mw"
+    },
+    "lifo_positions": {
+      "anyOf": [
+        {
+          "items": {
+            "$ref": "#/$defs/LifoPosition"
+          },
+          "minItems": 1,
+          "type": "array"
+        },
+        {
+          "$ref": "#/$defs/NotApplicable"
+        },
+        {
+          "$ref": "#/$defs/Unknown"
+        }
+      ],
+      "title": "Lifo Positions"
+    },
+    "network_operator": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/NetworkOperator"
+        },
+        {
+          "$ref": "#/$defs/Unknown"
+        }
+      ],
+      "title": "Network Operator"
+    },
+    "network_security": {
+      "anyOf": [
+        {
+          "enum": [
+            "N-0",
+            "N-1",
+            "N-2"
+          ],
+          "type": "string"
+        },
+        {
+          "$ref": "#/$defs/Unknown"
+        }
+      ],
+      "title": "Network Security"
+    },
+    "non_firm_end_date": {
+      "anyOf": [
+        {
+          "format": "date",
+          "type": "string"
+        },
+        {
+          "$ref": "#/$defs/NotApplicable"
+        },
+        {
+          "$ref": "#/$defs/Unknown"
+        }
+      ],
+      "title": "Non Firm End Date"
+    },
+    "non_firm_import_mw": {
+      "anyOf": [
+        {
+          "minimum": 0,
+          "type": "number"
+        },
+        {
+          "$ref": "#/$defs/Unknown"
+        }
+      ],
+      "title": "Non Firm Import Mw"
+    },
+    "notice_period_s": {
+      "anyOf": [
+        {
+          "minimum": 0,
+          "type": "number"
+        },
+        {
+          "$ref": "#/$defs/NotApplicable"
+        },
+        {
+          "$ref": "#/$defs/Unknown"
+        }
+      ],
+      "title": "Notice Period S"
+    },
+    "pcc": {
+      "discriminator": {
+        "mapping": {
+          "pcc_terms": "#/$defs/PccTerms",
+          "unknown": "#/$defs/Unknown"
+        },
+        "propertyName": "kind"
+      },
+      "oneOf": [
+        {
+          "$ref": "#/$defs/PccTerms"
+        },
+        {
+          "$ref": "#/$defs/Unknown"
+        }
+      ],
+      "title": "Pcc"
+    },
+    "power_factor": {
+      "discriminator": {
+        "mapping": {
+          "not_applicable": "#/$defs/NotApplicable",
+          "power_factor_terms": "#/$defs/PowerFactorTerms",
+          "unknown": "#/$defs/Unknown"
+        },
+        "propertyName": "kind"
+      },
+      "oneOf": [
+        {
+          "$ref": "#/$defs/PowerFactorTerms"
+        },
+        {
+          "$ref": "#/$defs/NotApplicable"
+        },
+        {
+          "$ref": "#/$defs/Unknown"
+        }
+      ],
+      "title": "Power Factor"
+    },
+    "profiled_import": {
+      "discriminator": {
+        "mapping": {
+          "import_profile": "#/$defs/ImportProfile",
+          "not_applicable": "#/$defs/NotApplicable",
+          "unknown": "#/$defs/Unknown"
+        },
+        "propertyName": "kind"
+      },
+      "oneOf": [
+        {
+          "$ref": "#/$defs/ImportProfile"
+        },
+        {
+          "$ref": "#/$defs/NotApplicable"
+        },
+        {
+          "$ref": "#/$defs/Unknown"
+        }
+      ],
+      "title": "Profiled Import"
+    },
+    "ramp": {
+      "discriminator": {
+        "mapping": {
+          "not_applicable": "#/$defs/NotApplicable",
+          "ramp_terms": "#/$defs/RampTerms",
+          "unknown": "#/$defs/Unknown"
+        },
+        "propertyName": "kind"
+      },
+      "oneOf": [
+        {
+          "$ref": "#/$defs/RampTerms"
+        },
+        {
+          "$ref": "#/$defs/NotApplicable"
+        },
+        {
+          "$ref": "#/$defs/Unknown"
+        }
+      ],
+      "title": "Ramp"
+    },
+    "signal_protocol": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/SignalProtocol"
+        },
+        {
+          "$ref": "#/$defs/NotApplicable"
+        },
+        {
+          "$ref": "#/$defs/Unknown"
+        }
+      ],
+      "title": "Signal Protocol"
+    },
+    "signal_type": {
+      "anyOf": [
+        {
+          "enum": [
+            "setpoint",
+            "trip",
+            "setpoint_and_trip"
+          ],
+          "type": "string"
+        },
+        {
+          "$ref": "#/$defs/NotApplicable"
+        },
+        {
+          "$ref": "#/$defs/Unknown"
+        }
+      ],
+      "title": "Signal Type"
+    },
+    "site_id": {
+      "minLength": 1,
+      "pattern": "\\S",
+      "title": "Site Id",
+      "type": "string"
+    },
+    "source": {
+      "discriminator": {
+        "mapping": {
+          "evidence_backed": "#/$defs/EvidenceBacked",
+          "synthetic_archetype": "#/$defs/SyntheticArchetype",
+          "unknown": "#/$defs/Unknown"
+        },
+        "propertyName": "kind"
+      },
+      "oneOf": [
+        {
+          "$ref": "#/$defs/EvidenceBacked"
+        },
+        {
+          "$ref": "#/$defs/SyntheticArchetype"
+        },
+        {
+          "$ref": "#/$defs/Unknown"
+        }
+      ],
+      "title": "Source"
+    },
+    "tenure": {
+      "anyOf": [
+        {
+          "enum": [
+            "interim",
+            "enduring"
+          ],
+          "type": "string"
+        },
+        {
+          "$ref": "#/$defs/Unknown"
+        }
+      ],
+      "title": "Tenure"
+    }
+  },
+  "required": [
+    "agreement_ref",
+    "site_id",
+    "source",
+    "network_operator",
+    "archetype",
+    "firm_import_mw",
+    "non_firm_import_mw",
+    "profiled_import",
+    "curtailment_limit",
+    "exceeded_curtailment_price",
+    "non_firm_end_date",
+    "firm_by_date",
+    "tenure",
+    "constraint_causes",
+    "lifo_positions",
+    "notice_period_s",
+    "signal_type",
+    "ramp",
+    "power_factor",
+    "pcc",
+    "network_security",
+    "anm_response_time_s",
+    "signal_protocol"
+  ],
+  "title": "ConnectionAgreement",
+  "type": "object"
+}

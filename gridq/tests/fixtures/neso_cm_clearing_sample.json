@@ -1,0 +1,12 @@
+{
+  "success": true,
+  "result": {
+    "records": [
+      {"_id": 1, "Auction Name": "2028-29 (T-4) Four Year Ahead Capacity Auction", "Delivery Year": "2028/2029", "Capacity Awarded": 3457.482, "Forecast Cost (£)": 207448920.0},
+      {"_id": 2, "Auction Name": "2028-29 (T-4) Four Year Ahead Capacity Auction", "Delivery Year": "2029/2030", "Capacity Awarded": 3457.482, "Forecast Cost (£)": 207448920.0},
+      {"_id": 3, "Auction Name": "2029-30 (T-4) Four Year Ahead Capacity Auction", "Delivery Year": "2029/2030", "Capacity Awarded": 40108.608, "Forecast Cost (£)": 1086943276.8},
+      {"_id": 4, "Auction Name": "2029-30 (T-4) Four Year Ahead Capacity Auction", "Delivery Year": "2030/2031", "Capacity Awarded": 2862.126, "Forecast Cost (£)": 77563614.6},
+      {"_id": 5, "Auction Name": "2026-27 (T-1) One Year Ahead Capacity Auction", "Delivery Year": "2026/2027", "Capacity Awarded": 1000.0, "Forecast Cost (£)": 5000000.0}
+    ]
+  }
+}

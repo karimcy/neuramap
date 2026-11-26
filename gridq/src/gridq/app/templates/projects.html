@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+{% block title %}Projects - GridQ{% endblock %}
+{% block crumbs %}<a href="/">Dashboard</a> <span class="sep">/</span> <span class="here">Projects</span>{% endblock %}
+{% block content %}
+
+<div class="card-head" style="margin-bottom:1rem">
+  <h1 style="margin:0">Projects</h1>
+  <a class="btn" href="/new-quote">New Quote</a>
+</div>
+
+<p class="muted" style="margin:0 0 1rem">
+  {% if user and user.signed_in %}Showing your projects ({{ user.email }}) plus shared examples.
+  {% else %}Showing this browser's private workspace plus shared examples.
+  {% if user and user.google_available %}<a href="/auth/login">Sign in with Google</a> to keep
+  your projects across devices.{% endif %}{% endif %}
+</p>
+
+<div class="card">
+  {% if runs %}
+  <div class="tablewrap"><table class="data">
+    <thead><tr><th>Project</th><th>Site</th><th>Status</th><th>Mode</th><th>Pricing basis</th><th>Access</th><th></th></tr></thead>
+    <tbody>
+      {% for r in runs %}
+      <tr>
+        <td>{{ r.label }}</td>
+        <td>{{ r.site_id }}</td>
+        <td>{{ r.status }}</td>
+        <td>{% if r.is_demo %}Demo{% else %}Real site{% endif %}</td>
+        {# The basis, on the row. A study-basis run prices normally gated revenue into the floor, so
+           listing one beside an underwriting run with nothing to tell them apart is the confusion
+           D46/D55 exist to prevent. Prepared in app.py from the record. #}
+        <td>{% if r.basis.present %}<span class="badge badge-warn" title="{{ r.basis.label }}">{{ r.basis.short }}</span>{% else %}<span class="muted">None recorded</span>{% endif %}</td>
+        <td>{% if r.shared %}Shared{% else %}Private{% endif %}</td>
+        <td class="num"><a href="/run/{{ r.quote_id }}">View &rarr;</a></td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table></div>
+  {% else %}
+  <p class="recent-empty">No projects yet. Start a quote, or open the demo to see a full run end to end.</p>
+  <div style="text-align:center">
+    <a class="btn" href="/new-quote">Start a quote</a>
+    <a class="btn secondary" href="/demo" style="margin-left:0.5rem">See the demo</a>
+  </div>
+  {% endif %}
+</div>
+
+{% endblock %}
