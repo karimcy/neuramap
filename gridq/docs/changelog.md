@@ -3,6 +3,105 @@
 All meaningful changes to this project. Newest first. Dates are ISO (YYYY-MM-DD).
 (Canonical location; the former top-level `CHANGELOG.md` now points here.)
 
+## 2026-11-26 — Integration: WP-SITE-04 merged into `roadmap/p1-foundations`
+
+- **D-numbers.** WP-SITE-04's six placeholders took D170 to D175 (SITE04-1 to -6 in order), in the
+  `gridq.adequacy` docstrings (the package `__init__` and each module), the adequacy tests'
+  docstrings, decisions, changelog and handoff entry. None sits in a hashed payload: the three
+  golden hashes pinned in `tests/test_adequacy_reproducible.py` hold unchanged.
+- **Conflicts** only at the tops of `docs/decisions.md` and `docs/changelog.md`, and in the handoff log
+  (p1's log with the branch's 19:07 entry placed in time order).
+- **Kept green.** The DPA read waiver is still 12; no contract or IC-15 reference changes (the
+  simulator reads thermal flex only through IC-11 and its sign-off fits IC-4 1.2.0 as is).
+
+## 2026-11-26 — WP-SITE-04: sub-half-hourly adequacy simulator with resilience floor (`gridq.adequacy`)
+
+- **New package `gridq.adequacy`** releases `adequacy_simulator` and `resilience_floor_policy`
+  (spec A3-01, A3-02; D170 to D175, numbered at merge).
+  - **The kernel.** A one-minute chronological simulation, or one-second inside event windows, runs
+    each IC-2 scenario against the BESS state of energy, IC-11 thermal flex and the WP-SITE-01 load
+    draws. It uses integer joules and integer W and is vectorised over draws. Minutes where nothing
+    changes are skipped; `skip=False` gives the same record.
+  - **Outputs** are `gridq.adequacy_result` 1.0.0, with no float anywhere:
+    - LOLP with a per-scenario Clopper-Pearson interval;
+    - EUE with P50 and P95 and a SHA-256 counter-stream bootstrap;
+    - the minimum state-of-energy margin over the floor, with where and when it was reached;
+    - recharge feasibility for each gap between events.
+  - **Postures.** `reserve_held` is always run. `envelope_adversary` is added when an IC-3 envelope is
+    given. Each runs with thermal flex off and from IC-11.
+- **The resilience floor is a hard floor.** `size_floor` sizes it from the customer's
+  `AutonomyRequirement`: the worst window of the protected load per IC-3 cell, divided by the one-way
+  discharge efficiency and rounded up. An infeasible floor is never clamped.
+  - **One choke point.** Every discharge passes through `kernel._dispatch`, which never goes below
+    `max(floor, purpose floor)`.
+  - **The tests that hold it.** A seeded property test (120 cases), a structural AST test, an
+    independent breach count, and ten seeded mutants, all killed.
+- **Critical-facilities sign-off.** It uses IC-4 1.2.0's existing `critical_facilities_signoff`
+  (row 15), so there is no IC-4 change and no contracts CHANGELOG entry.
+  - The signed document is the canonical floor statement: `floor_statement_hash`.
+  - Without an admissible sign-off, the approval is `Unsigned` with a reason code and a typed ask, and
+    the label reads "FLOOR UNSIGNED: …". `approved_for_use` is derived, and a forged approval is
+    refused at validation.
+  - `simulation_hash` excludes the approval, so signing changes the label, never the physics.
+- **Reproducibility.** The explicit-array golden case is pinned to literal hashes and re-run in a fresh
+  interpreter (`PYTHONHASHSEED=4242`). A synthesis-load run is checked in-process and in a fresh
+  interpreter.
+- **Data the run needs and does not invent.** Each missing item comes back as `NotComputed` with
+  typed asks:
+  - the customer's autonomy requirement;
+  - BESS end-of-life usable energy and the one-way efficiencies;
+  - the reference import capacity;
+  - a load anchor or a long enough horizon;
+  - an envelope that covers the study period;
+  - a sign-off of the specific statement hash.
+- **WP-THERM-03** is consumed only through IC-11. The DPA read waiver is still 12, and no golden was
+  re-pinned.
+
+## 2026-11-26 — Integration: WP-THERM-03 merged into `roadmap/p1-foundations`
+
+- **D-numbers.** WP-THERM-03's seven placeholders took D163 to D169 (THERM03-1 to -7 in order), in
+  `gridq.thermal`, the thermal test oracle and firmness tests, decisions, changelog and handoff
+  entry. No hashed artefact cites them.
+- **Conflicts** only at the tops of `docs/decisions.md` and `docs/changelog.md`, and in the handoff log,
+  where the branch (cut at 8e1bd45) had only its own 15:44 entry: the log is p1's with that entry
+  placed in time order.
+- **Tier timing (the 60 s rule).** Each module timed alone, one process, under the serial lock with
+  `--durations` and no other test run going: `tests/thermal/test_thermal_mutations.py` 45.55 s (10
+  passed; slowest 8.69 s, the tight-fixture loop-band mutation), `tests/thermal/test_thermal_firmness.py`
+  23.49 s (9 passed; slowest 7.20 s, the tight quick firmness check). Both are under 60 s, so both
+  stay in the fast tier; `SLOW_MODULES` is unchanged.
+- **Kept green.** The DPA read waiver is still 12 (the plant inputs are cited presets or labelled
+  synthetic stand-ins); no contract or IC-15 reference changes.
+
+## 2026-11-26 — WP-THERM-03: clean-room thermal plant model with IT-safety limits (IC-11 output)
+
+- **Olly** (on `roadmap/wp-therm03-plant`, cut from `roadmap/p1-foundations` at 8e1bd45).
+- **New package `gridq.thermal`** (`thermal_plant_model`, spec A4-01 to A4-03). A chilled-water plant
+  (one chiller type serving CRAH units, optional free cooling): the WP-THERM-04 power curve against load
+  and ambient, a two-node loop and hall thermal mass, the chilled-water band, the tighter of the ASHRAE
+  class and the customer SLA, humidity through the WMO Magnus formula, chiller minimum run and off times
+  (unload and switch-off strategies), and rebound after every event. The output is an IC-11 v1.1.0
+  surface of firm kW per duration, or a `PlantDataRequest`. Design: D163 to D169 (Fable 5.2,
+  under the owner's delegation).
+- **Clean room.** No ThermaFlex code, document or parameter (ADR-D7 option (c)). A test checks the
+  package imports nothing named ThermaFlex. The `FlexProducer` seam is where a future interface-level
+  adapter would be conformance-tested against the same IC-11 output; nothing is built for it.
+- **No invented data.** The only published figures held are the ASHRAE TC 9.9 2011 class A1 table and
+  the WMO No-8 Magnus coefficients, each with URL and sha256 (`gridq.thermal.sources`). Every plant figure
+  is a site figure with evidence, a declared figure, or a labelled stand-in; any stand-in makes the surface
+  a `synthetic_fixture` under a `SYNTHETIC-` id and returns the data request beside it. Every OPS-01 site
+  holds no plant data today, so each gets a `PlantDataRequest` (seven customer asks, after the dossier's
+  own topology asks).
+- **Tests (`tests/thermal/`).** IC-11 conformance (valid record, round trip, `query` at every month and
+  quarter-hour, `check_instruction`, a contract-only consumer in a fresh interpreter). A property test
+  against an independent forward-Euler oracle over 1,160 sampled events (random and worst-case load and
+  ambient paths): every declared kW held, no path outside the binding band, humidity, rate or loop band,
+  and rebound within the declared energy, peak and recovery. A second, tight SYNTHETIC variant (loop
+  band 1.5 K, the A1 tape-media rate of 5 °C/h, chillers 1 kWth above a flat peak load) makes the
+  loop-band, rate and recovery checks bind; with the base fixture every certificate check ends some
+  hold, and each has a mutation check (seven in all, with shared controls). All fixtures are
+  synthetic and labelled so.
+
 ## 2026-11-26 — Integration: WP-SITE-08 merged into `roadmap/p1-foundations`
 
 - **D-numbers.** WP-SITE-08's five placeholders took D158 to D162 (SITE08-1 to -5 in order), in the

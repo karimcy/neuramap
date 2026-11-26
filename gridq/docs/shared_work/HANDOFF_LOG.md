@@ -1196,6 +1196,13 @@ Append-only. One entry per work session, newest at the bottom. Append via `gridq
 - **Remaining tasks:** Open from WP-EDGE-01: the spec's 2-minute staleness and B2-02's 5-minute MPC cadence cannot both hold (D116). Next: merge roadmap/wp-site07-ic9, then roadmap/wp-uw17-finance.
 - **Warnings for next person:** ruff format on docs/*.md rewrites code blocks: pass it Python paths only.
 
+### 2026-11-26 15:44 — Olly
+- **Summary:** WP-THERM-03: clean-room gridq.thermal plant model (C-form power curve, two-node loop/hall mass, ASHRAE/SLA binding band, Magnus humidity, chiller min run/off, rebound) emitting IC-11 v1.1.0 firm-kW surfaces or a PlantDataRequest; every real OPS-01 site gets a request (no plant data held). Firmness proved by certificate and checked against an independent Euler oracle; D163..D169 recorded. No ThermaFlex code, docs or parameters used.
+- **Files changed:** —
+- **Tests run:** —
+- **Remaining tasks:** —
+- **Warnings for next person:** —
+
 ### 2026-11-26 16:20 — Olly
 - **Summary:** Integration: WP-SITE-07 (roadmap/wp-site07-ic9, 70d8ee4, IC-9 compute turn-down declaration 1.0.0 and the data-centre load model's IC-9 overlay) merged into roadmap/p1-foundations. Placeholders SITE07-1..6 took D122-D127; its datacentre docstrings now cite D81-D84 for WP-SITE-01. One deliberate exception: the frozen IC-9 module docstring (compute_turndown.py) and the spec rendered from it keep the branch placeholder text, because test_the_git_tag_is_annotated_and_carries_the_frozen_schemas_and_spec pins both byte for byte to the contracts/ic9-compute-turndown/v1.0.0 tag (on 70d8ee4, not moved); the contracts README states the mapping. Both sides kept at every append point (__main__ imports and FROZEN, __init__, GOLDEN_HASHES_IC9, IC-4 embedder set, contracts README with 146 mutation guards, contracts CHANGELOG with ten v1.0.0 and eighteen contract tags, decisions, changelog, this log).
 - **Files changed:** src/gridq/contracts/{compute_turndown,_specdoc,__main__,__init__}.py, src/gridq/contracts/{README,CHANGELOG}.md, src/gridq/contracts/schemas/ic9_*.json, src/gridq/contracts/specs/*, src/gridq/datacentre/*, tests/contracts/{_contracts_support,_ic9_fixtures,test_ic9_compute_turndown,test_ic4_pin_and_inventory}.py, tests/contracts/fixtures/ic9/*, tests/test_datacentre_{data_rule,ic9_untouched}.py, docs/{decisions,changelog}.md, HANDOFF_LOG.md
@@ -1231,6 +1238,13 @@ Append-only. One entry per work session, newest at the bottom. Append via `gridq
 - **Remaining tasks:** Map D158..D162 to D-numbers at integration; Kubernetes as a second adapter; IC-9 1.1 candidate: 'offered at start' semantics; Atlas roadmap and Build Map not updated from this worktree
 - **Warnings for next person:** All fixtures synthetic; never commit a 'recorded' state document (a test asserts the fixture folder holds only the two synthetic files). Slurm enum readings (GANG/WITHIN/PRIORITY as modifiers, QOS DISABLED as OFF) and MAINT-only reservations are executor readings of the docs, not confirmed against the OpenAPI enum list. No IC-9 or archived schema edited, no golden re-pinned, DPA waiver still 12.
 
+### 2026-11-26 19:07 — Olly
+- **Summary:** WP-SITE-04: gridq.adequacy (adequacy_simulator + resilience_floor_policy). One-minute/one-second chronological kernel over IC-2 events, BESS SoE, IC-11 thermal flex and WP-SITE-01 load draws; LOLP, EUE, min SoE margin, recharge feasibility as exact integers/rationals. Hard resilience floor sized from the AutonomyRequirement, single _dispatch choke point, property test + 10 mutants killed. Floor sign-off via IC-4 1.2.0 critical_facilities_signoff bound to the floor statement hash; unsigned floors never read as approved. Golden hashes reproduce in a fresh interpreter. Decisions D170..D175 (number at merge). No IC-4 change; DPA waiver still 12.
+- **Files changed:** —
+- **Tests run:** —
+- **Remaining tasks:** —
+- **Warnings for next person:** —
+
 ### 2026-11-26 19:15 — Olly
 - **Summary:** Integration: WP-UW-02 (roadmap/wp-uw02-eligibility, c9eec54, site eligibility engine) merged into roadmap/p1-foundations. Placeholders UW02-1..10 took D133-D142 (comments, docstrings and the fixture PIN note only; the rule-table hash and the pinned Atlas snapshots do not move). Conflicts only at the doc append points.
 - **Files changed:** src/gridq/underwriting/{eligibility,eligibility_bridge,eligibility_model,eligibility_rules,__init__}.py, tests/{_eligibility_support,test_site_eligibility_engine}.py, tests/fixtures/atlas_load_control/*, docs/{decisions,changelog}.md.
@@ -1264,6 +1278,20 @@ Append-only. One entry per work session, newest at the bottom. Append via `gridq
 - **Files changed:** src/gridq/datacentre/orchestrators/*, tests/test_orchestrator_adapters.py, tests/_orchestrator_support.py, tests/fixtures/orchestrators/*.synthetic.json, src/gridq/edge_design/release.py (comment), docs/{decisions,changelog}.md.
 - **Tests run:** fast tier 6745 passed, 115 skipped, 0 failed; tests/test_orchestrator_adapters.py, tests/governance and tests/edge_design 482 passed; python -m gridq.contracts --check exit 0; ruff check clean; ruff format --check src tests clean; mypy 257 files clean.
 - **Remaining tasks:** Next: merge wp-therm03-plant (with the tier timings), wp-site04-adequacy, wp-size02-library, wp-uw05-tiers.
+- **Warnings for next person:** None new.
+
+### 2026-11-26 22:20 — Olly
+- **Summary:** Integration: WP-THERM-03 (roadmap/wp-therm03-plant, f5b52dc, clean-room gridq.thermal plant model with IT-safety limits) merged into roadmap/p1-foundations. Placeholders THERM03-1..7 took D163-D169. Doc-top conflicts; the handoff log is p1's with the branch's 15:44 entry placed in time order. Timed alone under the lock: test_thermal_mutations.py 45.55 s, test_thermal_firmness.py 23.49 s; both under 60 s, both stay in the fast tier.
+- **Files changed:** src/gridq/thermal/*, tests/thermal/*, docs/{decisions,changelog}.md.
+- **Tests run:** fast tier 6801 passed, 115 skipped, 0 failed; tests/thermal and tests/governance 146 passed; python -m gridq.contracts --check exit 0; ruff check clean; ruff format --check src tests clean; mypy 265 files clean.
+- **Remaining tasks:** Next: merge wp-site04-adequacy, wp-size02-library, wp-uw05-tiers.
+- **Warnings for next person:** If the thermal mutation module grows past 60 s alone, move it to SLOW_MODULES and record it here.
+
+### 2026-11-26 22:40 — Olly
+- **Summary:** Integration: WP-SITE-04 (roadmap/wp-site04-adequacy, 60b354c, sub-half-hourly adequacy simulator with resilience floor, gridq.adequacy) merged into roadmap/p1-foundations. Placeholders SITE04-1..6 took D170-D175 (docstrings only; the pinned golden hashes in test_adequacy_reproducible.py hold). Doc-top conflicts; the branch's 19:07 handoff entry placed in time order.
+- **Files changed:** src/gridq/adequacy/*, tests/test_adequacy_*.py, tests/_adequacy_{support,killers}.py, docs/{decisions,changelog}.md.
+- **Tests run:** fast tier 7035 passed, 115 skipped, 0 failed; tests/test_adequacy_*.py and tests/governance 324 passed; python -m gridq.contracts --check exit 0; ruff check clean; ruff format --check src tests clean; mypy 275 files clean.
+- **Remaining tasks:** Next: merge wp-size02-library (IC-12 3.2.0), wp-uw05-tiers (IC-12 3.3.0).
 - **Warnings for next person:** None new.
 
 <!-- HANDOFF_ENTRIES:END -->

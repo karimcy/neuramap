@@ -4,6 +4,366 @@ Decision log. Newest first. Each entry: **date · decision · reason · alternat
 
 ---
 
+### D175 — Reconciliation of the five WP-SITE-04 rulings
+
+- **Date:** 2026-11-26
+- **Author:** Fable 5.2, under the owner's delegation of design decisions (WP-SITE-04). Executed for Olly.
+  It is not the owner's own words.
+- **Decision.** Where D170 to D174 overlap, the build follows these rules.
+  - (a) **One integer-joule kernel** (ruling 5) carries ruling 2's quantisation. The discharge request
+    on the battery side is `ceil(ac x den / num)`. When the floor clamps it, the AC delivered is
+    `floor(battery x num / den)`. Charging takes `min(headroom, rating, ceil(room x den / num))`
+    from the grid and stores `floor(grid x num / den)`, which never exceeds the room.
+  - (b) **The policy carries no evidence field** (ruling 4). Ruling 3's sign-off slot is dropped. The
+    result embeds the policy and the approval side by side.
+  - (c) **Recharge metrics apply to `reserve_held` only.** Under the envelope adversary they are
+    `NotApplicable`: that posture drains by design. The recharge target of a gap is the lower of the
+    state on entering the event and the held level.
+  - (d) **`paths_digest`** is SHA-256 over a change-record stream: the step, the draws that changed, their
+    state, their shortfall, and the floor. Skipped steps change nothing, and a floor change makes its
+    minute active. So `skip=True` and `skip=False` give the same digest, and a test asserts it.
+  - (e) **Which clock answers which question.** IC-11 cells are read on the scenario's GB wall clock.
+    IC-11 and IC-3 validity, and the IC-3 terms, are read at the study instant (the scenario instant plus
+    the load anchor's whole-day shift). The floor cell is read on the load minute that the step protects.
+  - (f) **Data errors and contract errors.** Missing data returns `NotComputed` with typed asks. Contract
+    errors raise: an export set, a site mismatch, a BESS or load that the policy was not sized from, or
+    fewer than `minimum_draws()` draws.
+  - (g) **The kernel counts breaches independently of `_dispatch`.** The aggregation raises `FloorBreach`
+    if any are counted. The property test re-derives the floor from the policy rather than from the kernel.
+  - (h) **Pinned hashes.** A cross-platform golden hash is pinned only for explicit-array load. A
+    load-model run is checked in-process and in a fresh interpreter but not pinned, since WP-SITE-01
+    pins no float output either.
+- **Reason.** Each rule removes a place where two rulings would have produced two answers.
+- **Alternatives considered.** A float kernel with a tolerance would lose cross-platform hashes. Keeping a
+  sign-off slot on the policy would put the evidence inside the bytes it signs.
+- **Consequences.** `gridq.adequacy` has one arithmetic, one choke point and one approval path.
+
+### D174 — IC-3: the admissible-adversary bracket, behind a single floor choke point
+
+- **Date:** 2026-11-26
+- **Author:** Fable 5.2, under the owner's delegation of design decisions (WP-SITE-04). Executed for Olly.
+  It is not the owner's own words.
+- **Decision.**
+  - **`reserve_held` is always run.** There is no trading, and the battery recharges toward its held level.
+  - **`envelope_adversary` is run when an IC-3 envelope is given.** It models the worst dispatch the
+    envelope allows. Every step outside an event, it requests the full `discharge.merchant_kw`, down to the
+    floor plus the energy held for services. It stops when the event's notice arrives, and from then until
+    the event ends it recharges toward the envelope's ceiling.
+  - **Headline and bound.** The headline posture is the adversary when there is an envelope (bound
+    `every_envelope_compliant_dispatch`), and otherwise `reserve_held` (bound `no_trading`).
+  - **The floor is never spent on a restriction.** A shortfall is unserved energy, and the resilience kW
+    is held back from cover: cover is capped at `rating - resilience_kw - withheld`.
+  - **Envelope conformance.** The effective floor is `max(policy, envelope)`. There are three findings:
+    `ENVELOPE_FLOOR_BELOW_POLICY`, `ENVELOPE_RESILIENCE_KW_BELOW_PROTECTED_LOAD` and
+    `ENVELOPE_FAIL_SAFE_FLOOR_BELOW_POLICY`. Any finding makes the run nonconforming, which cannot be
+    approved for use.
+  - **Producer helper.** `resilience_terms(policy)` hands WP-SIZE-08 the floor kWh and the discharge kW,
+    both rounded up, with 0 kW to charge.
+  - **One choke point.** Every joule that leaves the battery passes through
+    `_dispatch(soe, request, purpose, floor, purpose_floor)`, which never goes below
+    `max(floor, purpose_floor)`. A structural test checks that the kernel sets the state of energy only
+    through `_dispatch`, `_charge` or the initial fill.
+  - **Ten mutants**, each killed:
+    - lower bound 0;
+    - floor − 1;
+    - purpose floor only;
+    - cover bypassing `_dispatch`;
+    - the envelope floor alone;
+    - an unsigned floor zeroed;
+    - the previous cell's floor after a step-up;
+    - an un-ceiled floor;
+    - a separate clamp on the one-second path;
+    - merchant trading inside events.
+- **Reason.** Bracketing every compliant dispatch proves the floor against any trader the envelope admits,
+  without modelling markets. A single choke point makes the floor property checkable.
+- **Alternatives considered.** Simulating a specific merchant strategy, which gives no bound. A
+  per-path clamp, which is easy to bypass.
+- **Consequences.** A `MerchantSource` seam is left for a real dispatcher.
+
+### D173 — Sign-off: the signed document is the floor statement itself (IC-4 1.2.0 suffices)
+
+- **Date:** 2026-11-26
+- **Author:** Fable 5.2, under the owner's delegation of design decisions (WP-SITE-04). Executed for Olly.
+  It is not the owner's own words.
+- **Decision.**
+  - **No new IC-4 type.** IC-4 1.2.0's `critical_facilities_signoff` (since 1.0.0; inventory row 15:
+    WP-SITE-04, issued by the host or the customer) is the type. There is no IC-4 1.3.0 and no schema change.
+  - **The statement.** The policy renders `gridq.resilience_floor_statement/1.0.0` as canonical bytes.
+    The bytes carry the floor, its cells, the requirement verbatim, the policy hash and the fixed
+    declaration that the reserve is never available to markets. A sign-off binds only if its
+    `document_hash` is the SHA-256 of those bytes.
+  - **The admission bar.** `admit_floor_signoff` returns `Approved` only when every check passes:
+    - the hash matches;
+    - the object has a `SiteScope` for this site;
+    - it is issued by the host or the customer;
+    - it is not a synthetic fixture, unless the policy is one;
+    - it is VALID on `as_of`;
+    - it is `Verified` by `confirmed_with_issuer` on or before `as_of`.
+  - **Otherwise `Unsigned`.** The outcome carries one of thirteen reason codes. The reason of the candidate
+    that got furthest wins. It also carries a typed ask that names the exact hash to sign.
+  - **No forged approval.** The result validator re-runs the admission and refuses an `Approved` the bar
+    would not give.
+  - **Labels.** Labels come from one closed table: an unsigned floor reads "FLOOR UNSIGNED: …" and never
+    reads as approved.
+  - **Approval does not touch the physics.** `simulation_hash` excludes the approval, so a signed run and
+    an unsigned run of the same inputs share it.
+- **Reason.** Binding to the bytes means a sign-off of a 300 kWh floor cannot sign a 400 kWh floor. A
+  changed requirement voids the old sign-off. No IC-4 change is needed.
+- **Alternatives considered.** An IC-4 1.3.0 "floor approval" type, which duplicates an existing
+  member. A free-text reference, which cannot be checked.
+- **Consequences.** Signing changes the label, never the floor. The ask names the hash the customer
+  must sign.
+
+### D172 — The floor: a worst-window envelope, per IC-3 cell, never clamped
+
+- **Date:** 2026-11-26
+- **Author:** Fable 5.2, under the owner's delegation of design decisions (WP-SITE-04). Executed for Olly.
+  It is not the owner's own words.
+- **Decision.**
+  - **Inputs.** The protected load is a stated constant kW, or a stated fraction of the modelled IT
+    or facility load, rounded up to whole watts. The window is `n = ceil(duration_s / 60)` minutes.
+  - **Window energy.** For each draw and each start minute whose window fits the horizon, the window's
+    energy is taken. The windows that do not fit are counted, not tiled.
+  - **Statistic across draws.** This is either the ensemble maximum or a customer-stated quantile
+    ("higher" method).
+  - **Per cell.** Each cell takes the maximum over the windows that start in it. A cell of a GB-clock
+    partition is IC-3's Season × DayGroup × TimeBand.
+  - **Floor arithmetic.** A stated margin is added. Then `floor_kwh = ceil_snapped(E / eta_discharge)`
+    (D86).
+  - **Power reservation.** `resilience_kw` is the maximum protected kW, rounded up.
+  - **Summary figures.** `flat` is the maximum over cells and `fail_safe` is the minimum.
+  - **Unknown cells.** A cell with no assessed start is `Unknown`, and the flat floor applies there.
+  - **States.**
+    - `Sized`.
+    - `Indeterminate`: any input unknown; each unknown is a typed ask.
+    - `Infeasible`: the floor is above the usable energy, or the reservation is above the discharge
+      rating. It is never clamped.
+  - **Flags.**
+    - A round-trip-only efficiency is used as a flagged safe-side bound, with a one-way ask.
+    - A non end-of-life energy figure is flagged, with an ask.
+    - A floor equal to the usable energy is flagged `no_tradable_energy`.
+  - **Margin.** A margin of none must be declared (`NotApplicable`). An unknown margin blocks sizing.
+- **Reason.** The worst window over the ensemble is the only statistic needing no stated risk level.
+  Per-cell floors free energy where the protected load is low. Integer arithmetic makes the floor exact.
+- **Alternatives considered.** A flat floor only. A mean-load floor, which is not a reserve. Clamping
+  to the usable energy, which would hide an infeasible requirement.
+- **Consequences.** The autonomy requirement and BESS parameters are inputs. Nothing is defaulted.
+
+### D171 — Estimators: integer and rational results, intervals on load-draw error only
+
+- **Date:** 2026-11-26
+- **Author:** Fable 5.2, under the owner's delegation of design decisions (WP-SITE-04). Executed for Olly.
+  It is not the owner's own words.
+- **Decision.**
+  - **Units.** Power is integer W, energy integer J (W·s), probabilities `ExactRational`. There are no
+    floats in `gridq.adequacy_result` 1.0.0.
+  - **LOLP.** The headline is `sum_s w_s k_s / N`: the probability that a path has any unserved step
+    (an unserved step is one short by at least 1 W).
+    - Also reported: the expected loss seconds and the per-event counts. A step belongs to the event in
+      force or most recently started, or to `outside_event`.
+    - Its interval is per-scenario Clopper-Pearson, exact on a ppm grid and rounded outward, with a
+      Bonferroni split, weighted and summed.
+  - **EUE.**
+    - It is reported as an exact expectation, and as `per_year` only when every period is at least
+      365 days.
+    - P50 and P95 of the per-draw totals.
+    - A 2,000-resample bootstrap from a SHA-256 counter stream, ranks 50 and 1,950.
+  - **Minimum state-of-energy margin over the floor**, with where and when it was reached.
+  - **Recharge feasibility per gap.** Each gap is `feasible`, `infeasible` or `censored`. The record also
+    gives counts, the minimum margin in seconds, the maximum shortfall in Wh, and
+    `p_any_infeasible_gap` with its interval.
+  - **Binding.** The record binds every input by hash, embeds the policy and the config, and states
+    `interval_scope = load_draw_sampling_error_only` with three fixed warnings.
+- **Reason.** Exact arithmetic is what makes acceptance 3 (reproduce by hash) hold on every platform.
+- **Alternatives considered.** Float estimators with tolerance-based comparison, which give no hash
+  reproducibility. Normal-approximation intervals, which are wrong at zero events.
+- **Consequences.** A test re-runs in a fresh interpreter with a different `PYTHONHASHSEED`. Golden
+  hashes are pinned for the explicit-array case.
+
+### D170 — The kernel: one chronological equation, quiescence-skipping, full cross product
+
+- **Date:** 2026-11-26
+- **Author:** Fable 5.2, under the owner's delegation of design decisions (WP-SITE-04). Executed for Olly.
+  It is not the owner's own words.
+- **Decision.**
+  - **One equation.** A fixed-step equation runs at 60 s, or at 1 s inside event windows when asked. It is
+    vectorised over the N load draws and runs once per scenario. The state of energy is carried through
+    the whole scenario, and recharge is simulated.
+  - **Skipping.** Minutes where the state is a provable fixed point are skipped. `skip=False` gives the
+    same record.
+  - **Sampling.** Joint sampling is the full cross product S × N, with path weight `w_s / N`.
+  - **Time base.** Scenario UTC maps to the Europe/London wall clock, then to the load model's naive
+    minute, shifted by a stated `LoadAnchor` or the same month and day in the horizon. Clock-change
+    minutes are counted, and a horizon that does not cover the mapping is a data ask.
+  - **Restriction depth.** It comes from the IC-2 minute series, or from the held half-hourly series.
+    The permit is `max(0, reference - depth)`. An unknown reference capacity needs a stated
+    `import_capacity`, or it becomes an ask.
+  - **Thermal flex** is read only through IC-11:
+    - no response terms means no flex, and an unknown notice counts as zero;
+    - the call starts after the surface's notice;
+    - the start cell decides the curve, and the hold is cut at the first unavailable or unknown cell
+      and at `valid_until`;
+    - a longer event holds the longest point for its duration;
+    - the ramp is linear, and delivery is clamped per draw to `facility - IT`;
+    - the rebound is the peak for `ceil(energy x 60 / peak)` minutes, and the next call waits out the
+      recovery.
+  - **Two arms** are reported: thermal off and thermal from IC-11.
+- **Reason.** A single equation is checkable. Skipping makes year-long scenarios cheap without a
+  second code path.
+- **Alternatives considered.** Event-only simulation, which loses recharge. An analytic convolution,
+  which cannot carry the state of energy.
+- **Consequences.** WP-THERM-03 is consumed only through IC-11, so no ThermaFlex code is imported.
+
+---
+
+### D169 — The firmness certificate: a dominating deficit, a settle tail, live refusal during recovery
+
+- **Date:** 2026-11-26
+- **Author:** Fable 5.2 (advisor), under the owner's delegation of WP-THERM-03 design choices; adopted by
+  the session for Olly that built WP-THERM-03.
+- **Context.** D166 chose a closed-form certificate checked by an independent oracle. Five
+  derivations needed a verdict before code: the dominating forcing, the rate bound, the undershoot cap,
+  the rebound bounds, and what to do with a start inside another event's recovery.
+- **Decision.** Accepted with amendments. (1) The two-node system is cooperative (Metzler), so the
+  trajectory driven by the largest deficit dominates every start in the slot; the stored heat is judged
+  at the end of the hold, and a running minimum over kW keeps the frontier monotone (tested). (2) Rate:
+  `|F| <= rho (C_loop + C_hall) / 3600` against a constant baseline inlet. (3) Undershoot: the hall is a
+  first-order lag of the loop, so recovery stops when the stored heat reaches zero and the oracle checks
+  the discrete overshoot. (4) Rebound: energy and peak use a Lipschitz (chord) bound on `dP/dx` across
+  staging steps; spare capacity excludes locked-out chillers until the lockout ends; recovery time is
+  monotone in duration. (5) A start during recovery is refused live (`REBOUND_RECOVERY_IN_PROGRESS`), and
+  the declared recovery time includes a settle tail `ln(d0_max / eps) / lambda` so the residual imbalance
+  after the stored heat clears cannot break the hall bound. As built: `eps = 0.01 K x C+ / max(C_loop,
+  C_hall)`, a `SETTLE_MARGIN_K = 0.01` on every thermal check, and a switch-off formulation that keeps
+  enough units carrying the highest load through the lockout, so no lockout deficit arises.
+- **Reason.** Each amendment closes a gap in the proof the advisor found: a non-Lipschitz slope bound
+  understates rebound across a staging step, and the residual imbalance after recovery is real heat.
+- **Alternatives considered.** Folding a mid-recovery start into the start box (rejected: it widens
+  every cell to cover a rare case, and the live refusal is already an IC-11 reason). A typed safety
+  margin (rejected in D166).
+- **Consequences.** The live refusal is not built: it belongs to the controller that receives IC-11
+  instructions. The fixture's declared recovery runs about five times the oracle's (the settle tail).
+
+### D168 — Inputs and sources: cited presets, a data request for real sites, stand-ins only as synthetic
+
+- **Date:** 2026-11-26
+- **Author:** Fable 5.2 (advisor), under the owner's delegation; adopted by the WP-THERM-03 session for Olly.
+- **Context.** The user's rule: no invented data. Constants and ASHRAE limits come from cited public
+  sources, plant parameters for real sites from OPS-01 dossier fields or a data request. Every OPS-01
+  site has an unknown cooling topology today (no DPA registered).
+- **Decision.** (1) A-c: an ASHRAE A1 preset (recommended and allowable) from the TC 9.9 2011 whitepaper,
+  held with URL, sha256 `ce23e471…ab549`, retrieval date and its caveats (2011 whitepaper, not the paid
+  5th edition; third-party host; altitude derate not applied; note f rates applied to the recommended
+  row). It is a constructor and a comparator (`matches | tighter | looser | not_comparable`), never a
+  default. H1 has no preset: it is not in the held source. (2) S-a: a real site gets a typed
+  `PlantDataRequest`, not a surface; `thermal_plant_model` returns `ThermalFlexAvailability |
+  PlantDataRequest`. The dossier topology mapping is total and tested. (3) Every parameter carries
+  `SiteEvidenced | Declared | StandIn`. Any stand-in forces `record_class = synthetic_fixture` under a
+  `SYNTHETIC-` id from the input hash, names the stand-ins in `ModelledBasis.model`, and returns the data
+  request alongside. (4) Psychrometrics use the WMO No-8 / JCOMM TR 63 Magnus coefficients (sha256
+  `8fa0eb32…e4d1`) with their validity guard. Capacitances are inputs; no fluid property is held.
+- **Reason.** A registered all-unknown surface would still assert a topology and limits under a real
+  site id. A preset without a comparator lets a mis-typed class pass silently.
+- **Alternatives considered.** No preset (rejected: leaves a citable envelope unused). Stand-ins never
+  (rejected: blocks indicative work). A fixed glycol `rho c_p` (rejected: an invented number).
+- **Consequences.** IC-11 1.1.0 cannot carry a minimum RH, so the A1 allowable humidity is emitted as
+  Unknown with the reason and enforced inside the model. That gap is for the next IC-11 minor.
+
+### D167 — Chiller strategies, rebound and humidity
+
+- **Date:** 2026-11-26
+- **Author:** Fable 5.2 (advisor), under the owner's delegation; adopted by the WP-THERM-03 session for Olly.
+- **Context.** Chiller minimum run and off times, rebound after every event, and humidity are in scope.
+- **Decision.** (1) R-c: unload-only and switch-off are separate producers; each point takes the better
+  firm one. Switch-off cannot stop a unit before `min_run` under worst-case history and locks it out for
+  `min_off`; an unknown timing makes switch-off "none". (2) B-b: recovery surplus is the lesser of spare
+  running capacity and a cap that respects the rate and undershoot limits; the first-law closure
+  (deficit = recovery + stored) is a tested invariant; declared rebound figures round up. (3) H-a: the
+  dew point is held between its declared bounds; minimum RH becomes a temperature ceiling and maximum RH
+  a floor (WMO Magnus inverted).
+- **Reason.** Full-capacity recovery can break the rate limit on the way down; unload-only discards real
+  flex at long holds; ignoring minimum RH misses the limit that binds as the hall warms.
+- **Alternatives considered.** R-a unload only, R-b switch-off only, B-a full capacity, B-c a stated
+  rebound cap (no site has one), H-b/H-c (silent or unverifiable).
+- **Consequences.** None of the strategy timings is defaulted; real sites ask for them.
+
+### D166 — Firmness is proved by a certificate and checked by an independent oracle
+
+- **Date:** 2026-11-26
+- **Author:** Fable 5.2 (advisor), under the owner's delegation; adopted by the WP-THERM-03 session for Olly.
+- **Context.** Acceptance (4): every declared kW is firm from sampled starts across each cell at worst
+  ambient and load, held for its minutes within limits.
+- **Decision.** F-d. The certificate (comparison principle on the cooperative two-node system) gives the
+  largest kW per (slot, duration) exactly; its preconditions are checked, and a failure is `Unknown`
+  with the reason. A naive forward-Euler oracle in the tests, importing nothing from `gridq.thermal`,
+  samples starts and driver paths (random and worst-case) and checks the kW held, every limit, and the
+  rebound. Its tolerance is its own Euler error bound. Hypothesis is not installed in the shared
+  environment, so the sampler is seeded numpy (a recorded deviation; the advisor allowed Hypothesis as a
+  dev extra only).
+- **Reason.** Sampling alone proves nothing about unsampled starts; a certificate alone has nothing
+  independent checking it.
+- **Alternatives considered.** F-a sampling with a typed margin, F-b alone, F-c zonotope reachability
+  (over-approximates what monotonicity gives exactly).
+- **Consequences.** No typed safety margin. Slack comes only from flooring kW, rounding rebound up, and
+  the 0.01 K settle margin.
+
+### D165 — Cells: data-driven bands, two-sided envelopes, a minute-grid frontier
+
+- **Date:** 2026-11-26
+- **Author:** Fable 5.2 (advisor), under the owner's delegation; adopted by the WP-THERM-03 session for Olly.
+- **Context.** IC-11 cells are season by band, and each Flex cell is a duration/kW staircase.
+- **Decision.** G-c over a G-b seam: seasons are the caller's; bands come from a deterministic greedy
+  merge of half-hour slots, jointly across seasons, minimising lost kW-minutes, at most 6 bands, with a
+  status change always an edge; a pinned grid is accepted. W-b: per start slot, pointwise upper and lower
+  envelopes over every season day and every start in the slot, on real Europe/London timestamps. D-b:
+  the frontier on a minute grid from 15 to 1440 min, at most 12 points, dropping the least area. kW and
+  durations round down, rebound up, limits inward. Unknown for an unknown parameter, short coverage or a
+  missing driving temperature; Unavailable only from caller windows.
+- **Reason.** "Worst" has two directions (hot and loaded breaks the inlet limit; cool and light leaves the
+  least power to shed); fixed bands hide the evening cliff.
+- **Alternatives considered.** G-a fixed bands, W-a scalar maxima, W-c a design day (invented unless the
+  dossier holds one), D-a a fixed duration list.
+- **Consequences.** The grid and the envelopes enter `input_hash`.
+
+### D164 — The power curve is the WP-THERM-04 C-form only; a Carnot front end is a follow-up
+
+- **Date:** 2026-11-26
+- **Author:** Fable 5.2 (advisor), under the owner's delegation; adopted by the WP-THERM-03 session for Olly.
+- **Context.** COP against load and ambient. The advisor first proposed the C-form with an optional
+  Carnot front end; D168 then advised no Carnot. The tie-break kept the C-form only.
+- **Decision.** Plant power is the C1/C2/C3 form shared with WP-THERM-04 and SITE-01 (D81), per regime
+  at T*, on the heat-extracted basis. Its validity is checked on each slot's box (`P > 0`, `dP/dx > 0`
+  at the corners, `dP/dT >= 0` at both load ends, `b4 >= 0`, both regimes where a slot straddles T*);
+  a failure is `Unknown` with the reason, never clipped. **Follow-up:** a Carnot-fraction front end
+  compiling to C3 coefficients, triggered by the first site that offers only nameplate data, derating kW
+  by twice the fit residual and inflating rebound by it, citing BIPM SI Brochure 9th ed. v4.01 section
+  2.3.1 (https://www.bipm.org/documents/20126/41483022/SI-Brochure-9-EN.pdf, sha256 `5442eea2…7e02c`)
+  for the Kelvin offset. No Kelvin constant or Carnot code ships now.
+- **Reason.** `dP/dx` is affine, so corner checks prove the sign over a slot; coherence with the
+  baseline model; no site holds nameplate data.
+- **Alternatives considered.** Carnot alone (breaks coefficient identity with WP-THERM-04), a
+  manufacturer bi-quadratic (ten coefficients nobody holds).
+- **Consequences.** A nameplate-only site cannot be modelled until the follow-up lands.
+
+### D163 — Model form: chilled-water family, two thermal nodes, an electrical-power cap
+
+- **Date:** 2026-11-26
+- **Author:** Fable 5.2 (advisor), under the owner's delegation; adopted by the WP-THERM-03 session for Olly.
+- **Context.** WP-THERM-03 is built clean-room (ADR-D7 option (c); WP-THERM-01 no-go): no ThermaFlex
+  code, document or parameter.
+- **Decision.** T-a: one chiller type (air-cooled, or water-cooled with towers) serving CRAH units, with
+  optional free cooling; DX/CRAC, rear-door and direct liquid cooling are WP-THERM-10. M-b: a two-node
+  linear model (loop and hall) in deviations about the baseline, solved exactly per minute. E-a: the event
+  caps electrical power `K` kW below the baseline; the setpoint band is a state constraint, not the
+  actuator. Envelope leakage is omitted (conservative).
+- **Reason.** The declared quantity is the controlled one; one node cannot hold the setpoint band; the
+  two-node system is monotone in the deficit, so a worst case is provable.
+- **Alternatives considered.** T-b a narrower family, T-c a black box, M-a one node, M-c transport delay,
+  E-b a COP-derived kW, E-c setpoint reset as the actuator (a decaying kW).
+- **Consequences.** The `FlexProducer` seam (`answer`, `rebound`) is where a future interface-level
+  adapter would plug in and be conformance-tested against the same IC-11 output (note 35). Nothing is
+  built for it.
+
 ### D162 — Slurm adapter reconciliation: a node basis, nested rungs per half-hour, one ramp per class, a computed cap, a policy-fact refusal
 
 - **Date:** 2026-11-26
