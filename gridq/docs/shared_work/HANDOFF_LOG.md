@@ -1343,4 +1343,11 @@ Append-only. One entry per work session, newest at the bottom. Append via `gridq
     certificate's update lines. If THERM-05/12 edit them, update `nodes.py` to match, or fold it.
   - The gateway is a reference only: no reconnect, store and forward, or fail-safe.
 
+### 2026-11-27 07:47 — Olly
+- **Summary:** WP-SITE-06 (neura/wp-site06 from neura/gridq@d22fe90): new package gridq.ramp_ridethrough releases ramp_ridethrough_screen (spec A3-03, A3-04). Ramp screen reads limits only from the IC-1 ramp terms (G99 10.3.4); RVC screen in three exact tiers against P28's 3 % steady-state limit at nominal V0; ride-through flag is a cited G99 obligation ledger (OEM PCS/PPC delivers, PSAL studies, Neura screens only; never a pass); PSAL handoff bundle against a closed, hashed catalogue (24 inputs, 7 RMS/EMT cases), each item Provided, Asked or NotApplicable. 50 cited clause constants from G99 Issue 2, P28 Issue 2 and Grid Code I6R33 (PDFs not committed; currency unconfirmed). Placeholders D199..6 for the integrator to renumber.
+- **Files changed:** src/gridq/ramp_ridethrough/*, tests/_ramp_ridethrough_support.py, tests/test_ramp_ridethrough_{ramp,rvc,frt,handoff,record}.py, docs/{decisions,changelog}.md
+- **Tests run:** fast tier 6787 passed, 190 skipped, 0 failed; 102 new tests pass; python -m gridq.contracts --check exit 0; ruff check and ruff format --check clean on touched files; mypy clean
+- **Remaining tasks:** Person-only: Olly confirms P28 Issue 2 currency and the NESO copy, no later G99 amendment to the cited clauses, the Grid Code revision vs I6R33, and ENA consent before reproducing text. PSAL confirms catalogue 1.0.0 (sha256:1571cc6f...b169b) by method agreement. Site data (minimum fault level, X/R, transformer data) are network-operator and customer asks.
+- **Warnings for next person:** StudyInputs binds FRT evidence by reference (frt_study_report, dno_frt_acceptance); evidence is never matched by search. A catalogue change is a new catalogue version and voids PSAL's confirmation.
+
 <!-- HANDOFF_ENTRIES:END -->
