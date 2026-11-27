@@ -1294,4 +1294,11 @@ Append-only. One entry per work session, newest at the bottom. Append via `gridq
 - **Remaining tasks:** Next: merge wp-size02-library (IC-12 3.2.0), wp-uw05-tiers (IC-12 3.3.0).
 - **Warnings for next person:** None new.
 
+### 2026-11-26 23:55 — Olly
+- **Summary:** WP-SITE-05: standby and on-site generation resources. New gridq.adequacy.onsite_generation_model 1.0.0 (gensets: MW, start time, fuel autonomy, permit/emissions run-hour limits, test-run schedule; co-located AD/EfW/PV as adequacy resources; spec A3-05). Run-hour ledger with a single grant choke point (RunLedger._grant) so limits are never exceeded; gridq.adequacy.required_bess_energy 1.0.0 (exact sequent-peak pass, with and without gensets); gridq.adequacy_result 1.1.0 sibling record emitted only when generation is given; size_floor(..., standby=) resolves DerivedFromStandby. Decisions D-NEW-SITE05-1..6 (number at merge). WP-SITE-04 golden hashes unchanged. IC-4 G10 inventoried (types only, next IC-4 minor).
+- **Files changed:** src/gridq/adequacy/{onsite,standby,required,result_v1_1}.py (new), src/gridq/adequacy/{__init__,floor,inputs,result,simulator}.py, src/gridq/contracts/IC4_INVENTORY.md, tests/{_onsite_support,test_onsite_generation,test_onsite_runhours,test_onsite_result,test_required_bess_energy}.py (new), tests/contracts/test_ic4_pin_and_inventory.py, docs/{decisions,changelog}.md.
+- **Tests run:** fast tier 6743 passed, 190 skipped, 0 failed (under the serial lock); python -m gridq.contracts --check exit 0; ruff check clean; ruff format --check on touched files clean; mypy 279 files clean.
+- **Remaining tasks:** Person-only data asks per site: genset ratings and start times; run-hour permits (MCPD, Specified Generator, other permit, planning) with caps, windows, what counts, and used hours with dates; fuel endurance or tank and burn curves, opening levels and resupply leads; test schedules; co-located output series; start contingency; detection and transfer times; and confirmation of the limit vocabularies (basis, window, counts).
+- **Warnings for next person:** G10 may clash with a gap number WP-SITE-06 adds in parallel; renumber at integration. A new input or output field is a new record version, never an edit to 1.0.0.
+
 <!-- HANDOFF_ENTRIES:END -->
