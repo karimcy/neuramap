@@ -4,6 +4,178 @@ Decision log. Newest first. Each entry: **date · decision · reason · alternat
 
 ---
 
+### D-NEW-SITE06-6 — Reconciliation of the five WP-SITE-06 rulings, and where the build departs
+
+- **Date:** 2026-11-26
+- **Author:** Fable 5.2, under the owner's delegation of design decisions (WP-SITE-06). Executed for Olly.
+  It is not the owner's own words.
+- **Decision.** Where D-NEW-SITE06-1 to -5 overlap, or the build differs from a ruling, it follows these
+  rules.
+  - (a) **One ask per question.** A missing BESS rating, fault level, X/R, PCC voltage or IC-1 ramp term
+    is raised by one shared helper (`bess_ask`, `fault_level_ask`, `x_over_r_ask`, `pcc_ask`,
+    `ramp_terms_ask`). So the ramp screen, the RVC screen, the ride-through flag and the PSAL bundle raise
+    the same ask id, and the record lists it once.
+  - (b) **The ride-through legs are bound by reference, not found by search.** Ruling 3 named the
+    evidence types and issuers of each leg. A search over all evidence let an OEM's RMS model (also a
+    technical report from the OEM) count as the FRT study. `StudyInputs` therefore carries
+    `frt_study_report` and `dno_frt_acceptance` as IC-4 references. A reference to the wrong kind of
+    document is refused (`EvidenceRefused`). A right-kind document that is expired, unverified, for
+    another site, or synthetic in a registered run leaves the leg open.
+  - (c) **No float in the record.** `AgreedRamp` does not embed IC-1's `RampTerms` (floats); it carries
+    the IC-1 hash and the exact envelope. IC-1 terms in the bundle are exact rationals of the decimals
+    the agreement states.
+  - (d) **Reactive power in the RVC events is taken conservatively.** A trip uses the larger of the
+    declared absorb and inject magnitudes; an unramped reversal uses their sum. Equation 3 then takes
+    both signs at their worst.
+  - (e) **No source-verification script.** Ruling 5 suggested an opt-in `scripts/verify_sources.py` that
+    re-downloads the four PDFs and checks their hashes. It is not built: the tests are offline and pin
+    the table, and re-fetching is a person's check, which the four owner asks already cover.
+  - (f) **Person-only asks are separate from data requests.** The record lists the four owner asks and
+    PSAL's catalogue confirmation (scope `dossier`) under `person_only_asks`. `data_requests` holds the
+    site-scoped asks only.
+- **Reason.** Each rule removes a place where two rulings, or a ruling and the data, would give two
+  answers, or where evidence could be credited to the wrong obligation.
+- **Alternatives considered.** Matching FRT evidence by title text would be fragile and unauditable.
+  Embedding the IC-1 floats would break the float-free rule for hashed payloads (D171).
+- **Consequences.** `gridq.ramp_ridethrough` has one ask vocabulary, explicit evidence binding and
+  exact arithmetic throughout.
+
+### D-NEW-SITE06-5 — Standards: transcribe numbers and clause ids, cite by URL and hash, currency unconfirmed
+
+- **Date:** 2026-11-26
+- **Author:** Fable 5.2, under the owner's delegation of design decisions (WP-SITE-06). Executed for Olly.
+  It is not the owner's own words.
+- **Decision.** Every limit, threshold and study parameter is a `ClauseConstant` in
+  `gridq.ramp_ridethrough.sources` (50 entries): key, exact value, unit, source id and clause id. No clause
+  wording is reproduced. The sources, all retrieved on 2026-11-26 and hashed but not committed:
+  - ENA EREC G99 Issue 2 (10 March 2025):
+    https://dcode.org.uk/assets/250307ena-erec-g99-issue-2-(2025).pdf
+  - ENA EREC P28 Issue 2 (2018), the full text NESO publishes: https://www.neso.energy/document/127521/download
+  - DCRP/MP/18/01 report (corroborating P28 Table 4): https://www.neso.energy/document/124071/download
+  - Grid Code Issue 6 Revision 33 (ECC.6.3.15, ECC.6.3.16, cited by reference only):
+    https://www.neso.energy/document/362676/download
+  Every source is `currency="unconfirmed"`, and every record's first line says so. Four person-only asks
+  go to Olly: that P28 Issue 2 is current and the NESO copy may be relied on; that no G99 amendment changes
+  the cited clauses; the current Grid Code revision; and ENA consent before any clause text is reproduced.
+  Nothing is held back as needing purchased text.
+- **Reason.** All three standards are publicly downloadable. Copyright allows citing numbers; whether the
+  copy is current is a fact only a person can check.
+- **Alternatives considered.** Paraphrasing clauses from memory (forbidden by the data rule); committing
+  the PDFs (copyright); treating P28 as paywalled and asking for the purchased text (it is published).
+- **Consequences.** `tests/test_ramp_ridethrough_record.py` pins the table offline. A changed standard is
+  a new constant, never a silent edit.
+
+### D-NEW-SITE06-4 — The PSAL handoff: a closed, versioned catalogue; each item Provided, Asked or NotApplicable
+
+- **Date:** 2026-11-26
+- **Author:** Fable 5.2, under the owner's delegation of design decisions (WP-SITE-06). Executed for Olly.
+  It is not the owner's own words.
+- **Decision.**
+  - **Catalogue** 1.0.0: 24 required inputs and 7 study cases (`frt_three_phase`, `frt_unbalanced`,
+    `ffci`, `post_fault_recovery`, `pcs_trip_rvc`, `transformer_energisation_rvc`, `ppc_ramp_response`).
+    Each item has clause anchors (or the IC-1 field it is read from), a domain (RMS, EMT or both) and a
+    source class. Its content hash is in every bundle.
+  - **Each item is exactly one of** `Provided` (value plus provenance), `Asked` (typed asks) or
+    `NotApplicable`. Site electrical data and OEM documents are `Provided` only from IC-4 evidence, which a
+    validator enforces. OEM models are referenced by `EvidenceRef`, never held.
+  - **The G99 generic 50 MVA** (B.4.4.3) is its own public-constant item. It never fills
+    `site_notified_minimum_fault_level`.
+  - **Readiness is derived** per case: `Ready`; `ReadyGenericOnly` (FRT cases only, when the site's minimum
+    fault level is the one missing input), labelled `generic_g99_fault_level_not_site_compliant`; or
+    `Blocked` with the asks. The record carries the derivation and its validator re-derives it.
+  - **PSAL confirms the catalogue.** `catalogue_status` stays `neura_proposed`, with a person-only ask to
+    PSAL, until a verified research-partner `method_agreement` whose `document_hash` is the catalogue hash
+    is supplied.
+  - It is a release of WP-SITE-06, not a new IC contract.
+- **Reason.** PSAL needs one exact list it can confirm, and Neura must never fill a site figure with a
+  generic one.
+- **Alternatives considered.** A free-form checklist (no hash to confirm); a new IC contract (premature
+  before PSAL has confirmed the list).
+- **Consequences.** Acceptance 2 is a property of the type: a bundle cannot omit an item or invent a site
+  value.
+
+### D-NEW-SITE06-3 — The ride-through flag: a cited obligation ledger, responsibility fixed in the type, never a pass
+
+- **Date:** 2026-11-26
+- **Author:** Fable 5.2, under the owner's delegation of design decisions (WP-SITE-06). Executed for Olly.
+  It is not the owner's own words.
+- **Decision.**
+  - `RideThroughFlag` carries the literals `delivered_by="oem_pcs_ppc"`, `studied_by="psal_rms_emt"` and
+    `neura_role="screen_only"`. No other value exists.
+  - **The G99 type is a candidate set** from Registered Capacity and the IC-1 PCC voltage (G99 Section 4).
+    At or above 110 kV the set is {D}. Each unknown widens the set and raises an ask; obligations are the
+    union over the set, each tagged with its type.
+  - **Per type:** A is conditional on DNO agreement (11.3.1). B: Table 12.2, 12.6, B.4.4 / Table B.4.1.
+    C, and D below 110 kV: Table 13.5. D at or above 110 kV: Table 13.6. Fast fault current is 12.6 or
+    13.6; study cases are C.7.5 / Table C.7.1. Exactly 110 kV has no C.7.1 row, so the retained voltage is
+    unknown and asked of the DNO.
+  - **Grid Code** ECC.6.3.15/16 applies at or above the regional 'Large' threshold (G99 6.1.3.1). Below
+    10 MW it does not apply; at or above 100 MW it applies. In between, the declared region decides; it is
+    never inferred from the network operator.
+  - **States:** `indeterminate`, `conditional_on_dno_agreement`, `required_open`, `required_evidenced`, and
+    `not_in_g99_scope` (below Type A). `required_evidenced` needs two legs: a study (technical report or
+    conformity certificate from the OEM, an independent engineer or PSAL) and the DNO's G99 approval or
+    commissioning record. Each must be valid and confirmed with the issuer as of the run date.
+- **Reason.** Spec A3-04: FRT and fast fault current are delivered by the OEM PCS/PPC and studied by PSAL.
+  Neura does not write protection-grade controls, so the flag records obligations and attestations, never
+  a verdict.
+- **Alternatives considered.** A pass/fail check against Table 12.2 (Neura would be certifying protection
+  behaviour); defaulting an unknown type to B (a silent assumption).
+- **Consequences.** The record cannot say Neura delivers ride-through, and no input makes it say "pass".
+
+### D-NEW-SITE06-2 — The ramp screen: IC-1 is the only source of a limit
+
+- **Date:** 2026-11-26
+- **Author:** Fable 5.2, under the owner's delegation of design decisions (WP-SITE-06). Executed for Olly.
+  It is not the owner's own words.
+- **Decision.**
+  - The screen reads `ConnectionAgreement.ramp` and nothing else for a limit (G99 10.3.4: there is no
+    general maximum ramp; a network-specific one is in the Connection Agreement).
+  - **`RampTerms`** gives four parts:
+    - the PPC settings check (charging against the up limit, discharging against the down limit);
+    - the admissible envelope, labelled as a ceiling for the OEM's PPC configuration, not a recommended
+      setting;
+    - the series check when a minute net-import series is supplied, otherwise `NotComputed` with an ask;
+    - the trip steps, reported `for_dno_interpretation`, with an ask whether the ramp terms apply to a
+      protection trip.
+  - **`NotApplicable`** gives `no_limit_agreed` and the G99 10.3.4 assumed-maximum-ramp statement from the
+    declared PPC settings.
+  - **`Unknown`** gives an ask to the customer that closes with a connection agreement or offer (not a G99
+    approval).
+  - A synthetic IC-1 archetype is refused outside a synthetic run.
+- **Reason.** Acceptance 1: ramp terms come from the IC-1 instance. A protection trip is an instantaneous
+  step that no ramp limit can bound, so the DNO decides how its terms treat it.
+- **Alternatives considered.** A configured default ramp limit (fabrication); judging trips against the
+  ramp limit (a reading only the DNO can give).
+- **Consequences.** Changing only the IC-1 ramp changes the verdict, and a test asserts it.
+
+### D-NEW-SITE06-1 — The RVC screen: three exact tiers against P28's 3 % steady-state limit
+
+- **Date:** 2026-11-26
+- **Author:** Fable 5.2, under the owner's delegation of design decisions (WP-SITE-06). Executed for Olly.
+  It is not the owner's own words.
+- **Decision.**
+  - Three events: a trip at full export, a trip at full import, and an unramped full reversal.
+  - **Tier 1:** pass when 10^4 (P^2 + Q^2) <= L^2 S"k^2 (the bound of P28 6.3.5 Equation 4).
+  - **Tier 2:** only when tier 1 fails, ask for X/R and apply Equation 3 exactly:
+    10^4 (P b + Q a)^2 <= L^2 S"k^2 (a^2 + b^2) with X/R = a/b.
+  - **Tier 3:** otherwise the event exceeds the limit and is referred to PSAL.
+  - No square root on the decision path. Every estimate is labelled "at nominal V0", since the statutory
+    limits of 6.4.1(c) are a network-operator input.
+  - S"k is the minimum short-circuit power (6.4.1(a)), from evidence only. With none, the event is
+    `NotComputed` with an ask to the network operator. The G99 50 MVA is never used, and an LTDS maximum
+    is named as the wrong quantity.
+  - The engine judges only against the 3 % steady-state limit. The Table 4 category obligations are
+    listed (both when the category is unknown), not chosen by the engine.
+  - Not screened, and handed on: transformer energisation (PSAL EMT), flicker, the Figure 5 to 7 time
+    envelopes, and interaction with the network's voltage control.
+- **Reason.** A quasi-static estimate can show the steady-state change. Only a time-domain study can show
+  the envelope is met.
+- **Alternatives considered.** Equation 3 with an assumed X/R (fabrication); judging against the 6 %,
+  10 % or 12 % envelope peaks (a quasi-static number cannot show them).
+- **Consequences.** A pass needs only the fault level when the bound holds. Otherwise the screen asks for
+  exactly one more number.
+
 ### D175 — Reconciliation of the five WP-SITE-04 rulings
 
 - **Date:** 2026-11-26

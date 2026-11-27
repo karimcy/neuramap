@@ -3,6 +3,34 @@
 All meaningful changes to this project. Newest first. Dates are ISO (YYYY-MM-DD).
 (Canonical location; the former top-level `CHANGELOG.md` now points here.)
 
+## 2026-11-26 — WP-SITE-06: ramp, RVC and ride-through screens with a PSAL handoff (`gridq.ramp_ridethrough`)
+
+- **New package `gridq.ramp_ridethrough`** releases `ramp_ridethrough_screen` (spec A3-03, A3-04;
+  D-NEW-SITE06-1 to -6, renumbered at merge). `screen_ramp_ridethrough` returns one
+  `gridq.ramp_ridethrough_screen` 1.0.0 record, with no float anywhere and a `screen_hash`.
+  - **Ramp** (D-NEW-SITE06-2). The site import ramp is checked against the IC-1 `ramp` terms, the only
+    source of a limit (G99 10.3.4). The record carries the PPC settings check, the admissible envelope
+    (a ceiling for the OEM, not a recommendation), a minute-series check and the trip steps for the DNO
+    to interpret. When IC-1 says `NotApplicable` the record gives the G99 assumed-maximum statement;
+    when it says `Unknown`, an ask for the agreement.
+  - **RVC** (D-NEW-SITE06-1). Three exact tiers against P28's 3 % steady-state limit at the PCC, at
+    nominal V0: the fault-level bound, then Equation 3 with the evidenced X/R, then a referral to PSAL.
+  - **Ride-through flag** (D-NEW-SITE06-3). The G99 type is a candidate set. Obligations come from
+    Tables 12.2, 13.5 and 13.6, 12.6 and 13.6, B.4.4 and C.7.5, with Grid Code ECC.6.3.15/16 by region.
+    Responsibility is fixed in the type (OEM PCS/PPC delivers, PSAL studies, Neura screens only). There is
+    no pass state; `required_evidenced` needs a study and the DNO's acceptance, bound by IC-4 reference.
+  - **PSAL handoff** (D-NEW-SITE06-4). A closed catalogue (24 inputs, 7 RMS/EMT study cases, hashed).
+    Each item is Provided, Asked or NotApplicable; site electrical data is evidence-only. The G99 50 MVA
+    is a separate public constant. Readiness per case is derived. The catalogue stays `neura_proposed`
+    until PSAL confirms its hash.
+  - **Standards** (D-NEW-SITE06-5). 50 cited clause constants from G99 Issue 2, P28 Issue 2 and Grid Code
+    I6R33, by URL and SHA-256 (PDFs not committed). Currency is unconfirmed, with four person-only asks to
+    Olly.
+- **Tests:** `tests/test_ramp_ridethrough_{ramp,rvc,frt,handoff,record}.py` (102), all inputs SYNTHETIC
+  (`tests/_ramp_ridethrough_support.py`, on the IC-1 hybrid archetype fixture).
+- **Additive only.** No frozen contract, schema or golden hash changed; IC-1 and IC-4 are read as they
+  are.
+
 ## 2026-11-26 — Integration: WP-SITE-04 merged into `roadmap/p1-foundations`
 
 - **D-numbers.** WP-SITE-04's six placeholders took D170 to D175 (SITE04-1 to -6 in order), in the
