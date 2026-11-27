@@ -3,10 +3,34 @@
 All meaningful changes to this project. Newest first. Dates are ISO (YYYY-MM-DD).
 (Canonical location; the former top-level `CHANGELOG.md` now points here.)
 
+## 2026-11-26 — WP-THERM-05: ThermaFlex IT-safety objective mode (`thermaflex_dc_controller`)
+
+- **Releases `gridq.thermal.thermaflex_dc_controller`** (spec TF-02; D205 to D209, numbered
+  at merge). The objective mode "flexibility within IT-safety limits" beside the comfort/cost mode,
+  with the thermal limits as hard constraints. Clean room (ADR-D7 option (c)): no ThermaFlex code,
+  document or parameter.
+  - **`comfort_cost`:** the `ComfortCostPolicy` seam and the clean-room reference
+    `SetpointHoldingPolicy` (not ThermaFlex). The IT-safety mode is an overlay on the policy.
+  - **`safety_filter`:** the run-time filter, the only safety argument. A forward-invariant safe set
+    over the WP-THERM-03 deviation state; each minute's deficit is applied only if the minute's exact
+    extremes and end stay in it.
+  - **`controller`:** `DcController`. IC-11 admission at receipt (reason precedence, partial
+    acceptance, booking ledger, replay), the filtered minute, switch-off with a lockout guard,
+    repayment at the certified surplus, mode transitions ("release, then repay") and one `EventRecord`
+    per instruction.
+- **Acceptance (1)**, never a limit broken under any instruction, in simulation: an independent exact
+  closed-loop plant (`tests/thermal/_thermal_closed_loop.py`), a seeded fuzzer over nine instruction
+  classes on both fixture variants, admission-bypass runs, transitions, mutation checks and a
+  cross-check against the WP-THERM-03 Euler oracle.
+- **Acceptance (2)**, comfort/cost unchanged: non-interference over arbitrary policies (exact object
+  identity, one call per minute), golden pins of the reference trajectory, and a reversion test.
+- **No contract change.** IC-11 1.1.0 is used as frozen; the event record and a late-receipt or
+  revocation message are named asks for a later IC-11 version (WP-THERM-07, WP-THERM-12).
+
 ## 2026-11-26 — WP-SITE-06: ramp, RVC and ride-through screens with a PSAL handoff (`gridq.ramp_ridethrough`)
 
 - **New package `gridq.ramp_ridethrough`** releases `ramp_ridethrough_screen` (spec A3-03, A3-04;
-  D199 to -6, renumbered at merge). `screen_ramp_ridethrough` returns one
+  D199 to D204, renumbered at merge). `screen_ramp_ridethrough` returns one
   `gridq.ramp_ridethrough_screen` 1.0.0 record, with no float anywhere and a `screen_hash`.
   - **Ramp** (D200). The site import ramp is checked against the IC-1 `ramp` terms, the only
     source of a limit (G99 10.3.4). The record carries the PPC settings check, the admissible envelope
@@ -33,7 +57,7 @@ All meaningful changes to this project. Newest first. Dates are ISO (YYYY-MM-DD)
 
 ## 2026-11-26 — WP-TWIN-01: site twin (`gridq.site_twin`) and reference southbound gateway (`gridq.edge_southbound`)
 
-- **New package `gridq.site_twin`** releases `site_twin` (spec B7-01; D196 to -3, numbered at
+- **New package `gridq.site_twin`** releases `site_twin` (spec B7-01; D196 to D198, numbered at
   merge).
   - **What it twins.** It is an electrical, BESS and thermal twin of a SYNTHETIC site. It is driven by the
     WP-SITE-01 load model (an explicit draw, never a default) and the WP-THERM-03 plant.

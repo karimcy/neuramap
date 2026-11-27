@@ -4,12 +4,154 @@ Decision log. Newest first. Each entry: **date · decision · reason · alternat
 
 ---
 
+### D209 — Mode transitions: release, then repay
+
+- **Date:** 2026-11-26
+- **Author:** Fable 5.2, under the owner's delegation of design decisions (WP-THERM-05). Executed for Olly.
+  It is not the owner's own words.
+- **Decision.** Any trigger during a hold releases the cut within the step it is seen in. The heat
+  stored by then is a debt, repaid at the certified surplus, and while it is open new instructions are
+  refused with `rebound_recovery_in_progress`. Per trigger:
+  - **Operator switch to comfort/cost:** deferred until every booked, held or recovering event is
+    finished; meanwhile instructions are refused with `control_authority_not_granted`.
+  - **Authority withdrawn:** immediate. The cut is released, waiting events are abandoned, the
+    controller stops writing (comfort/cost mode) and the plant's own control has the stored heat.
+  - **Host override:** the same, but the mode is kept; while it lasts the policy's commands pass
+    through and instructions are refused with `host_override`.
+  - **Comfort/cost to IT-safety:** at once, but instructions are refused with `it_safety_limit` until
+    the plant is measured at rest.
+  - **Telemetry loss:** release, hold the baseline blind (no surplus, so the stored heat cannot grow),
+    resume the capped repayment when readings return (`telemetry_loss`).
+  - **Load or ambient outside the certified envelope:** release, repay on measured spare capped at
+    `u_cap` (`it_safety_limit`).
+  - **Chiller fault:** release, repay on the capacity left, never breaking a minimum off time
+    (`plant_fault`).
+  - One controller-side `EventRecord` per instruction: id, hash, outcome (completed, curtailed,
+    abandoned), reason, minutes held and curtailed, stored heat at release, release and repayment times.
+- **Reason.** A release is always safe from inside the safe set (D206), so every trigger can
+  take the same first action; the differences are only in who repays the heat and when the next
+  instruction may come.
+- **Alternatives considered.** Finishing the hold through a trigger (unsafe under telemetry loss, and
+  not ours to do after authority is withdrawn); refusing all transitions during an event (an operator
+  could not take control back).
+- **Consequences.** `DcController.request_mode`, `withdraw_authority`, `set_host_override`, `step`;
+  tests in `tests/thermal/test_thermal_controller_transitions.py`. IC-11 has no message for the event
+  record: WP-THERM-07 needs it on the wire at a new IC-11 version. Named residual: a fault of a kept
+  unit during a switch-off restart lockout is not covered (the claim is scoped to a fault-free plant
+  for that window).
+
+### D208 — Simulation evidence for acceptance (1)
+
+- **Date:** 2026-11-26
+- **Author:** Fable 5.2, under the owner's delegation of design decisions (WP-THERM-05). Executed for Olly.
+  It is not the owner's own words.
+- **Decision.** Option (b): an exact closed-loop plant in the tests (`_thermal_closed_loop.py`,
+  importing nothing from `gridq.thermal`), stepped in closed form per minute with the extremes inside
+  each minute. A seeded fuzzer covers instruction classes (the declared kW, above it, multiples of
+  capacity, beyond the curve, the wrong surface, short notice, late receipt, during another event's
+  recovery, back-to-back trains) on random and worst-case driver paths, on both fixture variants.
+  Admission-bypass runs show the filter alone holds the limits. Mutation tests weaken each clamp (hall
+  maximum, floor, loop band, rate of change, switch-off lockout) and must be caught. Single accepted
+  holds are cross-checked against the WP-THERM-03 Euler oracle within its error bound. Pass is zero
+  tolerance (1e-9 K round-off); rate windows on minute samples. Firmness is asserted separately: the
+  accepted kW every minute, no curtailment, repaid inside the declared recovery.
+- **Reason.** An oracle that shares no code with the controller and is exact at minute resolution makes
+  "never violates" a checkable statement, not a tolerance argument.
+- **Alternatives considered.** (a) Reusing the Euler oracle (its tolerance would hide a breach of the
+  same size); (c) formal reachability only (no independent plant).
+- **Consequences.** Model mismatch and sensor noise are not claimed: a named ask for WP-THERM-08.
+
+### D207 — Admission by proof
+
+- **Date:** 2026-11-26
+- **Author:** Fable 5.2, under the owner's delegation of design decisions (WP-THERM-05). Executed for Olly.
+  It is not the owner's own words.
+- **Decision.** One acknowledgement per instruction, at receipt, a pure function of the surface, the
+  certificate, the booking ledger, the live flags, the instruction and the receipt instant.
+  - **Partial:** if `exceeds_declared_availability` is the only reason and the start cell declares at
+    least 1 kW for the duration, `PartiallyAccepted` at the declared kW; zero flex or beyond the curve is
+    rejected.
+  - **Ledger:** non-overlapping busy windows `[start, max(end + declared recovery, start +
+    restart_from))` (the second term for switch-off only); an overlap is refused with
+    `rebound_recovery_in_progress`; the first accepted wins.
+  - **Strategy:** the certificate's for the start slot and the accepted kW (D167 R-c).
+  - **Live reasons at receipt:** `control_authority_not_granted` (comfort/cost mode, no authority, a
+    pending switch, or a policy that is not the certified baseline), `host_override`, `telemetry_loss`,
+    `plant_fault`, `it_safety_limit` (live load or ambient outside the certified envelope of the slot
+    now, the plant outside its safe set, or not at rest with no event to account for it).
+  - **Precedence:** wrong site or surface, outside validity, unavailable, unknown, insufficient notice,
+    exceeds (zero), authority, host override, telemetry, fault, IT-safety, rebound. `detail` lists every
+    reason that applied.
+  - **Receipt rules:** `acknowledged_at` is the receipt instant; `ack_id` derives from the instruction
+    hash; a replay returns the stored acknowledgement; receipt after `ack_deadline` or with less than
+    `min_notice` left is refused with `insufficient_notice`; a reused id with another hash, or a receipt
+    before issue, is a typed error and gets no acknowledgement.
+  - **Execution guard** at the start re-checks the live reasons and abandons without a second
+    acknowledgement.
+- **Reason.** A firm answer must be decided once and be reproducible from its inputs; every refusal
+  carries a contract reason the dispatcher can act on.
+- **Alternatives considered.** Re-planning at start (a second answer IC-11 cannot carry); accepting into
+  overlap and curtailing later (an accepted kW would not be firm).
+- **Consequences.** `DcController.receive`; tests in
+  `tests/thermal/test_thermal_controller_admission.py`. Named ask for WP-THERM-12 / the next IC-11
+  version: a late-receipt reason and a revocation message.
+
+### D206 — Thermal limits as hard constraints: the run-time filter
+
+- **Date:** 2026-11-26
+- **Author:** Fable 5.2, under the owner's delegation of design decisions (WP-THERM-05). Executed for Olly.
+  It is not the owner's own words.
+- **Decision.** Option (b), sharpened: the run-time safety filter is the only safety argument;
+  admission and the certificate decide only what is promised.
+  - **Safe set:** `-under <= w <= loop_up`, `-under <= a <= hall_up`, `-under <= E/C <=
+    min(loop_up, hall_up)`, `|d| <= d_rate`; the running units can extract the load at `F = 0`.
+  - **Each minute** a candidate `F` (`|F| <= f_rate`) is applied only if the minute's exact extremes
+    and its end stay in the set; otherwise the largest safe `F` towards it (monotone, bisected), the
+    shortfall recorded as a curtailment.
+  - **Lockouts:** a switch-off stop is made only if the units left carry the slot's upper load bound to
+    the restart and their minimum part load sits below the lower bound; otherwise unload only.
+  - **Recovery** at most `min(spare, u_cap, E / 60)`. The load is constant inside a minute (a stated
+    assumption). Telemetry loss or a fault releases to the baseline.
+- **Reason.** From inside the set the release `F = 0` keeps every limit for all time, so a one-minute
+  look-ahead is enough, whatever the instruction.
+- **Alternatives considered.** (a) Admission only (an unsafe point admitted by mistake would be
+  executed); (c) MPC (no solver in the package, and dispatch belongs to ADR-D2).
+- **Consequences.** `gridq.thermal.safety_filter`. Limit: the proof covers the model, not mismatch.
+
+### D205 — The comfort/cost mode is a policy seam; IT-safety is an overlay
+
+- **Date:** 2026-11-26
+- **Author:** Fable 5.2, under the owner's delegation of design decisions (WP-THERM-05). Executed for Olly.
+  It is not the owner's own words.
+- **Decision.** Option (b) with (a): a `ComfortCostPolicy` protocol; a clean-room
+  `SetpointHoldingPolicy` (extraction equals the load, the plant's own staging), labelled a reference
+  policy, not ThermaFlex. The IT-safety mode is an overlay.
+  - In comfort/cost mode the command is the policy's command object, always, and instructions are
+    refused with `control_authority_not_granted`.
+  - In the IT-safety mode with nothing held or owed it is the policy's command too; the one exception is
+    an explicit, logged safety reversion.
+  - Flex is certified only while the policy is baseline-equivalent; otherwise every instruction is
+    refused.
+  - Acceptance (2) reads as **non-interference, proved over arbitrary policies**: golden pins of the
+    reference policy's trajectory, a differential test over seeded random policies and instruction
+    streams (exact identity, one call per step), and a reversion test (an unsafe policy is clamped in
+    IT-safety mode and untouched in comfort/cost mode).
+- **Reason.** ThermaFlex's own mode is unseen IP (ADR-D7 option (c)); a seam lets an interface-level
+  adapter plug in and makes "unchanged" provable for any policy, not only the stand-in.
+- **Alternatives considered.** (a) alone (pins only the stand-in); (c) an economic optimiser (IP optics,
+  and it overlaps WP-THERM-12 and ADR-D2).
+- **Consequences.** `gridq.thermal.comfort_cost`; tests in
+  `tests/thermal/test_thermal_controller_comfort_cost.py`. Fidelity to ThermaFlex's actual mode is a
+  named ask under AWAIT-19.
+
+---
+
 ### D204 — Reconciliation of the five WP-SITE-06 rulings, and where the build departs
 
 - **Date:** 2026-11-26
 - **Author:** Fable 5.2, under the owner's delegation of design decisions (WP-SITE-06). Executed for Olly.
   It is not the owner's own words.
-- **Decision.** Where D199 to -5 overlap, or the build differs from a ruling, it follows these
+- **Decision.** Where D199 to D203 overlap, or the build differs from a ruling, it follows these
   rules.
   - (a) **One ask per question.** A missing BESS rating, fault level, X/R, PCC voltage or IC-1 ramp term
     is raised by one shared helper (`bess_ask`, `fault_level_ask`, `x_over_r_ask`, `pcc_ask`,
