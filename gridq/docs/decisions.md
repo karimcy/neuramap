@@ -4,6 +4,136 @@ Decision log. Newest first. Each entry: **date · decision · reason · alternat
 
 ---
 
+### D198 — The twin's cooling plant: the thermal model's exact node step, moved only by an accepted IC-11 instruction
+
+- **Date:** 2026-11-26
+- **Author:** Fable 5.2, under the owner's delegation of design decisions (WP-TWIN-01). Executed for Olly.
+  It is not the owner's own words.
+- **Decision.** Option (b), as amended.
+  - **One public exact step.** A new module, `gridq/thermal/nodes.py`, holds `step` and `deviations`: the
+    exact constant-deficit solution in `(E, d)` that `certificate._sweep` inlines for one minute. The
+    certificate, `plant.py` and the package `__init__` are untouched, because parallel thermal work packages
+    edit them.
+  - **The only driver of chiller power is an IC-11 `FlexInstruction`.** It is accepted only when
+    `check_instruction` passes against the surface and the plant is at rest. During the hold
+    `F = PowerCurve.deficit(x, T, regime, K)`. With no instruction, `F = 0`. A non-finite deficit delivers
+    nothing and is counted.
+  - **`chiller_band` is not a driver.** It is not mapped to any register.
+  - **Inputs.** The heat `x` is the IT load from the twin's load source (the `it_load` basis). The dry bulb is
+    a per-minute input.
+  - **The load model is authoritative for baseline cooling.** Import is `facility - (P(x) - P(x - F))`.
+    `P(x - F)` is reported only as a diagnostic chiller-power point. The reduction is clamped to facility
+    minus IT, and the clamp is counted.
+  - **Recovery is a labelled twin assumption.** After the hold, `F = -min(spare, u_cap, E/dt)` until `E = 0`,
+    with `spare = n x unit - x`. This is the policy the WP-THERM-03 oracle simulates. The rebound kW adds to
+    import.
+- **Reason.** The twin then re-implements nothing the certificate proves. A hold the surface accepts runs on
+  the very equations that certified it, so the twin is a test of the surface rather than a second model of
+  the plant.
+- **Alternatives considered.**
+  - (a) Re-deriving the nodes inside the twin. This makes a third copy.
+  - (c) Driving chiller power from `chiller_band`. IC-11 instructs a kW reduction, not a band, and the band
+    is read-only in `diode_read_only`.
+- **Consequences.**
+  - Two copies of the node update exist until a later work package folds the certificate onto
+    `gridq.thermal.nodes`. This is recorded as debt.
+  - A drift tripwire fails if the certificate's lines change:
+    `tests/site_twin/test_twin_thermal.py::test_the_certificate_still_steps_the_nodes_as_nodes_restates`.
+  - Evidence:
+    - the twin matches the independent oracle within its own error bound
+      (`test_the_twin_trajectory_matches_the_independent_oracle`);
+    - accepted instructions stay inside `loop_up`, `hall_up` and `f_rate`
+      (`test_accepted_instructions_stay_inside_the_certified_limits`).
+
+### D197 — The twin's battery: kernel-segment replay at one second, no edit to the kernel
+
+- **Date:** 2026-11-26
+- **Author:** Fable 5.2, under the owner's delegation of design decisions (WP-TWIN-01). Executed for Olly.
+  It is not the owner's own words.
+- **Decision.** Option (a), "kernel-segment replay".
+  - **The clock.** The twin runs a 1 s simulated clock. A register write takes effect from the next whole
+    second.
+  - **The kernel call.** At each minute boundary, and at any change of setpoint, the twin calls
+    `gridq.adequacy.kernel.run_kernel` once:
+    - one draw, one minute, `fine=True`, `skip=False`;
+    - a `Trace`, and `soe0_j` set to the present state of energy.
+
+    It then consumes `Trace.soe_after` one entry per second.
+  - **Setpoint encoding, after clamping to the ratings.**
+    - Discharge `S`: `permit = net - S`, `cover_cap = S`.
+    - Charge `C`: `charge_cap = C`, `permit = net + C`, target = usable J.
+    - Idle: caps and target 0.
+    - Always: merchant 0, floor 0, no events, no recharge metrics.
+  - **The load** is the same `LoadSource` with an explicit `draw_index`. There is no default draw and no
+    medoid.
+  - **The meter.** Import is `facility - cooling reduction + (grid - ac)`. One meter function,
+    `meter_joules`, holds the only restated quantisation lines. The state of energy comes only from
+    `Trace`.
+  - **`Trace` is promoted to a supported read interface** of the kernel.
+  - **The twin obeys its setpoints.** It reports import-limit exceedance; it does not enforce the limit.
+- **Reason.**
+  - Equality with the design-time model is then true by construction and checkable to the joule.
+  - `kernel.py`, which the parallel SITE work packages edit, is not touched.
+- **Alternatives considered.**
+  - (b) A separate 1 s battery model. This would be a second implementation whose agreement could only be
+    a tolerance.
+  - (c) Adding a step API to the kernel now. This edits a file other branches are changing.
+- **Consequences.**
+  - Follow-up, after SITE-05/06 merge: add `ac_j`/`grid_j` to `Trace`, which removes the meter's copy.
+  - The tests in `tests/site_twin/test_twin_electrical.py` give:
+    - encoded equality per second;
+    - native-policy equality;
+    - mid-minute changes equal to chained kernel runs;
+    - meter invariants;
+    - an AST check that the state of energy comes only from `Trace`;
+    - the coarse 60 s path within 60 J per active minute.
+
+### D196 — The device boundary: real Modbus TCP, a separate reference gateway, commissioning as data
+
+- **Date:** 2026-11-26
+- **Author:** Fable 5.2, under the owner's delegation of design decisions (WP-TWIN-01). Executed for Olly.
+  It is not the owner's own words.
+- **Decision.** Option B, amended.
+  - **The twin's wire.** The twin (`gridq.site_twin`) serves real Modbus TCP on 127.0.0.1 from a
+    Neura-declared SYNTHETIC register map. Every value is an int64 in four big-endian registers, in IC-14
+    canonical units.
+  - **The gateway** is a new sibling package, `gridq.edge_southbound`, built on the standard library and
+    `gridq.contracts` only. It holds a Modbus client, a poller and a batch sealer, and takes its clock by
+    injection.
+  - **Descriptors are commissioning data, not gateway code.** The gateway copies finished
+    `SeriesDescriptor`s verbatim, plus a wire binding (unit, table, address, width).
+    - The twin's commissioning set declares `simulated`, with the register coordinates in the address, and
+      `synthetic_fixture`.
+    - A real site's set declares `modbus_tcp`.
+  - **The write allow-list is injected as data.** The harness passes the classes from
+    `write_bindings(stage, mode)`. A refused write sends zero bytes.
+  - **Sealing.** The twin never seals telemetry. The gateway seals as `edge_acquisition`, with
+    `receipt_lag_ms` not applicable.
+  - **Limits.**
+    - Only the Modbus conduits are covered (battery C3, the site meter, read-only facility and cooling).
+    - ANM enters as scenario input to the IC-5 reference edge.
+    - The gateway is a reference: it has no reconnect, store and forward, or fail-safe, and no northbound
+      IC-5 transport of batches.
+    - The twin serves SYNTHETIC sites only.
+- **Reason.**
+  - Acceptance 1 ("no twin-specific code path") is then a property of the gateway's imports and arguments,
+    and it can be proved structurally.
+  - The edge reaches the twin the way it reaches any site: over the same protocol, from the same kind of
+    commissioning data.
+- **Alternatives considered.**
+  - (A) An in-process device interface that the twin implements. The "gateway" would be twin-aware by
+    construction.
+  - (C) SunSpec models. A vendor model text is a person-held ask, and it would be reproduced from memory.
+- **Consequences.** The tests in `tests/site_twin/test_twin_gateway.py` give:
+  - the import closure, by AST and in a fresh interpreter;
+  - a no-branch lint;
+  - an independent responder written in the tests, driven by the same gateway from a `live` / `modbus_tcp`
+    set, with `check_batch` passing in both runs;
+  - byte-identical request streams;
+  - constructor opacity;
+  - allow-list refusal with zero bytes sent;
+  - the IC-5 reference loop reaching the twin.
+
 ### D179 — The thermal turn-down limit is catalogued but not applied, and the catalogue states which path applies each constraint
 
 - **Date:** 2026-11-26

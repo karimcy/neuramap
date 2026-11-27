@@ -3,6 +3,42 @@
 All meaningful changes to this project. Newest first. Dates are ISO (YYYY-MM-DD).
 (Canonical location; the former top-level `CHANGELOG.md` now points here.)
 
+## 2026-11-26 — WP-TWIN-01: site twin (`gridq.site_twin`) and reference southbound gateway (`gridq.edge_southbound`)
+
+- **New package `gridq.site_twin`** releases `site_twin` (spec B7-01; D196 to -3, numbered at
+  merge).
+  - **What it twins.** It is an electrical, BESS and thermal twin of a SYNTHETIC site. It is driven by the
+    WP-SITE-01 load model (an explicit draw, never a default) and the WP-THERM-03 plant.
+  - **How it is reached.** It serves real Modbus TCP on loopback from a Neura-declared SYNTHETIC register
+    map: 11 points, int64 big-endian in IC-14 canonical units.
+  - **It never seals telemetry.**
+  - **The battery** (D197) replays the adequacy kernel one minute or one setpoint segment at a
+    time and takes its state of energy only from `Trace`. `kernel.py` is not edited.
+  - **The cooling** (D198) steps the certificate's exact node solution. The new public module is
+    `gridq/thermal/nodes.py`; the certificate is untouched. It moves only under an IC-11 instruction that
+    the surface accepts.
+- **New package `gridq.edge_southbound`** (D196), built on the stdlib and `gridq.contracts` only.
+  It holds:
+  - a Modbus TCP client;
+  - commissioning-as-data, with finished IC-14 descriptors plus wire bindings;
+  - a poller that seals chained IC-14 `edge_acquisition` batches;
+  - IC-5 actuation;
+  - an injected write allow-list (from `write_bindings`). A refused write sends no bytes.
+- **Acceptance 1** ("the edge gateway connects with no twin-specific code path"), in
+  `tests/site_twin/test_twin_gateway.py`:
+  - import closure, by AST and in a fresh interpreter;
+  - a no-branch lint;
+  - constructor opacity;
+  - one gateway driving the twin and an independent test responder with byte-identical requests;
+  - allow-list refusal;
+  - the IC-5 reference loop reaching the twin.
+- **Acceptance 2** ("twin responses match the design-time models"):
+  - `tests/site_twin/test_twin_electrical.py`: equality with `run_kernel` to the joule.
+  - `tests/site_twin/test_twin_thermal.py`: the exact instructed kW, the independent oracle within its
+    bound, the certified limits held, refusals inert, and a certificate drift tripwire.
+- **Unchanged.** No frozen contract, archived schema or golden hash changed. All fixtures are SYNTHETIC
+  and there is no customer data.
+
 ## 2026-11-26 — Integration: WP-SIZE-02 merged into `roadmap/p1-foundations` (IC-12 3.2.0)
 
 - **D-numbers.** WP-SIZE-02's four placeholders took D176 to D179 (SIZE02-1 to -4 in order), in

@@ -1308,4 +1308,39 @@ Append-only. One entry per work session, newest at the bottom. Append via `gridq
 - **Remaining tasks:** Next: merge wp-uw05-tiers as IC-12 3.3.0 (archive 3.2.0; the 3.3.0 quote schema carries both this stamp and UW-05's ledger). IC-3 minor still needed before WP-SIZE-08 exports from a 3.x quote.
 - **Warnings for next person:** Any edit to gridq.constraint_library is a release (LIBRARY_VERSION + _releases.RELEASES).
 
+### 2026-11-26 23:50 — Olly
+- **Summary:**
+  - WP-TWIN-01 (branch neura/wp-twin01) releases `site_twin` (spec B7-01). `gridq.site_twin` is a
+    SYNTHETIC-only electrical, BESS and thermal twin serving real Modbus TCP on loopback.
+  - `gridq.edge_southbound` is a reference edge gateway (stdlib and contracts only) that polls it and
+    seals IC-14 batches.
+  - The battery replays `run_kernel` segments (state of energy only from `Trace`).
+  - The cooling steps the certificate's exact node solution, via the new `gridq/thermal/nodes.py`, and
+    moves only under an accepted IC-11 instruction.
+  - Placeholders D196..3 are for the integrator to renumber.
+- **Files changed:**
+  - new: src/gridq/site_twin/*, src/gridq/edge_southbound/*, src/gridq/thermal/nodes.py,
+    tests/site_twin/*;
+  - docs/{decisions,changelog}.md.
+  - No existing source file is edited.
+- **Tests run:**
+  - fast tier 6711 passed, 190 skipped, 0 failed (1499 s under the serial lock);
+  - tests/site_twin 26 passed (gateway ~10 s, electrical ~2 s, thermal ~24 s; all stay in the fast tier);
+  - python -m gridq.contracts --check exit 0;
+  - ruff check clean on touched files;
+  - ruff format --check clean;
+  - mypy clean.
+- **Remaining tasks:**
+  - Person-only asks: real OEM register maps or SunSpec model text; the meter registry (WP-TEL-04); the
+    DNP3 ANM and ThermaFlex adapter interfaces (AWAIT-19); a real site's plant and ambient data; the
+    ThermaFlex instruction transport.
+  - Follow-ups:
+    - add ac_j/grid_j to adequacy `Trace` after SITE-05/06 merge, which removes `meter_joules`' restated
+      lines;
+    - fold `certificate._sweep` onto `gridq.thermal.nodes`.
+- **Warnings for next person:**
+  - `test_the_certificate_still_steps_the_nodes_as_nodes_restates` is a deliberate tripwire on the
+    certificate's update lines. If THERM-05/12 edit them, update `nodes.py` to match, or fold it.
+  - The gateway is a reference only: no reconnect, store and forward, or fail-safe.
+
 <!-- HANDOFF_ENTRIES:END -->
