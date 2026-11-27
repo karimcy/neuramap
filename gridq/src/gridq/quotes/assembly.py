@@ -132,6 +132,10 @@ def _canonical_result_dump(result: OptimisationResult) -> dict[str, object]:
         exclude={
             "created_at": True,
             "solver_metadata": dict.fromkeys(_SOLVER_METADATA_NON_INPUTS, True),
+            # IC-12 3.2.0 (WP-SIZE-02, D178): the constraint-library stamp names code,
+            # which ``code_version`` already pins through ``run_id``; hashing it would move
+            # ``input_hash`` on a library edit that moved no input — the defect above, again.
+            "constraint_library": True,
         },
     )
 

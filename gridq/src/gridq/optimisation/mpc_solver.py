@@ -33,10 +33,11 @@ from __future__ import annotations
 
 import numpy as np
 
+from gridq import constraint_library as _cl
 from gridq.dispatch.contract import DispatchProblem, DispatchResult
 from gridq.engine.errors import InvalidRequestError
 from gridq.ingestion import HalfHourlyDataError
-from gridq.optimisation._assumptions import ceiling_value_for_duration, maybe, numeric
+from gridq.optimisation._assumptions import maybe, numeric
 from gridq.optimisation.battery_model import (
     BatteryModel,
     ConstantEfficiencyBatteryModel,
@@ -170,11 +171,11 @@ class MpcDispatchSolver:
         na_steps = max(1, round(self._settings.application_horizon_days * 24.0 / dt))
         nh_steps = max(na_steps, round(self._settings.prediction_horizon_days * 24.0 / dt))
 
-        # --- connection limit (mirrors the inner MILP) ----------------------
-        conn_candidates = [
-            v for v in (site.connection.mic_kw, site.connection.asc_kw) if v is not None and v > 0
-        ]
-        conn_limit = min(conn_candidates) if conn_candidates else 0.0
+        # --- connection limit (the inner MILP's, from the constraint library) -
+        declared_limit = _cl.connection.import_limit_kw(
+            site.connection.mic_kw, site.connection.asc_kw
+        )
+        conn_limit = declared_limit if declared_limit is not None else 0.0
 
         # --- objective aging weights from settings --------------------------
         weights = ObjectiveWeights(
@@ -324,10 +325,12 @@ class MpcDispatchSolver:
         if cap_table is None:
             return 0.0
         # Ceiling lookup (D35) — same conservative warranty direction as the annual MILP.
-        cap_cycles, _ = ceiling_value_for_duration(cap_table.value, float(problem.duration_hours))
+        cap_cycles, _ = _cl.warranty.ceiling_value_for_duration(
+            cap_table.value, float(problem.duration_hours)
+        )
         if cap_cycles is None or cap_cycles <= 0:
             return 0.0
-        return cap_cycles * float(problem.energy_kwh) / annual_factor
+        return _cl.warranty.throughput_cap_kwh(cap_cycles, float(problem.energy_kwh), annual_factor)
 
     def _solved(
         self,

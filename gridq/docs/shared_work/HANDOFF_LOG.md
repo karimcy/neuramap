@@ -1252,6 +1252,13 @@ Append-only. One entry per work session, newest at the bottom. Append via `gridq
 - **Remaining tasks:** Next: merge roadmap/wp-ops11-mw, then wp-tel01-ic14, wp-edge02-zones, wp-site08-orch, wp-therm03-plant, wp-site04-adequacy, wp-size02-library, wp-uw05-tiers.
 - **Warnings for next person:** Nothing imports gridq.underwriting.eligibility yet; the CLI and app wiring is a later WP.
 
+### 2026-11-26 19:31 — Olly
+- **Summary:** WP-SIZE-02: extracted the dispatch constraint set into gridq.constraint_library 1.0.0 (connection, resilience, soc, warranty, commitments, thermal + catalogue; imports contracts only). MILP, every MPC window, the MPC's own connection clip and warranty cap, and the sizer search box build from it; 410 LP models byte-identical before/after; golden unchanged. OptimisationResult.constraint_library stamp = IC-12 3.2.0 (v3.1.0 archived), excluded from input_hash, checked by engine conformance. D176..D179 (renumber at merge). Open: tag contracts/ic12-chassis/v3.2.0 at merge; thermal row not applied (no cooling variable); WP-SIZE-08 exporter to write library_pin().
+- **Files changed:** —
+- **Tests run:** —
+- **Remaining tasks:** —
+- **Warnings for next person:** —
+
 ### 2026-11-26 19:40 — Olly
 - **Summary:** Integration: WP-OPS-11 (roadmap/wp-ops11-mw, 95ecef5, demonstrator MW options pack) merged into roadmap/p1-foundations. Placeholders OPS11-1..5 took D143-D147; the pack was re-rendered (hashes unchanged, only the header's D-ids moved). A 101-character docstring line in gridq/ops/__init__.py was rewrapped.
 - **Files changed:** src/gridq/ops/{__init__,demonstrator_mw,mw_bindings,mw_definitions,mw_draft,mw_formula,mw_grant_text}.py, tests/ops/{_mw_support,test_demonstrator_mw,test_mw_bindings,test_mw_formula,test_mw_grant_text}.py, docs/ops/demonstrator_mw_options.md, docs/{decisions,changelog}.md.
@@ -1293,5 +1300,12 @@ Append-only. One entry per work session, newest at the bottom. Append via `gridq
 - **Tests run:** fast tier 7035 passed, 115 skipped, 0 failed; tests/test_adequacy_*.py and tests/governance 324 passed; python -m gridq.contracts --check exit 0; ruff check clean; ruff format --check src tests clean; mypy 275 files clean.
 - **Remaining tasks:** Next: merge wp-size02-library (IC-12 3.2.0), wp-uw05-tiers (IC-12 3.3.0).
 - **Warnings for next person:** None new.
+
+### 2026-11-26 23:05 — Olly
+- **Summary:** Integration: WP-SIZE-02 (roadmap/wp-size02-library, ebc9ba8, shared constraint library gridq.constraint_library 1.0.0 and the IC-12 3.2.0 library stamp on OptimisationResult) merged into roadmap/p1-foundations. Placeholders SIZE02-1..4 took D176-D179; because the library hash covers its docstrings, gridq.constraint_library is released as patch 1.0.1 (1.0.0 kept unedited in _releases.RELEASES). Archived v3.1.0 pins checked against the v3.1.0 tag; tag contracts/ic12-chassis/v3.2.0 created on this merge and pushed. Contracts README/CHANGELOG kept both sides (22 archived files, 21 contract tags); CLAUDE.md §7 chassis line cites D178.
+- **Files changed:** src/gridq/constraint_library/*, src/gridq/schemas/{chassis,constraint_library,optimisation,__init__}.py, src/gridq/optimisation/{milp_solver,mpc_solver,two_stage,engine,_assumptions}.py, src/gridq/contracts/{__main__,__init__}.py, src/gridq/contracts/{README,CHANGELOG}.md, src/gridq/contracts/schemas/ic12_*.v3.2.0.schema.json, tests/contracts/{test_ic12_chassis,test_schema_archive}.py, tests/test_constraint_library.py, CLAUDE.md, docs/{decisions,changelog}.md.
+- **Tests run:** fast tier 7087 passed, 115 skipped, 0 failed; golden 5 passed; tests/contracts, tests/test_constraint_library.py and tests/governance 2773 passed, 14 skipped (after the 1.0.1 release; the stamp test now restores the extension registries it touches); python -m gridq.contracts --check exit 0; ruff check clean; ruff format --check src tests clean; mypy 286 files clean.
+- **Remaining tasks:** Next: merge wp-uw05-tiers as IC-12 3.3.0 (archive 3.2.0; the 3.3.0 quote schema carries both this stamp and UW-05's ledger). IC-3 minor still needed before WP-SIZE-08 exports from a 3.x quote.
+- **Warnings for next person:** Any edit to gridq.constraint_library is a release (LIBRARY_VERSION + _releases.RELEASES).
 
 <!-- HANDOFF_ENTRIES:END -->

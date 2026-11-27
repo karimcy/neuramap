@@ -65,6 +65,7 @@ import numpy as np
 import pandas as pd
 
 from gridq.assumptions import AssumptionError, AssumptionLibrary, load_assumptions
+from gridq.constraint_library import library_ref
 from gridq.dispatch import (
     DispatchProblem,
     DispatchResult,
@@ -2929,6 +2930,8 @@ class MilpEngine:
             solver_status=status,
             selection_status=selection_status,
             solver_metadata=self._metadata(request),
+            # IC-12 3.2.0 (WP-SIZE-02): the constraint set every candidate solve applied.
+            constraint_library=library_ref(),
             warnings=[
                 reason,
                 *([study_note] if study_note is not None else []),

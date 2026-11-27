@@ -104,12 +104,26 @@ TAGGED_IC12_V3_0_0 = {
         "3c52e3724290081c84f3e9a7e4be88508036797f9494f22e169f912a6e710d21"
     ),
 }
+#: The three IC-12 v3.1.0 files, archived by the additive minor IC-12 3.2.0 (WP-SIZE-02,
+#: D178), at their hashes under the tag ``contracts/ic12-chassis/v3.1.0``.
+TAGGED_IC12_V3_1_0 = {
+    "ic12_site_model.v3.1.0.schema.json": (
+        "0f2868cd9aaa996756f235b8dc9cf45b10f14a20c153a775a486513b266e844d"
+    ),
+    "ic12_optimisation_result.v3.1.0.schema.json": (
+        "302e69c183d3a930cd5b2fd86484814eaf98cdcceab7090520780a53b4f9d3e1"
+    ),
+    "ic12_quote_record.v3.1.0.schema.json": (
+        "55d36023d8b7b6da71dacffc0c0b3cc7166377660793457d209bebe5b5fdfad6"
+    ),
+}
 TAGGED = {
     **TAGGED_V1_0_0,
     **TAGGED_V1_1_0,
     **TAGGED_IC12_V2_0_0,
     **TAGGED_IC12_V2_1_0,
     **TAGGED_IC12_V3_0_0,
+    **TAGGED_IC12_V3_1_0,
 }
 
 

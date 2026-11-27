@@ -57,6 +57,17 @@ dump while unset, and the derived members are excluded from the case identity, s
 identity hash moves. The `SiteModel` and `OptimisationResult` schemas are byte-identical at
 3.1.0, so a 3.0.0 site is a 3.1.0 site. The release name stays ``gridq_chassis_v3``.
 
+Version 3.2.0 (WP-SIZE-02, D178) is an additive minor of 3.1.0. `OptimisationResult`
+gained one optional member, ``constraint_library`` (`ConstraintLibraryRef`): the id, semantic
+version, source hash and sorted constraint ids of the versioned dispatch constraint set
+(`gridq.constraint_library`) the result was solved with. Every producing engine stamps it. It
+defaults to ``None`` and is absent from the dump while unset (the 2.0.0 growth rule), so every
+3.1.0 result and record payload is a valid 3.2.0 one with the same bytes; and it is excluded from
+``input_hash`` (the library is code, pinned by ``code_version`` through ``run_id``), so no
+identity hash moves. `QuoteRecord`'s schema moves only because it embeds the result. The
+`SiteModel` schema is byte-identical at 3.2.0. A 3.1.0 reader refuses a 3.2.0 result that carries
+the stamp, which is correct: it could not check it. The release name stays ``gridq_chassis_v3``.
+
 The contract version is **not** `gridq.schemas.SCHEMA_VERSION`. That string is stamped on every
 instance and enters every ``run_id``, so moving it would re-mint every identity in the repo. The
 contract version is carried here and in the schema file names, the way `SizingGrid` versions its
@@ -88,13 +99,14 @@ __all__ = [
 ]
 
 CONTRACT_ID: Final = "IC-12"
-CONTRACT_VERSION: Final = "3.1.0"
+CONTRACT_VERSION: Final = "3.2.0"
 #: Versions this code reads. It writes the last. A 2.x *site* (2.0.0 or 2.1.0: the same site
 #: schema) is read only through `upgrade_site_2_to_3`, which needs the caller's statement of its
 #: tariff basis; a 2.1.0 `QuoteRecord` or `OptimisationResult` is a 3.0.0 one, byte for byte, and
-#: every 3.0.0 payload is a 3.1.0 one (an additive minor, WP-UW-17).
-SUPPORTED_VERSIONS: Final = ("1.0.0", "2.0.0", "2.1.0", "3.0.0", "3.1.0")
-GIT_TAG: Final = "contracts/ic12-chassis/v3.1.0"
+#: every 3.0.0 payload is a 3.1.0 one (an additive minor, WP-UW-17), and every 3.1.0 payload a
+#: 3.2.0 one (an additive minor, WP-SIZE-02).
+SUPPORTED_VERSIONS: Final = ("1.0.0", "2.0.0", "2.1.0", "3.0.0", "3.1.0", "3.2.0")
+GIT_TAG: Final = "contracts/ic12-chassis/v3.2.0"
 #: The release this version belongs to (roadmap data product, WP-CORE-03); a major names a new one
 #: and a minor keeps it.
 RELEASE: Final = "gridq_chassis_v3"

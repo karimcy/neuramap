@@ -46,6 +46,7 @@ from dataclasses import replace
 from pathlib import Path
 
 from gridq.assumptions import AssumptionLibrary, load_assumptions
+from gridq.constraint_library import library_ref
 from gridq.dispatch import (
     DispatchProblem,
     dispatch_constraints_for,
@@ -734,4 +735,5 @@ class DemoEngine:
             bankable_status=BankableStatus.NOT_BANKABLE,
             solver_status=status,
             warnings=[reason],
+            constraint_library=library_ref(),
         )

@@ -15,26 +15,27 @@ IC-11 to 1.1.0 with it), WP-GRC-09 (IC-4 1.2.0 and NEW-IC-15), WP-SIZE-07 (IC-3)
 | IC-3 `DispatchEnvelope` + compiled `ResolvedTimeline` (roadmap WP-SIZE-07) | `dispatch_envelope.py` | **1.0.0** | `schemas/ic3_dispatch_envelope.v1.0.0.schema.json`, `schemas/ic3_resolved_timeline.v1.0.0.schema.json` | `contracts/ic3-dispatch-envelope/v1.0.0` |
 | IC-5 edge ↔ cloud protocol: `CloudToEdgeFrame` + `EdgeToCloudFrame` + `LinkProfile` (roadmap WP-EDGE-01) | `edge_cloud.py` | **1.0.0** | `schemas/ic5_cloud_to_edge_frame.v1.0.0.schema.json`, `schemas/ic5_edge_to_cloud_frame.v1.0.0.schema.json`, `schemas/ic5_link_profile.v1.0.0.schema.json` | `contracts/ic5-edge-cloud/v1.0.0` |
 | IC-9 `ComputeTurndownDeclaration` + `ResolvedTimeline` (roadmap WP-SITE-07, B8-01) | `compute_turndown.py` | **1.0.0** | `schemas/ic9_compute_turndown_declaration.v1.0.0.schema.json`, `schemas/ic9_resolved_timeline.v1.0.0.schema.json`; specification `specs/ic9_compute_turndown_declaration.v1.0.0.md` | `contracts/ic9-compute-turndown/v1.0.0` (annotated, local) |
-| IC-12 chassis: `SiteModel` + `OptimisationResult` + `QuoteRecord` (roadmap NEW-IC-12; release `gridq_chassis_v3`) | `gridq/schemas/chassis.py` (models in `gridq.schemas`) | **3.1.0** (WP-UW-17), an additive minor of 3.0.0, which was rendered on 2.1.0 (reads 1.0.0, 2.0.0, 2.1.0 and 3.0.0; 1.0.0 instances are valid 2.0.0 instances, same bytes; 2.0.0 instances are valid 2.1.0 instances; 2.1.0 `QuoteRecord` and `OptimisationResult` instances are valid 3.0.0 instances, same bytes; a 2.x site is lifted only by `upgrade_site_2_to_3`, with its tariff basis and provenance stated; 3.0.0 instances are valid 3.1.0 instances, same bytes) | `schemas/ic12_site_model.v3.1.0.schema.json`, `schemas/ic12_optimisation_result.v3.1.0.schema.json`, `schemas/ic12_quote_record.v3.1.0.schema.json`; archived: the three `v1.0.0`, the three `v2.0.0`, the three `v2.1.0` and the three `v3.0.0` files | `contracts/ic12-chassis/v3.1.0` (on the integration merge of WP-UW-17); `v3.0.0` (on the integration commit that renders 3.0.0 over 2.1.0); `v2.1.0`; `v2.0.0`; `v1.0.0` |
+| IC-12 chassis: `SiteModel` + `OptimisationResult` + `QuoteRecord` (roadmap NEW-IC-12; release `gridq_chassis_v3`) | `gridq/schemas/chassis.py` (models in `gridq.schemas`) | **3.2.0** (WP-SIZE-02), an additive minor of 3.1.0 (reads 1.0.0, 2.0.0, 2.1.0, 3.0.0 and 3.1.0; 1.0.0 instances are valid 2.0.0 instances, same bytes; 2.0.0 instances are valid 2.1.0 instances; 2.1.0 `QuoteRecord` and `OptimisationResult` instances are valid 3.0.0 instances, same bytes; a 2.x site is lifted only by `upgrade_site_2_to_3`, with its tariff basis and provenance stated; 3.0.0 instances are valid 3.1.0 instances, same bytes; 3.1.0 instances are valid 3.2.0 instances, same bytes) | `schemas/ic12_site_model.v3.2.0.schema.json`, `schemas/ic12_optimisation_result.v3.2.0.schema.json`, `schemas/ic12_quote_record.v3.2.0.schema.json`; archived: the three `v1.0.0`, the three `v2.0.0`, the three `v2.1.0`, the three `v3.0.0` and the three `v3.1.0` files | `contracts/ic12-chassis/v3.2.0` (to be created on the integration merge of WP-SIZE-02); `v3.1.0` (on the integration merge of WP-UW-17); `v3.0.0` (on the integration commit that renders 3.0.0 over 2.1.0); `v2.1.0`; `v2.0.0`; `v1.0.0` |
 | IC-14 telemetry series: `SeriesDescriptor` + `TelemetryBatch` + `CuratedSeries` + `DqAnnotation` (roadmap NEW-IC-14, WP-TEL-01) | `telemetry_series.py` | **1.0.0** | `schemas/ic14_series_descriptor.v1.0.0.schema.json`, `schemas/ic14_telemetry_batch.v1.0.0.schema.json`, `schemas/ic14_curated_series.v1.0.0.schema.json`, `schemas/ic14_dq_annotation.v1.0.0.schema.json`; specification `specs/ic14_telemetry_series.v1.0.0.md` | `contracts/ic14-telemetry-series/v1.0.0` (annotated, local) |
 | IC-15 `ContractTemplateSet` + `ExecutedContractTerms` (roadmap NEW-IC-15) | `contract_templates.py`, texts and manifest in `templates/` | **1.0.0** | `schemas/ic15_contract_template_set.v1.0.0.schema.json`, `schemas/ic15_executed_contract_terms.v1.0.0.schema.json` | `contracts/ic15-contract-template-set/v1.0.0` (on the commit that completes WP-GRC-09) |
 
 A re-versioned module states `SUPPORTED_VERSIONS = ("1.0.0", "1.1.0")`: it reads both and writes the
-last; IC-4 states `("1.0.0", "1.1.0", "1.2.0")` and IC-12 `("1.0.0", "2.0.0", "2.1.0", "3.0.0", "3.1.0")`.
-Nineteen archived files are kept byte for byte and pinned by SHA-256 (`__main__.ARCHIVED`): the six
-`v1.0.0` files, IC-4 `v1.1.0`, the three IC-12 `v1.0.0` files, the three IC-12 `v2.0.0` files
-(superseded by the additive minor 2.1.0, WP-UW-03, D79), the three IC-12 `v2.1.0` files
-(superseded by the major 3.0.0, WP-UW-07, D103/D104) and the three IC-12 `v3.0.0` files
+last; IC-4 states `("1.0.0", "1.1.0", "1.2.0")` and IC-12 `("1.0.0", "2.0.0", "2.1.0", "3.0.0",
+"3.1.0", "3.2.0")`. Twenty-two archived files are kept byte for byte and pinned by SHA-256
+(`__main__.ARCHIVED`): the six `v1.0.0` files, IC-4 `v1.1.0`, the three IC-12 `v1.0.0` files, the
+three IC-12 `v2.0.0` files (superseded by the additive minor 2.1.0, WP-UW-03, D79), the three IC-12
+`v2.1.0` files (superseded by the major 3.0.0, WP-UW-07, D103/D104), the three IC-12 `v3.0.0` files
 (superseded by the additive minor 3.1.0, WP-UW-17, D128 to D132; released as 2.2.0 on its branch,
-which was cut before 3.0.0). IC-12's models are not in this package:
-they are the chassis in `gridq.schemas`, and only the checker reads them. The four `v1.1.0` tags
-are annotated and sit on one commit, the one that completes WP-BO-06 on branch
+which was cut before 3.0.0) and the three IC-12 `v3.1.0` files (superseded by the additive minor
+3.2.0, WP-SIZE-02, D178: the constraint-library stamp on `OptimisationResult`). IC-12's models are
+not in this package: they are the chassis in `gridq.schemas`, and only the checker reads them. The
+four `v1.1.0` tags are annotated and sit on one commit, the one that completes WP-BO-06 on branch
 `roadmap/wp-bo06`. The IC-4 `v1.2.0` and IC-15 `v1.0.0` tags sit on the commit that completes
-WP-GRC-09 on branch `roadmap/wp-grc09-templates`. The IC-3 `v1.0.0` tag is annotated and sits on
-the commit that completes WP-SIZE-07 on branch `roadmap/wp-size07-ic3`. The IC-12 `v3.0.0` tag is
+WP-GRC-09 on branch `roadmap/wp-grc09-templates`. The IC-3 `v1.0.0` tag is annotated and sits on the
+commit that completes WP-SIZE-07 on branch `roadmap/wp-size07-ic3`. The IC-12 `v3.0.0` tag is
 annotated and sits on the integration commit on `roadmap/p1-foundations` that renders 3.0.0 over
-2.1.0. The IC-12 `v3.1.0` tag is annotated and sits on the integration merge of
-WP-UW-17 on `roadmap/p1-foundations`.
+2.1.0. The IC-12 `v3.1.0` and `v3.2.0` tags are annotated and sit on the integration merges of
+WP-UW-17 and WP-SIZE-02 on `roadmap/p1-foundations`.
 
 IC-1 depends on IC-4: a real agreement's `source` is an `EvidenceBacked` reference to the IC-4 hash
 of its signed document. IC-2 depends on IC-4 (`IssuerRole` for publishers, `EvidenceRef` for

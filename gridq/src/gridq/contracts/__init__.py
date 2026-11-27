@@ -18,9 +18,9 @@
   fail-safe trigger codes, latency budget; ANM local-only): `gridq.contracts.edge_cloud`,
   version 1.0.0, git tag ``contracts/ic5-edge-cloud/v1.0.0``.
 - IC-12 (roadmap NEW-IC-12) the chassis, `SiteModel`, `OptimisationResult` and `QuoteRecord`:
-  the models are in `gridq.schemas` and the version in `gridq.schemas.chassis`, version 3.1.0
-  (reads 1.0.0, 2.0.0, 2.1.0 and 3.0.0; a 2.x site only through ``upgrade_site_2_to_3``), git tag
-  ``contracts/ic12-chassis/v3.1.0``. Only the checker (``__main__``) reads them.
+  the models are in `gridq.schemas` and the version in `gridq.schemas.chassis`, version 3.2.0
+  (reads 1.0.0, 2.0.0, 2.1.0, 3.0.0 and 3.1.0; a 2.x site only through ``upgrade_site_2_to_3``),
+  git tag ``contracts/ic12-chassis/v3.2.0``. Only the checker (``__main__``) reads them.
 - IC-15 (roadmap NEW-IC-15) contract template set and executed contract terms:
   `gridq.contracts.contract_templates`, version 1.0.0, git tag
   ``contracts/ic15-contract-template-set/v1.0.0``. Every template is a draft that needs legal

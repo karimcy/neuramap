@@ -22,6 +22,7 @@ from collections.abc import Callable
 from dataclasses import dataclass, field, replace
 
 from gridq.assumptions import AssumptionLibrary
+from gridq.constraint_library import library_ref
 from gridq.dispatch import (
     DispatchProblem,
     DispatchResult,
@@ -365,6 +366,8 @@ def _to_optimisation_result(
             code_version=get_code_version(),
         ),
         warnings=list(dispatch_result.warnings),
+        # IC-12 3.2.0 (WP-SIZE-02): the constraint library the candidate's dispatch compiled.
+        constraint_library=library_ref(),
     )
 
 

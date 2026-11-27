@@ -11,9 +11,43 @@ IC-3 `v1.0.0` tag is annotated and sits on the commit that completes WP-SIZE-07 
 complete WP-EDGE-01 (`roadmap/wp-edge01-ic5`) and WP-SITE-07 (`roadmap/wp-site07-ic9`), not on the
 merges. The IC-12 `v3.0.0` tag is annotated and sits on the integration commit on
 `roadmap/p1-foundations` that renders 3.0.0 over 2.1.0, and the IC-12 `v3.1.0` tag on the
-integration merge of WP-UW-17. The IC-14 `v1.0.0` tag is annotated and sits on the commit that
-completes WP-TEL-01 on branch `roadmap/wp-tel01-ic14`, not on the merge. With IC-12's `v2.0.0`,
-`v2.1.0`, `v3.0.0` and `v3.1.0`, twenty contract tags exist in all.
+integration merge of WP-UW-17, and the IC-12 `v3.2.0` tag on the integration merge of WP-SIZE-02.
+The IC-14 `v1.0.0` tag is annotated and sits on the commit that completes WP-TEL-01 on branch
+`roadmap/wp-tel01-ic14`, not on the merge. With IC-12's `v2.0.0`, `v2.1.0`, `v3.0.0`, `v3.1.0` and
+`v3.2.0`, twenty-one contract tags exist in all.
+
+## 2026-11-26: IC-12 chassis 3.2.0, an additive minor of 3.1.0 (WP-SIZE-02, Olly; D178; branch `roadmap/wp-size02-library`)
+
+IC-1, IC-2, IC-3, IC-4, IC-5, IC-9, IC-11, IC-13, IC-14 and IC-15 are unchanged; no schema file of
+theirs changed.
+
+- **IC-12 3.2.0.** Tag `contracts/ic12-chassis/v3.2.0`, annotated, on the integration merge
+  of WP-SIZE-02. Release name unchanged, `gridq_chassis_v3`.
+  - **Why:** WP-SIZE-02 extracts the dispatch constraint set into the versioned package
+    `gridq.constraint_library`, and its acceptance requires the library version on every
+    `OptimisationResult`. Adding that member moved the result schema and, through the result it
+    embeds, the quote record's; this release versions the change instead of editing the 3.1.0
+    files.
+  - **Archived:** the three `v3.1.0` files, byte for byte, pinned by SHA-256 in
+    `__main__.ARCHIVED` at their hashes under the tag `contracts/ic12-chassis/v3.1.0`. No archived
+    file was edited.
+  - **`SiteModel`:** unchanged; its `v3.2.0` file equals the `v3.1.0` file byte for byte.
+  - **`OptimisationResult`, added, optional, defaulting to `null`:** `constraint_library`
+    (`ConstraintLibraryRef`: `library_id`, `library_version` (semver), `library_hash`
+    (`sha256:` + 64 hex), `constraint_ids` (sorted, unique, each `^[a-z][a-z0-9_]*$`)), one new
+    closed definition. Its members restate IC-3's `ConstraintLibraryPin`, so an envelope exporter
+    copies the stamp into `source.constraint_library` without translation.
+  - **`QuoteRecord`:** grows only through the embedded `OptimisationResult` (the same member and
+    definition). Nothing else moved.
+  - **Compatibility:** every 3.1.0 instance is a valid 3.2.0 instance with the same bytes: the
+    member is dropped from every dump while unset (the 2.0.0 growth rule, `omit_unset`). Set, it
+    is excluded from `input_hash` (`quotes.assembly._canonical_result_dump`): the library is
+    code, pinned by `code_version` through `run_id`, so no identity hash moves. A 3.1.0 reader
+    refuses a 3.2.0 result that carries the stamp, which is correct: it could not check it.
+  - **Pinned by:** `tests/contracts/test_ic12_chassis.py::test_3_2_0_is_3_1_0_plus_the_stated_optional_members`,
+    `::test_the_3_2_0_stamp_is_one_closed_definition_mirroring_the_ic3_pin`,
+    `::test_a_3_1_0_reader_refuses_a_payload_that_sets_the_3_2_0_stamp`;
+    `tests/contracts/test_schema_archive.py::test_the_archive_pins_every_tagged_file`.
 
 ## 2026-11-26: IC-14 telemetry series 1.0.0 (WP-TEL-01, Olly)
 

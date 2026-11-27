@@ -12,6 +12,7 @@ from typing import Any
 
 from pydantic import Field, SerializerFunctionWrapHandler, model_serializer, model_validator
 
+from gridq.schemas.constraint_library import ConstraintLibraryRef
 from gridq.schemas.enums import (
     BankableStatus,
     ImplementationLevel,
@@ -83,12 +84,20 @@ class OptimisationResult(GridQModel):
     #: until an engine reads evidence (`underwriting_basis_v1`, WP-UW-01); no engine sets it
     #: today. Absent from every dump while ``None``.
     evidence_refs: tuple[EvidenceLink, ...] | None = None
+    #: IC-12 3.2.0 (WP-SIZE-02, D178): the versioned constraint library
+    #: (`gridq.constraint_library`) the result was solved with: its id, version, source hash and
+    #: constraint ids. Every engine in this repository sets it; ``None`` only on a payload written
+    #: before 3.2.0 or a hand-built fixture. Absent from every dump while ``None``, and kept out of
+    #: ``input_hash`` (it is code, pinned by ``code_version`` through ``run_id``).
+    constraint_library: ConstraintLibraryRef | None = None
     warnings: list[str] = Field(default_factory=list)
     created_at: datetime = Field(default_factory=datetime.now)
 
     @model_serializer(mode="wrap")
     def _dump_without_unset_growth(self, handler: SerializerFunctionWrapHandler) -> Any:
-        return omit_unset(handler(self), ("connection_agreement", "evidence_refs"))
+        return omit_unset(
+            handler(self), ("connection_agreement", "evidence_refs", "constraint_library")
+        )
 
     @model_validator(mode="after")
     def _checks(self) -> OptimisationResult:

@@ -4,6 +4,140 @@ Decision log. Newest first. Each entry: **date · decision · reason · alternat
 
 ---
 
+### D179 — The thermal turn-down limit is catalogued but not applied, and the catalogue states which path applies each constraint
+
+- **Date:** 2026-11-26
+- **Author:** Fable 5.2, under the owner's delegation of design decisions (WP-SIZE-02). Executed for Olly.
+- **Context.** WP-SIZE-02 lists thermal limits in the shared set. The battery MILP has no cooling
+  variable. The rolling-horizon MPC solves each window through the annual build with the same
+  `DispatchProblem` (its descriptors included), but never with the export overlay.
+- **Decision.** `gridq.constraint_library.thermal` holds the constraint `thermal_turn_down_limit`
+  (`turn_down_t ≤ deliverable_kw(surface, t, duration)`, read from the IC-11 surface by the contract's own
+  `query_at`; an `unavailable` or `unknown` cell gives 0 kW with its status beside it, never an invented
+  number) and the row builder. Its catalogue entry states `applied_by=()`. `export_limit` states
+  `("annual_milp",)` (the MPC runs behind the meter); every other constraint, the two commitment rows
+  included (measured: each MPC window whose span meets a committed window builds
+  `availability_reserve_aggregate` and `held_state_of_energy_<id>`), states both paths. The catalogue says
+  what is applied; nothing is implied.
+- **Tests.** `tests/test_constraint_library.py::test_thermal_limits_are_read_from_the_ic11_surface`,
+  `::test_every_roadmap_family_is_catalogued`, `::test_each_mpc_window_builds_its_constraints_from_the_library`.
+- **Direction of effect.** None on any figure.
+- **Alternatives considered.** Add a cooling variable to the battery MILP now (rejected: a new resource in the
+  dispatch is WP-SIZE-03/A5 scope and would move the golden pins). Leave thermal out of the library
+  (rejected: B2 and A5 must take it from one place when it is applied).
+- **Consequences.** When a cooling resource enters the model it calls `add_turn_down_rows`, and its
+  catalogue entry gains the paths that apply it (a minor library release). The MPC's export overlay, if
+  B2-02 needs one, would move `export_limit` the same way.
+
+### D178 — `OptimisationResult.constraint_library`: an optional stamp in IC-12 3.2.0, set by every engine, kept out of `input_hash`
+
+- **Date:** 2026-11-26
+- **Author:** Fable 5.2, under the owner's delegation of design decisions (WP-SIZE-02). Executed for Olly.
+- **Context.** The acceptance requires the library version in every `OptimisationResult`, a frozen IC-12
+  model.
+- **Decision.** `OptimisationResult` gains `constraint_library: ConstraintLibraryRef | None = None`
+  (`gridq.schemas.constraint_library`: `library_id`, `library_version`, `library_hash`, sorted unique
+  `constraint_ids`; the members restate IC-3's `ConstraintLibraryPin`). Released as **IC-12 3.2.0**, an
+  additive minor on the D79 template: the three `v3.1.0` files archived at their tagged SHA-256, `v3.2.0`
+  rendered, `SiteModel` byte-identical, `QuoteRecord` moved only through the embedded result.
+  1. **Optional in the schema, obligatory for an engine.** The member is absent from every dump while
+     unset (`omit_unset`, the 2.0.0 rule), so every 3.1.0 payload reads with the same bytes. The
+     obligation is enforced where it belongs, on producers: every `OptimisationResult(...)` in `src`
+     passes it (AST test), and the engine conformance bar checks
+     `provenance.constraint_library_stamped` on every engine result.
+  2. **Every producer stamps it.** The sizer's per-candidate result (`sizing/sizer.py`), the MILP
+     engine's no-spec result (`optimisation/engine.py`), the baseline (`engine/baseline.py`, which solves
+     nothing: its stamp names the set any dispatch from that build applies) and the demo's no-spec result
+     (`app/demo.py`). `model_copy` and the underwriting post-pass (`model_validate` of the result's own
+     members) carry it through.
+  3. **Out of `input_hash`.** The library is code. `code_version` already pins it through `run_id`, and
+     `input_hash` excludes `code_version` so that it answers "did an input change?". Hashing the stamp
+     would move `input_hash` on a library edit that moved no input, which is the defect that exclusion
+     exists for. `quotes.assembly._canonical_result_dump` excludes it. Finance's `case_id` hashes the
+     whole result, which already carries `code_version`, so it is unchanged in kind (finance not touched).
+- **Tests.** `tests/contracts/test_ic12_chassis.py::test_3_2_0_is_3_1_0_plus_the_stated_optional_members`,
+  `::test_the_3_2_0_stamp_is_one_closed_definition_mirroring_the_ic3_pin`,
+  `::test_a_3_1_0_reader_refuses_a_payload_that_sets_the_3_2_0_stamp`,
+  `::test_an_existing_run_input_result_and_record_keep_their_bytes`;
+  `tests/contracts/test_schema_archive.py::test_the_archive_pins_every_tagged_file`;
+  `tests/test_constraint_library.py::test_every_result_constructed_in_src_is_stamped`,
+  `::test_the_sizer_stamps_each_candidate_result`, `::test_the_baseline_and_underwriting_engines_stamp_their_results`,
+  `::test_the_milp_engine_stamps_its_no_spec_result`, `::test_the_demo_no_spec_result_is_stamped`,
+  `::test_the_conformance_bar_refuses_an_engine_that_does_not_stamp`, `::test_the_stamp_never_moves_the_run_identity`;
+  `tests/test_optimisation_contract_conformance.py::test_engine_conforms` (baseline and MILP).
+- **Direction of effect.** None on any figure or identity hash.
+- **Alternatives considered.** A required member, a major (rejected: every 3.1.0 result and record would be
+  refused, and nothing about them is wrong). The version in `SolverMetadata.model_version` (rejected: that
+  string names the dispatch formulation and enters `input_hash`; overloading it hides the library hash).
+  Hash the stamp into `input_hash` (rejected, point 3).
+- **Consequences.** IC-12 is at 3.2.0; a 3.1.0 reader refuses a stamped result, as for every minor here. Tag
+  `contracts/ic12-chassis/v3.2.0` is created at the integration merge.
+
+### D177 — Library identity: a semantic version, a source hash, an append-only release record, and the IC-3 pin built from them
+
+- **Date:** 2026-11-26
+- **Author:** Fable 5.2, under the owner's delegation of design decisions (WP-SIZE-02). Executed for Olly.
+- **Context.** A version string alone can be left unbumped after an edit; a hash alone tells a reader
+  nothing about compatibility. IC-3 (D88/D89) already pins `library_version` + `library_hash` +
+  `constraint_ids` in an envelope and compares them at dispatch.
+- **Decision.** `LIBRARY_VERSION` (now `1.0.0`) is semver: patch for a change that moves no row, bound or
+  default; minor for an added constraint; major for any change to an existing constraint's rows, bounds or
+  defaults. `library_hash()` is the SHA-256 of every module in the package except `_releases.py` (by sorted
+  name; name, NUL, text with newlines normalised, NUL). `_releases.RELEASES` is append-only and pins the
+  hash each version had, and a test fails when the source moves without a new version and entry.
+  `library_ref()` is the result stamp; `library_pin()` the IC-3 pin the envelope exporter (WP-SIZE-08) writes;
+  `check_envelope()` is IC-3's `check_constraint_library` against this build.
+- **Tests.** `tests/test_constraint_library.py::test_the_released_hash_is_the_source_hash`,
+  `::test_the_current_version_is_the_newest_release`, `::test_the_hash_covers_every_module_but_the_release_record`,
+  `::test_the_stamp_and_the_ic3_pin_state_the_same_library`,
+  `::test_live_dispatch_matches_an_envelope_sized_with_this_library`, `::test_the_stamp_refuses_a_malformed_library`.
+- **Direction of effect.** None.
+- **Alternatives considered.** Hash the whole `gridq` tree (rejected: it would move on every unrelated edit,
+  so "same library" would never be provable across commits). Use the git commit (rejected: not available in
+  every runtime, and identical constraint code would differ by commit).
+- **Consequences.** Any edit to a library module is a release. Live dispatch can prove it runs the constraint
+  set an envelope was sized with.
+
+### D176 — `gridq.constraint_library`: what the shared set holds, and the contracts-only boundary
+
+- **Date:** 2026-11-26
+- **Author:** Fable 5.2, under the owner's delegation of design decisions (WP-SIZE-02). Executed for Olly.
+- **Context.** NEW-SIZE-LIB: the live MPC (B2-02) must apply the same constraint set as the sizer (A5). The
+  set lived inside `optimisation/milp_solver.py`, with the import limit and the warranty cap written again
+  in `mpc_solver.py` and the import limit in `two_stage.py`.
+- **Decision.** One package, `gridq.constraint_library`, with a module per family: `connection` (import
+  limit min(MIC, ASC), the power-factor de-rating, the charge, discharge and export bounds, the export
+  inverter row, the reactive screen, the inverter P-Q and connection kVA octagons), `resilience` (the
+  forced load-service draw and the pre-window state-of-energy rows), `soc` (the window, its bounds, the
+  usable-energy disclosure, the rolling-horizon start check), `warranty` (the ceiling lookup, the cap, the
+  row, the disclosure), `commitments` (the kind registry, the calendar mask, the deliverable envelope,
+  the compiler) and `thermal` (D179), plus a `catalogue` of the eleven constraint ids.
+  1. **The library holds algebra, row names and disclosure text; the caller resolves every number.**
+     Release reads (`maybe`/`numeric`), the provisioning derivation (`gridq.sizing.provisioning`) and
+     the ancillary throughput stay in the solver, which hands the library numbers and arrays.
+  2. **Boundary.** The library imports only `gridq.contracts`, the IC-12 chassis in `gridq.schemas`,
+     itself, the standard library, numpy, pandas and xarray. Proven by an AST scan of every module (lazy
+     imports included) and by a fresh interpreter whose loaded GridQ modules are the contracts and
+     chassis only. Neither `gridq.contracts` nor `gridq.schemas` imports the library.
+  3. **Pure refactor.** The arithmetic, row names and creation order are unchanged. The optimisation
+     package keeps its old private names as aliases of the library's objects (tests and callers read
+     them), and `optimisation._assumptions.ceiling_value_for_duration` is a re-export.
+- **Tests.** `tests/test_constraint_library.py::test_the_library_imports_contracts_only`,
+  `::test_the_library_loads_no_workstream_module_transitively`, `::test_the_boundary_scan_has_teeth`,
+  `::test_the_contracts_never_import_the_library`, `::test_the_annual_milp_builds_its_constraints_from_the_library`,
+  `::test_each_mpc_window_builds_its_constraints_from_the_library`,
+  `::test_the_sizer_search_box_reads_the_library_import_limit`,
+  `::test_the_optimisation_package_reads_the_library_not_a_copy`; the golden tier,
+  `tests/test_determinism_golden.py`, unedited and green. Measured: every linopy model built by seven
+  dispatch test modules (410 models: annual MILP, provisioning, commitments, reactive, MPC windows) wrote
+  a byte-identical LP file before and after the extraction.
+- **Direction of effect.** None.
+- **Alternatives considered.** Let the library read the `AssumptionLibrary` itself (rejected: that is
+  workstream code, and the B2 runtime will not carry a release object). Keep the MPC's own copies of the
+  limit and the cap (rejected: the duplication is the defect NEW-SIZE-LIB names).
+- **Consequences.** A change to a dispatch constraint is a library release (D177), visible on
+  every result it produces (D178).
+
 ### D175 — Reconciliation of the five WP-SITE-04 rulings
 
 - **Date:** 2026-11-26

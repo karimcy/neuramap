@@ -1,14 +1,15 @@
-"""IC-12 (NEW-IC-12): the GridQ chassis, now at 3.1.0, release ``gridq_chassis_v3`` (WP-UW-07).
+"""IC-12 (NEW-IC-12): the GridQ chassis, now at 3.2.0, release ``gridq_chassis_v3`` (WP-UW-07).
 
 Conformance for the three chassis models, `SiteModel`, `OptimisationResult` and `QuoteRecord`:
 
-1. the committed 3.1.0 schemas match the models, and the 1.0.0, 2.0.0, 2.1.0 and 3.0.0 schemas
-   are archived by hash;
+1. the committed 3.2.0 schemas match the models, and the 1.0.0, 2.0.0, 2.1.0, 3.0.0 and 3.1.0
+   schemas are archived by hash;
 2. 2.0.0 is 1.0.0 plus a stated set of optional members and nothing else; 2.1.0 (WP-UW-03, D79)
    is 2.0.0 plus a stated set of optional members and two stated descriptions; 3.0.0 (WP-UW-07,
    rendered on 2.1.0) is 2.1.0 plus a stated set of members, of which exactly two (the tariff
    basis and provenance) are required; 3.1.0 (WP-UW-17, D128 to D132) is 3.0.0 plus a stated set
-   of optional members and nothing else;
+   of optional members and nothing else; 3.2.0 (WP-SIZE-02, D178) is 3.1.0 plus the
+   optional constraint-library stamp on `OptimisationResult` and nothing else;
 3. **no identity moves except by the stated basis**: a 1.0.0 instance dumps to its 1.0.0 bytes,
    pinned by hashes minted at the ``gridq_clean_baseline`` tag; at 3.0.0 every committed site
    carries its basis and provenance, and with exactly those stripped it hashes to the same pin,
@@ -115,16 +116,16 @@ def _link(supports: str, index: int = 0) -> EvidenceLink:
 # ------------------------------------------------------------------ 1. version and schemas
 
 
-def test_the_chassis_is_ic12_at_3_1_0() -> None:
+def test_the_chassis_is_ic12_at_3_2_0() -> None:
     assert chassis.CONTRACT_ID == "IC-12"
-    assert chassis.CONTRACT_VERSION == "3.1.0"
-    assert chassis.SUPPORTED_VERSIONS == ("1.0.0", "2.0.0", "2.1.0", "3.0.0", "3.1.0")
+    assert chassis.CONTRACT_VERSION == "3.2.0"
+    assert chassis.SUPPORTED_VERSIONS == ("1.0.0", "2.0.0", "2.1.0", "3.0.0", "3.1.0", "3.2.0")
     assert chassis.SUPPORTED_VERSIONS[-1] == chassis.CONTRACT_VERSION
-    assert chassis.GIT_TAG == "contracts/ic12-chassis/v3.1.0"
+    assert chassis.GIT_TAG == "contracts/ic12-chassis/v3.2.0"
     assert chassis.RELEASE == "gridq_chassis_v3"
     assert [m for _, m in chassis.FROZEN_MODELS] == [SiteModel, OptimisationResult, QuoteRecord]
     live = {(stem, version) for stem, _, version in cli.FROZEN}
-    assert {(stem, "3.1.0") for stem in STEMS} <= live
+    assert {(stem, "3.2.0") for stem in STEMS} <= live
 
 
 def test_the_contract_version_is_not_the_instance_schema_version() -> None:
@@ -137,7 +138,8 @@ def test_check_covers_the_three_chassis_schemas(capsys: pytest.CaptureFixture[st
     assert cli.main(["--check"]) == 0
     out = capsys.readouterr().out
     for stem in STEMS:
-        assert f"ok    {stem}.v3.1.0.schema.json" in out
+        assert f"ok    {stem}.v3.2.0.schema.json" in out
+        assert f"ok    {stem}.v3.1.0.schema.json (archived, sha256 pinned)" in out
         assert f"ok    {stem}.v3.0.0.schema.json (archived, sha256 pinned)" in out
         assert f"ok    {stem}.v2.1.0.schema.json (archived, sha256 pinned)" in out
         assert f"ok    {stem}.v2.0.0.schema.json (archived, sha256 pinned)" in out
@@ -156,7 +158,7 @@ def test_a_chassis_model_that_drifts_fails_check(
     )
     monkeypatch.setattr(cli, "FROZEN", drifted)
     assert cli.main(["--check"]) == 1
-    assert "DRIFT: SiteModelPlusOne no longer matches ic12_site_model.v3.1.0" in (
+    assert "DRIFT: SiteModelPlusOne no longer matches ic12_site_model.v3.2.0" in (
         capsys.readouterr().out
     )
 
@@ -228,7 +230,8 @@ def test_the_references_are_the_contracts_own_types_by_the_1x_range() -> None:
     """The chassis embeds IC-1 and IC-4 references as frozen there, not copies of them."""
     from gridq.contracts._base import VERSION_1X_PATTERN
 
-    for stem, version in ((s, v) for s in STEMS for v in ("2.0.0", "2.1.0", "3.0.0", "3.1.0")):
+    versions = ("2.0.0", "2.1.0", "3.0.0", "3.1.0", "3.2.0")
+    for stem, version in ((s, v) for s in STEMS for v in versions):
         defs = _schema(stem, version)["$defs"]
         assert defs["ConnectionAgreementRef"]["properties"]["contract"]["const"] == "IC-1"
         assert defs["EvidenceRef"]["properties"]["contract"]["const"] == "IC-4"
@@ -476,6 +479,90 @@ def test_a_3_0_0_reader_refuses_a_payload_that_sets_a_3_1_0_member() -> None:
     for definition, members in DELTA_V310["ic12_quote_record"]["grown"].items():
         assert old["$defs"][definition]["additionalProperties"] is False, definition
         assert not members & set(old["$defs"][definition]["properties"]), definition
+
+
+# ------------------------------------------------------------------ 2e. the 3.1.0 -> 3.2.0 delta
+
+#: Everything 3.2.0 adds to 3.1.0 (WP-SIZE-02, D178): one optional member,
+#: ``constraint_library``, on `OptimisationResult`, and its one new definition. ``<root>`` is the
+#: result schema's own top level; `QuoteRecord` moves only through the result it embeds.
+DELTA_V320: dict[str, dict[str, Any]] = {
+    "ic12_site_model": {"defs": set(), "grown": {}},
+    "ic12_optimisation_result": {
+        "defs": {"ConstraintLibraryRef"},
+        "grown": {"<root>": {"constraint_library"}},
+    },
+    "ic12_quote_record": {
+        "defs": {"ConstraintLibraryRef"},
+        "grown": {"OptimisationResult": {"constraint_library"}},
+    },
+}
+
+
+def _node(schema: dict[str, Any], name: str) -> dict[str, Any]:
+    if name == "<root>":
+        return {k: v for k, v in schema.items() if k != "$defs"}
+    node: dict[str, Any] = schema["$defs"][name]
+    return node
+
+
+@pytest.mark.parametrize("stem", STEMS)
+def test_3_2_0_is_3_1_0_plus_the_stated_optional_members(stem: str) -> None:
+    old, new, delta = _schema(stem, "3.1.0"), _schema(stem, "3.2.0"), DELTA_V320[stem]
+    if not (delta["defs"] or delta["grown"]):
+        assert schema_bytes(stem, "3.2.0") == schema_bytes(stem, "3.1.0")
+        return
+    old_defs, new_defs = old.get("$defs", {}), new.get("$defs", {})
+    assert set(new_defs) - set(old_defs) == delta["defs"]
+    assert set(old_defs) <= set(new_defs)
+    for name in ["<root>", *old_defs]:
+        before, after = _node(old, name), _node(new, name)
+        grown = delta["grown"].get(name, set())
+        if not grown:
+            assert after == before, name
+            continue
+        moved = {k for k in set(before) | set(after) if before.get(k) != after.get(k)}
+        assert moved == {"properties"}, (name, moved)
+        assert after.get("required") == before.get("required"), name
+        assert set(after["properties"]) - set(before["properties"]) == grown
+        for prop_name, prop in before["properties"].items():
+            assert after["properties"][prop_name] == prop, (name, prop_name)
+        for prop_name in grown:
+            added = after["properties"][prop_name]
+            assert added["default"] is None, (name, prop_name)
+            assert {"type": "null"} in added["anyOf"], (name, prop_name)
+            assert {"$ref": "#/$defs/ConstraintLibraryRef"} in added["anyOf"], (name, prop_name)
+
+
+def test_the_3_2_0_stamp_is_one_closed_definition_mirroring_the_ic3_pin() -> None:
+    """The stamp is the same closed definition in both files and restates IC-3's pin fields, so an
+    envelope exporter copies it into ``source.constraint_library`` without translation."""
+    from gridq.contracts.dispatch_envelope import ConstraintLibraryPin
+
+    result_def = _schema("ic12_optimisation_result", "3.2.0")["$defs"]["ConstraintLibraryRef"]
+    quote_def = _schema("ic12_quote_record", "3.2.0")["$defs"]["ConstraintLibraryRef"]
+    assert result_def == quote_def
+    assert result_def["additionalProperties"] is False
+    assert set(result_def["required"]) == {
+        "library_id",
+        "library_version",
+        "library_hash",
+        "constraint_ids",
+    }
+    pin = ConstraintLibraryPin.model_json_schema()
+    for member in ("library_version", "constraint_ids"):
+        assert member in pin["properties"], member
+    assert result_def["properties"]["constraint_ids"]["items"]["pattern"] == "^[a-z][a-z0-9_]*$"
+
+
+def test_a_3_1_0_reader_refuses_a_payload_that_sets_the_3_2_0_stamp() -> None:
+    """Both grown objects were closed at 3.1.0, so a 3.1.0 reader cannot silently drop the stamp."""
+    result = _schema("ic12_optimisation_result", "3.1.0")
+    assert result["additionalProperties"] is False
+    assert "constraint_library" not in result["properties"]
+    embedded = _schema("ic12_quote_record", "3.1.0")["$defs"]["OptimisationResult"]
+    assert embedded["additionalProperties"] is False
+    assert "constraint_library" not in embedded["properties"]
 
 
 # ------------------------------------------------------------------ 3. no existing identity moves
@@ -877,6 +964,7 @@ def test_an_existing_run_input_result_and_record_keep_their_bytes() -> None:
     assert hash_json(quote_dump) == BASELINE_QUOTE_DUMP_HASH
     for dump in (result_dump, quote_dump, quote_dump["optimisation_result"]):
         assert "connection_agreement" not in dump and "evidence_refs" not in dump
+        assert "constraint_library" not in dump  # 3.2.0: unset, so absent, so the bytes hold
 
 
 def test_unset_members_are_absent_in_every_dump_mode() -> None:
@@ -899,6 +987,7 @@ def test_unset_members_are_absent_in_every_dump_mode() -> None:
     for dump in (quote.model_dump(), json.loads(quote.model_dump_json())):
         assert "connection_agreement" not in dump and "evidence_refs" not in dump
         assert "connection_agreement" not in dump["optimisation_result"]
+        assert "constraint_library" not in dump["optimisation_result"]
     # The attribute is still there, and still None: only the dump omits it.
     assert site.evidence_refs is None and site.connection.agreement is None
     assert SiteModel.model_validate(site.model_dump(mode="json")).evidence_refs is None

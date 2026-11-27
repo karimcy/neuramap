@@ -174,6 +174,19 @@ ARCHIVED: dict[str, str] = {
     "ic12_quote_record.v3.0.0.schema.json": (
         "3c52e3724290081c84f3e9a7e4be88508036797f9494f22e169f912a6e710d21"
     ),
+    # IC-12 3.1.0 (release ``gridq_chassis_v3``, WP-UW-17), superseded by the additive minor 3.2.0
+    # (WP-SIZE-02, D178: the constraint-library stamp on `OptimisationResult`). The
+    # hashes are those of the files at ``contracts/ic12-chassis/v3.1.0``. The site file is the
+    # 3.0.0 file and the result file the 2.0.0 to 3.0.0 file byte for byte, so their pins repeat.
+    "ic12_site_model.v3.1.0.schema.json": (
+        "0f2868cd9aaa996756f235b8dc9cf45b10f14a20c153a775a486513b266e844d"
+    ),
+    "ic12_optimisation_result.v3.1.0.schema.json": (
+        "302e69c183d3a930cd5b2fd86484814eaf98cdcceab7090520780a53b4f9d3e1"
+    ),
+    "ic12_quote_record.v3.1.0.schema.json": (
+        "55d36023d8b7b6da71dacffc0c0b3cc7166377660793457d209bebe5b5fdfad6"
+    ),
 }
 
 

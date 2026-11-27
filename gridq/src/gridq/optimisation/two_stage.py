@@ -35,6 +35,7 @@ import math
 from collections.abc import Callable
 from dataclasses import replace
 
+from gridq import constraint_library as _cl
 from gridq.assumptions import AssumptionLibrary
 from gridq.dispatch import dispatch_constraints_for
 from gridq.finance import FinancialModelResult, run_financial_model
@@ -126,12 +127,9 @@ def connection_power_limit_kw(site: SiteModel) -> float | None:
     obligation exceeding it is normal, not a reason to declare reinforcement.
     """
     connection = getattr(site, "connection", None)
-    limits = [
-        float(v)
-        for v in (getattr(connection, "mic_kw", None), getattr(connection, "asc_kw", None))
-        if v is not None and v > 0
-    ]
-    return min(limits) if limits else None
+    return _cl.connection.import_limit_kw(
+        getattr(connection, "mic_kw", None), getattr(connection, "asc_kw", None)
+    )
 
 
 def load_relevant_capacity_kw(

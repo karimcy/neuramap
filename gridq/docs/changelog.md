@@ -3,6 +3,71 @@
 All meaningful changes to this project. Newest first. Dates are ISO (YYYY-MM-DD).
 (Canonical location; the former top-level `CHANGELOG.md` now points here.)
 
+## 2026-11-26 — Integration: WP-SIZE-02 merged into `roadmap/p1-foundations` (IC-12 3.2.0)
+
+- **D-numbers.** WP-SIZE-02's four placeholders took D176 to D179 (SIZE02-1 to -4 in order), in
+  `gridq.constraint_library`, the chassis and optimisation schema docstrings, the contracts README,
+  CHANGELOG and `__main__.ARCHIVED` comment, CLAUDE.md, decisions, changelog and handoff entry. No
+  schema file cites them.
+- **IC-12 3.2.0 released at this merge.** The branch (cut at the WP-UW-17 merge 71a3a49) already
+  carried the additive minor: `OptimisationResult.constraint_library` (`ConstraintLibraryRef`),
+  the three `v3.2.0` files, and the three `v3.1.0` files archived and SHA-pinned. Checked at the
+  merge: each archived `v3.1.0` file's SHA-256 equals its bytes under the tag
+  `contracts/ic12-chassis/v3.1.0`. Tag `contracts/ic12-chassis/v3.2.0` (annotated) is created on this
+  merge commit and pushed.
+- **Kept both sides** at the contracts README (the IC-12 3.2.0 row above the IC-14 row; twenty-two
+  archived files; the `v3.1.0` and `v3.2.0` tags on the WP-UW-17 and WP-SIZE-02 merges; the paragraph
+  rewrapped to 100 columns) and CHANGELOG (the IC-12 3.2.0 entry above IC-14, now listing IC-14
+  among the unchanged contracts; twenty-one contract tags). CLAUDE.md §7's chassis line now cites
+  D178 and the 3.2.0 member. `__main__`, `__init__` and the solver extraction merged cleanly.
+- **`gridq.constraint_library` released as 1.0.1 at the merge (a patch).** The library hash covers
+  its own source, docstrings included, so the renumbering moved it and
+  `test_the_released_hash_is_the_source_hash` failed. A released entry is never edited, so 1.0.0
+  (the branch release, `sha256:f23bbb03…`) stays in `_releases.RELEASES` as it was and 1.0.1
+  (`sha256:97d71c57…`) is appended: placeholders became D176 to D179 and `LIBRARY_VERSION` moved;
+  no row, bound or default changed, which is the library's own rule for a patch. Every result on
+  p1 is stamped 1.0.1; the one test that named the stamped version now names 1.0.1.
+- **Test isolation fixed at its cause.** The first fast tier after the merge failed
+  `test_underwriting_basis_v1.py::test_building_the_engine_registers_the_plugin_once` (it passes
+  alone): the branch's `test_the_baseline_and_underwriting_engines_stamp_their_results` builds an
+  `UnderwritingEngine`, which registers the underwriting plug-in in the process-wide extension
+  registries, and left it there for the next test in the same worker. That test now uses a
+  `_registries_restored` fixture, the same snapshot-and-restore the underwriting module uses.
+- **Golden.** `tests/test_determinism_golden.py` re-run after the merge: 5 passed.
+- **Kept green.** The DPA read waiver is still 12; no IC-15 reference names IC-12 3.x. IC-3 1.0.0
+  still binds IC-12 2.x (an IC-3 minor is needed before WP-SIZE-08 exports from a 3.x quote; the new
+  stamp already mirrors IC-3's `ConstraintLibraryPin`).
+
+## 2026-11-26 — WP-SIZE-02: the shared constraint library `gridq.constraint_library` 1.0.0 (IC-12 3.2.0)
+
+- **Olly** (on `roadmap/wp-size02-library`, cut from `roadmap/p1-foundations` at 71a3a49). Design
+  rulings D176 to D179 (placeholders, renumbered at merge), by Fable 5.2 under the owner's
+  delegation.
+- **Why.** NEW-SIZE-LIB: the live MPC (B2-02) must apply the same constraint set as the sizer (A5). The
+  set lived inside `optimisation/milp_solver.py`, with the import limit and warranty cap written again in
+  `mpc_solver.py` and the import limit again in `two_stage.py`.
+- **The library (D176).** `src/gridq/constraint_library/`: `connection` (import limit, power
+  factor, charge/discharge/export bounds, export inverter row, reactive screen, P-Q and kVA octagons),
+  `resilience` (forced load-service draw, pre-window SoE rows), `soc`, `warranty`, `commitments` and
+  `thermal` (IC-11 turn-down limit, catalogued, not yet applied: D179), and a `catalogue` of
+  eleven constraint ids stating which path applies each. The MILP, each MPC window, the MPC's own
+  connection clip and warranty cap, and the sizer's search box all call it. It imports contracts only
+  (`gridq.contracts`, the IC-12 chassis in `gridq.schemas`), proven by AST scan and in a fresh
+  interpreter. The solver still resolves every number (release reads, provisioning, ancillary
+  throughput).
+- **Identity (D177).** `LIBRARY_VERSION` 1.0.0 plus a SHA-256 of the package source, pinned per
+  version in the append-only `_releases.RELEASES`; a test fails when the source moves unreleased.
+  `library_pin()` is IC-3's `ConstraintLibraryPin`, and `check_envelope()` matches an envelope sized with
+  this build.
+- **The stamp, IC-12 3.2.0 (D178).** `OptimisationResult.constraint_library`
+  (`ConstraintLibraryRef`), optional, omitted while unset, excluded from `input_hash`. Stamped by the
+  sizer, the MILP engine's no-spec path, the baseline and the demo; carried through by the underwriting
+  post-pass; checked by the engine conformance bar (`provenance.constraint_library_stamped`). The three
+  `v3.1.0` schema files are archived at their tagged SHA-256; `SiteModel` is byte-identical.
+- **Behaviour unchanged.** Every linopy model built by seven dispatch test modules (410 models) wrote a
+  byte-identical LP file before and after; the golden tier (`tests/test_determinism_golden.py`, gb_v1_4)
+  passes with no pin edited; no identity hash moved.
+
 ## 2026-11-26 — Integration: WP-SITE-04 merged into `roadmap/p1-foundations`
 
 - **D-numbers.** WP-SITE-04's six placeholders took D170 to D175 (SITE04-1 to -6 in order), in the

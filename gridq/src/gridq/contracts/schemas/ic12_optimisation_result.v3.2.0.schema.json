@@ -1,0 +1,565 @@
+{
+  "$defs": {
+    "BankableStatus": {
+      "description": "Whether a result is fit for a lender's review.",
+      "enum": [
+        "not_bankable",
+        "review_required",
+        "bankable_candidate"
+      ],
+      "title": "BankableStatus",
+      "type": "string"
+    },
+    "ConnectionAgreementRef": {
+      "additionalProperties": false,
+      "description": "The IC-1 agreement the restrictions apply under, by content hash.",
+      "properties": {
+        "agreement_hash": {
+          "pattern": "^sha256:[0-9a-f]{64}$",
+          "title": "Agreement Hash",
+          "type": "string"
+        },
+        "contract": {
+          "const": "IC-1",
+          "title": "Contract",
+          "type": "string"
+        },
+        "contract_version": {
+          "pattern": "^1\\.(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)$",
+          "title": "Contract Version",
+          "type": "string"
+        },
+        "kind": {
+          "const": "connection_agreement_ref",
+          "title": "Kind",
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind",
+        "contract",
+        "contract_version",
+        "agreement_hash"
+      ],
+      "title": "ConnectionAgreementRef",
+      "type": "object"
+    },
+    "ConstraintLibraryRef": {
+      "additionalProperties": false,
+      "description": "Which constraint library, at which version and source hash, the result was solved with.",
+      "properties": {
+        "constraint_ids": {
+          "items": {
+            "pattern": "^[a-z][a-z0-9_]*$",
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Constraint Ids",
+          "type": "array"
+        },
+        "library_hash": {
+          "pattern": "^sha256:[0-9a-f]{64}$",
+          "title": "Library Hash",
+          "type": "string"
+        },
+        "library_id": {
+          "pattern": "^[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)*$",
+          "title": "Library Id",
+          "type": "string"
+        },
+        "library_version": {
+          "pattern": "^(0|[1-9]\\d*)\\.(0|[1-9]\\d*)\\.(0|[1-9]\\d*)$",
+          "title": "Library Version",
+          "type": "string"
+        },
+        "schema_version": {
+          "default": "0.1.0",
+          "title": "Schema Version",
+          "type": "string"
+        }
+      },
+      "required": [
+        "library_id",
+        "library_version",
+        "library_hash",
+        "constraint_ids"
+      ],
+      "title": "ConstraintLibraryRef",
+      "type": "object"
+    },
+    "EvidenceLink": {
+      "additionalProperties": false,
+      "description": "One IC-4 evidence object, by hash, and what it supports on the record that carries it.\n\n``supports`` names the thing evidenced: a chassis field path (``connection.mic_kw``), a\nrevenue stream id, or a registered extension id. The reference says a document exists and\nwhich one; whether it is valid, third-party and in scope is decided where the object is in\nhand (`gridq.contracts.evidence.resolve_ref`, `assess`), never here.",
+      "properties": {
+        "evidence": {
+          "$ref": "#/$defs/EvidenceRef"
+        },
+        "schema_version": {
+          "default": "0.1.0",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "supports": {
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Supports",
+          "type": "string"
+        }
+      },
+      "required": [
+        "supports",
+        "evidence"
+      ],
+      "title": "EvidenceLink",
+      "type": "object"
+    },
+    "EvidenceRef": {
+      "additionalProperties": false,
+      "description": "A reference to an IC-4 instance by its content hash (what IC-1 and others embed).",
+      "properties": {
+        "contract": {
+          "const": "IC-4",
+          "title": "Contract",
+          "type": "string"
+        },
+        "contract_version": {
+          "pattern": "^1\\.(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)$",
+          "title": "Contract Version",
+          "type": "string"
+        },
+        "evidence_hash": {
+          "pattern": "^sha256:[0-9a-f]{64}$",
+          "title": "Evidence Hash",
+          "type": "string"
+        },
+        "kind": {
+          "const": "evidence_ref",
+          "title": "Kind",
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind",
+        "contract",
+        "contract_version",
+        "evidence_hash"
+      ],
+      "title": "EvidenceRef",
+      "type": "object"
+    },
+    "Firmness": {
+      "description": "How firm a value stream is in the priced case.",
+      "enum": [
+        "firm",
+        "contracted",
+        "conditional",
+        "excluded"
+      ],
+      "title": "Firmness",
+      "type": "string"
+    },
+    "ImplementationLevel": {
+      "description": "How real the optimiser that produced a result is.",
+      "enum": [
+        "baseline",
+        "in_progress",
+        "production"
+      ],
+      "title": "ImplementationLevel",
+      "type": "string"
+    },
+    "MarketStream": {
+      "description": "The value-stream registry (the vocabulary of revenue/cost streams).",
+      "enum": [
+        "PPA_OR_BILL_SAVINGS",
+        "TARIFF_ARBITRAGE",
+        "DUOS_RED_BAND_AVOIDANCE",
+        "MIC_ASC_HEADROOM",
+        "CAPACITY_MARKET",
+        "LOAD_SERVICE",
+        "LOCAL_FLEX_PICLO",
+        "WHOLESALE_P415",
+        "BALANCING_MECHANISM",
+        "ANCILLARY_DC_DM_DR",
+        "DFS",
+        "AGREED_CAPACITY_REDUCTION"
+      ],
+      "title": "MarketStream",
+      "type": "string"
+    },
+    "SelectionStatus": {
+      "description": "What the sizing selection concluded (distinct from the solver's numerical status).\n\nA dispatch can solve OPTIMAL at every candidate size and the run can still end with no\nrecommendable system: when no candidate produces any return metric (project IRR or levered\nreturn), the honest verdict is ``no_viable_configuration`` — a first-class economics verdict,\nnever a smallest-grid-corner \"recommendation\" (the pre-2026-07-07 failure mode). Additive and\noptional on `OptimisationResult` so historical records (``None``) still load.",
+      "enum": [
+        "selected",
+        "no_viable_configuration",
+        "insufficient_data",
+        "infeasible"
+      ],
+      "title": "SelectionStatus",
+      "type": "string"
+    },
+    "SolverMetadata": {
+      "additionalProperties": false,
+      "description": "Run metadata stamped onto a result (versions, seed, timing, environment).",
+      "properties": {
+        "assumption_version": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Assumption Version"
+        },
+        "code_version": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Code Version"
+        },
+        "model_version": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Model Version"
+        },
+        "reproduction_env": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Reproduction Env"
+        },
+        "schema_version": {
+          "default": "0.1.0",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "seed": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Seed"
+        },
+        "solve_seconds": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Solve Seconds"
+        }
+      },
+      "title": "SolverMetadata",
+      "type": "object"
+    },
+    "SolverStatus": {
+      "description": "Outcome reported by the optimiser/mock.",
+      "enum": [
+        "baseline",
+        "mock",
+        "optimal",
+        "feasible",
+        "infeasible",
+        "insufficient_data"
+      ],
+      "title": "SolverStatus",
+      "type": "string"
+    },
+    "ValueStreamResult": {
+      "additionalProperties": false,
+      "description": "The annual revenue/cost and firmness of one market stream for a site.",
+      "properties": {
+        "annual_cost_gbp": {
+          "default": 0.0,
+          "minimum": 0,
+          "title": "Annual Cost Gbp",
+          "type": "number"
+        },
+        "annual_revenue_gbp": {
+          "default": 0.0,
+          "minimum": 0,
+          "title": "Annual Revenue Gbp",
+          "type": "number"
+        },
+        "assumptions_used": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Assumptions Used",
+          "type": "array"
+        },
+        "consent_status": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "The orthogonal 'consent given' label (Revenue-Data Drive / D43): 'given' when the customer explicitly consented to this stream at intake, else None. Additive and optional — carried through from the gate; it never affects the firmness bar (a gated-upside stream still cannot be FIRM) and drives the proposal's 'consent given' line.",
+          "title": "Consent Status"
+        },
+        "firmness": {
+          "$ref": "#/$defs/Firmness"
+        },
+        "gate_status": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Gate Status"
+        },
+        "schema_version": {
+          "default": "0.1.0",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "stream": {
+          "$ref": "#/$defs/MarketStream"
+        },
+        "unlock_condition": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Unlock Condition"
+        },
+        "warnings": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Warnings",
+          "type": "array"
+        }
+      },
+      "required": [
+        "stream",
+        "firmness"
+      ],
+      "title": "ValueStreamResult",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "description": "The object the engine returns. Frozen shared contract (with the stream registry).",
+  "properties": {
+    "bankable_status": {
+      "$ref": "#/$defs/BankableStatus"
+    },
+    "connection_agreement": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/ConnectionAgreementRef"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "constraint_library": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/ConstraintLibraryRef"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "constraints_binding": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Constraints Binding",
+      "type": "array"
+    },
+    "created_at": {
+      "format": "date-time",
+      "title": "Created At",
+      "type": "string"
+    },
+    "dispatch_schedule_ref": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Dispatch Schedule Ref"
+    },
+    "duration_hours": {
+      "anyOf": [
+        {
+          "minimum": 0,
+          "type": "number"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Duration Hours"
+    },
+    "evidence_refs": {
+      "anyOf": [
+        {
+          "items": {
+            "$ref": "#/$defs/EvidenceLink"
+          },
+          "type": "array"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Evidence Refs"
+    },
+    "gated_upside": {
+      "items": {
+        "$ref": "#/$defs/ValueStreamResult"
+      },
+      "title": "Gated Upside",
+      "type": "array"
+    },
+    "implementation_level": {
+      "$ref": "#/$defs/ImplementationLevel"
+    },
+    "request_id": {
+      "title": "Request Id",
+      "type": "string"
+    },
+    "result_id": {
+      "title": "Result Id",
+      "type": "string"
+    },
+    "schema_version": {
+      "default": "0.1.0",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "selected_energy_kwh": {
+      "anyOf": [
+        {
+          "minimum": 0,
+          "type": "number"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Selected Energy Kwh"
+    },
+    "selected_power_kw": {
+      "anyOf": [
+        {
+          "minimum": 0,
+          "type": "number"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Selected Power Kw"
+    },
+    "selection_status": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/SelectionStatus"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "solver_metadata": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/SolverMetadata"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "solver_status": {
+      "$ref": "#/$defs/SolverStatus"
+    },
+    "value_streams": {
+      "items": {
+        "$ref": "#/$defs/ValueStreamResult"
+      },
+      "title": "Value Streams",
+      "type": "array"
+    },
+    "warnings": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Warnings",
+      "type": "array"
+    }
+  },
+  "required": [
+    "result_id",
+    "request_id",
+    "implementation_level",
+    "bankable_status",
+    "solver_status"
+  ],
+  "title": "OptimisationResult",
+  "type": "object"
+}

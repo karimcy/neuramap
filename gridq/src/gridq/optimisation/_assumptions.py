@@ -11,6 +11,12 @@ from __future__ import annotations
 
 from gridq.assumptions import Assumption, AssumptionLibrary, AssumptionStatus
 
+# The warranty cap's ceiling lookup (D35) lives in the constraint library (WP-SIZE-02); re-exported
+# under its old name so existing readers keep one implementation.
+from gridq.constraint_library.warranty import (
+    ceiling_value_for_duration as ceiling_value_for_duration,
+)
+
 
 def maybe(assumptions: AssumptionLibrary, section: str, name: str) -> Assumption | None:
     """Fetch an assumption if present, else ``None`` (never fabricates one)."""
@@ -65,44 +71,6 @@ def value_for_duration(table: object, duration_h: float) -> tuple[float | None, 
     return pairs[0][1], (
         f"duration {duration_h}h is below the smallest tabulated point ({pairs[0][0]}h); "
         "used that point's value conservatively"
-    )
-
-
-def ceiling_value_for_duration(table: object, duration_h: float) -> tuple[float | None, str | None]:
-    """Per-duration table lookup taking the CEILING node — the conservative direction for a
-    table that DECREASES with duration (D35, resolves F-002/C030).
-
-    Warranty cycle caps fall as duration rises ('1' > '2' > '4' cycles/yr), so the floor lookup
-    RELAXES the cap between nodes (a 3 h system inheriting the 2 h cap may cycle more than
-    either bracketing warranty point allows). This lookup picks the smallest tabulated duration
-    >= ``duration_h`` instead: the value never exceeds what any bracketing contract point
-    allows, and no intermediate value is invented (north-star D28's no-interpolation stance is
-    kept). On a tabulated node the node's own value is returned exactly (existing results
-    unchanged). Above the largest tabulated point, uses that point's value and warns (the true
-    cap for a longer duration is likely lower — needs_review until sourced warranty terms
-    land). Returns ``(value, warning|None)``.
-    """
-    if not isinstance(table, dict) or not table:
-        return None, "per-duration table is missing or empty"
-    try:
-        pairs = sorted((float(k), float(v)) for k, v in table.items())
-    except (TypeError, ValueError):
-        return None, "per-duration table is malformed"
-    for d, val in pairs:
-        if d >= duration_h:
-            note = None
-            if d != duration_h:
-                note = (
-                    f"duration {duration_h}h is between tabulated points; used the {d}h "
-                    "node's value (ceiling lookup, the conservative direction for a "
-                    "decreasing table — D35)"
-                )
-            return val, note
-    last_d, last_val = pairs[-1]
-    return last_val, (
-        f"duration {duration_h}h is above the largest tabulated point ({last_d}h); used that "
-        "point's value — likely optimistic for a decreasing table, needs_review until the "
-        "sourced warranty terms land"
     )
 
 

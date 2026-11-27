@@ -53,19 +53,18 @@ tolerance all degrade to ``INSUFFICIENT_DATA`` with no invented volumes).
 from __future__ import annotations
 
 import math
-import re
 from dataclasses import dataclass
 from typing import TYPE_CHECKING, Any
 
 import numpy as np
 import pandas as pd
 
+from gridq import constraint_library as _cl
 from gridq.assumptions import AssumptionLibrary
 from gridq.dispatch.contract import DispatchProblem, DispatchResult
 from gridq.engine.errors import InvalidRequestError
 from gridq.ingestion import HalfHourlyDataError, load_half_hourly_csv
 from gridq.optimisation._assumptions import (
-    ceiling_value_for_duration,
     is_confirmed,
     maybe,
     numeric,
@@ -107,7 +106,6 @@ from gridq.value_stack.registry import StreamRegistry, default_registry
 
 if TYPE_CHECKING:
     from gridq.ingestion.market_forecasts import MarketForecast
-    from gridq.value_stack.interface import DispatchConstraintDescriptor
 
 _HOURS_PER_YEAR = 8760.0
 _DEFAULT_INTERVAL_MIN = 30
@@ -149,7 +147,7 @@ _PEAK_PASS_MIN_GAIN_KW = 1e-3
 # Not a £-priced ageing cost — that stays deferred to M7 (D38).
 _EPS_AGE = 1e-9
 _RTE_KEY = "round_trip_efficiency.ac_round_trip"
-_WARRANTY_KEY = "warranty_cycle_limits.max_cycles_per_year_by_duration_h"
+_WARRANTY_KEY = _cl.warranty.WARRANTY_KEY
 _DEG_COST_KEY = "degradation.marginal_cycle_cost_gbp_per_mwh_discharged"
 # Where the quantity actually lives in the shipped releases (gb_v1_6 £5.0 -> gb_v1_7 £21.3).
 _DEG_COST_KEY_LEGACY = "battery_opex.degradation_marginal_cost_gbp_per_mwh"
@@ -188,28 +186,16 @@ _DEG_BREAK_EVEN_NOTE = (
     "(C-36 worked example, £70/MWh charge price, RTE 0.86)"
 )
 
-# --- D-169 / JSON-F-46: the usable SoC window ---------------------------------------------------
-# Release keys, NOT constants. The register row "Usable state-of-charge window (published case
-# studies)" (Xu 15–95%, Hesse 10–95%, Garifi 15–85%) carries its own caveat: "Sources disagree by
-# up to 15 percentage points on usable depth; the value is a warranty/vendor parameter, not a
-# physical constant, and must come from the specific product datasheet." So the solver reads it
-# from the release beside the warranty cycle cap it belongs with, and refuses to invent a number
-# when absent — it warns and asks, leaving today's 0–100% sweep visible rather than silently
-# "fixed" with a literature figure the register forbids reusing.
-_SOC_MIN_KEY = "warranty_cycle_limits.soc_min_fraction"
-_SOC_MAX_KEY = "warranty_cycle_limits.soc_max_fraction"
+# --- D-169 / JSON-F-46: the usable SoC window (WP-SIZE-02: owned by gridq.constraint_library.soc)
+_SOC_MIN_KEY = _cl.soc.SOC_MIN_KEY
+_SOC_MAX_KEY = _cl.soc.SOC_MAX_KEY
 
-# --- B-17: power factor ------------------------------------------------------------------------
-# Release key, NOT a constant. Real C&I sites run 0.90–0.95 PF, but no site in this schema carries
-# a reactive/kVArh series, so the solver will not invent one: absent key = today's kVA≈kW at unity
-# PF, stated as a labelled warning plus a data ask.
-_POWER_FACTOR_KEY = "mic_asc_headroom.assumed_power_factor"
+# --- B-17: power factor (WP-SIZE-02: owned by gridq.constraint_library.connection) ---------
+_POWER_FACTOR_KEY = _cl.connection.POWER_FACTOR_KEY
 
 # --- WP-UW-07 (D106): reactive power ------------------------------------------------------
-#: The INSCRIBED regular octagon of a P-Q circle of radius S: ``|P| + k|Q| <= S`` and
-#: ``k|P| + |Q| <= S`` with ``k = sqrt(2) - 1``. Every vertex lies on the circle, so the octagon
-#: never claims capability (or connection headroom) the circle does not have. Geometry, not data.
-_OCTAGON_K = math.sqrt(2.0) - 1.0
+#: The inscribed P-Q octagon's ``k`` (WP-SIZE-02: owned by gridq.constraint_library.connection).
+_OCTAGON_K = _cl.connection.OCTAGON_K
 #: The LC14 excess-reactive threshold, 0.33 kVArh per kWh (PF 0.95; "The square root calculation
 #: will be to two decimal places"), the same constant the published-tariff tests hold.
 _REACTIVE_THRESHOLD = float(CDCM_REACTIVE_THRESHOLD)
@@ -221,26 +207,13 @@ _REACTIVE_THRESHOLD = float(CDCM_REACTIVE_THRESHOLD)
 # 1e-4, which can.
 _MIP_REL_GAP = 1e-6
 
-# The kind→treatment registry (W7-2, C026): every DispatchConstraintDescriptor kind arriving on
-# the ``problem.constraints`` seam is one of —
-# - STRUCTURAL: enforced by the model's own bound/constraint construction above (the charge upper
-#   bound encodes min(MIC, ASC) − load; the warranty throughput cap is the dense annual row);
-# - COMPILED: built into window constraints here when the descriptor carries a typed
-#   `AvailabilityCommitment` payload. A compilable kind with **no payload** is *declared, not
-#   contracted* — today's universal state until the W7-4 producer exists — and changes nothing
-#   (existing solves stay byte-identical; commitments only ever activate additively);
-# - DEFERRED: not a dispatch-time constraint (deliverability is the sizing lane's closed-form
-#   end-of-tenor check, W7-3).
-# An unknown kind warns loudly: the seam is the single audit path, nothing is silently dropped.
-# `load_service` (issue 017 / D42) is compiled from `SiteModel.provisioning_requirements`
-# directly — the site is the contract carrier — not via the descriptor seam below.
-# `export_limit` (issue 018 / D43) is STRUCTURAL: the MEC bound on the overlay `export` variable
-# is built into the model's own bound construction (`_solve_milp` below, behind an aligned wholesale
-# price series), exactly like the MIC/ASC charge bound — not compiled off this seam. It stays a
-# skip here (behaviour-neutral: DEFERRED and STRUCTURAL both `continue` in `_compile_commitments`).
-_STRUCTURAL_KINDS = frozenset({"connection_limit", "throughput_cap", "export_limit"})
-_COMPILED_KINDS = frozenset({"availability_window", "held_state_of_energy"})
-_DEFERRED_KINDS = frozenset({"deliverability"})
+# The kind→treatment registry (W7-2, C026) for every DispatchConstraintDescriptor kind on the
+# ``problem.constraints`` seam: STRUCTURAL (built into the model's own bounds), COMPILED (typed
+# commitment payloads) or DEFERRED (not a dispatch-time constraint). WP-SIZE-02: the registry and
+# its rationale live in `gridq.constraint_library.commitments`; these names re-export it.
+_STRUCTURAL_KINDS = _cl.commitments.STRUCTURAL_KINDS
+_COMPILED_KINDS = _cl.commitments.COMPILED_KINDS
+_DEFERRED_KINDS = _cl.commitments.DEFERRED_KINDS
 
 
 def levy_rate_gbp_per_kwh(site: SiteModel) -> float:
@@ -449,54 +422,14 @@ def degradation_cost_gbp_per_kwh(assumptions: AssumptionLibrary) -> tuple[float,
 def _soc_window_fractions(assumptions: AssumptionLibrary) -> tuple[float, float, str | None]:
     """The usable SoC window ``(soc_min, soc_max)`` as fractions of nameplate energy (D-169).
 
-    Read from the release beside the warranty cycle cap they belong with. Returns
-    ``(0.0, 1.0, warning)`` — today's full 0–100% sweep — when the release carries neither key or
-    carries an unusable pair, because the register's own caveat forbids substituting a literature
-    window for the product's datasheet value. A partial or invalid declaration is refused as a pair
-    (never half-applied) and warned.
+    Reads the release's pair and resolves it through the constraint library
+    (`gridq.constraint_library.soc.resolve_soc_window`, WP-SIZE-02), which owns the rule: absent =
+    the full 0–100% sweep with a data ask; partial = the missing side at the nameplate bound;
+    invalid = refused as a pair.
     """
     lo = numeric(maybe(assumptions, "warranty_cycle_limits", "soc_min_fraction"))
     hi = numeric(maybe(assumptions, "warranty_cycle_limits", "soc_max_fraction"))
-    if lo is None and hi is None:
-        return (
-            0.0,
-            1.0,
-            (
-                f"USABLE SoC WINDOW NOT IN THE ASSUMPTION RELEASE (data ask, {_SOC_MIN_KEY} / "
-                f"{_SOC_MAX_KEY}): state of energy is optimised over the FULL 0-100% of nameplate, "
-                "which overstates deliverable energy per cycle by the BMS reserve (typically "
-                "5-10%) "
-                "and can breach the warranty DoD terms this same solve's cycle cap is honouring "
-                "(D-169). Published windows disagree by up to 15 percentage points (15-95%, "
-                "10-95%, 15-85% — docs/bess_constants_register.md, 'Usable state-of-charge "
-                "window'), and the register states the value is a warranty/vendor parameter, not a "
-                "physical constant, so "
-                "no window is assumed here. Supply the product datasheet window as a release key."
-            ),
-        )
-    lo_v = 0.0 if lo is None else lo
-    hi_v = 1.0 if hi is None else hi
-    if not (0.0 <= lo_v < hi_v <= 1.0):
-        return (
-            0.0,
-            1.0,
-            (
-                f"usable SoC window declared as [{lo_v:g}, {hi_v:g}] fraction of nameplate is "
-                "not a "
-                f"valid window (need 0 <= {_SOC_MIN_KEY} < {_SOC_MAX_KEY} <= 1) — NOT applied; the "
-                "full 0-100% sweep stands (never half-applied, never silently corrected). Fix the "
-                "release."
-            ),
-        )
-    note = None
-    if lo is None or hi is None:
-        note = (
-            f"usable SoC window only partially declared ({_SOC_MIN_KEY}="
-            f"{'absent' if lo is None else lo} / {_SOC_MAX_KEY}="
-            f"{'absent' if hi is None else hi}); the missing side defaults to the nameplate bound "
-            f"({lo_v:g}/{hi_v:g}) — declare both sides explicitly."
-        )
-    return lo_v, hi_v, note
+    return _cl.soc.resolve_soc_window(lo, hi)
 
 
 def _energy_revenue_term(
@@ -566,97 +499,6 @@ def _reactive_kvar_from_frame(
             "missing quadrant is unknown, never taken as zero. Supply both channels."
         )
     return np.maximum(ri, re_), None
-
-
-def _reactive_connection_screen(
-    base_kw: np.ndarray,
-    charge_ub: np.ndarray,
-    site_kvar: np.ndarray,
-    limit_kva: float,
-) -> tuple[np.ndarray, np.ndarray, int]:
-    """Where the kVA connection polygon needs a row, and where charging must be barred.
-
-    Returns ``(charge_ub, row_mask, n_outside)``. ``base_kw`` is the active import with the battery
-    idle. Where the metered site ALREADY sits outside the inscribed polygon of ``limit_kva`` (a
-    real breach the battery did not cause), charging is barred and no row is built, which keeps the
-    solve feasible without relaxing anything. Elsewhere a row is built only where full charging
-    could carry the point outside, so a site well inside its connection adds no row at all.
-    """
-    k = _OCTAGON_K
-    p0 = np.abs(base_kw)
-    outside = (p0 + k * site_kvar > limit_kva + 1e-9) | (k * p0 + site_kvar > limit_kva + 1e-9)
-    capped = np.where(outside, 0.0, charge_ub)
-    reach = base_kw + capped
-    rows = (~outside) & (site_kvar > 0.0)
-    rows &= (reach + k * site_kvar > limit_kva) | (k * reach + site_kvar > limit_kva)
-    return capped, rows, int(outside.sum())
-
-
-def _add_inverter_pq_rows(
-    model: Any,
-    charge: Any,
-    export_flow: Any,
-    comp: Any,
-    power: float,
-    forced_kw: np.ndarray,
-    mask: np.ndarray,
-    coords: Any,
-) -> None:
-    """The inverter's P-Q capability as its inscribed octagon, where reactive is supplied.
-
-    ``A_t = discharge_t (+ export_t) + charge_t + forced_t >= |P_t|`` (at most one of charge and
-    discharge is non-zero at a vertex, so ``A_t`` is the inverter's real power), and
-    ``A_t + k c_t <= S``, ``k A_t + c_t <= S`` with ``S`` the rated kW taken as the inverter's kVA.
-    """
-    import xarray as xr
-
-    k = _OCTAGON_K
-    m = xr.DataArray(mask, coords=[coords])
-    model.add_constraints(
-        export_flow + charge + k * comp <= xr.DataArray(power - forced_kw, coords=[coords]),
-        name="reactive_inverter_octagon_p",
-        mask=m,
-    )
-    model.add_constraints(
-        k * export_flow + k * charge + comp <= xr.DataArray(power - k * forced_kw, coords=[coords]),
-        name="reactive_inverter_octagon_q",
-        mask=m,
-    )
-
-
-def _add_connection_kva_rows(
-    model: Any,
-    charge: Any,
-    discharge: Any,
-    comp: Any,
-    base_kw: np.ndarray,
-    site_kvar: np.ndarray,
-    limit_kva: float,
-    mask: np.ndarray,
-    coords: Any,
-) -> None:
-    """The connection's kVA limit as the inscribed polygon in active import and residual reactive.
-
-    ``AI_t = base_t + charge_t - discharge_t`` and ``r_t = m_t - c_t``:
-    ``AI_t + k r_t <= L`` and ``k AI_t + r_t <= L`` with ``L = min(MIC, ASC)``. Replaces the scalar
-    power-factor de-rating whenever reactive is modelled (never both).
-    """
-    import xarray as xr
-
-    k = _OCTAGON_K
-    m = xr.DataArray(mask, coords=[coords])
-    model.add_constraints(
-        charge - discharge - k * comp
-        <= xr.DataArray(limit_kva - base_kw - k * site_kvar, coords=[coords]),
-        name="reactive_connection_kva_p",
-        mask=m,
-    )
-    model.add_constraints(
-        k * charge - k * discharge - comp
-        <= xr.DataArray(limit_kva - k * base_kw - site_kvar, coords=[coords]),
-        name="reactive_connection_kva_q",
-        mask=m,
-    )
 
 
 def _add_reactive_excess_epigraph(
@@ -739,36 +581,11 @@ def _reactive_modelled_note(
 def _charge_power_factor(assumptions: AssumptionLibrary) -> tuple[float, str]:
     """The assumed power factor de-rating the kW charge bound against a kVA connection (B-17).
 
-    Returns ``(power_factor, warning)``. ``1.0`` — today's behaviour — whenever the release carries
-    no sourced factor, because no site in this schema supplies a reactive/kVArh series and a power
-    factor is never invented here. The warning states the exposure and asks for the data.
+    Reads the release key; `gridq.constraint_library.connection.resolve_charge_power_factor` owns
+    the rule (WP-SIZE-02): ``1.0`` with a data ask when no usable sourced factor is released.
     """
-    pf = numeric(maybe(assumptions, "mic_asc_headroom", "assumed_power_factor"))
-    if pf is not None and 0.0 < pf <= 1.0:
-        return pf, (
-            f"charge headroom de-rated to kVA at power factor {pf:g} (release key "
-            f"{_POWER_FACTOR_KEY}): the connection limits kVA, not kW, so the usable kW bound is "
-            f"min(MIC, ASC) x {pf:g} (B-17). Still an ASSUMED factor, not a metered kVArh series."
-        )
-    if pf is not None:
-        return 1.0, (
-            f"{_POWER_FACTOR_KEY} = {pf:g} is not a usable power factor (need 0 < pf <= 1) — NOT "
-            "applied; the unity-PF bound stands (never silently corrected)."
-        )
-    return 1.0, (
-        "UNITY POWER FACTOR ASSUMED (B-17, data ask): no site in this schema carries a reactive / "
-        "kVArh half-hourly series, so kVA is taken as equal to kW throughout — the charge bound "
-        "against min(MIC, ASC), the capacity/availability charge on the customer bill, and the "
-        "exceeded-capacity headroom. Real C&I sites run 0.90-0.95 PF, so TRUE kVA exceeds the kW "
-        "this model uses by ~5-11% and charging at full kW near the MIC can itself trigger the "
-        "exceeded-capacity charge this model reports as impossible (DUoS exceeded capacity = "
-        "max(2*sqrt(AI^2 + max(RI,RE)^2) - MIC, 0) per half hour, charged for the whole billing "
-        "period; excess reactive above 33% of kWh = PF 0.95 is separately chargeable - "
-        "docs/bess_constants_register.md, LPN Use of System Charging Statement 2026 paras "
-        "2.41/2.48-2.53). No power factor is invented here: supply a metered kVArh series, or a "
-        f"sourced {_POWER_FACTOR_KEY}, to price the reactive exposure. A file carrying both "
-        "reactive channels (reactive_import_kvarh, reactive_export_kvarh) replaces this assumption "
-        "with the modelled reactive variable (WP-UW-07)."
+    return _cl.connection.resolve_charge_power_factor(
+        numeric(maybe(assumptions, "mic_asc_headroom", "assumed_power_factor"))
     )
 
 
@@ -942,43 +759,8 @@ def _floor_value(sched: HalfHourlyDispatchSchedule) -> float:
     )
 
 
-def _commitment_mask(
-    commitment: AvailabilityCommitment, timestamps: pd.DatetimeIndex
-) -> np.ndarray:
-    """The boolean half-hour mask of a commitment's windows over the metered horizon.
-
-    Deterministic calendar mapping — month/day-of-week filters plus the same-day
-    ``[start_time, end_time)`` span, unioned across the commitment's windows. Times compare
-    against the metered timestamps exactly; nothing is interpolated or invented.
-
-    Contract windows are GB local-clock content, exactly like the DUoS bands: a timezone-aware
-    (e.g. UTC-labelled) metered index is converted to Europe/London before its clock fields are
-    read, mirroring ``tariff_calendar._hours_weekday`` (F-003) — otherwise a 17:00 contracted
-    window would sit at 18:00 BST all summer on a legal-obligation surface. Naive input is
-    read as the local clock it documents.
-    """
-    idx = timestamps
-    if idx.tz is not None:
-        idx = idx.tz_convert("Europe/London")
-    n = len(idx)
-    months = idx.month.to_numpy()
-    days = idx.dayofweek.to_numpy()
-    times = np.asarray(idx.time)
-    total = np.zeros(n, dtype=bool)
-    from datetime import time as _time
-
-    for w in commitment.windows:
-        m = np.ones(n, dtype=bool)
-        if w.months is not None:
-            m &= np.isin(months, w.months)
-        if w.days_of_week is not None:
-            m &= np.isin(days, w.days_of_week)
-        m &= times >= w.start_time
-        # end_time == 00:00 means the exclusive end of the day (24:00, W7-5): no upper bound.
-        if w.end_time != _time(0, 0):
-            m &= times < w.end_time
-        total |= m
-    return total
+#: The commitment calendar (WP-SIZE-02: owned by `gridq.constraint_library.commitments`).
+_commitment_mask = _cl.commitments.commitment_mask
 
 
 class _UnpriceableDispatch(RuntimeError):
@@ -1730,19 +1512,19 @@ class MilpDispatchSolver:
         soc_min_frac, soc_max_frac, soc_note = _soc_window_fractions(assumptions)
         if soc_note:
             warnings.append(soc_note)
-        soe_floor = soc_min_frac * energy
-        soe_ceiling = soc_max_frac * energy
+        soe_floor, soe_ceiling = _cl.soc.soe_window_kwh(soc_min_frac, soc_max_frac, energy)
         usable_energy = soe_ceiling - soe_floor
         deliverable_energy = usable_energy * eta
-        if soc_min_frac > 0.0 or soc_max_frac < 1.0:
-            warnings.append(
-                f"usable energy {round(usable_energy, 3)} kWh of {round(energy, 3)} kWh nameplate "
-                f"(SoC window {soc_min_frac:g}-{soc_max_frac:g}), delivering "
-                f"{round(deliverable_energy, 3)} kWh at the AC terminals after discharge losses "
-                f"(eta_dis {round(eta, 4)}). The warranty throughput cap stays on NAMEPLATE energy "
-                "because the release does not declare the warranty's own metering basis (C-31) — "
-                "declare it before treating the cycle count as contractual."
-            )
+        window_note = _cl.soc.usable_window_note(
+            soc_min_frac=soc_min_frac,
+            soc_max_frac=soc_max_frac,
+            usable_energy=usable_energy,
+            deliverable_energy=deliverable_energy,
+            energy_kwh=energy,
+            eta_dis=eta,
+        )
+        if window_note is not None:
+            warnings.append(window_note)
 
         # D-169 fallout, caught here rather than left to HiGHS. A rolling-horizon caller supplies
         # its own start state, and `mpc_solver` starts the loop at SoE 0 ("fully discharged —
@@ -1759,24 +1541,22 @@ class MilpDispatchSolver:
         # honest degrade (INSUFFICIENT_DATA on `solve`, "no window" on `solve_window`). The fix is
         # the CALLER's start-state convention — begin the loop at the usable floor, not at zero —
         # and that lives in `mpc_solver`, not here.
-        if initial_soe_kwh is not None and not (
-            soe_floor - 1e-9 <= float(initial_soe_kwh) <= soe_ceiling + 1e-9
-        ):
-            raise _UnpriceableDispatch(
-                f"Insufficient data: the rolling-horizon start state "
-                f"initial_soe_kwh={float(initial_soe_kwh):g} kWh lies outside the usable state-of-"
-                f"energy window [{soe_floor:g}, {soe_ceiling:g}] kWh set by "
-                f"{_SOC_MIN_KEY}/{_SOC_MAX_KEY} ({soc_min_frac:g}-{soc_max_frac:g} of "
-                f"{round(energy, 3)} kWh nameplate). A pack cannot start outside its own operating "
-                "window, and the start state is NOT silently moved onto the floor because that "
-                "would credit energy the pack never bought (D-169). Start the horizon at or above "
-                f"{soe_floor:g} kWh."
-            )
+        refusal = _cl.soc.initial_soe_refusal(
+            initial_soe_kwh,
+            soe_floor=soe_floor,
+            soe_ceiling=soe_ceiling,
+            soc_min_frac=soc_min_frac,
+            soc_max_frac=soc_max_frac,
+            energy_kwh=energy,
+        )
+        if refusal is not None:
+            raise _UnpriceableDispatch(refusal)
 
-        conn_candidates = [
-            v for v in (site.connection.mic_kw, site.connection.asc_kw) if v is not None and v > 0
-        ]
-        conn_limit = min(conn_candidates) if conn_candidates else 0.0
+        # The import limit, min(MIC, ASC) over the declared positive values (constraint library).
+        declared_limit = _cl.connection.import_limit_kw(
+            site.connection.mic_kw, site.connection.asc_kw
+        )
+        conn_limit = declared_limit if declared_limit is not None else 0.0
         # B-17: min(MIC, ASC) is a kVA limit; the model's flows are kW. Absent a metered kVArh
         # series the solver will not invent a power factor — it warns and, if a release ever
         # supplies a sourced factor, de-rates the CHARGE bound (the one place an assumed PF changes
@@ -1980,8 +1760,8 @@ class MilpDispatchSolver:
         # hours a battery would charge. The discharge bound stays on the CLIPPED series: there is no
         # site load to displace while the site is net-exporting (and export past the boundary is the
         # gated-upside overlay's variable, never the priced floor).
-        charge_ub = np.minimum(power, np.maximum(0.0, charge_conn_limit - net_load - aux_kw))
-        discharge_ub = np.minimum(power, load)
+        charge_ub = _cl.connection.charge_upper_bound_kw(power, charge_conn_limit, net_load, aux_kw)
+        discharge_ub = _cl.connection.discharge_upper_bound_kw(power, load)
 
         # Issue 017 / D42: declared load-service obligations. The shortfall can ONLY come from
         # the battery (the wire is capped), so it is a CONSTANT forced draw — it enters the SoE
@@ -2007,10 +1787,10 @@ class MilpDispatchSolver:
         if prov_active:
             # The declared addition draws through the wire inside windows (charge headroom
             # shrinks); the forced service shares the inverter with priced discharge.
-            charge_ub = np.minimum(
-                power, np.maximum(0.0, charge_conn_limit - net_load - aux_kw - prov_addition)
+            charge_ub = _cl.connection.charge_upper_bound_kw(
+                power, charge_conn_limit, net_load, aux_kw, prov_addition
             )
-            discharge_ub = np.minimum(np.maximum(power - prov_unmet, 0.0), load)
+            discharge_ub = _cl.connection.discharge_upper_bound_kw(power, load, prov_unmet)
 
         # WP-UW-07: screen the kVA connection polygon once the charge bound is final (see
         # `_reactive_connection_screen`); nothing here runs without a metered reactive series.
@@ -2018,7 +1798,7 @@ class MilpDispatchSolver:
         reactive_base_kw = net_load + aux_kw + (prov_addition if prov_active else 0.0)
         reactive_outside = 0
         if reactive is not None and conn_limit > 0.0:
-            charge_ub, reactive_rows, reactive_outside = _reactive_connection_screen(
+            charge_ub, reactive_rows, reactive_outside = _cl.connection.reactive_connection_screen(
                 reactive_base_kw, charge_ub, reactive.site_kvar, conn_limit
             )
 
@@ -2061,7 +1841,7 @@ class MilpDispatchSolver:
             lower=0.0, upper=xr.DataArray(discharge_ub, coords=[coords]), name="discharge"
         )
         # SoE lives inside the usable window resolved above (D-169).
-        soe = model.add_variables(lower=soe_floor, upper=soe_ceiling, coords=[coords], name="soe")
+        soe = _cl.soc.add_state_of_energy(model, soe_floor, soe_ceiling, coords)
 
         # Wholesale EXPORT overlay (issue 018 / D43). Behind ``export_price is not None`` ONLY —
         # so with no aligned price series NOT ONE variable/constraint below is created and the model
@@ -2093,7 +1873,7 @@ class MilpDispatchSolver:
                     f"{export_limit_basis or 'labelled study input, NOT customer consent'}; the "
                     f"site's own export capacity is {declared_txt} and is UNCHANGED"
                 )
-            export_cap = float(np.clip(min(power, mec), 0.0, None))
+            export_cap = _cl.connection.export_cap_kw(power, mec)
             warnings.append(
                 f"export overlay export limit {export_cap:,.3f} kW = min(rated power "
                 f"{power:,.3f} kW, export limit {mec:,.3f} kW), from {limit_basis}."
@@ -2113,9 +1893,8 @@ class MilpDispatchSolver:
             export_flow = discharge + export
             # Shared inverter: BTM discharge (bounded ≤ load by discharge_ub) plus past-boundary
             # export cannot together exceed the rated power net of any forced load-service draw.
-            inverter_cap = np.maximum(power - prov_unmet, 0.0) if prov_active else np.full(n, power)
-            model.add_constraints(
-                export_flow <= xr.DataArray(inverter_cap, coords=[coords]), name="export_inverter"
+            _cl.connection.add_export_inverter_row(
+                model, export_flow, power, prov_unmet if prov_active else None, n, coords
             )
             # Wash prevention (design doc, R1). At an instant where buying from the grid at the
             # retail price and re-exporting at wholesale is PROFITABLE round-trip — wholesale·rte >
@@ -2159,7 +1938,7 @@ class MilpDispatchSolver:
                 upper=xr.DataArray(np.minimum(power, m_kvar), coords=[coords]),
                 name="reactive_comp",
             )
-            _add_inverter_pq_rows(
+            _cl.connection.add_inverter_pq_rows(
                 model,
                 charge,
                 export_flow,
@@ -2170,7 +1949,7 @@ class MilpDispatchSolver:
                 coords,
             )
             if reactive_rows is not None and bool(reactive_rows.any()):
-                _add_connection_kva_rows(
+                _cl.connection.add_connection_kva_rows(
                     model,
                     charge,
                     discharge,
@@ -2208,7 +1987,11 @@ class MilpDispatchSolver:
         )
         # Provisioning forced draw enters the balance as a constant RHS (issue 017 / D42). It is a
         # real discharge, so it drains stored energy at 1/eta_dis like every other discharge (B-01).
-        prov_rhs = xr.DataArray(-prov_unmet * (dt / eta), coords=[coords]) if prov_active else None
+        prov_rhs = (
+            _cl.resilience.forced_draw_balance_rhs(prov_unmet, dt, eta, coords)
+            if prov_active
+            else None
+        )
         if initial_soe_kwh is not None:
             # Rolling-horizon: fix SoE at t=0 instead of wrapping the first segment; later
             # segments (a gap inside the window) keep their own conservative cyclic wrap.
@@ -2258,9 +2041,13 @@ class MilpDispatchSolver:
             # exceeds what any bracketing contract point allows, and no intermediate value is
             # invented (north-star D28's no-interpolation stance kept). On tabulated nodes the
             # value is unchanged. CM de-rating keeps the floor (its conservative direction).
-            cap_cycles, cap_warn = ceiling_value_for_duration(cap_table.value, duration)
+            cap_cycles, cap_warn = _cl.warranty.ceiling_value_for_duration(
+                cap_table.value, duration
+            )
             if cap_cycles is not None and cap_cycles > 0:
-                throughput_cap_kwh = cap_cycles * energy / annual_factor
+                throughput_cap_kwh = _cl.warranty.throughput_cap_kwh(
+                    cap_cycles, energy, annual_factor
+                )
                 cap_rhs = throughput_cap_kwh
                 # RULE 2 OF THE PUBLISHED EXCLUSIVITY MATRIX, WIRED (2026-08-19). The response
                 # product's own measured throughput was priced into its rate and consumed NO
@@ -2283,14 +2070,11 @@ class MilpDispatchSolver:
                     cap_rhs -= prov_throughput
                     if cap_rhs < 0.0:
                         warnings.append(
-                            f"load-service obligations alone require {round(prov_throughput, 1)} "
-                            f"kWh of throughput vs the warranty cap {round(throughput_cap_kwh, 1)} "
-                            "kWh — the obligation exceeds the warranty by construction (never "
-                            "silently relaxed)."
+                            _cl.warranty.obligation_exceeds_cap_note(
+                                prov_throughput, throughput_cap_kwh
+                            )
                         )
-                model.add_constraints(
-                    (export_flow * w_da * dt).sum() <= cap_rhs, name="throughput_cap"
-                )
+                _cl.warranty.add_throughput_cap_row(model, export_flow, w_da, dt, cap_rhs)
             if cap_warn:
                 warnings.append(cap_warn + ".")
 
@@ -2334,7 +2118,7 @@ class MilpDispatchSolver:
         # still real - it is still subtracted from net injection through the award's own windows, so
         # no kW is double-sold inside the dispatch - and an over-committed instant is still warned
         # and still returns INFEASIBLE rather than being silently relaxed.
-        deliverable_envelope = np.clip(power - aux_kw, 0.0, None) * np.ones_like(load)
+        deliverable_envelope = _cl.commitments.deliverable_envelope_kw(power, aux_kw, load)
         # Pre-window SoE floors at the WORST-CASE exceedance level (issue 017 problem 2): the
         # battery arrives at every window occurrence holding the worst observed occurrence's
         # energy, not just what this trace's foresight needs. Above-usable floors were warned
@@ -2345,16 +2129,9 @@ class MilpDispatchSolver:
         # below the usable floor is not deliverable, and the discharge losses must be pre-stored.
         # Holding only ``level`` certified deliverability the battery could not meet (an
         # obligation-BREACH direction).
-        for _rid, _starts, _level in prov_prepos:
-            if _level <= 0.0 or _starts.size == 0:
-                continue
-            _pre = np.zeros(n, dtype=bool)
-            _pre[pred[_starts]] = True
-            model.add_constraints(
-                soe >= soe_floor + _level / eta,
-                name=f"load_service_prepos_{re.sub(r'[^0-9A-Za-z_]', '_', _rid)}",
-                mask=xr.DataArray(_pre, coords=[coords]),
-            )
+        _cl.resilience.add_load_service_prepositions(
+            model, soe, prov_prepos, pred, soe_floor, eta, n, coords
+        )
         compiled, commit_warnings, committed_kw = self._compile_commitments(
             problem,
             model,
@@ -2863,156 +2640,22 @@ class MilpDispatchSolver:
         accounting. An infeasible commitment is compiled anyway and warned — the solve honestly
         returns INFEASIBLE rather than silently relaxing a contract.
         """
-        import xarray as xr
-
-        compiled: list[tuple[AvailabilityCommitment, np.ndarray, str]] = []
-        warnings: list[str] = []
-        # Load-service obligations pre-reserve capability (issue 017 / D42): grid-side
-        # commitments see only the residual envelope — reservations SUM, the site's own
-        # obligation is never double-sold to a tender.
-        committed = (
-            pre_reserved_kw.astype(float).copy()
-            if pre_reserved_kw is not None
-            else np.zeros(len(envelope), dtype=float)
+        return _cl.commitments.compile_commitments(
+            problem.constraints,
+            model,
+            charge,
+            discharge,
+            soe,
+            timestamps,
+            coords,
+            power,
+            deliverable_energy,
+            envelope,
+            soe_floor_kwh,
+            eta_dis,
+            pre_reserved_kw=pre_reserved_kw,
+            export=export,
         )
-        # name -> the commitment compiled under it: a re-listed identical (kind, commitment)
-        # skips silently; a DIFFERENT commitment whose sanitised id collides gets a uniquified
-        # constraint name + a warning — a contracted obligation is never silently dropped.
-        seen: dict[str, AvailabilityCommitment] = {}
-        # LIT-E-01/LIT-E-02 (2026-08-13): every compilable descriptor that arrives WITHOUT a typed
-        # payload, in seam order. Collected rather than skipped silently — see the warning below.
-        declared_only: list[str] = []
-        descriptors: list[DispatchConstraintDescriptor] = list(problem.constraints)
-        for d in descriptors:
-            if d.kind in _STRUCTURAL_KINDS or d.kind in _DEFERRED_KINDS:
-                continue  # enforced above / not a dispatch-time constraint (see registry)
-            if d.kind not in _COMPILED_KINDS:
-                warnings.append(
-                    f"dispatch constraint kind '{d.kind}' (id '{d.constraint_id}') is not "
-                    "recognised by the solver's kind registry — NOT compiled; extend the "
-                    "registry before relying on it."
-                )
-                continue
-            c = d.parameters
-            if c is None:
-                # Declared, not contracted — nothing to compile (see registry note). NOT silent:
-                # D45's discipline is that an ABSENT input must never read as a satisfied
-                # constraint, and a payload-less descriptor is exactly that shape. Recorded here
-                # and warned once below; the model itself is untouched (byte-identical).
-                declared_only.append(f"{d.kind}:{d.constraint_id}")
-                continue
-            name = f"{d.kind}_{re.sub(r'[^0-9A-Za-z_]', '_', c.commitment_id)}"
-            if name in seen:
-                if seen[name] == c:
-                    continue  # identical (kind, commitment) already compiled
-                warnings.append(
-                    f"distinct commitments collide on sanitised constraint name '{name}' "
-                    f"('{seen[name].commitment_id}' vs '{c.commitment_id}') — both compiled "
-                    "under uniquified names; give commitments distinct ids."
-                )
-                name = f"{name}__{len(seen)}"
-            mask = _commitment_mask(c, timestamps)
-            if not mask.any():
-                warnings.append(
-                    f"availability commitment '{c.commitment_id}' has windows that never "
-                    "intersect the metered horizon — vacuous over this dataset (no constraint "
-                    "added; verify the contract calendar against the metered period)."
-                )
-                continue
-            seen[name] = c
-            mask_da = xr.DataArray(mask, coords=[coords])
-            if d.kind == "availability_window":
-                # Per-instant deliverable envelope (adoption review W7-1): on the no-export
-                # floor a discharge can only serve the site's own load, and the BESS's
-                # continuous parasitic draw (F-007) is consumed behind the meter first — so the
-                # response capability at instant t is min(power − aux, load_t) − discharge_t +
-                # charge_t (curtailing a standing charge counts toward the response). A
-                # commitment above the largest in-window envelope is warned: it cannot be
-                # delivered as net injection from this dataset's physics.
-                max_in_window = float(np.max(envelope[mask])) if mask.any() else 0.0
-                if c.committed_power_kw > max_in_window + 1e-9:
-                    warnings.append(
-                        f"commitment '{c.commitment_id}' commits {c.committed_power_kw} kW, "
-                        f"above the largest in-window deliverable response "
-                        f"{round(max_in_window, 3)} kW (min of rated-net-of-parasitic power "
-                        "and the metered site load on the no-export floor) — infeasible over "
-                        "at least part of the window (never silently relaxed)."
-                    )
-                committed[mask] += float(c.committed_power_kw)
-            else:  # held_state_of_energy
-                if c.held_energy_kwh is None:
-                    continue  # no explicit hold contracted — never invented
-                if c.held_energy_kwh > deliverable_energy + 1e-9:
-                    warnings.append(
-                        f"commitment '{c.commitment_id}' holds {c.held_energy_kwh} kWh, above the "
-                        f"{round(deliverable_energy, 3)} kWh this pack can DELIVER at the AC "
-                        "terminals (usable SoC window net of discharge losses, D-169/B-01) — "
-                        "infeasible by construction (never silently relaxed)."
-                    )
-                # B-01 + D-169: hold the STORED energy the AC obligation actually costs.
-                model.add_constraints(
-                    soe >= soe_floor_kwh + c.held_energy_kwh / eta_dis, name=name, mask=mask_da
-                )
-            compiled.append((c, mask, d.kind))
-        # LIT-E-01/LIT-E-02 (2026-08-13) + C031 item 2. The reservation COMPILER below is real and
-        # tested, but nothing in `src/` constructs an `AvailabilityCommitment` yet: every
-        # `gb_streams` descriptor carries a `parameter_source` string and no payload, so on a
-        # production run the loop above compiles NOTHING and the dormancy was invisible.
-        #
-        # That invisibility is the defect. An availability commitment with no compiled reservation
-        # means the same kW and the same kWh back the dispatch AND the CM/response obligation at
-        # once, inside the priced floor the DSCR covenant is measured on — so the floor is
-        # OVERSTATED by whatever the market layer prices off these descriptors. One warning, listing
-        # every affected descriptor in seam order (deterministic), so an auditor reading the result
-        # can see that the constraint is absent rather than satisfied. This is the D45 discipline
-        # applied to a constraint instead of a price: an absent input never reads as a met one.
-        #
-        # Behaviour is byte-identical — the model is untouched and no £ moves. The fix that makes
-        # the reservation BITE is a producer of typed payloads (W7-4), not a change here.
-        if declared_only:
-            warnings.append(
-                "NO AVAILABILITY RESERVATION COMPILED (LIT-E-01/LIT-E-02, C031 item 2) for "
-                f"{len(declared_only)} declared dispatch commitment descriptor(s): "
-                f"{', '.join(declared_only)}. Each is DECLARED (it names a parameter_source) but "
-                "carries no typed AvailabilityCommitment payload, so NO kW of power and NO kWh of "
-                "stored energy is held back for it in this solve. Any availability/capacity "
-                "revenue priced off these descriptors is sold against capability the dispatch is "
-                "simultaneously free to spend, which OVERSTATES the priced floor and the DSCR that "
-                "covenant is measured on. Deliverability is NOT certified by this run. Supply the "
-                "commitment payload (committed_power_kw, optional held_energy_kwh, windows, tenor, "
-                "provenance) on the descriptor and the reservation compiles and binds."
-            )
-        # ONE aggregate availability constraint (adoption review W7-2): at every instant the
-        # SUM of committed kW across overlapping windows must fit inside the deliverable
-        # envelope — two 150 kW awards on one battery reserve 300 kW, never max(150, 150).
-        # No kW is ever double-sold; a jointly-over-committed instant is warned and the solve
-        # honestly returns INFEASIBLE rather than silently relaxing a contract.
-        agg_mask = committed > 0
-        if agg_mask.any():
-            over = agg_mask & (committed > envelope + 1e-9)
-            if over.any():
-                warnings.append(
-                    f"overlapping commitments jointly reserve up to "
-                    f"{round(float(np.max(committed[over])), 3)} kW where the deliverable "
-                    f"envelope is at most {round(float(np.min(envelope[over])), 3)} kW "
-                    f"({int(over.sum())} instant(s)) — jointly infeasible (never silently "
-                    "relaxed)."
-                )
-            # Net injection reserved against the envelope. Export (issue 018) is a real
-            # net-injection flow, so it joins discharge − charge here — but the envelope stays
-            # min(power−aux, load) (NOT extended by MEC): a committed response is deliverable
-            # behind the meter, so export competes with discharge for the reserved headroom
-            # (conservative; design doc R2). ``net_injection`` is exactly ``discharge − charge``
-            # when no export variable exists (byte-identical).
-            net_injection = (
-                (discharge + export - charge) if export is not None else discharge - charge
-            )
-            model.add_constraints(
-                net_injection <= xr.DataArray(envelope - committed, coords=[coords]),
-                name="availability_reserve_aggregate",
-                mask=xr.DataArray(agg_mask, coords=[coords]),
-            )
-        return compiled, warnings, committed
 
     # --- result assembly ----------------------------------------------------
 

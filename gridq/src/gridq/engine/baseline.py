@@ -9,6 +9,7 @@ will implement the same `OptimisationEngine` interface and replace this.
 from __future__ import annotations
 
 from gridq.assumptions import AssumptionLibrary
+from gridq.constraint_library import library_ref
 from gridq.engine.errors import InvalidRequestError
 from gridq.provenance import get_code_version
 from gridq.schemas import (
@@ -129,4 +130,7 @@ class BaselineEngine:
                 code_version=get_code_version(),
             ),
             warnings=warnings,
+            # IC-12 3.2.0 (WP-SIZE-02): the constraint library in force for this build. The
+            # baseline solves nothing; the stamp still names the set any dispatch would apply.
+            constraint_library=library_ref(),
         )

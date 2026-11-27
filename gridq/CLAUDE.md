@@ -300,13 +300,14 @@ the boundary doc. Full table: [docs/module_ownership.md](docs/module_ownership.m
 **Frozen contracts (change deliberately, versioned):** the `SiteModel` JSON schema · the
 `OptimisationResult` JSON schema · acceptance/conformance tests · assumption conventions.
 
-**IC-12 chassis (`gridq_chassis_v3`, D71–D74, D79, D103/D104, D132):** `SiteModel`, `OptimisationResult` and `QuoteRecord` are
+**IC-12 chassis (`gridq_chassis_v3`, D71–D74, D79, D103/D104, D132, D178):** `SiteModel`, `OptimisationResult` and `QuoteRecord` are
 versioned together in `src/gridq/schemas/chassis.py` (2.0.0: typed IC-1 `ConnectionAgreementRef`, IC-4
 `evidence_refs`; 2.1.0, additive: `FinancialCase` lender terms and DSCR status; 3.0.0, major, rendered on
 2.1.0: every `TariffStack` must state its `basis` and `provenance`, and a 2.x site is lifted only by
 `upgrade_site_2_to_3`; 3.1.0, additive: `FinancialCase` lifecycle inputs and record, `PriceRecommendation`
-levelisation fields). A change to any of the three fails `python -m gridq.contracts --check` until it is
-released as a new version. Extend the engine from your own package through `src/gridq/extensions/` (load
+levelisation fields; 3.2.0, additive: `OptimisationResult.constraint_library`, the stamp of the versioned
+dispatch constraint set `gridq.constraint_library`, WP-SIZE-02). A change to any of the three fails
+`python -m gridq.contracts --check` until it is released as a new version. Extend the engine from your own package through `src/gridq/extensions/` (load
 archetypes, study bases, resources, constraints; a plug-in module's `register(host)` via the
 `gridq.extensions` entry point), never by editing a CORE path. A plug-in basis pins its owner and version in
 `input_hash`.
@@ -343,6 +344,10 @@ tests pass before a change is done; outputs stay deterministic and reproducible.
   2026-08-12): the CLI resolves `latest_version()` from disk (`cli.py:252-263`) and warns loudly when a
   superseded release is chosen explicitly. Do **not** pin `gb_v0_1` "to be safe" — its CM de-rating is
   overstated ~2.3–4×. (`cli.py:7` / `:136` docstrings still say `gb_v0_1`; cosmetic staleness only.)
+- **Dispatch constraint set:** `src/gridq/constraint_library/` (WP-SIZE-02, D176 to D179) — the
+  import limit, resilience floor, thermal limit, SoC window, warranty cap and commitments the MILP, every
+  MPC window and the sizer's search box all build from. It imports contracts only; any edit to it is a
+  release (`LIBRARY_VERSION` + `_releases.RELEASES`), stamped on every `OptimisationResult`.
 - **Test fixture factory:** `tests/conftest.py` — `make_site(with_max_import=True|False)`.
 - **Example shapes:** `examples/`. Real site source data: `examples/real/` — read-only evidence;
   re-derive figures with `scripts/extract_site_data.py`, never edit the workbooks.

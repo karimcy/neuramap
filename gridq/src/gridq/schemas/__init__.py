@@ -15,6 +15,7 @@ from gridq.schemas.commitment import (
 from gridq.schemas.confidentiality import Confidentiality
 from gridq.schemas.connection import ConnectionDetails
 from gridq.schemas.consents import ConsentState
+from gridq.schemas.constraint_library import ConstraintLibraryRef
 from gridq.schemas.counterparty import Counterparty
 from gridq.schemas.customer_bill import CustomerBill
 from gridq.schemas.derived import (
@@ -269,6 +270,7 @@ __all__ = [
     "StudyBasis",
     "NamedBasis",
     "ConnectionAgreementRef",
+    "ConstraintLibraryRef",
     "EdcmTariff",
     "EvidenceLink",
     "EvidenceRef",

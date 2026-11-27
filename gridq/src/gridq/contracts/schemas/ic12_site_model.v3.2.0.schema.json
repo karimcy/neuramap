@@ -1,0 +1,2444 @@
+{
+  "$defs": {
+    "AvailabilityCommitment": {
+      "additionalProperties": false,
+      "description": "A contracted availability commitment — capability the battery must HOLD, not may earn.\n\n``committed_power_kw`` is the net-injection capability that must be deliverable on call\nthroughout every window; ``held_energy_kwh`` is the explicit state-of-energy floor to hold\nduring windows — ``None`` means no explicit energy hold is contracted, and the consumer\nmust never invent one. ``tenor_years`` is the contract length from day one; it drives the\nclosed-form end-of-tenor deliverability check (W7-3: capability at degraded year-N ≥ the\ncommitment). ``counterparty``/``reference`` carry the contract's provenance — a commitment\nwith no reference is a modelling input, not evidence, and gates must treat it accordingly.",
+      "properties": {
+        "basis": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "What the assertion rests on, verbatim (e.g. 'owner attestation, on good authority'). None ⇒ the consumer's own default sentence.",
+          "title": "Basis"
+        },
+        "commitment_id": {
+          "description": "Stable id for traceability.",
+          "minLength": 1,
+          "title": "Commitment Id",
+          "type": "string"
+        },
+        "committed_power_kw": {
+          "description": "Committed deliverable power (kW) throughout every window.",
+          "exclusiveMinimum": 0,
+          "title": "Committed Power Kw",
+          "type": "number"
+        },
+        "confirmed_by": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Who asserts this commitment exists — a named person for an attestation, a system/record for a transcribed contract. None ⇒ the consumer's own default label.",
+          "title": "Confirmed By"
+        },
+        "counterparty": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Who the commitment is to (DSO, EMR body, customer).",
+          "title": "Counterparty"
+        },
+        "held_energy_kwh": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Explicit state-of-energy floor (kWh) to hold during windows; None = no explicit hold contracted (never defaulted).",
+          "title": "Held Energy Kwh"
+        },
+        "reference": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Contract / tender / agreement id — the commitment's provenance.",
+          "title": "Reference"
+        },
+        "schema_version": {
+          "default": "0.1.0",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "stream": {
+          "$ref": "#/$defs/MarketStream",
+          "description": "The value stream this commitment belongs to."
+        },
+        "tenor_years": {
+          "anyOf": [
+            {
+              "exclusiveMinimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Contract length in years from day one; drives the end-of-tenor deliverability check (W7-3).",
+          "title": "Tenor Years"
+        },
+        "windows": {
+          "description": "The recurring windows the commitment covers.",
+          "items": {
+            "$ref": "#/$defs/AvailabilityWindow"
+          },
+          "minItems": 1,
+          "title": "Windows",
+          "type": "array"
+        }
+      },
+      "required": [
+        "commitment_id",
+        "stream",
+        "committed_power_kw",
+        "windows"
+      ],
+      "title": "AvailabilityCommitment",
+      "type": "object"
+    },
+    "AvailabilityWindow": {
+      "additionalProperties": false,
+      "description": "One recurring window in which committed capability must be available.\n\nMarket-agnostic calendar shape: optional month and day-of-week filters (``None`` means\nevery month / every day) plus a same-day ``[start_time, end_time)`` span. An overnight\nwindow (e.g. 23:00–01:00) is expressed as **two** windows — 23:00 to midnight and\nmidnight to 01:00 — where ``end_time = 00:00`` means the exclusive END of the day\n(24:00), so the pre-midnight half is representable (adoption review W7-5). The compiler\nmaps times onto half-hour indices deterministically (GB local clock, mirroring the DUoS\nbands), so the schema itself never needs timezone or wrap logic.",
+      "properties": {
+        "days_of_week": {
+          "anyOf": [
+            {
+              "items": {
+                "type": "integer"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Days (0=Monday … 6=Sunday) the window applies to; None = every day.",
+          "title": "Days Of Week"
+        },
+        "end_time": {
+          "description": "Window end (exclusive); after start_time, or 00:00 meaning end-of-day.",
+          "format": "time",
+          "title": "End Time",
+          "type": "string"
+        },
+        "label": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional human-readable name, e.g. 'winter evening peak'.",
+          "title": "Label"
+        },
+        "months": {
+          "anyOf": [
+            {
+              "items": {
+                "type": "integer"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Months (1–12) the window applies to; None = all year.",
+          "title": "Months"
+        },
+        "schema_version": {
+          "default": "0.1.0",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "start_time": {
+          "description": "Window start (inclusive).",
+          "format": "time",
+          "title": "Start Time",
+          "type": "string"
+        }
+      },
+      "required": [
+        "start_time",
+        "end_time"
+      ],
+      "title": "AvailabilityWindow",
+      "type": "object"
+    },
+    "BandWindows": {
+      "additionalProperties": false,
+      "description": "When one import-rate band applies, on the same conventions as `WindowedLevy`.\n\nPeriod-start Europe/London clock, half-open `ClockWindow` s, weekday and weekend as separate\nday types, an optional month restriction and sourced non-working ``excluded_dates`` (which fall\nto the weekend row). A `BandWindows` with **no window at all** is the residual band, \"all other\ntimes\"; a stack may carry at most one (`TariffStack._import_rate_windows_consistent`).",
+      "properties": {
+        "excluded_dates": {
+          "default": [],
+          "items": {
+            "type": "string"
+          },
+          "title": "Excluded Dates",
+          "type": "array"
+        },
+        "months": {
+          "anyOf": [
+            {
+              "items": {
+                "type": "integer"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Months"
+        },
+        "schema_version": {
+          "default": "0.1.0",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "weekday_windows": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/ClockWindow"
+          },
+          "title": "Weekday Windows",
+          "type": "array"
+        },
+        "weekend_windows": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/ClockWindow"
+          },
+          "title": "Weekend Windows",
+          "type": "array"
+        }
+      },
+      "title": "BandWindows",
+      "type": "object"
+    },
+    "CdcmTariff": {
+      "additionalProperties": false,
+      "description": "A CDCM (LV/HV) tariff: three time bands, fixed, capacity, exceeded capacity, reactive.",
+      "properties": {
+        "amber_p_per_kwh": {
+          "anyOf": [
+            {
+              "minimum": 0.0,
+              "type": "number"
+            },
+            {
+              "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+              "type": "string"
+            }
+          ],
+          "title": "Amber P Per Kwh"
+        },
+        "capacity_p_per_kva_day": {
+          "anyOf": [
+            {
+              "minimum": 0.0,
+              "type": "number"
+            },
+            {
+              "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+              "type": "string"
+            }
+          ],
+          "title": "Capacity P Per Kva Day"
+        },
+        "charging_year": {
+          "minLength": 1,
+          "title": "Charging Year",
+          "type": "string"
+        },
+        "dno": {
+          "minLength": 1,
+          "title": "Dno",
+          "type": "string"
+        },
+        "exceeded_capacity_p_per_kva_day": {
+          "anyOf": [
+            {
+              "minimum": 0.0,
+              "type": "number"
+            },
+            {
+              "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+              "type": "string"
+            }
+          ],
+          "title": "Exceeded Capacity P Per Kva Day"
+        },
+        "fixed_p_per_day": {
+          "anyOf": [
+            {
+              "minimum": 0.0,
+              "type": "number"
+            },
+            {
+              "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+              "type": "string"
+            }
+          ],
+          "title": "Fixed P Per Day"
+        },
+        "green_p_per_kwh": {
+          "anyOf": [
+            {
+              "minimum": 0.0,
+              "type": "number"
+            },
+            {
+              "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+              "type": "string"
+            }
+          ],
+          "title": "Green P Per Kwh"
+        },
+        "llfc": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Llfc"
+        },
+        "methodology": {
+          "const": "CDCM",
+          "default": "CDCM",
+          "title": "Methodology",
+          "type": "string"
+        },
+        "reactive_p_per_kvarh": {
+          "anyOf": [
+            {
+              "minimum": 0.0,
+              "type": "number"
+            },
+            {
+              "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Reactive P Per Kvarh"
+        },
+        "red_p_per_kwh": {
+          "anyOf": [
+            {
+              "minimum": 0.0,
+              "type": "number"
+            },
+            {
+              "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+              "type": "string"
+            }
+          ],
+          "title": "Red P Per Kwh"
+        },
+        "schema_version": {
+          "default": "0.1.0",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "source": {
+          "minLength": 1,
+          "title": "Source",
+          "type": "string"
+        },
+        "tcr_band": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Tcr Band"
+        },
+        "voltage": {
+          "enum": [
+            "LV",
+            "HV",
+            "EHV"
+          ],
+          "title": "Voltage",
+          "type": "string"
+        }
+      },
+      "required": [
+        "dno",
+        "voltage",
+        "charging_year",
+        "source",
+        "fixed_p_per_day",
+        "capacity_p_per_kva_day",
+        "exceeded_capacity_p_per_kva_day",
+        "red_p_per_kwh",
+        "amber_p_per_kwh",
+        "green_p_per_kwh"
+      ],
+      "title": "CdcmTariff",
+      "type": "object"
+    },
+    "ClockWindow": {
+      "additionalProperties": false,
+      "description": "A half-open local-clock window ``[start, end)``, quoted as the statements quote it.\n\nSame shape and same conventions as the per-licence-area DUoS band windows a release carries in\n``duos.band_windows_by_dno`` (``{start: \"16:00\", end: \"19:00\"}``): period-start local clock,\nEurope/London, half-open so 19:00 is out of a 16:00–19:00 window. Deliberately NOT a pair of\nintegers — real published windows land on half-hours (16:30, 19:30) that hour pairs cannot say.",
+      "properties": {
+        "end": {
+          "title": "End",
+          "type": "string"
+        },
+        "schema_version": {
+          "default": "0.1.0",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "start": {
+          "title": "Start",
+          "type": "string"
+        }
+      },
+      "required": [
+        "start",
+        "end"
+      ],
+      "title": "ClockWindow",
+      "type": "object"
+    },
+    "Confidence": {
+      "description": "Confidence in a piece of input data.",
+      "enum": [
+        "low",
+        "medium",
+        "high"
+      ],
+      "title": "Confidence",
+      "type": "string"
+    },
+    "ConfidenceBand": {
+      "description": "How much weight a validation result can carry. Ordered worst to best.\n\nEvidential strength — never a probability, never P50/P90, never a hurdle\n(`docs/validation_requirements.md` §2). Defined here rather than in `gridq.quotes.confidence`\nso the band and the Gate-2 ceiling can be **persisted on the QuoteRecord** and enforced by the\nlifecycle gate (N21); `gridq.quotes.confidence` re-exports it, so its public name is unchanged.",
+      "enum": [
+        "low",
+        "medium",
+        "high"
+      ],
+      "title": "ConfidenceBand",
+      "type": "string"
+    },
+    "Confidentiality": {
+      "additionalProperties": false,
+      "description": "How a site's confidential data is held.",
+      "properties": {
+        "nda_reference": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Nda Reference"
+        },
+        "nda_status": {
+          "$ref": "#/$defs/NdaStatus",
+          "default": "unknown"
+        },
+        "personal_data_override": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Personal Data Override"
+        },
+        "schema_version": {
+          "default": "0.1.0",
+          "title": "Schema Version",
+          "type": "string"
+        }
+      },
+      "title": "Confidentiality",
+      "type": "object"
+    },
+    "ConnectionAgreementRef": {
+      "additionalProperties": false,
+      "description": "The IC-1 agreement the restrictions apply under, by content hash.",
+      "properties": {
+        "agreement_hash": {
+          "pattern": "^sha256:[0-9a-f]{64}$",
+          "title": "Agreement Hash",
+          "type": "string"
+        },
+        "contract": {
+          "const": "IC-1",
+          "title": "Contract",
+          "type": "string"
+        },
+        "contract_version": {
+          "pattern": "^1\\.(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)$",
+          "title": "Contract Version",
+          "type": "string"
+        },
+        "kind": {
+          "const": "connection_agreement_ref",
+          "title": "Kind",
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind",
+        "contract",
+        "contract_version",
+        "agreement_hash"
+      ],
+      "title": "ConnectionAgreementRef",
+      "type": "object"
+    },
+    "ConnectionDetails": {
+      "additionalProperties": false,
+      "description": "The connection's capacities, voltage, DNO region and headroom.",
+      "properties": {
+        "agreement": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ConnectionAgreementRef"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "anm_or_curtailment_notes": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Anm Or Curtailment Notes"
+        },
+        "asc_kw": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Available supply capacity.",
+          "title": "Asc Kw"
+        },
+        "dno_region": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Dno Region"
+        },
+        "export_headroom_kw": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "MEC minus peak export; may be negative if over-subscribed.",
+          "title": "Export Headroom Kw"
+        },
+        "import_headroom_kw": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "MIC minus peak import; may be negative if over-subscribed.",
+          "title": "Import Headroom Kw"
+        },
+        "mec_kw": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Maximum export capacity.",
+          "title": "Mec Kw"
+        },
+        "mic_kw": {
+          "description": "Maximum import capacity (kW in v1; see module note).",
+          "minimum": 0,
+          "title": "Mic Kw",
+          "type": "number"
+        },
+        "schema_version": {
+          "default": "0.1.0",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "voltage_level": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/VoltageLevel"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        }
+      },
+      "required": [
+        "mic_kw"
+      ],
+      "title": "ConnectionDetails",
+      "type": "object"
+    },
+    "ConsentState": {
+      "additionalProperties": false,
+      "description": "The bundle of consents/permissions relevant to connecting and operating.",
+      "properties": {
+        "dno_application_state": {
+          "$ref": "#/$defs/ConsentStatus",
+          "default": "not_started"
+        },
+        "export_mpan": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Export Mpan"
+        },
+        "g100": {
+          "$ref": "#/$defs/ConsentStatus",
+          "default": "unknown"
+        },
+        "g98": {
+          "$ref": "#/$defs/ConsentStatus",
+          "default": "unknown"
+        },
+        "g99": {
+          "$ref": "#/$defs/ConsentStatus",
+          "default": "unknown"
+        },
+        "notes": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Notes"
+        },
+        "schema_version": {
+          "default": "0.1.0",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "supplier_consent_state": {
+          "$ref": "#/$defs/ConsentStatus",
+          "default": "not_started"
+        }
+      },
+      "title": "ConsentState",
+      "type": "object"
+    },
+    "ConsentStatus": {
+      "description": "State of a single grid/supplier consent.\n\nThe per-site bundle of consents is the ``ConsentState`` *model* in ``consents.py``,\nwhose fields use these values.",
+      "enum": [
+        "not_started",
+        "applied",
+        "approved",
+        "rejected",
+        "not_required",
+        "unknown"
+      ],
+      "title": "ConsentStatus",
+      "type": "string"
+    },
+    "Counterparty": {
+      "additionalProperties": false,
+      "description": "Identity and coarse credit standing of the counterparty.\n\nThe deterministic credit-score -> rate/tenor mapping lives in the finance layer (M9);\nthis only records identity and a coarse status.",
+      "properties": {
+        "company_number": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Company Number"
+        },
+        "credit_status": {
+          "$ref": "#/$defs/CreditStatus",
+          "default": "unknown"
+        },
+        "expected_tenure_years": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Expected Tenure Years"
+        },
+        "legal_entity_type": {
+          "$ref": "#/$defs/LegalEntityType",
+          "default": "unknown"
+        },
+        "legal_name": {
+          "title": "Legal Name",
+          "type": "string"
+        },
+        "notes": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Notes"
+        },
+        "schema_version": {
+          "default": "0.1.0",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "sector": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Sector"
+        }
+      },
+      "required": [
+        "legal_name"
+      ],
+      "title": "Counterparty",
+      "type": "object"
+    },
+    "CreditStatus": {
+      "description": "Coarse counterparty credit standing (the deterministic mapping lives in finance).",
+      "enum": [
+        "unknown",
+        "not_assessed",
+        "strong",
+        "adequate",
+        "weak"
+      ],
+      "title": "CreditStatus",
+      "type": "string"
+    },
+    "DataTier": {
+      "description": "Data quality tier of a site's load information.",
+      "enum": [
+        "T0_ANNUAL_KWH_TARIFF_POSTCODE",
+        "T1_PARTIAL_HALF_HOURLY",
+        "T2_VALIDATED_12_MONTH_HALF_HOURLY"
+      ],
+      "title": "DataTier",
+      "type": "string"
+    },
+    "DerivedAssumption": {
+      "additionalProperties": false,
+      "description": "One recorded stand-in for a missing input, and everything needed to judge and confirm it.\n\nCarried on `SiteModel.derived_assumptions` when the value was derived **offline** and actually\nconsumed by the run (it enters ``input_hash``, so two runs on different derived capacities can\nnever share a ``run_id``), and emitted transiently by the ingestion gates when a run continued\npast a missing input without a recorded value (those reach the quote's warnings and the\nconfidence factors, never the site — a gate observation is not an input and must not move any\nexisting run identity).\n\n**Immutable (``frozen``).** The record is part of the run's identity, so it must not be able to\nchange after the validator has passed it: ``rec.kind = \"pending_permission\"`` on a record that\nalready carries a value would flip `report_label` to *\"requires customer consent\"* and produce\nexactly the record `_enforce_class_and_ceiling` refuses to build. Only this model is frozen —\n`GridQModel` cannot be (`gridq.schemas.provenance`).",
+      "properties": {
+        "basis": {
+          "minLength": 1,
+          "title": "Basis",
+          "type": "string"
+        },
+        "confidence_ceiling": {
+          "$ref": "#/$defs/ConfidenceBand"
+        },
+        "confirmation_ask": {
+          "minLength": 1,
+          "title": "Confirmation Ask",
+          "type": "string"
+        },
+        "derivation_method": {
+          "enum": [
+            "fable_advisor",
+            "sourced_default",
+            "archetype_pending_source",
+            "site_analogue",
+            "not_derivable"
+          ],
+          "title": "Derivation Method",
+          "type": "string"
+        },
+        "derived_by": {
+          "minLength": 1,
+          "title": "Derived By",
+          "type": "string"
+        },
+        "derived_on_release": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Derived On Release"
+        },
+        "key": {
+          "minLength": 1,
+          "title": "Key",
+          "type": "string"
+        },
+        "kind": {
+          "enum": [
+            "derived_input",
+            "pending_permission",
+            "not_applicable"
+          ],
+          "title": "Kind",
+          "type": "string"
+        },
+        "missing_input": {
+          "minLength": 1,
+          "title": "Missing Input",
+          "type": "string"
+        },
+        "schema_version": {
+          "default": "0.1.0",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "sources": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Sources",
+          "type": "array"
+        },
+        "unit": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Unit"
+        },
+        "value": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Value"
+        }
+      },
+      "required": [
+        "kind",
+        "key",
+        "missing_input",
+        "basis",
+        "derivation_method",
+        "derived_by",
+        "confidence_ceiling",
+        "confirmation_ask"
+      ],
+      "title": "DerivedAssumption",
+      "type": "object"
+    },
+    "EdcmTariff": {
+      "additionalProperties": false,
+      "description": "An EDCM (designated EHV) import tariff: super-red unit charge in its own window.\n\nEDCM has no reactive charge, so there is no field for one.",
+      "properties": {
+        "capacity_p_per_kva_day": {
+          "anyOf": [
+            {
+              "minimum": 0.0,
+              "type": "number"
+            },
+            {
+              "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+              "type": "string"
+            }
+          ],
+          "title": "Capacity P Per Kva Day"
+        },
+        "charging_year": {
+          "minLength": 1,
+          "title": "Charging Year",
+          "type": "string"
+        },
+        "dno": {
+          "minLength": 1,
+          "title": "Dno",
+          "type": "string"
+        },
+        "exceeded_capacity_p_per_kva_day": {
+          "anyOf": [
+            {
+              "minimum": 0.0,
+              "type": "number"
+            },
+            {
+              "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+              "type": "string"
+            }
+          ],
+          "title": "Exceeded Capacity P Per Kva Day"
+        },
+        "fixed_p_per_day": {
+          "anyOf": [
+            {
+              "minimum": 0.0,
+              "type": "number"
+            },
+            {
+              "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+              "type": "string"
+            }
+          ],
+          "title": "Fixed P Per Day"
+        },
+        "llfc": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Llfc"
+        },
+        "methodology": {
+          "const": "EDCM",
+          "default": "EDCM",
+          "title": "Methodology",
+          "type": "string"
+        },
+        "schema_version": {
+          "default": "0.1.0",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "source": {
+          "minLength": 1,
+          "title": "Source",
+          "type": "string"
+        },
+        "super_red_p_per_kwh": {
+          "anyOf": [
+            {
+              "minimum": 0.0,
+              "type": "number"
+            },
+            {
+              "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+              "type": "string"
+            }
+          ],
+          "title": "Super Red P Per Kwh"
+        },
+        "super_red_window": {
+          "$ref": "#/$defs/BandWindows"
+        },
+        "tcr_band": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Tcr Band"
+        },
+        "voltage": {
+          "enum": [
+            "LV",
+            "HV",
+            "EHV"
+          ],
+          "title": "Voltage",
+          "type": "string"
+        }
+      },
+      "required": [
+        "dno",
+        "voltage",
+        "charging_year",
+        "source",
+        "fixed_p_per_day",
+        "capacity_p_per_kva_day",
+        "exceeded_capacity_p_per_kva_day",
+        "super_red_p_per_kwh",
+        "super_red_window"
+      ],
+      "title": "EdcmTariff",
+      "type": "object"
+    },
+    "EvidenceLink": {
+      "additionalProperties": false,
+      "description": "One IC-4 evidence object, by hash, and what it supports on the record that carries it.\n\n``supports`` names the thing evidenced: a chassis field path (``connection.mic_kw``), a\nrevenue stream id, or a registered extension id. The reference says a document exists and\nwhich one; whether it is valid, third-party and in scope is decided where the object is in\nhand (`gridq.contracts.evidence.resolve_ref`, `assess`), never here.",
+      "properties": {
+        "evidence": {
+          "$ref": "#/$defs/EvidenceRef"
+        },
+        "schema_version": {
+          "default": "0.1.0",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "supports": {
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Supports",
+          "type": "string"
+        }
+      },
+      "required": [
+        "supports",
+        "evidence"
+      ],
+      "title": "EvidenceLink",
+      "type": "object"
+    },
+    "EvidenceRef": {
+      "additionalProperties": false,
+      "description": "A reference to an IC-4 instance by its content hash (what IC-1 and others embed).",
+      "properties": {
+        "contract": {
+          "const": "IC-4",
+          "title": "Contract",
+          "type": "string"
+        },
+        "contract_version": {
+          "pattern": "^1\\.(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)$",
+          "title": "Contract Version",
+          "type": "string"
+        },
+        "evidence_hash": {
+          "pattern": "^sha256:[0-9a-f]{64}$",
+          "title": "Evidence Hash",
+          "type": "string"
+        },
+        "kind": {
+          "const": "evidence_ref",
+          "title": "Kind",
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind",
+        "contract",
+        "contract_version",
+        "evidence_hash"
+      ],
+      "title": "EvidenceRef",
+      "type": "object"
+    },
+    "ExportArrangement": {
+      "additionalProperties": false,
+      "description": "A site's declared export / route-to-market arrangement.\n\n``route`` defaults to ``ExportRoute.UNKNOWN`` — the honest state until the arrangement is\nevidenced. Nothing here is estimated by the engine; a missing value stays ``None`` and\nbecomes a ranked data-ask upstream, never an invented number.",
+      "properties": {
+        "aggregator_cut_pct": {
+          "anyOf": [
+            {
+              "maximum": 1,
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "The aggregator / route-to-market take on gross flexibility/export revenue, as a fraction in [0, 1]. A per-site override of the assumption default (local_flex_piclo.aggregator_cut_pct); None = fall back to the assumption default.",
+          "title": "Aggregator Cut Pct"
+        },
+        "counterparty": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Who the export / route-to-market arrangement is with (a PPA offtaker or a flexibility aggregator); None when unknown or not applicable.",
+          "title": "Counterparty"
+        },
+        "export_tariff_gbp_per_kwh": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Declared export tariff (£/kWh) under a PPA / export arrangement; None when unknown or not applicable.",
+          "title": "Export Tariff Gbp Per Kwh"
+        },
+        "local_flex_agreed_rate_gbp_per_mwh": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Declared agreed local-flexibility rate (£/MWh) under a flexibility-aggregator arrangement, when one has been agreed; None when unknown or not applicable. Additive, None default (issue 018 / D8) - recorded verbatim, priced by a later WS-C slice; nothing here is estimated by the engine.",
+          "title": "Local Flex Agreed Rate Gbp Per Mwh"
+        },
+        "notes": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Free-text notes on the arrangement (verbatim).",
+          "title": "Notes"
+        },
+        "route": {
+          "$ref": "#/$defs/ExportRoute",
+          "default": "unknown"
+        },
+        "schema_version": {
+          "default": "0.1.0",
+          "title": "Schema Version",
+          "type": "string"
+        }
+      },
+      "title": "ExportArrangement",
+      "type": "object"
+    },
+    "ExportRoute": {
+      "description": "How a site's exported / flexible energy reaches a market (route-to-market).\n\nRecorded on the ``ExportArrangement`` *model* (``export_arrangement.py``). ``UNKNOWN`` is\nthe honest default until the arrangement is evidenced; ``NONE`` means the site deliberately\nhas no export / route-to-market. This vocabulary prices nothing — it is a data contract only.",
+      "enum": [
+        "none",
+        "ppa_export",
+        "flexibility_aggregator",
+        "unknown"
+      ],
+      "title": "ExportRoute",
+      "type": "string"
+    },
+    "LegalEntityType": {
+      "description": "The counterparty's legal form. ``SOLE_TRADER`` sites are treated as personal data.",
+      "enum": [
+        "unknown",
+        "limited_company",
+        "plc",
+        "llp",
+        "partnership",
+        "sole_trader",
+        "public_sector",
+        "charity",
+        "other"
+      ],
+      "title": "LegalEntityType",
+      "type": "string"
+    },
+    "LoadDataSummary": {
+      "additionalProperties": false,
+      "description": "Summary of a site's load data (annual figure and/or half-hourly coverage).",
+      "properties": {
+        "annual_kwh": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Annual Kwh"
+        },
+        "end_date": {
+          "anyOf": [
+            {
+              "format": "date",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "End Date"
+        },
+        "half_hourly_basis": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Half Hourly Basis"
+        },
+        "half_hourly_file_ref": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Half Hourly File Ref"
+        },
+        "half_hourly_reference_profile": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Half Hourly Reference Profile"
+        },
+        "half_hourly_rows": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Half Hourly Rows"
+        },
+        "half_hourly_scaled_to": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Half Hourly Scaled To"
+        },
+        "max_export_kw": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Max Export Kw"
+        },
+        "max_import_kw": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Max Import Kw"
+        },
+        "missing_intervals": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Missing Intervals"
+        },
+        "schema_version": {
+          "default": "0.1.0",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "start_date": {
+          "anyOf": [
+            {
+              "format": "date",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Start Date"
+        },
+        "validation_warnings": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Validation Warnings",
+          "type": "array"
+        }
+      },
+      "title": "LoadDataSummary",
+      "type": "object"
+    },
+    "MarketStream": {
+      "description": "The value-stream registry (the vocabulary of revenue/cost streams).",
+      "enum": [
+        "PPA_OR_BILL_SAVINGS",
+        "TARIFF_ARBITRAGE",
+        "DUOS_RED_BAND_AVOIDANCE",
+        "MIC_ASC_HEADROOM",
+        "CAPACITY_MARKET",
+        "LOAD_SERVICE",
+        "LOCAL_FLEX_PICLO",
+        "WHOLESALE_P415",
+        "BALANCING_MECHANISM",
+        "ANCILLARY_DC_DM_DR",
+        "DFS",
+        "AGREED_CAPACITY_REDUCTION"
+      ],
+      "title": "MarketStream",
+      "type": "string"
+    },
+    "NdaStatus": {
+      "description": "Recorded state of the NDA under which a site's half-hourly data is held.",
+      "enum": [
+        "unknown",
+        "not_required",
+        "requested",
+        "signed",
+        "expired"
+      ],
+      "title": "NdaStatus",
+      "type": "string"
+    },
+    "PhysicalGateStatus": {
+      "additionalProperties": false,
+      "description": "Pass/fail status of the physical install gates.",
+      "properties": {
+        "access_ok": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Access Ok"
+        },
+        "fire_separation_ok": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Fire Separation Ok"
+        },
+        "footprint_available": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Footprint Available"
+        },
+        "notes": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Notes"
+        },
+        "planning_or_landlord_issue": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Planning Or Landlord Issue"
+        },
+        "schema_version": {
+          "default": "0.1.0",
+          "title": "Schema Version",
+          "type": "string"
+        }
+      },
+      "title": "PhysicalGateStatus",
+      "type": "object"
+    },
+    "ProvisioningRequirement": {
+      "additionalProperties": false,
+      "description": "A declared obligation to serve load the connection cannot deliver in a window.\n\n``additional_load_kw`` is NEW demand the customer states the site needs inside the\nwindows (demand the meter has never seen — a declared fact with the requirement as its\nprovenance). ``serve_metered_shortfall`` covers the case the meter *does* show: observed\nload riding at/over the import cap (clipped demand). At least one must be active or the\nrequirement demands nothing. When both apply the shortfall is physically joint — the\nbattery covers ``max(0, total − cap)``; it cannot serve the addition while leaving the\nmetered excess unserved.\n\n``import_cap_kw`` is the window-effective deliverable import; ``None`` means the site's\nown ``max_import_kw`` applies (the consumer resolves it — never defaulted here).\n``declared_counterfactual_gbp_per_year`` is the customer's stated cost of the alternative\nand the ONLY £ input this product introduces; ``counterfactual_basis`` (what the figure\nis, verbatim) is mandatory alongside it. A requirement with no ``reference`` is a\nmodelling input, not evidence — gates must treat it accordingly (W7-4).",
+      "properties": {
+        "additional_load_kw": {
+          "anyOf": [
+            {
+              "exclusiveMinimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Declared NEW demand (kW, flat within windows) the connection cannot deliver; None = no new load declared.",
+          "title": "Additional Load Kw"
+        },
+        "additional_load_profile_daily_kw": {
+          "anyOf": [
+            {
+              "items": {
+                "type": "number"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Declared NEW demand as a manual half-hourly daily curve entered from the outside (48 kW values, slot 0 = 00:00 local; applied inside windows on the days/months the windows cover). Mutually exclusive with additional_load_kw (D42). A full declared series file ref is the v2 shape.",
+          "title": "Additional Load Profile Daily Kw"
+        },
+        "counterfactual_basis": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "What the declared counterfactual is, verbatim (e.g. 'NGED reinforcement quote ref …, annualised over …'). Mandatory alongside the £ figure.",
+          "title": "Counterfactual Basis"
+        },
+        "counterparty": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Who the obligation is to (normally the site customer).",
+          "title": "Counterparty"
+        },
+        "declared_counterfactual_gbp_per_year": {
+          "anyOf": [
+            {
+              "exclusiveMinimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Customer-declared annual cost of the alternative (DNO reinforcement, genset, lost production). Never estimated by the engine; absent = the stream prices £0 and only the engine-measured opportunity cost is reported.",
+          "title": "Declared Counterfactual Gbp Per Year"
+        },
+        "import_cap_kw": {
+          "anyOf": [
+            {
+              "exclusiveMinimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Window-effective deliverable import (kW); None = the site's max_import_kw applies (resolved by the consumer, never defaulted here).",
+          "title": "Import Cap Kw"
+        },
+        "reference": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Contract / agreement id — the obligation's provenance; required before any FIRM treatment.",
+          "title": "Reference"
+        },
+        "requirement_id": {
+          "description": "Stable id for traceability.",
+          "minLength": 1,
+          "title": "Requirement Id",
+          "type": "string"
+        },
+        "schema_version": {
+          "default": "0.1.0",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "serve_metered_shortfall": {
+          "default": false,
+          "description": "Also cover the metered load's own excess over the import cap (clipped-demand case).",
+          "title": "Serve Metered Shortfall",
+          "type": "boolean"
+        },
+        "tenor_years": {
+          "anyOf": [
+            {
+              "exclusiveMinimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Obligation length in years from day one; drives the end-of-tenor floors (W7-3 closed form).",
+          "title": "Tenor Years"
+        },
+        "windows": {
+          "description": "The recurring windows the obligation covers.",
+          "items": {
+            "$ref": "#/$defs/AvailabilityWindow"
+          },
+          "minItems": 1,
+          "title": "Windows",
+          "type": "array"
+        }
+      },
+      "required": [
+        "requirement_id",
+        "windows"
+      ],
+      "title": "ProvisioningRequirement",
+      "type": "object"
+    },
+    "RateUnit": {
+      "description": "The unit a commercially agreed rate is expressed in.\n\nExists because `agreed_rate_gbp` was a bare float that different downstream code paths read\nas four incompatible units (hostile review F-17). £/kWh and £/MW/yr differ by six orders of\nmagnitude, so an unlabelled number is not a rate — it is a guess waiting to be made.",
+      "enum": [
+        "gbp_per_kwh",
+        "gbp_per_mwh",
+        "gbp_per_kw_year",
+        "gbp_per_mw_year",
+        "gbp_per_year"
+      ],
+      "title": "RateUnit",
+      "type": "string"
+    },
+    "RevenueStreamConsent": {
+      "additionalProperties": false,
+      "description": "Explicit customer authorisation to pursue ONE revenue stream, captured at intake.",
+      "properties": {
+        "agreed_rate_gbp": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "An optional commercially agreed rate, verbatim, for streams whose agreed rate is not already held elsewhere on the SiteModel. MUST be accompanied by `agreed_rate_unit` — the number alone is meaningless. None when the stream needs no such rate or none was supplied. The export tariff / aggregator cut / local-flex rate live on ExportArrangement and are not duplicated here.",
+          "title": "Agreed Rate Gbp"
+        },
+        "agreed_rate_unit": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/RateUnit"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "The unit `agreed_rate_gbp` is expressed in. REQUIRED whenever a rate is given (hostile review F-17): this field was previously a bare, unit-less float that downstream code read as £/kWh, £/MWh, £/kW/yr AND £/MW/yr depending on the stream. A single mis-united intake entry therefore produced contracted floor revenue wrong by up to three orders of magnitude, and the record still validated cleanly."
+        },
+        "consented": {
+          "default": false,
+          "description": "True iff the customer explicitly consented, at intake, to GridQ pursuing this revenue stream on their behalf.",
+          "title": "Consented",
+          "type": "boolean"
+        },
+        "notes": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Free-text notes on the consent / agreed rate (verbatim).",
+          "title": "Notes"
+        },
+        "schema_version": {
+          "default": "0.1.0",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "stream": {
+          "$ref": "#/$defs/MarketStream"
+        }
+      },
+      "required": [
+        "stream"
+      ],
+      "title": "RevenueStreamConsent",
+      "type": "object"
+    },
+    "SupplyBoundary": {
+      "additionalProperties": false,
+      "description": "The host's supply boundary — the behind-the-meter metering/contractual perimeter.",
+      "properties": {
+        "behind_the_meter": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Behind The Meter"
+        },
+        "import_mpan": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Import Mpan"
+        },
+        "metering_point": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Metering Point"
+        },
+        "notes": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Notes"
+        },
+        "schema_version": {
+          "default": "0.1.0",
+          "title": "Schema Version",
+          "type": "string"
+        }
+      },
+      "title": "SupplyBoundary",
+      "type": "object"
+    },
+    "TariffBasis": {
+      "additionalProperties": false,
+      "description": "What the stack's rates include (D103). Required on every `TariffStack`.\n\n``vat`` says whether the £ figures include VAT; ``vat_rate_fraction`` is the rate that was\nincluded (required when ``vat=\"included\"``, refused when ``\"excluded\"``) and is read from the\nrecord, never from a release key or from memory. ``vat_attestation`` says how the VAT basis is\nknown: ``stated_by_record`` (the invoice or the record's author states it) or ``derived``\n(inferred under H-01, which then needs a `DerivedAssumption` on ``tariff_stack.basis.vat`` on\nthe same site, enforced by `SiteModel`). ``levies`` and ``network_charges`` say whether those\nlines are itemised in this stack or already sit inside the unit rates, or (network only) are\nnot charged at all, as on a private-wire supply.",
+      "properties": {
+        "levies": {
+          "enum": [
+            "itemised",
+            "in_unit_rates"
+          ],
+          "title": "Levies",
+          "type": "string"
+        },
+        "network_charges": {
+          "enum": [
+            "itemised",
+            "in_unit_rates",
+            "not_charged"
+          ],
+          "title": "Network Charges",
+          "type": "string"
+        },
+        "schema_version": {
+          "default": "0.1.0",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "vat": {
+          "enum": [
+            "excluded",
+            "included"
+          ],
+          "title": "Vat",
+          "type": "string"
+        },
+        "vat_attestation": {
+          "enum": [
+            "stated_by_record",
+            "derived"
+          ],
+          "title": "Vat Attestation",
+          "type": "string"
+        },
+        "vat_rate_fraction": {
+          "anyOf": [
+            {
+              "exclusiveMaximum": 1,
+              "exclusiveMinimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Vat Rate Fraction"
+        }
+      },
+      "required": [
+        "vat",
+        "vat_attestation",
+        "levies",
+        "network_charges"
+      ],
+      "title": "TariffBasis",
+      "type": "object"
+    },
+    "TariffProvenance": {
+      "additionalProperties": false,
+      "description": "Where each component of the stack came from (D104). Required on every stack.\n\n``own_invoice``: the site's own invoiced rate. ``published_for_site``: the DNO's published rate\nfor the site's own licence area, voltage and band. ``by_analogy``: another site's or another\ntariff's rate. ``assumed``: constructed or assumed. ``not_charged``: the component is not\ncharged to this site (private wire). Only the first two and the last are the site's own.",
+      "properties": {
+        "commodity": {
+          "enum": [
+            "own_invoice",
+            "published_for_site",
+            "by_analogy",
+            "assumed",
+            "not_charged"
+          ],
+          "title": "Commodity",
+          "type": "string"
+        },
+        "levies": {
+          "enum": [
+            "own_invoice",
+            "published_for_site",
+            "by_analogy",
+            "assumed",
+            "not_charged"
+          ],
+          "title": "Levies",
+          "type": "string"
+        },
+        "network": {
+          "enum": [
+            "own_invoice",
+            "published_for_site",
+            "by_analogy",
+            "assumed",
+            "not_charged"
+          ],
+          "title": "Network",
+          "type": "string"
+        },
+        "schema_version": {
+          "default": "0.1.0",
+          "title": "Schema Version",
+          "type": "string"
+        }
+      },
+      "required": [
+        "commodity",
+        "network",
+        "levies"
+      ],
+      "title": "TariffProvenance",
+      "type": "object"
+    },
+    "TariffStack": {
+      "additionalProperties": false,
+      "description": "Import/export rates, DUoS bands and levy lines for a site.\n\n``import_rates`` / ``export_rates`` / ``levies`` map a label (e.g. ``\"red\"``, ``\"RO\"``)\nto a £/kWh value. Rates are non-negative (£/kWh).",
+      "properties": {
+        "basis": {
+          "$ref": "#/$defs/TariffBasis"
+        },
+        "capacity_charge_gbp_per_kva_day": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Capacity Charge Gbp Per Kva Day"
+        },
+        "confidence": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Confidence"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "duos_amber_rate": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Duos Amber Rate"
+        },
+        "duos_green_rate": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Duos Green Rate"
+        },
+        "duos_red_rate": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Duos Red Rate"
+        },
+        "evidence": {
+          "anyOf": [
+            {
+              "items": {
+                "$ref": "#/$defs/EvidenceLink"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Evidence"
+        },
+        "export_rates": {
+          "additionalProperties": {
+            "type": "number"
+          },
+          "title": "Export Rates",
+          "type": "object"
+        },
+        "import_rate_windows": {
+          "anyOf": [
+            {
+              "additionalProperties": {
+                "$ref": "#/$defs/BandWindows"
+              },
+              "type": "object"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Import Rate Windows"
+        },
+        "import_rates": {
+          "additionalProperties": {
+            "type": "number"
+          },
+          "title": "Import Rates",
+          "type": "object"
+        },
+        "levies": {
+          "additionalProperties": {
+            "type": "number"
+          },
+          "title": "Levies",
+          "type": "object"
+        },
+        "network_tariff": {
+          "anyOf": [
+            {
+              "discriminator": {
+                "mapping": {
+                  "CDCM": "#/$defs/CdcmTariff",
+                  "EDCM": "#/$defs/EdcmTariff"
+                },
+                "propertyName": "methodology"
+              },
+              "oneOf": [
+                {
+                  "$ref": "#/$defs/CdcmTariff"
+                },
+                {
+                  "$ref": "#/$defs/EdcmTariff"
+                }
+              ]
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Network Tariff"
+        },
+        "provenance": {
+          "$ref": "#/$defs/TariffProvenance"
+        },
+        "schema_version": {
+          "default": "0.1.0",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "source": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Source"
+        },
+        "standing_charge_per_day_gbp": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Standing Charge Per Day Gbp"
+        },
+        "supplier": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Supplier"
+        },
+        "tariff_name": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Tariff Name"
+        },
+        "windowed_levies": {
+          "additionalProperties": {
+            "$ref": "#/$defs/WindowedLevy"
+          },
+          "title": "Windowed Levies",
+          "type": "object"
+        }
+      },
+      "required": [
+        "basis",
+        "provenance"
+      ],
+      "title": "TariffStack",
+      "type": "object"
+    },
+    "VoltageLevel": {
+      "description": "Connection voltage level.",
+      "enum": [
+        "LV",
+        "HV",
+        "EHV"
+      ],
+      "title": "VoltageLevel",
+      "type": "string"
+    },
+    "WindowedLevy": {
+      "additionalProperties": false,
+      "description": "A £/kWh levy line charged **only inside a stated time window**, not on every half-hour.\n\n**Why the type exists.** ``TariffStack.levies`` is a flat ``{label: £/kWh}`` map and every\nconsumer sums it and applies the total to all 17,520 half-hours. That is right for CCL, RO,\nCfD, BSUoS, AAHEDC and Nuclear RAB — all of which bite on boundary import across the whole\nyear — and **wrong for the Capacity Market supplier obligation**, which GB suppliers charge on\npeak-window consumption only (\"Obligation Costs … are charged on consumption during the winter\npeak period; from 16:00 and 19:00 on working days between November & February\", npower Business\nSolutions). Put a 30 p/kWh Capacity Market line in the flat map and the objective charges it on\nevery charged kWh at 03:00 in July, which would wreck the dispatch. So a windowed levy is its\nown field with its own calendar, and the flat map keeps meaning exactly what it meant.\n\n**The window is expressed the way the DUoS band windows are** (`ClockWindow`, period-start\nEurope/London clock, half-open, weekday and weekend as separate day types, an optional month\nrestriction), and `gridq.optimisation.tariff_calendar` bands it with the same machinery it\nbands DUoS with — one set of conventions, not two.\n\n``excluded_dates`` carries the **non-working days** inside the window's months. It is required\nfor honesty rather than precision: the Capacity Market window is \"working days\", GB bank\nholidays fall Monday–Friday, and ``dayofweek < 5`` alone would charge Christmas Day as a\nworking day and **overstate** the avoided cost by roughly one working day in 28. The dates are\nsourced (gov.uk's published bank-holiday list), never derived from a rule — leaving it empty is\npermitted and is disclosed as an overstatement, never silently assumed harmless.",
+      "properties": {
+        "basis": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Basis"
+        },
+        "confidence": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Confidence"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "excluded_dates": {
+          "default": [],
+          "items": {
+            "type": "string"
+          },
+          "title": "Excluded Dates",
+          "type": "array"
+        },
+        "months": {
+          "anyOf": [
+            {
+              "items": {
+                "type": "integer"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Months"
+        },
+        "rate_gbp_per_kwh": {
+          "minimum": 0,
+          "title": "Rate Gbp Per Kwh",
+          "type": "number"
+        },
+        "schema_version": {
+          "default": "0.1.0",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "source": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Source"
+        },
+        "weekday_windows": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/ClockWindow"
+          },
+          "title": "Weekday Windows",
+          "type": "array"
+        },
+        "weekend_windows": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/ClockWindow"
+          },
+          "title": "Weekend Windows",
+          "type": "array"
+        }
+      },
+      "required": [
+        "rate_gbp_per_kwh"
+      ],
+      "title": "WindowedLevy",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "description": "One behind-the-meter site. The shared input contract (M1).",
+  "properties": {
+    "annual_consumption_kwh": {
+      "anyOf": [
+        {
+          "minimum": 0,
+          "type": "number"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Annual Consumption Kwh"
+    },
+    "confidentiality": {
+      "$ref": "#/$defs/Confidentiality"
+    },
+    "connection": {
+      "$ref": "#/$defs/ConnectionDetails"
+    },
+    "consents": {
+      "$ref": "#/$defs/ConsentState"
+    },
+    "counterparty": {
+      "$ref": "#/$defs/Counterparty"
+    },
+    "country": {
+      "default": "GB",
+      "title": "Country",
+      "type": "string"
+    },
+    "created_at": {
+      "format": "date-time",
+      "title": "Created At",
+      "type": "string"
+    },
+    "data_tier": {
+      "$ref": "#/$defs/DataTier"
+    },
+    "derived_assumptions": {
+      "anyOf": [
+        {
+          "items": {
+            "$ref": "#/$defs/DerivedAssumption"
+          },
+          "type": "array"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Derived Assumptions"
+    },
+    "evidence_refs": {
+      "anyOf": [
+        {
+          "items": {
+            "$ref": "#/$defs/EvidenceLink"
+          },
+          "type": "array"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Evidence Refs"
+    },
+    "export_arrangement": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/ExportArrangement"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "load_data": {
+      "$ref": "#/$defs/LoadDataSummary"
+    },
+    "local_flex_awards": {
+      "anyOf": [
+        {
+          "items": {
+            "$ref": "#/$defs/AvailabilityCommitment"
+          },
+          "type": "array"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Local Flex Awards"
+    },
+    "missing_data": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Missing Data",
+      "type": "array"
+    },
+    "physical_gates": {
+      "$ref": "#/$defs/PhysicalGateStatus"
+    },
+    "postcode": {
+      "title": "Postcode",
+      "type": "string"
+    },
+    "provisioning_requirements": {
+      "anyOf": [
+        {
+          "items": {
+            "$ref": "#/$defs/ProvisioningRequirement"
+          },
+          "type": "array"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Provisioning Requirements"
+    },
+    "schema_version": {
+      "default": "0.1.0",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "site_id": {
+      "title": "Site Id",
+      "type": "string"
+    },
+    "site_name": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Site Name"
+    },
+    "source_references": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Source References",
+      "type": "array"
+    },
+    "stream_consents": {
+      "anyOf": [
+        {
+          "items": {
+            "$ref": "#/$defs/RevenueStreamConsent"
+          },
+          "type": "array"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Stream Consents"
+    },
+    "supply_boundary": {
+      "$ref": "#/$defs/SupplyBoundary"
+    },
+    "tariff_stack": {
+      "$ref": "#/$defs/TariffStack"
+    }
+  },
+  "required": [
+    "site_id",
+    "postcode",
+    "data_tier",
+    "load_data",
+    "tariff_stack",
+    "connection",
+    "consents",
+    "physical_gates",
+    "counterparty"
+  ],
+  "title": "SiteModel",
+  "type": "object"
+}

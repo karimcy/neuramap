@@ -532,6 +532,16 @@ def check_engine_conformance(
             )
             continue
         results.append(_check(ctx + "result.type", True))
+        # IC-12 3.2.0 (WP-SIZE-02, D178): an engine stamps the constraint library its
+        # build applies on every result it produces. The member is optional in the schema (so a
+        # 3.1.0 payload still reads), which is why the obligation is checked here, on the engine.
+        results.append(
+            _check(
+                ctx + "provenance.constraint_library_stamped",
+                result.constraint_library is not None,
+                "the engine's result carries no constraint_library stamp (IC-12 3.2.0)",
+            )
+        )
 
         results.extend(_prefix(check_result_conformance(result, request=request), ctx))
 
