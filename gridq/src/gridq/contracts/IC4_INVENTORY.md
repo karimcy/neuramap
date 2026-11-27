@@ -3,7 +3,7 @@
 Where the roadmap needs an IC-4 evidence object, and which `EvidenceType` and issuer role meet it
 in IC-4 1.2.0. Copied from the WP-BO-06 plan (`docs/shared_work/wp_bo06_plan.md` §3), with the
 owner's widening of 2026-11-23 (plan §11: row 7 is a `decision_record`, G1 is closed and G7 is
-added). WP-GRC-09 (IC-4 1.2.0 and IC-15, 2026-11-26) closes G2 at row 9 and adds G8. WP-OPS-01 (the candidate site dossier, 2026-11-26) adds G9. `tests/contracts/test_ic4_pin_and_inventory.py` checks that every backticked type and role
+added). WP-GRC-09 (IC-4 1.2.0 and IC-15, 2026-11-26) closes G2 at row 9 and adds G8. WP-OPS-01 (the candidate site dossier, 2026-11-26) adds G9. WP-SITE-05 (the on-site generation model, 2026-11-26) adds G10. `tests/contracts/test_ic4_pin_and_inventory.py` checks that every backticked type and role
 below is a member of `EvidenceType`, `IssuerRole` or `SelfIssuerRole`, and that every status is E,
 N or a gap listed below with an owner.
 
@@ -77,6 +77,7 @@ Gaps, each with its owner. None blocks this package:
 | G7 | IC-4 has no organisation-wide scope. A licence decision, a legal opinion, a Cyber Essentials certificate, a data licence and the MW agreement are not about one site or one stream. Until it exists, such documents are registered per site | WP-BO-02 (the registry), with the next IC-4 minor | A new scope variant changes what `scope_covers` and `assess` answer: a design of its own. It would touch IC-4 only |
 | G8 | No issuer role for an MGA or a floor provider. ADR-D1 sells the wrapper through an insurer, MGA or floor partner; IC-15's performance wrapper admits an `insurer` only and lists the other two as unavailable | WP-GRC-13 (with XG-20) | A third-party issuer role re-versions IC-4, IC-2 and IC-11 (README cost table). Which carrier signs is a person's choice under XG-20 |
 | G9 | No type for a BESS funding commitment (a funder's letter or facility naming the asset). WP-OPS-01's dossier keeps `bess_funder` unknown for every site and lists this gap | WP-BO-02, with the next IC-4 minor (types only) | Which document a funder issues is not yet known; a guessed member rots the contract. A types-only minor is cheap |
+| G10 | No type for an environmental permit or an MCPD / Specified Generator registration (a genset's run-hour and emissions limits). WP-SITE-05's onsite_generation_model takes the limits as a declaration, and each permit ask names this gap | WP-BO-02, with the next IC-4 minor (types only) | Which documents carry the limits (permit, registration, planning condition) needs a person to confirm; a guessed member rots the contract. Run-hour logs already close with `operational_data_record` |
 
 G2 (closed by WP-GRC-09): the five missing template types are IC-4 1.2.0 members, a types-only
 minor that re-versions IC-4 alone. "With its required fields" is met outside IC-4: the IC-15

@@ -3,6 +3,48 @@
 All meaningful changes to this project. Newest first. Dates are ISO (YYYY-MM-DD).
 (Canonical location; the former top-level `CHANGELOG.md` now points here.)
 
+## 2026-11-26 — WP-SITE-05: standby and on-site generation resources (`onsite_generation_model`)
+
+- **New input record** `gridq.adequacy.onsite_generation_model` 1.0.0 (spec A3-05;
+  D210 to D215, numbered at merge). It declares:
+  - gensets, with rating, start time, operation mode and cover permission;
+  - fuel stores, with stated endurance or tank and burn curve, opening level and resupply;
+  - permit and emissions run-hour limits (MCPD, Specified Generator, other permit or planning
+    condition), each with a cap, a window, what is counted and a dated used balance;
+  - test-run schedules;
+  - co-located AD, EfW or PV as adequacy resources;
+  - the start contingency, and detection and transfer times.
+
+  Every unknown is a typed ask and earns zero credit. "No limit" and "no tests" must be stated.
+- **Run-hour ledger (acceptance 1).**
+  - `gridq.adequacy.standby` plans tests and restriction cover per scenario. It does not depend on
+    the draw and never reads the battery.
+  - `RunLedger._grant` is the only constructor of `GensetRun`. It grants the longest prefix that keeps
+    every enforced limit and fuel store whole.
+  - Evidence: a 40-case property test against an independent brute-force recount, an AST test of the
+    choke point, and three ledger mutants, all killed.
+- **Required BESS energy (acceptance 2).** `required_bess_energy` releases
+  `gridq.adequacy.required_bess_energy` 1.0.0.
+  - It is an exact sequent-peak single pass, with and without gensets, plus `genset_displaced_kwh`.
+  - It is cross-checked against the kernel at `E*` and `E* - 1`.
+  - A property test shows removing gensets never lowers it. In the strict fixture it rises from 339
+    to 1961 kWh.
+- **`gridq.adequacy_result` 1.1.0**, a sibling record. It is emitted only when `run_adequacy` is given
+  `generation`.
+  - It embeds the model, the plans and the findings.
+  - Its `without_generation` counterfactual is the 1.0.0 run, whose simulation hash equals the
+    WP-SITE-04 golden.
+  - A nonconforming test schedule withholds `approved_for_use`.
+  - The 1.1.0 golden is pinned in `tests/test_onsite_result.py`.
+- **Standby floor seam.** `size_floor(..., standby=model)` resolves `DerivedFromStandby` as detection
+  plus carry start plus transfer, and renders floor-statement format 1.1.0.
+- **Unchanged.**
+  - The three WP-SITE-04 golden hashes in `tests/test_adequacy_reproducible.py` hold. The generation
+    input is optional, and without it every record is 1.0.0 byte for byte.
+  - `AdequacyResult`'s validator was factored into `check_result` with no change of behaviour.
+- **IC-4 G10** was added to `IC4_INVENTORY.md`: an evidence type for the declared generation model,
+  for the next IC-4 minor. No contract or schema changes.
+
 ## 2026-11-26 — WP-THERM-05: ThermaFlex IT-safety objective mode (`thermaflex_dc_controller`)
 
 - **Releases `gridq.thermal.thermaflex_dc_controller`** (spec TF-02; D205 to D209, numbered
