@@ -3,6 +3,30 @@
 All meaningful changes to this project. Newest first. Dates are ISO (YYYY-MM-DD).
 (Canonical location; the former top-level `CHANGELOG.md` now points here.)
 
+## 2026-11-26 — WP-THERM-05: ThermaFlex IT-safety objective mode (`thermaflex_dc_controller`)
+
+- **Releases `gridq.thermal.thermaflex_dc_controller`** (spec TF-02; D-NEW-THERM05-1 to -5, numbered
+  at merge). The objective mode "flexibility within IT-safety limits" beside the comfort/cost mode,
+  with the thermal limits as hard constraints. Clean room (ADR-D7 option (c)): no ThermaFlex code,
+  document or parameter.
+  - **`comfort_cost`:** the `ComfortCostPolicy` seam and the clean-room reference
+    `SetpointHoldingPolicy` (not ThermaFlex). The IT-safety mode is an overlay on the policy.
+  - **`safety_filter`:** the run-time filter, the only safety argument. A forward-invariant safe set
+    over the WP-THERM-03 deviation state; each minute's deficit is applied only if the minute's exact
+    extremes and end stay in it.
+  - **`controller`:** `DcController`. IC-11 admission at receipt (reason precedence, partial
+    acceptance, booking ledger, replay), the filtered minute, switch-off with a lockout guard,
+    repayment at the certified surplus, mode transitions ("release, then repay") and one `EventRecord`
+    per instruction.
+- **Acceptance (1)**, never a limit broken under any instruction, in simulation: an independent exact
+  closed-loop plant (`tests/thermal/_thermal_closed_loop.py`), a seeded fuzzer over nine instruction
+  classes on both fixture variants, admission-bypass runs, transitions, mutation checks and a
+  cross-check against the WP-THERM-03 Euler oracle.
+- **Acceptance (2)**, comfort/cost unchanged: non-interference over arbitrary policies (exact object
+  identity, one call per minute), golden pins of the reference trajectory, and a reversion test.
+- **No contract change.** IC-11 1.1.0 is used as frozen; the event record and a late-receipt or
+  revocation message are named asks for a later IC-11 version (WP-THERM-07, WP-THERM-12).
+
 ## 2026-11-26 — Integration: WP-SITE-04 merged into `roadmap/p1-foundations`
 
 - **D-numbers.** WP-SITE-04's six placeholders took D170 to D175 (SITE04-1 to -6 in order), in the
