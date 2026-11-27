@@ -219,7 +219,7 @@ def test_the_owner_widening_is_recorded() -> None:
     assert rows["7"][5].startswith("N")
     gaps = {r[0]: r for r in _table(_inventory(), "Gap")}
     assert "G1" not in gaps
-    assert set(gaps) == {"G3", "G4", "G5", "G6", "G7", "G8", "G9"}
+    assert set(gaps) == {"G3", "G4", "G5", "G6", "G7", "G8", "G9", "G10"}
     assert "WP-BO-02" in gaps["G7"][2]
 
 

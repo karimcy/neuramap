@@ -15,7 +15,7 @@ comes from one closed table (`approval_label`); an unsigned floor never reads as
 
 from __future__ import annotations
 
-from typing import Annotated, Final, Literal
+from typing import Annotated, Any, Final, Literal
 
 from pydantic import Field, model_validator
 
@@ -247,42 +247,47 @@ class AdequacyResult(ContractModel):
 
     @model_validator(mode="after")
     def _consistent(self) -> AdequacyResult:
-        if self.simulation_hash != simulation_hash_of(self):
-            raise ValueError("simulation_hash does not match the record")
-        if self.approval.as_of != self.as_of:
-            raise ValueError("the approval is dated the run's as_of")
-        if self.approval_label != approval_label(self.approval):
-            raise ValueError("approval_label must come from the closed table")
-        sh = floor_statement_hash(self.policy)
-        if isinstance(self.approval, Approved):
-            again = admit_floor_signoff(self.policy, (self.approval.evidence,), as_of=self.as_of)
-            if again != self.approval:
-                raise ValueError(
-                    "the embedded approval is not what the sign-off bar admits for this policy"
-                )
-        elif isinstance(sh, Unknown) != isinstance(self.approval.statement_hash, Unknown) or (
-            not isinstance(sh, Unknown) and sh != self.approval.statement_hash
-        ):
-            raise ValueError("the unsigned outcome names a different floor statement")
-        expected = (
-            isinstance(self.approval, Approved)
-            and isinstance(self.outcome, Computed)
-            and not (
-                isinstance(self.conformance, Conformance)
-                and self.conformance.status == "nonconforming"
-            )
-        )
-        if self.approved_for_use != expected:
-            raise ValueError("approved_for_use is derived, never set")
-        ids = [a.ask_id for a in self.data_requests]
-        if ids != sorted(set(ids)):
-            raise ValueError("data_requests are sorted by ask_id, without repeats")
-        if isinstance(self.outcome, NotComputed) and not self.data_requests:
-            raise ValueError("a run that is not computed says what is missing")
+        check_result(self, simulation_hash_of(self), extra_ok=True)
         return self
 
     def content_hash(self) -> str:
         return content_hash(self)
+
+
+def check_result(r: Any, sim_hash: str, *, extra_ok: bool) -> None:
+    """The checks every ``gridq.adequacy_result`` version shares (1.0.0 and 1.1.0): the simulation
+    hash, the sign-off re-admission, the closed label table, the derived ``approved_for_use``
+    (also requiring ``extra_ok``) and the asks."""
+    if r.simulation_hash != sim_hash:
+        raise ValueError("simulation_hash does not match the record")
+    if r.approval.as_of != r.as_of:
+        raise ValueError("the approval is dated the run's as_of")
+    if r.approval_label != approval_label(r.approval):
+        raise ValueError("approval_label must come from the closed table")
+    sh = floor_statement_hash(r.policy)
+    if isinstance(r.approval, Approved):
+        again = admit_floor_signoff(r.policy, (r.approval.evidence,), as_of=r.as_of)
+        if again != r.approval:
+            raise ValueError(
+                "the embedded approval is not what the sign-off bar admits for this policy"
+            )
+    elif isinstance(sh, Unknown) != isinstance(r.approval.statement_hash, Unknown) or (
+        not isinstance(sh, Unknown) and sh != r.approval.statement_hash
+    ):
+        raise ValueError("the unsigned outcome names a different floor statement")
+    expected = (
+        isinstance(r.approval, Approved)
+        and isinstance(r.outcome, Computed)
+        and not (isinstance(r.conformance, Conformance) and r.conformance.status == "nonconforming")
+        and extra_ok
+    )
+    if r.approved_for_use != expected:
+        raise ValueError("approved_for_use is derived, never set")
+    ids = [a.ask_id for a in r.data_requests]
+    if ids != sorted(set(ids)):
+        raise ValueError("data_requests are sorted by ask_id, without repeats")
+    if isinstance(r.outcome, NotComputed) and not r.data_requests:
+        raise ValueError("a run that is not computed says what is missing")
 
 
 _EXCLUDED = frozenset(

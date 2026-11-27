@@ -4,6 +4,208 @@ Decision log. Newest first. Each entry: **date · decision · reason · alternat
 
 ---
 
+### D-NEW-SITE05-6 — Reconciliation of the five WP-SITE-05 rulings
+
+- **Date:** 2026-11-26
+- **Author:** Fable 5.2, under the owner's delegation of design decisions (WP-SITE-05). Executed for Olly.
+  It is not the owner's own words.
+- **Decision.** Where D-NEW-SITE05-1 to -5 overlap, the build follows these rules.
+  - (a) **An unknown earns zero credit and an ask, and never blocks the run.** A unit whose rating or
+    start time is `Unknown` is planned at zero output. A limit, window or used balance that is
+    `Unknown` is `not_enforced`, and that unit earns no cover credit. The result's `credit` is then
+    `partial` or `none`, and the asks name the missing input.
+  - (b) **"No limit" is stated, never assumed.** Every unit is named either by a `RunHourLimit` or by a
+    `NoRunHourLimit` statement, by a `TestRunSchedule` or by `NoTestRuns`, and by a fuel store, which
+    may be `ContinuousSupply`. An unnamed unit is a validation error.
+  - (c) **Fuel** burns either by stated endurance (one unit-second per running second) or by tank and
+    burn curve. The share of each unit is `ceil(need x rated_i / (sum of rated less the k largest))`,
+    and a unit burns at idle while starting. A store opens at a stated level and is refilled to full
+    only when its resupply lead fits between one run's end and the next call. Fuel is not counted
+    during the pre-roll.
+  - (d) **Tests are never cover.** A test run counts against limits and fuel but changes neither the
+    net load nor the charging headroom.
+  - (e) **Start contingency** is `AllStart` or `LargestUnitsOut{k}`. Output and the standby handover
+    both drop the k largest committed units. A unit of unknown rating or start time is excluded from
+    the handover.
+  - (f) **Opening balances are dated** (`UsedAt.as_of`). The ledger pre-rolls scheduled tests from that
+    date to the period start.
+    - A balance dated before the period start raises the advisory finding `OPENING_BALANCE_STALE`,
+      with an ask to refresh the log.
+    - A balance dated after the period start leaves the limit `not_enforced`, with an ask.
+    - Under a calendar-year window, a balance from an earlier year counts from 1 January at zero.
+  - (g) **The requirement names the model by its content hash.** `standby_ref` must equal
+    `OnsiteGenerationModel.content_hash()`, and a mismatch raises.
+  - (h) **Executor's readings, recorded here.**
+    - Only `parallel_with_grid` units with `curtailment_cover: permitted` earn restriction-cover
+      credit.
+    - A limit over several units counts unit-seconds, the safe reading of a site-wide cap.
+    - The call minute is `max(first_need - start_min, event_start - floor(notice_s / 60), 0)`.
+    - A run that continues the same unit's previous run needs no restart.
+    - A unit cut short by a limit is not replaced by another.
+    - Findings carry a severity. Only `nonconforming` (`TEST_SCHEDULE_EXCEEDS_LIMIT`, a schedule that
+      alone breaks its limit) withholds `approved_for_use`.
+    - Co-located output is subtracted before need is computed, and it can create charging headroom.
+- **Reason.** Each rule removes a place where two rulings would have given two answers. A
+  conservative default stands wherever data is missing, so a missing permit can only lower credit.
+- **Alternatives considered.**
+  - Treating an absent limit as unlimited would credit a genset on a permit nobody has read.
+  - Letting tests count as cover would double-count the same running hours.
+- **Consequences.** Every credited second of genset output traces to a stated rating, start time,
+  limit and fuel statement.
+
+### D-NEW-SITE05-5 — The standby seam: a floor derived from the handover
+
+- **Date:** 2026-11-26
+- **Author:** Fable 5.2, under the owner's delegation of design decisions (WP-SITE-05). Executed for Olly.
+  It is not the owner's own words.
+- **Decision.**
+  - **The seam.** WP-SITE-04's `DerivedFromStandby` duration now resolves.
+    `size_floor(..., standby=model)` sizes the window as `detection_s + carry_start_s + transfer_s`:
+    the handover the battery must carry until the standby plant takes the protected load.
+  - **The handover.** `carry_start_s` is the start time of the slowest unit the protected peak needs,
+    once the k largest units are taken out. The record is `Handover` inside a `StandbyDerivation`, and
+    it lists the counted and excluded units.
+  - **The statement.** `render_floor_statement` emits format 1.1.0 for such a policy, with a handover
+    note. A policy without a standby derivation renders 1.0.0 byte for byte.
+  - **Full-outage autonomy is not claimed.** Under a standby derivation, `full_outage_autonomy` is
+    `Indeterminate`, with a "coverage" ask.
+  - **Errors.** A stated duration passed together with a model raises, and so do a hash mismatch and
+    a site mismatch.
+  - **Missing data.** Missing handover inputs come back as blocking asks.
+- **Reason.** The battery's resilience job at a site with standby plant is the gap before the gensets
+  take the load, not a whole outage. Sizing the floor to the measured handover is the honest, smaller
+  floor.
+- **Alternatives considered.** A fixed 30 s or 60 s rule of thumb would be a number the site never
+  stated.
+- **Consequences.** `ResilienceFloorPolicy.derivation` widens to
+  `Derivation | StandbyDerivation | NotApplicable`. This is a new union member, so existing policies
+  and their hashes are unchanged.
+
+### D-NEW-SITE05-4 — `gridq.adequacy_result` 1.1.0, a sibling record carrying generation
+
+- **Date:** 2026-11-26
+- **Author:** Fable 5.2, under the owner's delegation of design decisions (WP-SITE-05). Executed for Olly.
+  It is not the owner's own words.
+- **Decision.**
+  - **When 1.1.0 is emitted.** `run_adequacy(..., generation=...)` returns `AdequacyResultV1_1`, with
+    method `gridq.adequacy/1.1.0`. Without `generation` it returns the 1.0.0 `AdequacyResult`,
+    unchanged.
+  - **What 1.1.0 adds.**
+    - `InputBindingV1_1` adds `generation_hash`.
+    - A `GenerationSection` embeds:
+      - the model;
+      - the credit (`full`, `partial` or `none`);
+      - the status (`conforming` or `nonconforming`);
+      - each scenario's plan (runs, limit use, store use, findings);
+      - the exclusions;
+      - `without_generation`, the counterfactual. It is the 1.0.0 run re-run on the same inputs, with
+        its simulation hash and its headline LOLP and EUE.
+  - **Approval.** `approved_for_use` also requires the generation status to be `conforming`.
+  - **Validation.** `check_result` was factored out of `AdequacyResult` without changing its
+    behaviour, so both records share one validator.
+- **Reason.**
+  - `canonical_json` dumps every field, so adding fields to 1.0.0 would move every pinned hash.
+  - A sibling version leaves the WP-SITE-04 goldens exactly where they were.
+  - It also makes the counterfactual checkable: its simulation hash is the 1.0.0 golden.
+- **Alternatives considered.**
+  - Optional fields on 1.0.0 would break the golden hashes.
+  - A subclass would inherit the 1.0.0 version literal.
+- **Consequences.**
+  - A 1.1.0 golden is pinned in `tests/test_onsite_result.py`.
+  - A zero-cap genset leaves the 1.0.0 golden `paths_digest` unchanged, and a test asserts it.
+
+### D-NEW-SITE05-3 — Required BESS energy by an exact single pass (sequent peak)
+
+- **Date:** 2026-11-26
+- **Author:** Fable 5.2, under the owner's delegation of design decisions (WP-SITE-05). Executed for Olly.
+  It is not the owner's own words.
+- **Decision.**
+  - **The quantity.** `required_bess_energy(...)` releases `gridq.adequacy.required_bess_energy`
+    1.0.0. It is the least whole kWh at which a battery that starts full and is held full never has a
+    cover request clamped by the floor, in the `reserve_held` posture.
+  - **The method.** It is computed per path by a sequent-peak pass over the kernel's own integer-joule
+    steps.
+  - **The statistic.** The stated statistic (`EnsembleMaximum` or a `StatedQuantile` over draws) picks
+    the figure. An unknown statistic gives `RequiredNotComputed` and an ask.
+  - **Power-bound shortfall** (need above `rating - resilience kW`) is reported apart, as
+    `PowerBound`, and is never folded into the energy.
+  - **Both arms, one record.** The record carries the figure with gensets, without them, and
+    `genset_displaced_kwh`, the difference. Removing the gensets keeps the co-located sources and
+    thermal flex.
+  - **No counterfactual under a standby floor.** Where the floor is itself standby-derived, removing
+    the gensets would change the floor. The without-gensets figure is then `NotApplicable`, with an
+    ask for the requirement without the standby plant.
+- **Reason.**
+  - The genset plan never reads the battery, so the deficit below full does not depend on capacity.
+    That makes the threshold exact in one pass rather than a search.
+  - A test checks it against the real kernel at `E*` and `E* - 1`.
+- **Alternatives considered.** Bisection over kernel runs is exact too, but far slower, and it needs a
+  bracket.
+- **Consequences.** Acceptance 2 holds by construction: genset output only lowers need and never takes
+  charging headroom. A per-path property test asserts it.
+
+### D-NEW-SITE05-2 — Genset dispatch and a single run-ledger choke point
+
+- **Date:** 2026-11-26
+- **Author:** Fable 5.2, under the owner's delegation of design decisions (WP-SITE-05). Executed for Olly.
+  It is not the owner's own words.
+- **Decision.**
+  - **The plan.** `plan_generation` produces one plan per scenario and thermal arm. It does not depend
+    on the draw and never reads the battery.
+  - **Tests are granted first.** Scheduled tests are granted on the GB wall clock, pre-rolled from
+    the earliest opening balance.
+  - **Cover is planned chronologically, by ensemble-envelope commitment.** For each restriction
+    event, the largest need over the draws sets the peak. The fewest credited units, in the model's
+    merit order, whose ratings less the k largest cover that peak are committed. Each runs from its
+    call to the last minute of need, at zero output until its start time has elapsed.
+  - **The choke point.** `RunLedger._grant` is the only constructor of `GensetRun`. It grants the
+    longest prefix of a requested run under which every enforced limit and fuel store holds. It
+    counts every window (each calendar year on the GB clock, or every rolling window) including the
+    opening use.
+  - **What the kernel sees.** The kernel receives `net - min(genset, max(net - permit, 0))`. Gensets
+    serve need and never charge the battery.
+- **Reason.**
+  - A single grant path makes "never exceeded" a structural property, not a hope. An AST test pins
+    it, and three seeded mutants of the ledger are killed.
+  - A plan that is independent of the draw keeps the WP-SITE-04 kernel untouched.
+- **Alternatives considered.**
+  - Per-draw dispatch inside the kernel would touch the `_dispatch` choke point and break the single
+    pass of D-NEW-SITE05-3.
+  - Greedy start-everything dispatch would burn run hours for nothing.
+- **Consequences.**
+  - Acceptance 1 is evidenced by a property test (40 random SYNTHETIC cases) against an independent
+    brute-force recount.
+  - Grid-loss running is not simulated, and that exclusion is recorded on the result.
+
+### D-NEW-SITE05-1 — `onsite_generation_model` 1.0.0: an optional, content-hashed input record
+
+- **Date:** 2026-11-26
+- **Author:** Fable 5.2, under the owner's delegation of design decisions (WP-SITE-05). Executed for Olly.
+  It is not the owner's own words.
+- **Decision.**
+  - **The record.** `gridq.adequacy.onsite_generation_model` 1.0.0 (`OnsiteGenerationModel`, spec
+    A3-05) declares a site's resources:
+    - gensets, with rating, start time, operation mode and curtailment-cover permission;
+    - fuel stores, with endurance, opening level and resupply;
+    - run-hour limits, with basis `mcpd`, `specified_generator`, `environmental_permit_other` or
+      `planning_condition`, a cap, a window, what is counted, and the use already made;
+    - test-run schedules;
+    - co-located AD, EfW or PV sources, as a minute series or a stated firm kW;
+    - the start contingency;
+    - detection and transfer times.
+  - **Two statements.** `no_onsite_generation` is itself a statement.
+  - **How it is supplied.** It is supplied with any output series as `OnsiteGeneration`. It is optional
+    on `run_adequacy` and `required_bess_energy`.
+  - **Asks.** `missing_onsite_asks` turns every `Unknown` into a typed `DossierAsk`.
+  - **Contract gap.** IC-4 G10 is recorded for the declaration's evidence type.
+- **Reason.**
+  - Optional input keeps every existing scenario reproducing by hash.
+  - Typed vocabularies (basis, window, counts) make a permit's meaning explicit rather than free text.
+- **Alternatives considered.** Folding gensets into the BESS record would mix two assets' contracts.
+- **Consequences.**
+  - All fixtures are `synthetic_fixture` with `SYNTHETIC-` site ids.
+  - Real per-site genset data is a person-only ask.
+
 ### D175 — Reconciliation of the five WP-SITE-04 rulings
 
 - **Date:** 2026-11-26

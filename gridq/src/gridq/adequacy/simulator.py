@@ -17,11 +17,11 @@ export set, a site mismatch, too few draws) raises.
 
 from __future__ import annotations
 
-from collections.abc import Iterable
+from collections.abc import Callable, Iterable
 from datetime import date, timedelta
 from fractions import Fraction
 from math import lcm
-from typing import Literal
+from typing import TYPE_CHECKING, Literal, overload
 
 import numpy as np
 
@@ -32,6 +32,7 @@ from gridq.adequacy.estimators import (
     clopper_pearson_ppm,
 )
 from gridq.adequacy.floor import (
+    Approved,
     FloorPartition,
     ResilienceFloorPolicy,
     Sized,
@@ -96,6 +97,11 @@ from gridq.contracts.evidence import EvidenceObject
 from gridq.contracts.thermal_flex import ThermalFlexAvailability
 from gridq.datacentre.synthesiser import minimum_draws, order_statistic_interval
 from gridq.ops.dossier_model import AskHolder, DossierAsk
+
+if TYPE_CHECKING:
+    from gridq.adequacy.onsite import OnsiteGeneration
+    from gridq.adequacy.result_v1_1 import AdequacyResultV1_1
+    from gridq.adequacy.standby import GenerationArrays, ScenarioGeneration
 
 __all__ = ["render_summary", "run_adequacy", "simulate_scenario"]
 
@@ -162,8 +168,11 @@ class _Prepared:
         cells: np.ndarray,
         permit_w: np.ndarray,
         restricted: np.ndarray,
+        idx: np.ndarray | None = None,
     ) -> None:
         self.scenario = scenario
+        #: The load-horizon minute each scenario minute reads (for co-located output series).
+        self.idx = idx
         self.mapping = mapping
         self.shift = shift
         self.fac = fac
@@ -228,7 +237,7 @@ def _prepare(
         dst_skipped_minutes=skipped,
         dst_repeated_minutes=repeated,
     )
-    return _Prepared(s, mapping, timedelta(days=shift_days), fac, it, cells, permit, depth > 0)
+    return _Prepared(s, mapping, timedelta(days=shift_days), fac, it, cells, permit, depth > 0, idx)
 
 
 def _plan_calls(surface: ThermalFlexAvailability, p: _Prepared) -> tuple[FlexCall, ...]:
@@ -259,6 +268,30 @@ def _fine(s: Scenario, m: int, resolution_s: int) -> np.ndarray:
     return fine
 
 
+def net_after_flex(p: _Prepared, calls: tuple[FlexCall, ...]) -> np.ndarray:
+    """Facility load less delivered thermal flex plus rebound, integer W ``(N, M)`` (D170)."""
+    m = p.fac.shape[1]
+    flex_w, rebound_w = flex_arrays(calls, m)
+    cooling = np.maximum(p.fac - p.it, 0)
+    delivered = np.minimum(flex_w[None, :], cooling)
+    net: np.ndarray = p.fac - delivered + rebound_w[None, :]
+    return net
+
+
+def floor_terms(p: _Prepared, policy: ResilienceFloorPolicy) -> tuple[np.ndarray, np.ndarray]:
+    """Per scenario minute: the policy's floor (kWh) and resilience reservation (kW)."""
+    assert isinstance(policy.state, Sized)
+    floor_kwh = np.asarray(
+        [policy.floor_kwh_for_cell(int(c)) for c in range(len(policy.partition.cell_ids))],
+        dtype=np.int64,
+    )[p.cells]
+    res_kw = np.asarray(
+        [policy.resilience_kw_for_cell(int(c)) for c in range(len(policy.partition.cell_ids))],
+        dtype=np.int64,
+    )[p.cells]
+    return floor_kwh, res_kw
+
+
 def simulate_scenario(
     p: _Prepared,
     *,
@@ -270,23 +303,20 @@ def simulate_scenario(
     cfg: AdequacyConfig,
     skip: bool = True,
     trace: Trace | None = None,
+    generation: GenerationArrays | None = None,
 ) -> ScenarioOutcome:
-    """Build the per-minute terms for one scenario and posture, and run the kernel."""
+    """Build the per-minute terms for one scenario and posture, and run the kernel.
+
+    ``generation`` (WP-SITE-05) folds on-site output into the net load before the kernel sees
+    it (`gridq.adequacy.standby.GenerationArrays.apply`); without it the terms are exactly the
+    WP-SITE-04 terms."""
     s = p.scenario
     n, m = p.fac.shape
     flex_w, rebound_w = flex_arrays(calls, m)
-    cooling = np.maximum(p.fac - p.it, 0)
-    delivered = np.minimum(flex_w[None, :], cooling)
-    net = p.fac - delivered + rebound_w[None, :]
-    assert isinstance(policy.state, Sized)
-    floor_kwh = np.asarray(
-        [policy.floor_kwh_for_cell(int(c)) for c in range(len(policy.partition.cell_ids))],
-        dtype=np.int64,
-    )[p.cells]
-    res_kw = np.asarray(
-        [policy.resilience_kw_for_cell(int(c)) for c in range(len(policy.partition.cell_ids))],
-        dtype=np.int64,
-    )[p.cells]
+    net = net_after_flex(p, calls)
+    if generation is not None:
+        net = generation.apply(net, p.permit_w)
+    floor_kwh, res_kw = floor_terms(p, policy)
     assert isinstance(bess.discharge_rating_kw, int) and isinstance(bess.charge_rating_kw, int)
     assert isinstance(bess.operating_soe_kwh, int) and isinstance(bess.initial_soe_kwh, int)
     assert isinstance(bess.discharge_efficiency, OneWay | RoundTripOnly)
@@ -616,6 +646,7 @@ def _conformance(
 # --------------------------------------------------------------------------- entry point
 
 
+@overload
 def run_adequacy(
     scenario_set: CurtailmentScenarioSet,
     load: LoadSource,
@@ -628,8 +659,47 @@ def run_adequacy(
     thermal: ThermalFlexAvailability | None = None,
     envelope: DispatchEnvelope | None = None,
     skip: bool = True,
-) -> AdequacyResult:
-    """Run the adequacy simulation and attach the floor's sign-off outcome. Pure: reads no clock."""
+    generation: None = None,
+) -> AdequacyResult: ...
+
+
+@overload
+def run_adequacy(
+    scenario_set: CurtailmentScenarioSet,
+    load: LoadSource,
+    policy: ResilienceFloorPolicy,
+    bess: BessParameters,
+    cfg: AdequacyConfig,
+    *,
+    as_of: date,
+    evidence: Iterable[EvidenceObject] = (),
+    thermal: ThermalFlexAvailability | None = None,
+    envelope: DispatchEnvelope | None = None,
+    skip: bool = True,
+    generation: OnsiteGeneration,
+) -> AdequacyResultV1_1: ...
+
+
+def run_adequacy(
+    scenario_set: CurtailmentScenarioSet,
+    load: LoadSource,
+    policy: ResilienceFloorPolicy,
+    bess: BessParameters,
+    cfg: AdequacyConfig,
+    *,
+    as_of: date,
+    evidence: Iterable[EvidenceObject] = (),
+    thermal: ThermalFlexAvailability | None = None,
+    envelope: DispatchEnvelope | None = None,
+    skip: bool = True,
+    generation: OnsiteGeneration | None = None,
+) -> AdequacyResult | AdequacyResultV1_1:
+    """Run the adequacy simulation and attach the floor's sign-off outcome. Pure: reads no clock.
+
+    Without ``generation`` the record is ``gridq.adequacy_result`` 1.0.0, exactly as WP-SITE-04
+    made it. With an `OnsiteGeneration` (WP-SITE-05) it is 1.1.0: gensets and co-located output
+    are planned per scenario and arm (`gridq.adequacy.standby`), folded into the net load, and the
+    same inputs are re-run without them for the record's counterfactual."""
     site = policy.site_id
     ident = load.identity
     if scenario_set.direction != "import":
@@ -640,6 +710,7 @@ def run_adequacy(
         ("BESS parameters", bess.site_id),
         *((("thermal surface", thermal.site_id),) if thermal else ()),
         *((("dispatch envelope", envelope.site_id),) if envelope else ()),
+        *((("generation model", generation.model.site_id),) if generation else ()),
     ):
         if other != site:
             raise ValueError(f"the {name} names site {other}; the floor policy is for {site}")
@@ -657,8 +728,14 @@ def run_adequacy(
         "synthetic_fixture" if scenario_set.evidence_class.value == "synthetic_fixture" else "",
         thermal.record_class if thermal else "",
         envelope.record_class.value if envelope else "",
+        generation.model.record_class if generation else "",
     )
     asks: dict[str, DossierAsk] = {a.ask_id: a for a in policy.data_requests}
+    if generation is not None:
+        from gridq.adequacy.onsite import missing_onsite_asks
+
+        asks.update({a.ask_id: a for _, a in missing_onsite_asks(generation.model)})
+    plans: dict[tuple[Arm, str], tuple[GenerationArrays, ScenarioGeneration]] = {}
     reasons: list[str] = []
     if not isinstance(policy.state, Sized):
         reasons.append(f"the resilience floor is {policy.state.kind}")
@@ -721,6 +798,18 @@ def run_adequacy(
             p.scenario.scenario_id: _plan_calls(thermal, p) if thermal is not None else ()
             for p in prepared
         }
+        if generation is not None:
+            from gridq.adequacy.standby import plan_generation
+
+            for arm in arms:
+                for p in prepared:
+                    sid = p.scenario.scenario_id
+                    base = net_after_flex(p, calls[sid] if arm == "ic11" else ())
+                    arrays, plan, plan_asks = plan_generation(
+                        generation, p, base, horizon_start=ident.horizon_start, thermal=arm
+                    )
+                    plans[(arm, sid)] = (arrays, plan)
+                    asks.update({a.ask_id: a for a in plan_asks})
         runs: list[PostureRun] = []
         for posture in postures:
             for arm in arms:
@@ -734,6 +823,9 @@ def run_adequacy(
                         envelope=envelope,
                         cfg=cfg,
                         skip=skip,
+                        generation=plans[(arm, p.scenario.scenario_id)][0]
+                        if generation is not None
+                        else None,
                     )
                     for p in prepared
                 ]
@@ -780,6 +872,26 @@ def run_adequacy(
         "outcome": outcome,
         "data_requests": tuple(asks[k] for k in sorted(asks)),
     }
+    if generation is not None:
+        return _with_generation(
+            fields,
+            generation,
+            tuple(plan for _, plan in plans.values()),
+            approval,
+            as_of,
+            rerun=lambda: run_adequacy(
+                scenario_set,
+                load,
+                policy,
+                bess,
+                cfg,
+                as_of=as_of,
+                evidence=evidence,
+                thermal=thermal,
+                envelope=envelope,
+                skip=skip,
+            ),
+        )
     sim_hash = simulation_hash_of(fields)
     approved_for_use = (
         approval.kind == "approved"
@@ -788,6 +900,84 @@ def run_adequacy(
     )
     return AdequacyResult(
         **fields,  # type: ignore[arg-type]
+        simulation_hash=sim_hash,
+        as_of=as_of,
+        approval=approval,
+        approval_label=approval_label(approval),
+        approved_for_use=approved_for_use,
+    )
+
+
+def _with_generation(
+    fields: dict[str, object],
+    generation: OnsiteGeneration,
+    plans: tuple[ScenarioGeneration, ...],
+    approval: Approved | Unsigned,
+    as_of: date,
+    rerun: Callable[[], AdequacyResult],
+) -> AdequacyResultV1_1:
+    """Assemble the 1.1.0 record (D-NEW-SITE05-4): the counterfactual is the 1.0.0 run, re-run."""
+    from gridq.adequacy.result_v1_1 import (
+        METHOD_VERSION_V1_1,
+        AdequacyResultV1_1,
+        GenerationSection,
+        InputBindingV1_1,
+        WithoutGeneration,
+        simulation_hash_v1_1,
+    )
+    from gridq.adequacy.standby import EXCLUSIONS, generation_credit
+
+    outcome = fields["outcome"]
+    gh = generation.content_hash()
+    without: WithoutGeneration | NotApplicable
+    if isinstance(outcome, Computed):
+        base = rerun()
+        assert isinstance(base.outcome, Computed)
+        head = next(r for r in base.outcome.runs if (r.posture, r.thermal) == base.outcome.headline)
+        without = WithoutGeneration(
+            kind="without_generation",
+            simulation_hash=base.simulation_hash,
+            headline_lolp=head.lolp.point,
+            headline_eue_ws=head.eue.expected_ws,
+        )
+    else:
+        without = not_applicable("not computed")
+    status: Literal["conforming", "nonconforming"] = (
+        "nonconforming"
+        if any(f.severity == "nonconforming" for p in plans for f in p.findings)
+        else "conforming"
+    )
+    section = GenerationSection(
+        generation_hash=gh,
+        model=generation.model,
+        credit=generation_credit(plans, generation),
+        status=status,
+        plans=plans,
+        exclusions=EXCLUSIONS,
+        without_generation=without,
+    )
+    inputs = fields["inputs"]
+    v11 = dict(fields)
+    v11["schema_version"] = "1.1.0"
+    v11["method_version"] = METHOD_VERSION_V1_1
+    v11["inputs"] = (
+        InputBindingV1_1(
+            **{k: getattr(inputs, k) for k in InputBinding.model_fields}, generation_hash=gh
+        )
+        if isinstance(inputs, InputBinding)
+        else inputs
+    )
+    v11["generation"] = section
+    sim_hash = simulation_hash_v1_1(v11)
+    conformance = fields["conformance"]
+    approved_for_use = (
+        approval.kind == "approved"
+        and isinstance(outcome, Computed)
+        and not (isinstance(conformance, Conformance) and conformance.status == "nonconforming")
+        and status == "conforming"
+    )
+    return AdequacyResultV1_1(
+        **v11,  # type: ignore[arg-type]
         simulation_hash=sim_hash,
         as_of=as_of,
         approval=approval,

@@ -82,8 +82,11 @@ class StatedDuration(ContractModel):
 
 
 class DerivedFromStandby(ContractModel):
-    """The WP-SITE-05 seam: the duration is the standby plant's handover time. Accepted by the
-    schema; the floor stays indeterminate until the standby model is released."""
+    """The WP-SITE-05 seam: the duration is the standby plant's handover time.
+
+    ``standby_ref`` is the content hash of the `gridq.adequacy.onsite.OnsiteGenerationModel` it
+    derives from; the floor is sized when `size_floor` is given that model, and stays
+    indeterminate (with an ask) without it."""
 
     kind: Literal["derived_from_standby"]
     standby_ref: NonEmptyStr
@@ -183,8 +186,9 @@ def missing_requirement_asks(req: AutonomyRequirement) -> tuple[tuple[str, Dossi
             (
                 "duration",
                 ask(
-                    "Standby-plant handover time: the standby model (WP-SITE-05) is not released; "
-                    "state the autonomy duration in seconds instead",
+                    "Standby-plant handover time: supply the on-site generation model "
+                    "(WP-SITE-05 onsite_generation_model) whose content hash the requirement "
+                    "names, or state the autonomy duration in seconds instead",
                     site_id=req.site_id,
                     holder=holder,
                 ),

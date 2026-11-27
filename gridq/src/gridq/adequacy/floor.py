@@ -9,6 +9,13 @@ over the same windows, rounded up. A floor above usable energy, or a reservation
 discharge rating, is ``infeasible``, never clamped. Any unknown input leaves the policy
 ``indeterminate`` with its data asks.
 
+**Standby handover (WP-SITE-05, D-NEW-SITE05-5).** A requirement whose duration derives from the
+standby plant is sized when `size_floor` is given that plant's `OnsiteGenerationModel` (the
+requirement's ``standby_ref`` is the model's content hash; any other model raises). The window is
+detection + the first start time at which the units started, less the k largest, carry the peak
+protected load + transfer. The floor then covers the handover only, never endurance; the statement
+says so (``gridq.resilience_floor_statement/1.1.0``). Run hours and fuel do not enter the handover.
+
 **Sign-off (D173).** The signed document *is* the floor statement: the policy renders a
 canonical byte string (`render_floor_statement`) and a ``critical_facilities_signoff`` (IC-4,
 existing since 1.0.0, issuer host or customer) binds only if its ``document_hash`` equals the
@@ -44,6 +51,7 @@ from gridq.adequacy.inputs import (
     SIZING_FIELDS,
     AutonomyRequirement,
     BessParameters,
+    DerivedFromStandby,
     EnsembleMaximum,
     ModelledSeries,
     OneWay,
@@ -57,6 +65,7 @@ from gridq.adequacy.inputs import (
     missing_requirement_asks,
 )
 from gridq.adequacy.load import MINUTES_PER_DAY, LoadIdentity, LoadSource
+from gridq.adequacy.onsite import AllStart, LargestUnitsOut, OnsiteGenerationModel
 from gridq.contracts._base import (
     ContractModel,
     IsoDate,
@@ -94,11 +103,15 @@ __all__ = [
     "FloorApproval",
     "FloorPartition",
     "FloorStatement",
+    "FloorStatementV1_1",
+    "HANDOVER_NOTE",
+    "Handover",
     "Indeterminate",
     "Infeasible",
     "ResilienceFloorPolicy",
     "ResilienceTerms",
     "Sized",
+    "StandbyDerivation",
     "UnsignedReason",
     "Unsigned",
     "admit_floor_signoff",
@@ -111,6 +124,11 @@ __all__ = [
 
 POLICY_SCHEMA: Final = "gridq.adequacy.resilience_floor_policy"
 STATEMENT_FORMAT: Final = "gridq.resilience_floor_statement/1.0.0"
+STATEMENT_FORMAT_V1_1: Final = "gridq.resilience_floor_statement/1.1.0"
+HANDOVER_NOTE: Final = (
+    "This floor covers the handover to standby generation only, not endurance: it is sized for "
+    "detection, the standby start and the load transfer."
+)
 DECLARATION: Final = (
     "This resilience reserve is a hard floor: it is never available to markets and no dispatch "
     "may take the battery below it."
@@ -233,6 +251,50 @@ class Derivation(ContractModel):
     flags: tuple[NonEmptyStr, ...]
 
 
+class Handover(ContractModel):
+    """How a standby-derived window was set (D-NEW-SITE05-5): detection + carry start + transfer."""
+
+    standby_model_hash: Sha256
+    #: The peak protected load the started units must carry, W.
+    peak_protected_w: NonNegInt
+    contingency_k: NonNegInt
+    counted_units: tuple[NonEmptyStr, ...]
+    #: Units left out because their rating or start time is unknown (each has an ask).
+    excluded_units: tuple[NonEmptyStr, ...]
+    #: The first start time at which the counted units, less the k largest, carry the peak.
+    carry_start_s: NonNegInt
+    detection_s: NonNegInt
+    transfer_s: NonNegInt
+    duration_s: NonNegInt
+
+    @model_validator(mode="after")
+    def _sum(self) -> Handover:
+        if self.duration_s != self.detection_s + self.carry_start_s + self.transfer_s:
+            raise ValueError("the handover is detection + carry start + transfer")
+        return self
+
+
+class StandbyDerivation(ContractModel):
+    """A `Derivation` whose window is the standby handover. Standalone (not a subclass), so a
+    1.0.0 policy's bytes never change."""
+
+    window_seconds: NonNegInt
+    window_minutes: NonNegInt
+    statistic: EnsembleMaximum | StatedQuantile = Field(discriminator="kind")
+    eta_used: ExactRational
+    eta_is_bound: bool
+    margin: StatedMargin | NotApplicable = Field(discriminator="kind")
+    excluded_tail_starts: NonNegInt
+    flags: tuple[NonEmptyStr, ...]
+    handover: Handover
+
+    @model_validator(mode="after")
+    def _window(self) -> StandbyDerivation:
+        if self.window_seconds != self.handover.duration_s:
+            raise ValueError("the window is the handover duration")
+        return self
+
+
 class ResilienceFloorPolicy(ContractModel):
     """The floor, how it was derived, and what is missing. Carries no evidence: the sign-off binds
     to the bytes of `render_floor_statement`, which include this policy's hash."""
@@ -246,7 +308,7 @@ class ResilienceFloorPolicy(ContractModel):
     load: LoadIdentity | NotApplicable = Field(discriminator="kind")
     partition: FloorPartition
     state: Sized | Indeterminate | Infeasible = Field(discriminator="kind")
-    derivation: Derivation | NotApplicable
+    derivation: Derivation | StandbyDerivation | NotApplicable
     data_requests: tuple[DossierAsk, ...]
 
     @model_validator(mode="after")
@@ -327,8 +389,12 @@ def size_floor(
     partition: FloorPartition,
     *,
     load: LoadSource | NotApplicable,
+    standby: OnsiteGenerationModel | None = None,
 ) -> ResilienceFloorPolicy:
-    """Size the resilience floor from the autonomy requirement (D172). Pure."""
+    """Size the resilience floor from the autonomy requirement (D172). Pure.
+
+    ``standby`` (WP-SITE-05) is the standby plant a ``derived_from_standby`` duration names; without
+    it such a duration stays indeterminate, exactly as before."""
     if requirement.site_id != bess.site_id:
         raise ValueError("the requirement and the BESS parameters name different sites")
     identity = load.identity if isinstance(load, LoadSource) else load
@@ -342,6 +408,26 @@ def size_floor(
     asks = list(missing_requirement_asks(requirement)) + list(
         missing_bess_asks(bess, SIZING_FIELDS)
     )
+    derived = isinstance(requirement.duration, DerivedFromStandby)
+    if standby is not None:
+        if not isinstance(requirement.duration, DerivedFromStandby):
+            raise ValueError("a standby model is given but the duration does not derive from it")
+        if standby.content_hash() != requirement.duration.standby_ref:
+            raise ValueError("the standby model is not the one the requirement names")
+        if standby.site_id != requirement.site_id:
+            raise ValueError("the standby model and the requirement name different sites")
+        asks = [(name, a) for name, a in asks if name != "duration"]
+        if requirement.coverage == "full_outage_autonomy":
+            asks.append(
+                (
+                    "coverage",
+                    ask(
+                        "The duration derives from the standby handover, but the coverage stated "
+                        "is full outage autonomy: state ride-through to standby, or a duration",
+                        site_id=requirement.site_id,
+                    ),
+                )
+            )
     pl = requirement.protected_load
     if isinstance(pl, ModelledSeries) and not isinstance(load, LoadSource):
         asks.append(
@@ -357,7 +443,7 @@ def size_floor(
 
     def policy(
         state: Sized | Indeterminate | Infeasible,
-        derivation: Derivation | NotApplicable,
+        derivation: Derivation | StandbyDerivation | NotApplicable,
         extra: list[DossierAsk],
     ) -> ResilienceFloorPolicy:
         reqs = {a.ask_id: a for _, a in asks} | {a.ask_id: a for a in extra}
@@ -373,18 +459,29 @@ def size_floor(
             data_requests=tuple(reqs[k] for k in sorted(reqs)),
         )
 
+    handover: Handover | None = None
+    standby_open: list[DossierAsk] = []
+    if derived and standby is not None and not asks:
+        assert isinstance(pl, StatedKw | ModelledSeries)
+        handover, more, standby_open = _handover(standby, pl, load, requirement.site_id)
+        asks.extend(more)
+
     if asks:
         missing = tuple(sorted({name for name, _ in asks}))
         return policy(Indeterminate(kind="indeterminate", missing=missing), _na_derivation(), [])
 
-    assert isinstance(requirement.duration, StatedDuration)
+    if handover is not None:
+        duration_s = handover.duration_s
+    else:
+        assert isinstance(requirement.duration, StatedDuration)
+        duration_s = requirement.duration.seconds
     assert isinstance(requirement.statistic, EnsembleMaximum | StatedQuantile)
     assert not isinstance(requirement.margin, Unknown)
     assert isinstance(bess.discharge_efficiency, OneWay | RoundTripOnly)
     assert isinstance(bess.usable_energy_kwh, int) and isinstance(bess.discharge_rating_kw, int)
     eta = efficiency_value(bess.discharge_efficiency)
     flags: set[str] = set()
-    extra: list[DossierAsk] = []
+    extra: list[DossierAsk] = list(standby_open)
     if isinstance(bess.discharge_efficiency, RoundTripOnly):
         flags.add("discharge_efficiency_bound")
         extra.append(
@@ -403,7 +500,7 @@ def size_floor(
                 site_id=bess.site_id,
             )
         )
-    n = -(-requirement.duration.seconds // 60)
+    n = max(1, -(-duration_s // 60))
     n_cells = len(partition.cell_ids)
     cell_e = [-1] * n_cells  # W x min; -1 = no assessed start
     cell_p = [-1] * n_cells  # W
@@ -446,15 +543,20 @@ def size_floor(
             )
         )
     known = [c for c in cells if isinstance(c.floor_kwh, int)]
-    derivation = Derivation(
-        window_seconds=requirement.duration.seconds,
-        window_minutes=n,
-        statistic=requirement.statistic,
-        eta_used=ExactRational.of(eta),
-        eta_is_bound=isinstance(bess.discharge_efficiency, RoundTripOnly),
-        margin=requirement.margin,
-        excluded_tail_starts=excluded,
-        flags=tuple(sorted(flags)),
+    common = {
+        "window_seconds": duration_s,
+        "window_minutes": n,
+        "statistic": requirement.statistic,
+        "eta_used": ExactRational.of(eta),
+        "eta_is_bound": isinstance(bess.discharge_efficiency, RoundTripOnly),
+        "margin": requirement.margin,
+        "excluded_tail_starts": excluded,
+        "flags": tuple(sorted(flags)),
+    }
+    derivation: Derivation | StandbyDerivation = (
+        StandbyDerivation(**common, handover=handover)  # type: ignore[arg-type]
+        if handover is not None
+        else Derivation(**common)  # type: ignore[arg-type]
     )
     if not known:
         return policy(
@@ -509,6 +611,117 @@ def size_floor(
         derivation,
         extra,
     )
+
+
+def _peak_protected_w(pl: ModelledSeries, load: LoadSource) -> int:
+    """The largest protected load over every draw and minute of the horizon, W (rounded up)."""
+    ident = load.identity
+    total = (ident.horizon_end - ident.horizon_start).days * MINUTES_PER_DAY
+    frac = pl.fraction.as_fraction()
+    best = 0
+    for c0 in range(0, total, _CHUNK_MIN):
+        fac, it = load.minutes(c0, min(total, c0 + _CHUNK_MIN))
+        p = _protected_w(it if pl.basis == "it" else fac, frac)
+        best = max(best, int(p.max()))
+    return best
+
+
+def _handover(
+    model: OnsiteGenerationModel,
+    pl: StatedKw | ModelledSeries,
+    load: LoadSource | NotApplicable,
+    site: str,
+) -> tuple[Handover | None, list[tuple[str, DossierAsk]], list[DossierAsk]]:
+    """The standby handover (D-NEW-SITE05-5, -6 (e)), or the asks that block it; and the asks
+    that stay open without blocking (units left out for an unknown rating or start time)."""
+    from gridq.contracts._base import Unknown as _Unknown
+
+    asks: list[tuple[str, DossierAsk]] = []
+    holder = AskHolder.HOST if model.declared_by.role == "host" else AskHolder.CUSTOMER
+    counted: list[tuple[int, int, str]] = []  # (start s, rated kW, unit)
+    excluded: list[str] = []
+    for g in model.gensets:
+        if isinstance(g.rated_kw, int) and isinstance(g.start_to_load_s, int):
+            counted.append((g.start_to_load_s, g.rated_kw, g.unit_id))
+            continue
+        excluded.append(g.unit_id)
+        asks.append(
+            (
+                f"standby.{g.unit_id}",
+                ask(
+                    f"State the rated output (kW) and start-to-load time (s) of standby genset "
+                    f"{g.unit_id}; it is left out of the handover until both are stated",
+                    site_id=site,
+                    holder=holder,
+                    closes_with=(EvidenceType.TECHNICAL_REPORT, EvidenceType.COMMISSIONING_RECORD),
+                ),
+            )
+        )
+    sc = model.start_contingency
+    k = sc.k if isinstance(sc, LargestUnitsOut) else 0 if isinstance(sc, AllStart) else None
+    blocking: list[tuple[str, DossierAsk]] = []
+    for name, value, text in (
+        (
+            "start_contingency",
+            k,
+            "State the standby start contingency: every unit starts, or the "
+            "k largest are assumed not to",
+        ),
+        (
+            "detection_s",
+            model.detection_s,
+            "State the time (seconds) from loss of supply to the standby call",
+        ),
+        (
+            "transfer_s",
+            model.transfer_s,
+            "State the time (seconds) from a set on load to the protected load transferred",
+        ),
+    ):
+        if value is None or isinstance(value, _Unknown | NotApplicable):
+            blocking.append((name, ask(text, site_id=site, holder=holder)))
+    if blocking:
+        return None, blocking + asks, []
+    assert k is not None
+    assert isinstance(model.detection_s, int) and isinstance(model.transfer_s, int)
+    if isinstance(pl, StatedKw):
+        peak_w = pl.kw * 1000
+    elif isinstance(load, LoadSource):
+        peak_w = _peak_protected_w(pl, load)
+    else:  # pragma: no cover - the load ask is already on the policy
+        return None, asks, []
+    t_star: int | None = None
+    for t in sorted({s for s, _, _ in counted}):
+        ratings = sorted((r for s, r, _ in counted if s <= t), reverse=True)
+        if (sum(ratings) - sum(ratings[:k])) * 1000 >= peak_w:
+            t_star = t
+            break
+    if t_star is None:
+        asks.append(
+            (
+                "standby_capacity",
+                ask(
+                    f"The standby units counted ({', '.join(u for _, _, u in counted) or 'none'}) "
+                    f"less the {k} largest cannot carry the peak protected load "
+                    f"({-(-peak_w // 1000)} kW): state further standby plant, or a duration",
+                    site_id=site,
+                    holder=holder,
+                ),
+            )
+        )
+        return None, asks, []
+    h = Handover(
+        standby_model_hash=model.content_hash(),
+        peak_protected_w=peak_w,
+        contingency_k=k,
+        counted_units=tuple(sorted(u for _, _, u in counted)),
+        excluded_units=tuple(sorted(excluded)),
+        carry_start_s=t_star,
+        detection_s=model.detection_s,
+        transfer_s=model.transfer_s,
+        duration_s=model.detection_s + t_star + model.transfer_s,
+    )
+    return h, [], [a for _, a in asks]
 
 
 def _na_derivation() -> NotApplicable:
@@ -618,11 +831,52 @@ class FloorStatement(ContractModel):
     ]
 
 
+class FloorStatementV1_1(ContractModel):
+    """``1.1.0``: a standby-derived floor. The 1.0.0 fields, the handover and the fixed note that
+    the floor covers the handover only, not endurance."""
+
+    format: Literal["gridq.resilience_floor_statement/1.1.0"]
+    site_id: NonEmptyStr
+    record_class: RecordClass
+    flat_floor_kwh: NonNegInt
+    fail_safe_floor_kwh: NonNegInt
+    flat_resilience_kw: NonNegInt
+    cells: tuple[CellFloor, ...]
+    requirement: AutonomyRequirement
+    policy_hash: Sha256
+    declaration: Literal[
+        "This resilience reserve is a hard floor: it is never available to markets and no "
+        "dispatch may take the battery below it."
+    ]
+    handover: Handover
+    handover_note: Literal[
+        "This floor covers the handover to standby generation only, not endurance: it is sized "
+        "for detection, the standby start and the load transfer."
+    ]
+
+
 def render_floor_statement(policy: ResilienceFloorPolicy) -> bytes:
-    """The canonical bytes to sign (UTF-8 canonical JSON, no trailing newline). Sized only."""
+    """The canonical bytes to sign (UTF-8 canonical JSON, no trailing newline). Sized only.
+    A standby-derived policy renders ``1.1.0``; every other policy ``1.0.0``, unchanged."""
     if not isinstance(policy.state, Sized):
         raise ValueError(f"the policy is {policy.state.kind}: there is no floor to sign")
     s = policy.state
+    if isinstance(policy.derivation, StandbyDerivation):
+        v11 = FloorStatementV1_1(
+            format=STATEMENT_FORMAT_V1_1,
+            site_id=policy.site_id,
+            record_class=policy.record_class,
+            flat_floor_kwh=s.flat_floor_kwh,
+            fail_safe_floor_kwh=s.fail_safe_floor_kwh,
+            flat_resilience_kw=s.flat_resilience_kw,
+            cells=s.cells,
+            requirement=policy.requirement,
+            policy_hash=policy.content_hash(),
+            declaration=DECLARATION,
+            handover=policy.derivation.handover,
+            handover_note=HANDOVER_NOTE,
+        )
+        return canonical_json(v11).encode("utf-8")
     stmt = FloorStatement(
         format=STATEMENT_FORMAT,
         site_id=policy.site_id,
