@@ -1294,4 +1294,11 @@ Append-only. One entry per work session, newest at the bottom. Append via `gridq
 - **Remaining tasks:** Next: merge wp-size02-library (IC-12 3.2.0), wp-uw05-tiers (IC-12 3.3.0).
 - **Warnings for next person:** None new.
 
+### 2026-11-27 12:36 — Olly
+- **Summary:** WP-THERM-05 (neura/wp-therm05, 19e5fa3): thermaflex_dc_controller with the IT-safety flexibility objective mode beside the comfort/cost mode. Clean-room (ADR-D7 (c)); no ThermaFlex code, documents or parameters. Thermal limits are hard constraints via a forward-invariant safe-set filter (exact one-minute path) under every flex instruction, forced event, fault and transition; comfort/cost mode passes the policy command through unchanged (golden-pinned trajectories). IC-11 1.1.0 unchanged. Placeholders D-NEW-THERM05-1..5 for the integrator. Timed alone under the lock: controller_safety 44.49 s, controller_mutations 32.41 s, comfort_cost 2.42 s, transitions 0.32 s, admission 0.29 s; all stay in the fast tier.
+- **Files changed:** src/gridq/thermal/{controller,safety_filter,comfort_cost,__init__}.py, tests/thermal/test_thermal_controller_{safety,admission,comfort_cost,transitions,mutations}.py, tests/thermal/_thermal_{closed_loop,harness}.py, docs/{decisions,changelog}.md
+- **Tests run:** fast tier 6751 passed, 190 skipped, 0 failed; tests/thermal and tests/governance 205 passed; five new modules 66 passed alone (81.7 s); 5 mutants all caught; python -m gridq.contracts --check exit 0; ruff check and ruff format --check clean on touched files; mypy 278 files clean.
+- **Remaining tasks:** Person-only: AWAIT-19 (fidelity to ThermaFlex's own comfort/cost mode, Karim / GridQ Ltd); model mismatch and sensor noise (WP-THERM-08); IC-11 late-receipt reason and revocation message (next IC-11 version, WP-THERM-12); event record on the wire (WP-THERM-07).
+- **Warnings for next person:** Fixtures are SYNTHETIC. Residual: a fault of a kept unit during a switch_off lockout is outside the guarantee. Run the controller mutation module only through serial.py.
+
 <!-- HANDOFF_ENTRIES:END -->
